@@ -1,4 +1,6 @@
 import { NavLink } from "react-router-dom";
+import { RootState } from "../../../store";
+import { useSelector } from "react-redux";
 
 export type SideNavItem = {
   icon: string;
@@ -12,17 +14,13 @@ type SideNavBrand = {
   to?: string;
 };
 
-type SideNavCta = {
-  label: string;
-  onClick?: () => void;
-};
+
 
 type SideNavBarProps = {
   variant?: "internal" | "candidate";
   items?: SideNavItem[];
   bottomItems?: SideNavItem[];
   brand?: SideNavBrand;
-  cta?: SideNavCta | null;
   showUserCard?: boolean;
   userName?: string;
   userRole?: string;
@@ -34,29 +32,26 @@ type SideNavBarProps = {
 
 const internalItems: SideNavItem[] = [
   { icon: "dashboard", label: "Dashboard", to: "/internal/dashboard" },
-  { icon: "work", label: "Jobs", to: "/internal/jobs" },
+  { icon: "work", label: "Jobs", to: "/jobs" },
   { icon: "description", label: "Applications", to: "/internal/applications" },
   { icon: "analytics", label: "Analytics", to: "/internal/analytics" },
 ];
 
 const internalBottomItems: SideNavItem[] = [
-  { icon: "settings", label: "Settings", to: "/internal/settings" },
   { icon: "help", label: "Support", to: "/internal/support" },
 ];
 
 const candidateItems: SideNavItem[] = [
   { icon: "dashboard", label: "Dashboard", to: "/candidate/dashboard" },
-  { icon: "work", label: "Jobs", to: "/candidate/jobs" },
+  { icon: "work", label: "Jobs", to: "/jobs" },
   {
     icon: "description",
     label: "My Applications",
     to: "/candidate/my-applications",
   },
-  { icon: "analytics", label: "Analytics", to: "/candidate/dashboard#analytics" },
 ];
 
 const candidateBottomItems: SideNavItem[] = [
-  { icon: "settings", label: "Settings", to: "/candidate/settings" },
   { icon: "help", label: "Support", to: "/candidate/support" },
 ];
 
@@ -71,47 +66,36 @@ function getInitials(name: string) {
 }
 
 function SideNavBar({
-  variant = "internal",
-  items,
-  bottomItems,
-  brand,
-  cta,
   showUserCard = true,
-  userName,
-  userRole,
   userAvatarSrc,
-  initials,
 }: SideNavBarProps) {
-  const resolvedItems =
-    items ?? (variant === "candidate" ? candidateItems : internalItems);
 
-  const resolvedBottomItems =
-    bottomItems ??
-    (variant === "candidate" ? candidateBottomItems : internalBottomItems);
+  const authState = useSelector(
+    (state: RootState) => state.auth
+  );
+
+      console.log("SideNavBar before with variant:", authState.variant );
+
+    const resolvedVariant = authState?.variant ?? "candidate";
+
+    console.log("SideNavBar rendered with variant:", resolvedVariant);
+
+
+  const resolvedItems =resolvedVariant === "candidate" ? candidateItems : internalItems;
+
+  const resolvedBottomItems = resolvedVariant === "candidate" ? candidateBottomItems : internalBottomItems;
 
   const resolvedBrand = {
-    title: brand?.title ?? "RecruitPro",
-    subtitle:
-      brand?.subtitle ??
-      (variant === "candidate" ? "Candidate Portal" : "Internal Portal"),
-    to:
-      brand?.to ?? (variant === "candidate" ? "/candidate" : "/internal/jobs"),
+    title: "RecruitPro",
+    subtitle: resolvedVariant === "candidate" ? "Candidate Portal" : "Internal Portal",
+    to: resolvedVariant === "candidate" ? "/candidate" : "/internal/jobs",
   };
 
-  const resolvedUserName =
-    userName ?? (variant === "candidate" ? "Alex Thompson" : "Alex Rivera");
-  const resolvedUserRole =
-    userRole ??
-    (variant === "candidate" ? "Senior Candidate" : "Senior Recruiter");
+  const resolvedUserName = resolvedVariant === "candidate" ? "Alex Thompson" : "Alex Rivera";
+  const resolvedUserRole = resolvedVariant === "candidate" ? "Senior Candidate" : "Senior Recruiter";
+  const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
-  const resolvedInitials =
-    initials ??
-    (resolvedUserName ? getInitials(resolvedUserName) : "");
-
-  const resolvedCta =
-    cta !== undefined
-      ? cta
-      : variant === "internal"
+  const resolvedCta = resolvedVariant === "internal"
         ? { label: "Post New Job" }
         : null;
 
@@ -148,6 +132,8 @@ function SideNavBar({
         : "text-[#c8c6c5] hover:text-white"
     }`;
 
+  console.log("show:", showUserCard);
+
   return (
     <aside className={shellClassName}>
       <div className="px-6 py-8">
@@ -178,7 +164,9 @@ function SideNavBar({
           <button
             type="button"
             className="mb-6 w-full rounded-none bg-[#e31b23] px-4 py-4 text-[16px] font-semibold text-white transition-colors hover:brightness-110"
-            onClick={resolvedCta.onClick}
+            onClick={() => {
+              // Placeholder for CTA action, e.g., open a modal or navigate
+            }}
           >
             {resolvedCta.label}
           </button>

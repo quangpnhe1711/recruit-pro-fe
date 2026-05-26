@@ -1,9 +1,6 @@
 import Footer from "../../common/components/layout/Footer";
 import BottomNavBar from "../../common/components/layout/BottomNavBar";
 import SideNavBar from "../../common/components/layout/SideNavBar";
-import MockJsonButton from "../../common/components/MockJsonButton";
-import CandidateAvatarMenu from "./CandidateAvatarMenu";
-import { Link } from "react-router-dom";
 import AppHeader from "../../common/components/layout/AppHeader";
 
 type ApplicationItem = {
@@ -63,11 +60,7 @@ const summaryCards = [
 function MyApplicationScreen() {
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar
-        variant="candidate"
-        userName="Alex Thompson"
-        userRole="Senior Candidate"
-      />
+      <SideNavBar showUserCard={true} />
 
       <div className="flex min-h-screen flex-col lg:pl-64">
         <AppHeader />

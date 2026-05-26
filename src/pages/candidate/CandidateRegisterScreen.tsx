@@ -1,154 +1,162 @@
-import { useMemo, useState, type ChangeEvent } from 'react'
-import { Link } from 'react-router-dom'
-import MockJsonButton from '../../common/components/MockJsonButton'
+import { useMemo, useState, type ChangeEvent } from "react";
+import { Link } from "react-router-dom";
+import MockJsonButton from "../../common/components/MockJsonButton";
 
 type RegisterValues = {
-  fullname: string
-  email: string
-  password: string
-  phone: string
-  position: string
-  experience: string
-  education: string
-  address: string
-  bio: string
-  resume: File | null
-  github: string
-  linkedin: string
-  [key: string]: string | File | null
-}
+  fullname: string;
+  email: string;
+  password: string;
+  phone: string;
+  position: string;
+  experience: string;
+  education: string;
+  address: string;
+  bio: string;
+  resume: File | null;
+  github: string;
+  linkedin: string;
+  [key: string]: string | File | null;
+};
 
-type ErrorMap = Record<string, string | undefined>
+type ErrorMap = Record<string, string | undefined>;
 
 const steps = [
   {
-    key: 'account',
-    label: 'Account',
-    title: 'Create your account',
-    desc: 'Enter your basic information to get started.',
-    sectionTitle: 'Account Credentials',
-    sectionIcon: 'badge',
+    key: "account",
+    label: "Account",
+    title: "Create your account",
+    desc: "Enter your basic information to get started.",
+    sectionTitle: "Account Credentials",
+    sectionIcon: "badge",
   },
   {
-    key: 'professional',
-    label: 'Professional',
-    title: 'Professional Details',
-    desc: 'Tell us more about your career background.',
-    sectionTitle: 'Professional Profile',
-    sectionIcon: 'work',
+    key: "professional",
+    label: "Professional",
+    title: "Professional Details",
+    desc: "Tell us more about your career background.",
+    sectionTitle: "Professional Profile",
+    sectionIcon: "work",
   },
   {
-    key: 'links',
-    label: 'Links',
-    title: 'Links & Resume',
-    desc: 'Finalize your profile with links and documents.',
-    sectionTitle: 'Links & Resume',
-    sectionIcon: 'attachment',
+    key: "links",
+    label: "Links",
+    title: "Links & Resume",
+    desc: "Finalize your profile with links and documents.",
+    sectionTitle: "Links & Resume",
+    sectionIcon: "attachment",
   },
-]
+];
 
 const initialValues: RegisterValues = {
-  fullname: '',
-  email: '',
-  password: '',
-  phone: '',
-  position: '',
-  experience: '',
-  education: '',
-  address: '',
-  bio: '',
+  fullname: "",
+  email: "",
+  password: "",
+  phone: "",
+  position: "",
+  experience: "",
+  education: "",
+  address: "",
+  bio: "",
   resume: null,
-  github: '',
-  linkedin: '',
-}
+  github: "",
+  linkedin: "",
+};
 
 const requiredByStep = {
-  1: ['fullname', 'email', 'password'],
+  1: ["fullname", "email", "password"],
   2: [],
   3: [],
-}
+};
 
 const baseInputClass =
-  'w-full h-11 px-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#b90014] focus:border-2'
+  "w-full h-11 px-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#b90014] focus:border-2";
 
 const baseTextareaClass =
-  'w-full p-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] resize-none focus:outline-none focus:border-[#b90014] focus:border-2'
+  "w-full p-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] resize-none focus:outline-none focus:border-[#b90014] focus:border-2";
 
 function CandidateRegisterScreen() {
-  const totalSteps = steps.length
-  const [currentStep, setCurrentStep] = useState(1)
-  const [values, setValues] = useState<RegisterValues>(initialValues)
-  const [errors, setErrors] = useState<ErrorMap>({})
-  const [submitState, setSubmitState] = useState('idle')
+  const totalSteps = steps.length;
+  const [currentStep, setCurrentStep] = useState(1);
+  const [values, setValues] = useState<RegisterValues>(initialValues);
+  const [errors, setErrors] = useState<ErrorMap>({});
+  const [submitState, setSubmitState] = useState("idle");
 
-  const stepConfig = steps[currentStep - 1]
+  const stepConfig = steps[currentStep - 1];
   const stepIndicatorText = useMemo(() => {
-    return `Step ${currentStep} of ${totalSteps}: ${stepConfig.label}`
-  }, [currentStep, totalSteps, stepConfig.label])
+    return `Step ${currentStep} of ${totalSteps}: ${stepConfig.label}`;
+  }, [currentStep, totalSteps, stepConfig.label]);
 
   const setField =
     (name: keyof RegisterValues) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value =
-        name === 'resume'
-          ? (e.target as HTMLInputElement).files?.[0] ?? null
-          : e.target.value
+        name === "resume"
+          ? ((e.target as HTMLInputElement).files?.[0] ?? null)
+          : e.target.value;
 
-      setValues((prev) => ({ ...prev, [name]: value }))
-      setErrors((prev) => ({ ...prev, [name]: undefined }))
-    }
+      setValues((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    };
 
   const validateCurrentStep = () => {
-    const requiredFields = (requiredByStep as Record<number, string[]>)[currentStep] || []
-    const nextErrors: ErrorMap = {}
+    const requiredFields =
+      (requiredByStep as Record<number, string[]>)[currentStep] || [];
+    const nextErrors: ErrorMap = {};
 
     for (const field of requiredFields) {
-      if (!String(values[field] ?? '').trim()) nextErrors[field] = 'Required'
+      if (!String(values[field] ?? "").trim()) nextErrors[field] = "Required";
     }
 
-    setErrors((prev) => ({ ...prev, ...nextErrors }))
-    return Object.keys(nextErrors).length === 0
-  }
+    setErrors((prev) => ({ ...prev, ...nextErrors }));
+    return Object.keys(nextErrors).length === 0;
+  };
 
   const handleNext = () => {
-    if (!validateCurrentStep()) return
-    setCurrentStep((s) => Math.min(totalSteps, s + 1))
-  }
+    if (!validateCurrentStep()) return;
+    setCurrentStep((s) => Math.min(totalSteps, s + 1));
+  };
 
   const handlePrev = () => {
-    setCurrentStep((s) => Math.max(1, s - 1))
-  }
+    setCurrentStep((s) => Math.max(1, s - 1));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateCurrentStep()) return
+    e.preventDefault();
+    if (!validateCurrentStep()) return;
 
-    setSubmitState('processing')
+    const payload = {
+      screen: "CandidateRegisterScreen",
+      currentStep,
+      values,
+      submitState,
+    };
+
+    console.log("Submitting registration:", payload);
+
+    setSubmitState("processing");
     window.setTimeout(() => {
-      setSubmitState('success')
-      window.setTimeout(() => setSubmitState('idle'), 2000)
-    }, 1200)
-  }
+      setSubmitState("success");
+      window.setTimeout(() => setSubmitState("idle"), 2000);
+    }, 1200);
+  };
 
   const dotClass = (index: number) => {
-    const active = index <= currentStep
+    const active = index <= currentStep;
     return [
-      'w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all',
+      "w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all",
       active
-        ? 'border-[#b90014] bg-[#b90014] text-white'
-        : 'border-[#e2e2e2] text-[#5f5e5e]',
-    ].join(' ')
-  }
+        ? "border-[#b90014] bg-[#b90014] text-white"
+        : "border-[#e2e2e2] text-[#5f5e5e]",
+    ].join(" ");
+  };
 
   const labelClass = (index) =>
-    index <= currentStep
-      ? 'text-[#1a1c1c]'
-      : 'text-[#5f5e5e]'
+    index <= currentStep ? "text-[#1a1c1c]" : "text-[#5f5e5e]";
 
   const lineClass = (index) =>
-    index < currentStep ? 'bg-[#b90014]' : 'bg-[#e2e2e2]'
+    index < currentStep ? "bg-[#b90014]" : "bg-[#e2e2e2]";
 
-  const errorBorder = (name) => (errors[name] ? '!border-[#ba1a1a]' : '')
+  const errorBorder = (name) => (errors[name] ? "!border-[#ba1a1a]" : "");
 
   return (
     <main className="flex min-h-screen w-full bg-white text-[#1a1c1c]">
@@ -165,7 +173,8 @@ function CandidateRegisterScreen() {
               rocket_launch
             </span>
             <span className="text-[20px] leading-7 font-semibold text-white tracking-tighter uppercase">
-              RecruitPro <span className="font-normal opacity-60">Internal</span>
+              RecruitPro{" "}
+              <span className="font-normal opacity-60">Internal</span>
             </span>
           </div>
 
@@ -233,20 +242,11 @@ function CandidateRegisterScreen() {
             className="flex items-center gap-1 text-[#5f5e5e] hover:text-[#b90014] transition-colors text-[12px] tracking-[0.05em] font-semibold"
             to="/candidate"
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[18px]">
+              arrow_back
+            </span>
             Back to Home
           </Link>
-
-          <MockJsonButton
-            className="hidden md:inline-flex"
-            label="Test Mock JSON"
-            payload={{
-              screen: 'CandidateRegisterScreen',
-              currentStep,
-              values,
-              submitState,
-            }}
-          />
 
           <div className="hidden md:block">
             <span className="text-[14px] leading-5 text-[#5f5e5e]">
@@ -260,7 +260,7 @@ function CandidateRegisterScreen() {
             {/* Progress */}
             <div className="mb-10 flex items-center justify-between">
               {steps.map((s, idx) => {
-                const index = idx + 1
+                const index = idx + 1;
                 return (
                   <div
                     key={s.key}
@@ -285,7 +285,7 @@ function CandidateRegisterScreen() {
                       />
                     ) : null}
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -317,17 +317,18 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="fullname"
                       >
-                        Full Name <span className="text-[#b90014] font-bold">*</span>
+                        Full Name{" "}
+                        <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
                         id="fullname"
                         name="fullname"
                         required
-                        className={`${baseInputClass} ${errorBorder('fullname')}`}
+                        className={`${baseInputClass} ${errorBorder("fullname")}`}
                         placeholder="Jane Doe"
                         type="text"
                         value={values.fullname}
-                        onChange={setField('fullname')}
+                        onChange={setField("fullname")}
                       />
                     </div>
 
@@ -336,18 +337,18 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="email"
                       >
-                        Email Address{' '}
+                        Email Address{" "}
                         <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
                         id="email"
                         name="email"
                         required
-                        className={`${baseInputClass} ${errorBorder('email')}`}
+                        className={`${baseInputClass} ${errorBorder("email")}`}
                         placeholder="jane@recruitpro.com"
                         type="email"
                         value={values.email}
-                        onChange={setField('email')}
+                        onChange={setField("email")}
                       />
                     </div>
 
@@ -356,17 +357,18 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="password"
                       >
-                        Password <span className="text-[#b90014] font-bold">*</span>
+                        Password{" "}
+                        <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
                         id="password"
                         name="password"
                         required
-                        className={`${baseInputClass} ${errorBorder('password')}`}
+                        className={`${baseInputClass} ${errorBorder("password")}`}
                         placeholder="••••••••"
                         type="password"
                         value={values.password}
-                        onChange={setField('password')}
+                        onChange={setField("password")}
                       />
                     </div>
 
@@ -385,7 +387,7 @@ function CandidateRegisterScreen() {
                         placeholder="(+84) 8123 45678"
                         type="tel"
                         value={values.phone}
-                        onChange={setField('phone')}
+                        onChange={setField("phone")}
                       />
                     </div>
                   </div>
@@ -419,7 +421,7 @@ function CandidateRegisterScreen() {
                         placeholder="Senior Talent Specialist"
                         type="text"
                         value={values.position}
-                        onChange={setField('position')}
+                        onChange={setField("position")}
                       />
                     </div>
 
@@ -437,7 +439,7 @@ function CandidateRegisterScreen() {
                         placeholder="5"
                         type="number"
                         value={values.experience}
-                        onChange={setField('experience')}
+                        onChange={setField("experience")}
                       />
                     </div>
                   </div>
@@ -456,7 +458,7 @@ function CandidateRegisterScreen() {
                       placeholder="List your degrees and institutions..."
                       rows={2}
                       value={values.education}
-                      onChange={setField('education')}
+                      onChange={setField("education")}
                     />
                   </div>
 
@@ -474,7 +476,7 @@ function CandidateRegisterScreen() {
                       placeholder="Street, City, State, ZIP..."
                       rows={2}
                       value={values.address}
-                      onChange={setField('address')}
+                      onChange={setField("address")}
                     />
                   </div>
 
@@ -492,7 +494,7 @@ function CandidateRegisterScreen() {
                       placeholder="Briefly describe your career goals and achievements..."
                       rows={4}
                       value={values.bio}
-                      onChange={setField('bio')}
+                      onChange={setField("bio")}
                     />
                   </div>
                 </div>
@@ -521,13 +523,13 @@ function CandidateRegisterScreen() {
                         id="resume"
                         name="resume"
                         type="file"
-                        onChange={setField('resume')}
+                        onChange={setField("resume")}
                       />
                       <span className="material-symbols-outlined text-[#5f5e5e] text-4xl mb-2 group-hover:text-[#b90014] transition-colors">
                         cloud_upload
                       </span>
                       <p className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c]">
-                        Drag and drop or{' '}
+                        Drag and drop or{" "}
                         <span className="text-[#b90014]">click to upload</span>
                       </p>
                       <p className="text-[10px] uppercase text-[#5f5e5e] tracking-[0.18em] mt-1">
@@ -535,7 +537,10 @@ function CandidateRegisterScreen() {
                       </p>
                       {values.resume ? (
                         <p className="mt-3 text-[12px] text-[#5f5e5e]">
-                          Selected: <span className="font-semibold">{values.resume.name}</span>
+                          Selected:{" "}
+                          <span className="font-semibold">
+                            {values.resume.name}
+                          </span>
                         </p>
                       ) : null}
                     </div>
@@ -560,7 +565,7 @@ function CandidateRegisterScreen() {
                           placeholder="github.com/username"
                           type="url"
                           value={values.github}
-                          onChange={setField('github')}
+                          onChange={setField("github")}
                         />
                       </div>
                     </div>
@@ -583,7 +588,7 @@ function CandidateRegisterScreen() {
                           placeholder="linkedin.com/in/username"
                           type="url"
                           value={values.linkedin}
-                          onChange={setField('linkedin')}
+                          onChange={setField("linkedin")}
                         />
                       </div>
                     </div>
@@ -597,58 +602,69 @@ function CandidateRegisterScreen() {
                   <button
                     type="button"
                     onClick={handlePrev}
-                    className={`${currentStep === 1 ? 'hidden' : ''
-                      } flex-1 h-14 border border-[#e2dfde] text-[#1a1c1c] text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f3f3f3] transition-all active:scale-[0.98]`}
+                    className={`${
+                      currentStep === 1 ? "hidden" : ""
+                    } flex-1 h-14 border border-[#e2dfde] text-[#1a1c1c] text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f3f3f3] transition-all active:scale-[0.98]`}
                   >
-                    <span className="material-symbols-outlined">arrow_back</span>
+                    <span className="material-symbols-outlined">
+                      arrow_back
+                    </span>
                     Previous
                   </button>
 
                   <button
                     type="button"
                     onClick={handleNext}
-                    className={`${currentStep === totalSteps ? 'hidden' : ''
-                      } flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10`}
+                    className={`${
+                      currentStep === totalSteps ? "hidden" : ""
+                    } flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10`}
                   >
                     Next Step
-                    <span className="material-symbols-outlined">arrow_forward</span>
+                    <span className="material-symbols-outlined">
+                      arrow_forward
+                    </span>
                   </button>
 
                   <button
                     type="submit"
-                    disabled={submitState === 'processing'}
-                    className={`${currentStep === totalSteps ? '' : 'hidden'
-                      } flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10 disabled:opacity-70`}
+                    disabled={submitState === "processing"}
+                    className={`${
+                      currentStep === totalSteps ? "" : "hidden"
+                    } flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10 disabled:opacity-70`}
                   >
-                    {submitState === 'processing' ? (
+                    {submitState === "processing" ? (
                       <>
                         <span className="material-symbols-outlined animate-spin">
                           progress_activity
                         </span>
                         Processing...
                       </>
-                    ) : submitState === 'success' ? (
+                    ) : submitState === "success" ? (
                       <>
-                        <span className="material-symbols-outlined">check_circle</span>
+                        <span className="material-symbols-outlined">
+                          check_circle
+                        </span>
                         Success!
                       </>
                     ) : (
                       <>
                         Create Account
-                        <span className="material-symbols-outlined">check_circle</span>
+                        <span className="material-symbols-outlined">
+                          check_circle
+                        </span>
                       </>
                     )}
                   </button>
                 </div>
 
                 <p className="text-center text-[14px] leading-5 text-[#5f5e5e]">
-                  Already have an account?{' '}
-                  <a
+                  Already have an account?{" "}
+                  <Link
                     className="text-[#1a1c1c] font-semibold underline hover:text-[#b90014] transition-colors"
-                    href="#"
+                    to="/candidate/login"
                   >
                     Login
-                  </a>
+                  </Link>
                 </p>
               </div>
             </form>
@@ -664,7 +680,7 @@ function CandidateRegisterScreen() {
         </div>
       </section>
     </main>
-  )
+  );
 }
 
-export default CandidateRegisterScreen
+export default CandidateRegisterScreen;

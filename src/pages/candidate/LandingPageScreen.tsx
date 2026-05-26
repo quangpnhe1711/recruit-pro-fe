@@ -178,13 +178,13 @@ function LandingPageScreen() {
                   without leaving the community you love.
                 </p>
               </div>
-              <a
+              <Link
                 className="text-[#b90014] font-bold flex items-center gap-2 hover:underline"
-                href="#"
+                to="/jobs"
               >
                 View All Jobs{' '}
                 <span className="material-symbols-outlined">arrow_forward</span>
-              </a>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

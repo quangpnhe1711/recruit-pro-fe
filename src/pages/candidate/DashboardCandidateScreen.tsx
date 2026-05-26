@@ -74,36 +74,13 @@ const recommendedJobs: RecommendedJob[] = [
 function DashboardCandidateScreen() {
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar
-        variant="internal"
-        brand={{ subtitle: "Internal Portal", to: "/candidate/dashboard" }}
-        items={[
-          { icon: "dashboard", label: "Dashboard", to: "/candidate/dashboard" },
-          { icon: "work", label: "Jobs", to: "/candidate/jobs" },
-          {
-            icon: "description",
-            label: "Applications",
-            to: "/candidate/my-applications",
-          },
-          {
-            icon: "analytics",
-            label: "Analytics",
-            to: "/candidate/dashboard#analytics",
-          },
-        ]}
-        bottomItems={[
-          { icon: "settings", label: "Settings", to: "/candidate/settings" },
-          { icon: "help", label: "Support", to: "/candidate/support" },
-        ]}
-        cta={{ label: "Post New Job" }}
-        showUserCard={false}
-      />
+      <SideNavBar/>
 
       <div className="flex min-h-screen flex-col lg:pl-64">
         <AppHeader
           searchPlaceholder="Search jobs, candidates..."
-          userName="Alex Thompson"
-          userRole="Senior Candidate"
+          userName = "Alex Rivera"
+          userRole = "Senior Recruiter"
           avatarSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDi8gQSTnAKzoLYLVDE3p6FrOCz9emlaZJkEjoP7yLKXy6iIwnvusaVic9JF-0RN39e7BSACaCmlF-wWjxH1LglReK9JM3cJgYMkSJM5TliZyHkNYEUudCoYDUutoEuxNGHN15jLmZMvANIrWyAd2xgemxuucIer96N0w1ij5ac2wXH-vEEn3aPIQVZAslh9KPNvpYJ01hQKk7kSH4KHXbKmVhNG7lh2bl-cKMv8pwJnoGPPSuqazPG3p-2Zifs3wQLGZdos4f0fw"
         />
 

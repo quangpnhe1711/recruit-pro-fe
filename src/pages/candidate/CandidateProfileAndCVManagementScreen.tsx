@@ -320,7 +320,7 @@ function CandidateProfileAndCVManagementScreen() {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar variant="candidate" />
+      <SideNavBar />
       <div className="flex min-h-screen flex-col lg:ml-64">
         {/* Header full width theo phần content */}
         <AppHeader />

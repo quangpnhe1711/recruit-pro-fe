@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import BottomNavBar from "../../common/components/layout/BottomNavBar";
 import Footer from "../../common/components/layout/Footer";
 import SideNavBar from "../../common/components/layout/SideNavBar";
-import MockJsonButton from "../../common/components/MockJsonButton";
 import AppHeader from "../../common/components/layout/AppHeader";
 
 type JobCard = {
@@ -72,7 +71,7 @@ const filterGroups = [
 function JobListingCandidateScreen() {
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar activeKey="jobs" />
+      <SideNavBar />
 
       <div className="flex min-h-screen flex-col lg:pl-64">
         <AppHeader />
@@ -193,7 +192,7 @@ function JobListingCandidateScreen() {
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
                 <div>
                   <h2 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] md:text-[32px] md:leading-10">
-                    Open Opportunities
+                    Your Opportunities
                   </h2>
                   <p className="text-[14px] text-[#5f5e5e]">
                     Found 42 relevant positions for your profile
@@ -206,15 +205,30 @@ function JobListingCandidateScreen() {
                   </Link>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                    Sort by:
-                  </span>
-                  <select className="border-b-2 border-[#e7bdb8] bg-transparent py-1 text-[12px] font-semibold outline-none focus:border-[#b90014]">
-                    <option>Newest First</option>
-                    <option>Salary High-Low</option>
-                    <option>Most Relevant</option>
-                  </select>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                  <div className="relative">
+                    <input
+                      className="w-[280px] border border-[#e2dfde] bg-white py-2 pl-10 pr-4 text-[14px] outline-none transition-colors focus:border-[#b90014]"
+                      placeholder="Search jobs..."
+                      type="text"
+                    />
+
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#5f5e5e]">
+                      search
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
+                      Sort by:
+                    </span>
+
+                    <select className="border-b-2 border-[#e7bdb8] bg-transparent py-1 text-[12px] font-semibold outline-none focus:border-[#b90014]">
+                      <option>Newest First</option>
+                      <option>Salary High-Low</option>
+                      <option>Most Relevant</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 

@@ -1,21 +1,21 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-type CandidateAvatarMenuItem = {
+type AvatarMenuItem = {
   label: string
   to: string
 }
 
-type CandidateAvatarMenuProps = {
+type AvatarMenuProps = {
   name: string
   role?: string
   avatarSrc?: string
   initials?: string
-  items: CandidateAvatarMenuItem[]
+  items: AvatarMenuItem[]
   logoutTo: string
 }
 
-function CandidateAvatarMenu({
+function HeaderAvatarDropDown({
   name,
   role,
   avatarSrc,
@@ -27,13 +27,36 @@ function CandidateAvatarMenu({
     .toUpperCase(),
   items,
   logoutTo,
-}: CandidateAvatarMenuProps) {
+}: AvatarMenuProps) {
   const [open, setOpen] = useState(false)
 
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        handleClickOutside
+      )
+    }
+  }, [])
+
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
-        className="flex items-center gap-3 rounded-full border border-[#e2dfde] bg-white px-2 py-1 text-left transition-colors hover:border-[#b90014]"
+        className="flex items-center gap-3 rounded-full border border-[#e2dfde] bg-white px-2 py-1 text-left transition-colors hover:border-[#b90014] cursor-pointer"
         type="button"
         onClick={() => setOpen((value) => !value)}
       >
@@ -86,4 +109,4 @@ function CandidateAvatarMenu({
   )
 }
 
-export default CandidateAvatarMenu
+export default HeaderAvatarDropDown
