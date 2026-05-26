@@ -4,6 +4,7 @@ import CandidateLoginScreen from "./pages/candidate/CandidateLoginScreen";
 import CandidateRegisterScreen from "./pages/candidate/CandidateRegisterScreen";
 import MyApplicationScreen from "./pages/candidate/MyApplicationScreen";
 import CandidateProfileAndCVManagementScreen from "./pages/candidate/CandidateProfileAndCVManagementScreen";
+import DashboardCandidateScreen from "./pages/candidate/DashboardCandidateScreen";
 import InternalLoginScreen from "./pages/internal/InternalLoginScreen";
 import JobListingCandidateScreen from "./pages/internal/JobListingCandidateScreen";
 import { ToastContainer } from "react-toastify";
@@ -16,6 +17,10 @@ function App() {
 
         {/* Candidate */}
         <Route path="/candidate" element={<CandidateLandingPage />} />
+        <Route
+          path="/candidate/dashboard"
+          element={<DashboardCandidateScreen />}
+        />
         <Route path="/candidate/login" element={<CandidateLoginScreen />} />
         <Route
           path="/candidate/register"
