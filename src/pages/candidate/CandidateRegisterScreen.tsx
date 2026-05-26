@@ -1,5 +1,6 @@
 import { useMemo, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
+import MockJsonButton from '../../common/components/MockJsonButton'
 
 type RegisterValues = {
   fullname: string
@@ -235,6 +236,17 @@ function CandidateRegisterScreen() {
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Back to Home
           </Link>
+
+          <MockJsonButton
+            className="hidden md:inline-flex"
+            label="Test Mock JSON"
+            payload={{
+              screen: 'CandidateRegisterScreen',
+              currentStep,
+              values,
+              submitState,
+            }}
+          />
 
           <div className="hidden md:block">
             <span className="text-[14px] leading-5 text-[#5f5e5e]">

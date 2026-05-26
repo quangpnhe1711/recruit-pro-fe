@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import MockJsonButton from '../../common/components/MockJsonButton'
 
 const featuredJobs = [
   {
@@ -60,6 +61,15 @@ function LandingPageScreen() {
           </div>
 
           <div className="flex items-center gap-4">
+            <MockJsonButton
+              className="hidden md:inline-flex"
+              label="Test Mock JSON"
+              payload={{
+                screen: 'CandidateLandingPage',
+                actions: ['login', 'register', 'browse-jobs'],
+                featuredJobs: featuredJobs.map((job) => job.title),
+              }}
+            />
             <Link
               to="/candidate/login"
               className="px-6 py-2 bg-[#1A1A1A] text-white font-semibold text-[12px] border-2 border-transparent hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
@@ -106,18 +116,18 @@ function LandingPageScreen() {
                 trust.
               </p>
               <div className="flex gap-4">
-                <a
-                  href="#careers"
+                <Link
+                  to="/candidate/jobs"
                   className="px-8 py-4 bg-[#b90014] text-white font-bold text-[12px] tracking-[0.05em] hover:scale-[1.02] transition-transform active:scale-95"
                 >
                   Browse Openings
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to="/internal/login"
                   className="px-8 py-4 bg-white text-[#1A1A1A] font-bold text-[12px] tracking-[0.05em] border border-[#1A1A1A] hover:bg-gray-100 transition-colors"
                 >
-                  Internal Talent Pool
-                </a>
+                  Internal Portal
+                </Link>
               </div>
             </div>
           </div>

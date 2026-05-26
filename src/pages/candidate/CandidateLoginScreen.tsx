@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import MockJsonButton from '../../common/components/MockJsonButton'
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw"
@@ -72,13 +73,27 @@ function CandidateLoginScreen() {
               </span>
             </div>
 
-            <div className="mb-10">
-              <h2 className="mb-2 text-[32px] font-semibold leading-[40px] tracking-[-0.01em] text-[#1a1c1c]">
-                Welcome Back
-              </h2>
-              <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
-                Enter your credentials to access your candidate portal.
-              </p>
+            <div className="mb-10 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="mb-2 text-[32px] font-semibold leading-[40px] tracking-[-0.01em] text-[#1a1c1c]">
+                  Welcome Back
+                </h2>
+                <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
+                  Enter your credentials to access your candidate portal.
+                </p>
+              </div>
+              <MockJsonButton
+                className="shrink-0"
+                label="Test Mock JSON"
+                payload={{
+                  screen: 'CandidateLoginScreen',
+                  fields: {
+                    email,
+                    remember,
+                    showPassword,
+                  },
+                }}
+              />
             </div>
 
             <form className="space-y-6" onSubmit={onSubmit}>
@@ -193,6 +208,14 @@ function CandidateLoginScreen() {
               <span className="text-[12px] font-semibold tracking-[0.05em]">
                 SECURE ENTERPRISE ACCESS ONLY
               </span>
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Link
+                className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
+                to="/candidate/jobs"
+              >
+                Preview Jobs Screen
+              </Link>
             </div>
           </div>
         </section>

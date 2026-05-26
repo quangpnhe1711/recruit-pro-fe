@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import MockJsonButton from '../../common/components/MockJsonButton'
 
 function InternalLoginScreen() {
   const [employeeId, setEmployeeId] = useState('')
@@ -39,6 +41,27 @@ function InternalLoginScreen() {
           </div>
 
           <div className="w-full rounded-lg border border-[#926e6b]/20 bg-white p-8 shadow-[0_0_40px_rgba(185,0,20,0.05)] md:p-10">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[12px] font-semibold uppercase tracking-[0.25em] text-[#5d3f3c]">
+                  Secure Access
+                </p>
+                <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
+                  Staff Portal Login
+                </h2>
+              </div>
+              <MockJsonButton
+                className="shrink-0"
+                label="Test Mock JSON"
+                payload={{
+                  screen: 'InternalLoginScreen',
+                  employeeId,
+                  showPassword,
+                  submitted,
+                }}
+              />
+            </div>
+
             <form className="space-y-6" onSubmit={onSubmit}>
               <div>
                 <label
@@ -130,6 +153,14 @@ function InternalLoginScreen() {
                 This is a restricted enterprise system. All access attempts and
                 activities are logged and monitored.
               </p>
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Link
+                className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
+                to="/internal/jobs"
+              >
+                Preview Internal Jobs
+              </Link>
             </div>
           </div>
         </div>
