@@ -7,9 +7,9 @@ type BottomNavItem = {
 }
 
 const defaultItems: BottomNavItem[] = [
-  { icon: 'home', label: 'Home', to: '/candidate' },
-  { icon: 'work', label: 'Jobs', to: '/candidate/jobs' },
-  { icon: 'inbox', label: 'Inbox', to: '/candidate' },
+  { icon: 'home', label: 'Home', to: '/candidate/dashboard' },
+  { icon: 'work', label: 'Jobs', to: '/jobs' },
+  { icon: 'inbox', label: 'Applications', to: '/candidate/my-applications' },
   { icon: 'person', label: 'Profile', to: '/candidate/profile' },
 ]
 

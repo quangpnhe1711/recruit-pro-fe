@@ -1,9 +1,3 @@
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import AppHeader from "../../common/components/layout/AppHeader";
-import Footer from "../../common/components/layout/Footer";
-import SideNavBar from "../../common/components/layout/SideNavBar";
-import { setVariant } from "../../store/slices/authSlice";
 
 type StatCard = {
   label: string;
@@ -113,21 +107,9 @@ const pendingApprovals: PendingApproval[] = [
 ];
 
 function HrDashboardScreen() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(setVariant("internal"));
-  }, [dispatch]);
-
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar showUserCard={false} />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        <AppHeader userName="Alex Thompson" userRole="HR Director" />
-
-        <main className="flex-1">
-          <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
+    <>
+      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
@@ -369,10 +351,6 @@ function HrDashboardScreen() {
                 </div>
               </section>
             </div>
-          </div>
-        </main>
-
-        <Footer />
       </div>
 
       <button
@@ -382,7 +360,7 @@ function HrDashboardScreen() {
       >
         <span className="material-symbols-outlined text-[32px]">add</span>
       </button>
-    </div>
+    </>
   );
 }
 

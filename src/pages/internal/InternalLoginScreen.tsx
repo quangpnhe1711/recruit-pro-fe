@@ -1,8 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
 import MockJsonButton from '../../common/components/MockJsonButton'
+import { setToken, setVariant } from '../../store/slices/authSlice'
+import { setProfile } from '../../store/slices/userSlice'
 
 function InternalLoginScreen() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
   const [employeeId, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -16,6 +22,22 @@ function InternalLoginScreen() {
   function onSubmit(e) {
     e.preventDefault()
     setSubmitted(true)
+
+    const emailLike = employeeId.includes('@')
+      ? employeeId
+      : `${employeeId || 'alex.rivera'}@recruitpro.com`
+
+    dispatch(setVariant('internal'))
+    dispatch(setToken('demo-token-internal'))
+    dispatch(
+      setProfile({
+        id: 'employee-1',
+        name: 'Alex Rivera',
+        email: emailLike,
+      })
+    )
+
+    navigate('/internal/dashboard', { replace: true })
   }
 
   return (

@@ -14,6 +14,11 @@ import JobsRouteScreen from "./pages/JobsRouteScreen";
 import { ToastContainer } from "react-toastify";
 import { Provider } from "react-redux";
 import { store } from "./store";
+import AuthenticatedLayout from "./common/components/layout/AuthenticatedLayout";
+import LogoutScreen from "./pages/LogoutScreen";
+import PublicOnly from "./common/app-common-layout/PublicOnly";
+import RequireAuth from "./common/app-common-layout/RequireAuth";
+import RequireVariant from "./common/app-common-layout/RequireVariant";
 
 function App() {
   return (
@@ -22,75 +27,101 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
 
-          {/* Candidate */}
+          {/* Public */}
           <Route path="/home" element={<CandidateLandingPage />} />
-          <Route
-            path="/candidate/dashboard"
-            element={<DashboardCandidateScreen />}
-          />
-          <Route path="/candidate/login" element={<CandidateLoginScreen />} />
-          <Route
-            path="/candidate/register"
-            element={<CandidateRegisterScreen />}
-          />
-          <Route
-            path="/candidate/my-applications"
-            element={<MyApplicationScreen />}
-          />
-          <Route
-            path="/candidate/applications"
-            element={<MyApplicationScreen />}
-          />
-          <Route
-            path="/candidate/jobs"
-            element={<Navigate to="/jobs" replace />}
-          />
-          <Route
-            path="/candidate/profile"
-            element={<CandidateProfileAndCVManagementScreen />}
-          />
-          <Route
-            path="/candidate/profile/*"
-            element={<CandidateProfileAndCVManagementScreen />}
-          />
+          <Route element={<PublicOnly />}>
+            <Route path="/login" element={<CandidateLoginScreen />} />
+            <Route
+              path="/candidate/register"
+              element={<CandidateRegisterScreen />}
+            />
+            <Route path="/internal/login" element={<InternalLoginScreen />} />
+          </Route>
 
-          {/* Internal (HR / Manager / System Admin) */}
+          {/* Authenticated */}
+          <Route element={<RequireAuth />}>
+            <Route element={<AuthenticatedLayout />}>
+              <Route path="/logout" element={<LogoutScreen />} />
+
+              {/* Shared (any authenticated variant) */}
+              <Route path="/jobs" element={<JobsRouteScreen />} />
+              <Route
+                path="/candidate/jobs"
+                element={<Navigate to="/jobs" replace />}
+              />
+              <Route
+                path="/internal/jobs"
+                element={<Navigate to="/jobs" replace />}
+              />
+
+              {/* Candidate */}
+              <Route element={<RequireVariant variant="candidate" />}>
+                <Route
+                  path="/candidate/dashboard"
+                  element={<DashboardCandidateScreen />}
+                />
+                <Route
+                  path="/candidate/my-applications"
+                  element={<MyApplicationScreen />}
+                />
+                <Route
+                  path="/candidate/applications"
+                  element={<MyApplicationScreen />}
+                />
+                <Route
+                  path="/candidate/profile/*"
+                  element={<CandidateProfileAndCVManagementScreen />}
+                />
+              </Route>
+
+              {/* Internal (HR / Manager / System Admin) */}
+              <Route element={<RequireVariant variant="internal" />}>
+                <Route
+                  path="/internal/dashboard"
+                  element={<HrDashboardScreen />}
+                />
+                <Route
+                  path="/internal/jobs/create"
+                  element={<JobCreatingScreen />}
+                />
+                <Route
+                  path="/internal/interviews"
+                  element={<JobInterviewListScreen />}
+                />
+                <Route
+                  path="/internal/interviews/list"
+                  element={<JobInterviewListScreen />}
+                />
+                <Route
+                  path="/internal/interviews/schedule"
+                  element={<InterviewScheduleScreen />}
+                />
+                <Route
+                  path="/internal/interview-schedule"
+                  element={<InterviewScheduleScreen />}
+                />
+
+                <Route
+                  path="/internal/applications"
+                  element={<Navigate to="/internal/dashboard" replace />}
+                />
+                <Route
+                  path="/internal/settings"
+                  element={<Navigate to="/internal/dashboard" replace />}
+                />
+                <Route
+                  path="/internal/support"
+                  element={<Navigate to="/internal/dashboard" replace />}
+                />
+              </Route>
+            </Route>
+          </Route>
+
           <Route
             path="/internal"
             element={<Navigate to="/internal/login" replace />}
           />
-          <Route path="/internal/dashboard" element={<HrDashboardScreen />} />
-          <Route path="/internal/jobs/create" element={<JobCreatingScreen />} />
-          <Route path="/internal/interviews" element={<JobInterviewListScreen />} />
-          <Route path="/internal/interviews/list" element={<JobInterviewListScreen />} />
-          <Route
-            path="/internal/interviews/schedule"
-            element={<InterviewScheduleScreen />}
-          />
-          <Route
-            path="/internal/interview-schedule"
-            element={<InterviewScheduleScreen />}
-          />
-
-          <Route
-            path="/internal/applications"
-            element={<Navigate to="/internal/candidate-profile" replace />}
-          />
-          <Route
-            path="/internal/settings"
-            element={<Navigate to="/internal/candidate-profile" replace />}
-          />
-          <Route
-            path="/internal/support"
-            element={<Navigate to="/internal/login" replace />}
-          />
-          <Route path="/internal/login" element={<InternalLoginScreen />} />
-          <Route path="/jobs" element={<JobsRouteScreen />} />
-          <Route path="/internal/jobs" element={<Navigate to="/jobs" replace />} />
-          <Route
-            path="/internal/candidate-profile"
-            element={<Navigate to="/candidate/profile" replace />}
-          />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
         <ToastContainer
           position="top-right"

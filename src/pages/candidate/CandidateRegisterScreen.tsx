@@ -661,7 +661,7 @@ function CandidateRegisterScreen() {
                   Already have an account?{" "}
                   <Link
                     className="text-[#1a1c1c] font-semibold underline hover:text-[#b90014] transition-colors"
-                    to="/candidate/login"
+                    to="/login"
                   >
                     Login
                   </Link>

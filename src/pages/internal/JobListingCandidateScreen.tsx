@@ -1,8 +1,4 @@
 import { Link } from "react-router-dom";
-import BottomNavBar from "../../common/components/layout/BottomNavBar";
-import Footer from "../../common/components/layout/Footer";
-import SideNavBar from "../../common/components/layout/SideNavBar";
-import AppHeader from "../../common/components/layout/AppHeader";
 
 type JobCard = {
   icon: string;
@@ -70,14 +66,7 @@ const filterGroups = [
 
 function JobListingCandidateScreen() {
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        <AppHeader />
-
-        <main className="flex-1 pb-24 lg:pb-0">
-          <div className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-6 md:px-10">
+    <div className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-6 md:px-10">
             <aside className="hidden w-72 flex-shrink-0 space-y-6 xl:block">
               <div className="border border-[#e2dfde] bg-white p-6">
                 <div className="mb-6 flex items-center justify-between">
@@ -335,13 +324,6 @@ function JobListingCandidateScreen() {
                 </button>
               </nav>
             </section>
-          </div>
-        </main>
-
-        <Footer />
-      </div>
-
-      <BottomNavBar />
     </div>
   );
 }

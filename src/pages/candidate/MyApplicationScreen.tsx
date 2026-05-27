@@ -1,7 +1,3 @@
-import Footer from "../../common/components/layout/Footer";
-import BottomNavBar from "../../common/components/layout/BottomNavBar";
-import SideNavBar from "../../common/components/layout/SideNavBar";
-import AppHeader from "../../common/components/layout/AppHeader";
 
 type ApplicationItem = {
   icon: string;
@@ -59,13 +55,7 @@ const summaryCards = [
 
 function MyApplicationScreen() {
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar showUserCard={true} />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        <AppHeader />
-
-        <main className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10 md:py-10 pb-24 lg:pb-10">
+    <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10 md:py-10">
           <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
             <div>
               <h1 className="mb-2 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
@@ -242,12 +232,6 @@ function MyApplicationScreen() {
               </button>
             </div>
           </div>
-        </main>
-
-        <Footer />
-      </div>
-
-      <BottomNavBar />
     </div>
   );
 }

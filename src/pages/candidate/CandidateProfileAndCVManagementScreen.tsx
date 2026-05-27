@@ -1,7 +1,4 @@
 import { useMemo, useState } from "react";
-import Footer from "../../common/components/layout/Footer";
-import AppHeader from "../../common/components/layout/AppHeader";
-import SideNavBar from "../../common/components/layout/SideNavBar";
 import { toast } from "react-toastify";
 
 type SkillItem = {
@@ -319,15 +316,8 @@ function CandidateProfileAndCVManagementScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar />
-      <div className="flex min-h-screen flex-col lg:ml-64">
-        {/* Header full width theo phần content */}
-        <AppHeader />
-
-        {/* Content */}
-        <main className="flex-1  py-6 gap-6">
-          <div className="mx-auto px-10 w-full max-w-[1440px]">
+    <main className="py-6">
+      <div className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
             <nav className="mb-6 flex items-center gap-2">
               <span className="text-[32px] font-bold text-[#1a1c1c]">
                 My Profile
@@ -870,11 +860,8 @@ function CandidateProfileAndCVManagementScreen() {
                 </section>
               </div>
             </div>
-          </div>
-        </main>
       </div>
-      <Footer />
-    </div>
+    </main>
   );
 }
 

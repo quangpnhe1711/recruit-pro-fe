@@ -69,26 +69,24 @@ function SideNavBar({
   showUserCard = true,
   userAvatarSrc,
 }: SideNavBarProps) {
+  const authState = useSelector((state: RootState) => state.auth);
 
-  const authState = useSelector(
-    (state: RootState) => state.auth
-  );
+  const resolvedVariant = authState?.variant ?? "candidate";
 
-      console.log("SideNavBar before with variant:", authState.variant );
+  const resolvedItems =
+    resolvedVariant === "candidate" ? candidateItems : internalItems;
 
-    const resolvedVariant = authState?.variant ?? "candidate";
-
-    console.log("SideNavBar rendered with variant:", resolvedVariant);
-
-
-  const resolvedItems =resolvedVariant === "candidate" ? candidateItems : internalItems;
-
-  const resolvedBottomItems = resolvedVariant === "candidate" ? candidateBottomItems : internalBottomItems;
+  const resolvedBottomItems =
+    resolvedVariant === "candidate" ? candidateBottomItems : internalBottomItems;
 
   const resolvedBrand = {
     title: "RecruitPro",
-    subtitle: resolvedVariant === "candidate" ? "Candidate Portal" : "Internal Portal",
-    to: resolvedVariant === "candidate" ? "/candidate" : "/internal/jobs",
+    subtitle:
+      resolvedVariant === "candidate" ? "Candidate Portal" : "Internal Portal",
+    to:
+      resolvedVariant === "candidate"
+        ? "/candidate/dashboard"
+        : "/internal/dashboard",
   };
 
   const resolvedUserName = resolvedVariant === "candidate" ? "Alex Thompson" : "Alex Rivera";
@@ -132,8 +130,6 @@ function SideNavBar({
         : "text-[#c8c6c5] hover:text-white"
     }`;
 
-  console.log("show:", showUserCard);
-
   return (
     <aside className={shellClassName}>
       <div className="px-6 py-8">
@@ -145,12 +141,7 @@ function SideNavBar({
 
       <nav className="flex-1 space-y-1 px-2">
         {resolvedItems.map((item) => (
-          <NavLink
-            key={item.label}
-            className={navLinkClassName}
-            to={item.to}
-            end={item.to === "/candidate"}
-          >
+          <NavLink key={item.label} className={navLinkClassName} to={item.to}>
             <span className="material-symbols-outlined text-[20px]">
               {item.icon}
             </span>

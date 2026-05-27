@@ -1,11 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import AppHeader from "../../common/components/layout/AppHeader";
-import Footer from "../../common/components/layout/Footer";
-import SideNavBar from "../../common/components/layout/SideNavBar";
-import { setVariant } from "../../store/slices/authSlice";
 
 type InterviewMode = "video" | "inPerson";
 
@@ -145,12 +140,7 @@ function buildCalendarGrid(viewMonth: Date) {
 }
 
 function InterviewScheduleScreen() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    dispatch(setVariant("internal"));
-  }, [dispatch]);
 
   const [viewMonth, setViewMonth] = useState<Date>(
     new Date(DEFAULT_DATE.getFullYear(), DEFAULT_DATE.getMonth(), 1)
@@ -250,14 +240,7 @@ function InterviewScheduleScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar showUserCard={false} />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        <AppHeader userName="Alex Thompson" userRole="HR Manager" />
-
-        <main className="flex-1">
-          <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
+    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
             {/* Page toolbar (search removed) */}
             <div className="flex items-center gap-4">
               <button
@@ -620,11 +603,6 @@ function InterviewScheduleScreen() {
                 </section>
               </div>
             </div>
-          </div>
-        </main>
-
-        <Footer />
-      </div>
     </div>
   );
 }

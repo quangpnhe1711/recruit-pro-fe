@@ -1,36 +1,34 @@
-import { Link } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
 type AvatarMenuItem = {
-  label: string
-  to: string
-}
+  label: string;
+  to: string;
+};
 
 type AvatarMenuProps = {
-  name: string
-  role?: string
-  avatarSrc?: string
-  initials?: string
-  items: AvatarMenuItem[]
-  logoutTo: string
-}
+  name: string;
+  role?: string;
+  avatarSrc?: string;
+  initials?: string;
+  items: AvatarMenuItem[];
+};
 
 function HeaderAvatarDropDown({
   name,
   role,
   avatarSrc,
   initials = name
-    .split(' ')
+    .split(" ")
     .map((part) => part[0])
-    .join('')
+    .join("")
     .slice(0, 2)
     .toUpperCase(),
   items,
-  logoutTo,
 }: AvatarMenuProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -38,20 +36,16 @@ function HeaderAvatarDropDown({
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setOpen(false)
+        setOpen(false);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        'mousedown',
-        handleClickOutside
-      )
-    }
-  }, [])
-
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -75,7 +69,9 @@ function HeaderAvatarDropDown({
           <p className="text-[12px] font-semibold text-[#1a1c1c]">{name}</p>
           {role ? <p className="text-[12px] text-[#5f5e5e]">{role}</p> : null}
         </div>
-        <span className="material-symbols-outlined text-[20px] text-[#5f5e5e]">expand_more</span>
+        <span className="material-symbols-outlined text-[20px] text-[#5f5e5e]">
+          expand_more
+        </span>
       </button>
 
       {open ? (
@@ -97,7 +93,7 @@ function HeaderAvatarDropDown({
             ))}
             <Link
               className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
-              to={logoutTo}
+              to="/Home"
               onClick={() => setOpen(false)}
             >
               Logout
@@ -106,7 +102,7 @@ function HeaderAvatarDropDown({
         </div>
       ) : null}
     </div>
-  )
+  );
 }
 
-export default HeaderAvatarDropDown
+export default HeaderAvatarDropDown;

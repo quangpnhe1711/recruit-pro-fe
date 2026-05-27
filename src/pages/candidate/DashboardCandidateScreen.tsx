@@ -1,5 +1,3 @@
-import AppHeader from "../../common/components/layout/AppHeader";
-import SideNavBar from "../../common/components/layout/SideNavBar";
 
 type StatCard = {
   icon: string;
@@ -73,25 +71,14 @@ const recommendedJobs: RecommendedJob[] = [
 
 function DashboardCandidateScreen() {
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar/>
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        <AppHeader
-          searchPlaceholder="Search jobs, candidates..."
-          userName = "Alex Rivera"
-          userRole = "Senior Recruiter"
-          avatarSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDi8gQSTnAKzoLYLVDE3p6FrOCz9emlaZJkEjoP7yLKXy6iIwnvusaVic9JF-0RN39e7BSACaCmlF-wWjxH1LglReK9JM3cJgYMkSJM5TliZyHkNYEUudCoYDUutoEuxNGHN15jLmZMvANIrWyAd2xgemxuucIer96N0w1ij5ac2wXH-vEEn3aPIQVZAslh9KPNvpYJ01hQKk7kSH4KHXbKmVhNG7lh2bl-cKMv8pwJnoGPPSuqazPG3p-2Zifs3wQLGZdos4f0fw"
-        />
-
-        <main className="flex-1">
-          <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+    <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
             <div className="mb-10">
               <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
                 Welcome back, Alex
               </h2>
               <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-                You have 1 interview scheduled for today and 2 new notifications.
+                You have 1 interview scheduled for today and 2 new
+                notifications.
               </p>
             </div>
 
@@ -181,7 +168,9 @@ function DashboardCandidateScreen() {
                     className="mt-auto flex w-full items-center justify-center gap-2 bg-[#b90014] py-4 text-[12px] font-bold uppercase tracking-[0.18em] transition-colors hover:brightness-110"
                     href="#"
                   >
-                    <span className="material-symbols-outlined">video_call</span>
+                    <span className="material-symbols-outlined">
+                      video_call
+                    </span>
                     Join Meeting
                   </a>
                 </div>
@@ -303,41 +292,7 @@ function DashboardCandidateScreen() {
                 </div>
               </div>
             </div>
-          </section>
-
-          <footer className="mt-12 border-t border-[#e2dfde] bg-[#f3f3f3] py-8">
-            <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-6 px-4 md:flex-row md:items-center md:justify-between md:px-10">
-              <div>
-                <p className="text-[16px] font-semibold text-[#1a1c1c]">
-                  RecruitPro Internal
-                </p>
-                <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                  © 2024 RecruitPro Internal. All rights reserved. For authorized
-                  personnel only.
-                </p>
-              </div>
-
-              <nav className="flex flex-wrap gap-6">
-                {[
-                  "Privacy Policy",
-                  "Terms of Service",
-                  "Security Disclosure",
-                  "Internal Helpdesk",
-                ].map((label) => (
-                  <a
-                    key={label}
-                    className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] underline hover:text-[#1a1c1c]"
-                    href="#"
-                  >
-                    {label}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          </footer>
-        </main>
-      </div>
-    </div>
+    </section>
   );
 }
 

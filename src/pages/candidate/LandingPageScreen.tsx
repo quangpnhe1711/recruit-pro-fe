@@ -1,32 +1,32 @@
-import { Link } from 'react-router-dom'
-import MockJsonButton from '../../common/components/MockJsonButton'
+import { Link } from "react-router-dom";
+import MockJsonButton from "../../common/components/MockJsonButton";
 
 const featuredJobs = [
   {
-    icon: 'engineering',
-    tag: 'New',
-    tagClass: 'bg-[#b90014]/10 text-[#b90014]',
-    title: 'Senior System Architect',
-    meta: 'Infrastructure & DevOps | San Francisco, CA',
-    chips: ['Remote Friendly', 'Full-Time'],
+    icon: "engineering",
+    tag: "New",
+    tagClass: "bg-[#b90014]/10 text-[#b90014]",
+    title: "Senior System Architect",
+    meta: "Infrastructure & DevOps | San Francisco, CA",
+    chips: ["Remote Friendly", "Full-Time"],
   },
   {
-    icon: 'campaign',
-    tag: 'Hot',
-    tagClass: 'bg-[#eeeeee] text-[#5f5e5e]',
-    title: 'Marketing Director',
-    meta: 'Growth & Strategy | London, UK',
-    chips: ['Leadership', 'HQ Based'],
+    icon: "campaign",
+    tag: "Hot",
+    tagClass: "bg-[#eeeeee] text-[#5f5e5e]",
+    title: "Marketing Director",
+    meta: "Growth & Strategy | London, UK",
+    chips: ["Leadership", "HQ Based"],
   },
   {
-    icon: 'monitoring',
-    tag: 'Urgent',
-    tagClass: 'bg-[#eeeeee] text-[#5f5e5e]',
-    title: 'Data Analytics Lead',
-    meta: 'Business Intelligence | Singapore',
-    chips: ['Technical', 'Hybrid'],
+    icon: "monitoring",
+    tag: "Urgent",
+    tagClass: "bg-[#eeeeee] text-[#5f5e5e]",
+    title: "Data Analytics Lead",
+    meta: "Business Intelligence | Singapore",
+    chips: ["Technical", "Hybrid"],
   },
-]
+];
 
 function LandingPageScreen() {
   return (
@@ -65,13 +65,13 @@ function LandingPageScreen() {
               className="hidden md:inline-flex"
               label="Test Mock JSON"
               payload={{
-                screen: 'CandidateLandingPage',
-                actions: ['login', 'register', 'browse-jobs'],
+                screen: "CandidateLandingPage",
+                actions: ["login", "register", "browse-jobs"],
                 featuredJobs: featuredJobs.map((job) => job.title),
               }}
             />
             <Link
-              to="/candidate/login"
+              to="/login"
               className="px-6 py-2 bg-[#1A1A1A] text-white font-semibold text-[12px] border-2 border-transparent hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
             >
               Log in
@@ -107,7 +107,8 @@ function LandingPageScreen() {
                 INTERNAL PORTAL
               </span>
               <h1 className="text-white text-[44px] md:text-[64px] leading-[1.1] font-extrabold tracking-tight mb-8">
-                Empowering Your <br />Career Growth Within{' '}
+                Empowering Your <br />
+                Career Growth Within{" "}
                 <span className="text-[#ffdad6]">RecruitPro</span>
               </h1>
               <p className="text-[#eeeeee] text-[16px] leading-6 mb-10 max-w-xl">
@@ -182,7 +183,7 @@ function LandingPageScreen() {
                 className="text-[#b90014] font-bold flex items-center gap-2 hover:underline"
                 to="/jobs"
               >
-                View All Jobs{' '}
+                View All Jobs{" "}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
             </div>
@@ -277,18 +278,21 @@ function LandingPageScreen() {
                   Internal Links
                 </h4>
                 <ul className="space-y-4">
-                  {['Dashboard', 'My Applications', 'Talent Pool', 'Internal Helpdesk'].map(
-                    (item) => (
-                      <li key={item}>
-                        <a
-                          className="text-[#5f5e5e] hover:text-[#1a1c1c] transition-colors text-[12px] tracking-[0.05em]"
-                          href="#"
-                        >
-                          {item}
-                        </a>
-                      </li>
-                    ),
-                  )}
+                  {[
+                    "Dashboard",
+                    "My Applications",
+                    "Talent Pool",
+                    "Internal Helpdesk",
+                  ].map((item) => (
+                    <li key={item}>
+                      <a
+                        className="text-[#5f5e5e] hover:text-[#1a1c1c] transition-colors text-[12px] tracking-[0.05em]"
+                        href="#"
+                      >
+                        {item}
+                      </a>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
@@ -297,18 +301,21 @@ function LandingPageScreen() {
                   Resources
                 </h4>
                 <ul className="space-y-4">
-                  {['Interview Tips', 'Career Paths', 'Privacy Policy', 'Security Disclosure'].map(
-                    (item) => (
-                      <li key={item}>
-                        <a
-                          className="text-[#5f5e5e] hover:text-[#1a1c1c] transition-colors text-[12px] tracking-[0.05em]"
-                          href="#"
-                        >
-                          {item}
-                        </a>
-                      </li>
-                    ),
-                  )}
+                  {[
+                    "Interview Tips",
+                    "Career Paths",
+                    "Privacy Policy",
+                    "Security Disclosure",
+                  ].map((item) => (
+                    <li key={item}>
+                      <a
+                        className="text-[#5f5e5e] hover:text-[#1a1c1c] transition-colors text-[12px] tracking-[0.05em]"
+                        href="#"
+                      >
+                        {item}
+                      </a>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
@@ -339,7 +346,7 @@ function LandingPageScreen() {
                 personnel only.
               </p>
               <div className="flex gap-6">
-                {['share', 'hub', 'groups'].map((icon) => (
+                {["share", "hub", "groups"].map((icon) => (
                   <a
                     key={icon}
                     className="text-[#5f5e5e] hover:text-[#b90014] transition-colors"
@@ -354,7 +361,7 @@ function LandingPageScreen() {
         </footer>
       </main>
     </div>
-  )
+  );
 }
 
-export default LandingPageScreen
+export default LandingPageScreen;

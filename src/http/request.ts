@@ -1,9 +1,19 @@
-import apiClient from './api-client'
+import type { AxiosRequestConfig } from "axios";
+import apiClient from "./api-client";
 
 export const request = {
-  get: (url, config) => apiClient.get(url, config),
-  post: (url, data, config) => apiClient.post(url, data, config),
-  put: (url, data, config) => apiClient.put(url, data, config),
-  patch: (url, data, config) => apiClient.patch(url, data, config),
-  delete: (url, config) => apiClient.delete(url, config),
-}
+  get: <T>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.get<T>(url, config),
+
+  post: <T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) =>
+    apiClient.post<T>(url, data, config),
+
+  put: <T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) =>
+    apiClient.put<T>(url, data, config),
+
+  patch: <T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) =>
+    apiClient.patch<T>(url, data, config),
+
+  delete: <T>(url: string, config?: AxiosRequestConfig) =>
+    apiClient.delete<T>(url, config),
+};

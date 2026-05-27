@@ -1,35 +1,75 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-type AuthState = {
-  token: string | null
-  isAuthenticated: boolean,
-  variant: string
-}
+import type { LoginResponseDto, UserDto } from "../../modules/auth/AuthSchema";
+
+export type Variant = "candidate" | "internal";
+
+export type AuthState = {
+  accessToken: string | null;
+
+  refreshToken: string | null;
+
+  user: UserDto | null;
+
+  currentVariant?: Variant;
+};
 
 const initialState: AuthState = {
-  token: null,
-  isAuthenticated: false,
-  variant: "candidate",
-}
+  accessToken: null,
+
+  refreshToken: null,
+
+  user: null,
+
+  currentVariant: undefined,
+};
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
+
   initialState,
+
   reducers: {
-    setToken(state, action: PayloadAction<string | null>) {
-      state.token = action.payload
-      state.isAuthenticated = Boolean(action.payload)
+    setCredentials(state, action: PayloadAction<LoginResponseDto>) {
+      const { accessToken, refreshToken, user } = action.payload;
+
+      state.accessToken = accessToken;
+
+      state.refreshToken = refreshToken;
+
+      state.user = user;
     },
-    setVariant(state, action: PayloadAction<"internal" | "candidate" | undefined>) {
-      state.variant = action.payload
+
+    setAccessToken(state, action: PayloadAction<string>) {
+      state.accessToken = action.payload;
     },
+
+    setVariant(state, action: PayloadAction<Variant>) {
+      state.currentVariant = action.payload;
+    },
+
+    updateUser(state, action: PayloadAction<UserDto>) {
+      state.user = action.payload;
+    },
+
     logout(state) {
-      state.token = null
-      state.isAuthenticated = false
-      state.variant = undefined
+      state.accessToken = null;
+
+      state.refreshToken = null;
+
+      state.user = null;
+
+      state.currentVariant = undefined;
     },
   },
-})
+});
 
-export const { setToken, setVariant, logout } = authSlice.actions
-export default authSlice.reducer
+export const {
+  setCredentials,
+  setAccessToken,
+  setVariant,
+  updateUser,
+  logout,
+} = authSlice.actions;
+
+export default authSlice.reducer;

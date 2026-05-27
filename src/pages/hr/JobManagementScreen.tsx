@@ -1,11 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import AppHeader from "../../common/components/layout/AppHeader";
-import Footer from "../../common/components/layout/Footer";
-import SideNavBar from "../../common/components/layout/SideNavBar";
-import { setVariant } from "../../store/slices/authSlice";
 
 type ApprovalStatus = "Approved" | "Pending" | "Draft" | "Rejected";
 
@@ -393,15 +388,7 @@ function JobManagementScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar showUserCard={false} />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        {/* Header search removed by design; reuse common header */}
-        <AppHeader userName="Alex Thompson" userRole="Senior HR Lead" />
-
-        <main className="flex-1">
-          <div className="mx-auto w-full max-w-[1440px] flex-grow px-4 py-6 md:px-10">
+    <div className="mx-auto w-full max-w-[1440px] flex-grow px-4 py-6 md:px-10">
             {/* Header section */}
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
@@ -720,12 +707,8 @@ function JobManagementScreen() {
                 </div>
               </div>
             </section>
-          </div>
-        </main>
 
-        <Footer />
-
-        {/* Modal */}
+          {/* Modal */}
         {modalOpen ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
             <div className="w-full max-w-xl border border-[#e7bdb8] bg-white">
@@ -819,7 +802,6 @@ function JobManagementScreen() {
             </div>
           </div>
         ) : null}
-      </div>
     </div>
   );
 }

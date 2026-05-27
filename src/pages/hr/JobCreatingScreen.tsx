@@ -1,11 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import AppHeader from "../../common/components/layout/AppHeader";
-import Footer from "../../common/components/layout/Footer";
-import SideNavBar from "../../common/components/layout/SideNavBar";
-import { setVariant } from "../../store/slices/authSlice";
 
 type EmploymentType = "Full-time" | "Contract";
 type WorkMode = "Remote" | "Hybrid";
@@ -143,12 +138,7 @@ function generateJobId(existingIds: Set<string>) {
 }
 
 function JobCreatingScreen() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    dispatch(setVariant("internal"));
-  }, [dispatch]);
 
   const initialDraft = useMemo(() => loadDraft(), []);
 
@@ -392,15 +382,7 @@ function JobCreatingScreen() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar showUserCard={false} />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        {/* Header search removed by design; reuse common header */}
-        <AppHeader userName="Alex Thompson" userRole="Senior HR Lead" />
-
-        <main className="flex-1">
-          <div className="mx-auto w-full max-w-4xl px-4 py-12 md:px-10">
+    <div className="mx-auto w-full max-w-4xl px-4 py-12 md:px-10">
             {stepper}
 
             {/* Content Card */}
@@ -908,11 +890,6 @@ function JobCreatingScreen() {
               </button>
             </div>
 
-          </div>
-        </main>
-
-        <Footer />
-      </div>
     </div>
   );
 }

@@ -1,11 +1,17 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useDispatch, useStore } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
 import MockJsonButton from '../../common/components/MockJsonButton'
+import { authService } from '../../services/authService'
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw"
 
 function CandidateLoginScreen() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const store = useStore();
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
@@ -13,8 +19,13 @@ function CandidateLoginScreen() {
   const [submitted, setSubmitted] = useState(false)
 
   function onSubmit(e) {
-    e.preventDefault()
-    setSubmitted(true)
+    e.preventDefault();
+    setSubmitted(true);
+
+    // call authService
+    
+
+    navigate('/candidate/dashboard', { replace: true });
   }
 
   return (
