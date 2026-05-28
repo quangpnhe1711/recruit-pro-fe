@@ -9,13 +9,13 @@ function RequireAuth() {
   );
   const location = useLocation();
 
-  if (!isAuthenticated) {
-    const to = location.pathname.startsWith("/internal")
-      ? "/internal/login"
-      : "/login";
+  // if (!isAuthenticated) {
+  //   const to = location.pathname.startsWith("/internal")
+  //     ? "/internal/login"
+  //     : "/login";
 
-    return <Navigate to={to} replace state={{ from: location }} />;
-  }
+  //   return <Navigate to={to} replace state={{ from: location }} />;
+  // }
 
   return <Outlet />;
 }

@@ -1,31 +1,49 @@
-import { useState } from 'react'
-import { useDispatch, useStore } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
-import MockJsonButton from '../../common/components/MockJsonButton'
-import { authService } from '../../services/authService'
+import { useState } from "react";
+import { useDispatch, useStore } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import MockJsonButton from "../../common/components/MockJsonButton";
+import { authService } from "../../services/auth/authService";
+import { toast } from "react-toastify";
+import { setCredentials, setVariant } from "../../store/slices/authSlice";
+import { getVariant } from "../../common/utils/variants";
 
 const SPLIT_IMAGE_URL =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw"
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
 
 function CandidateLoginScreen() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const store = useStore();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    remember: false,
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     setSubmitted(true);
 
     // call authService
-    
+    try {
+      var data = await authService.login({
+        email: form.email,
+        password: form.password,
+      });
+    } catch (er) {
+      toast.error(data?.message || "Login failed");
+      return;
+    }
 
-    navigate('/candidate/dashboard', { replace: true });
+    dispatch(setCredentials(data.data));
+    dispatch(setVariant(getVariant(data.data.user.roles)));
+
+    console.log("Login response:", data);
+    toast.success(data?.message || "Login successful");
+    console.log("before navigate");
+    navigate("/candidate/dashboard", { replace: true });
   }
 
   return (
@@ -37,8 +55,8 @@ function CandidateLoginScreen() {
             className="absolute inset-0 z-0 opacity-70"
             style={{
               backgroundImage: `url('${SPLIT_IMAGE_URL}')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
             aria-hidden="true"
           />
@@ -49,7 +67,10 @@ function CandidateLoginScreen() {
 
           <div className="relative z-10 flex w-full flex-col justify-between p-10">
             <div>
-              <Link to="/" className="text-[48px] font-black leading-[56px] tracking-[-0.02em] text-[#b90014]">
+              <Link
+                to="/"
+                className="text-[48px] font-black leading-[56px] tracking-[-0.02em] text-[#b90014]"
+              >
                 RecruitPro
               </Link>
             </div>
@@ -59,9 +80,10 @@ function CandidateLoginScreen() {
                 Build the future of recruitment
               </h1>
               <p className="text-[16px] leading-[24px] text-[#c8c6c5]">
-                Join the enterprise network powering high-velocity global hiring.
-                Our platform connects top-tier candidates with world-changing
-                opportunities through precision-engineered workflows.
+                Join the enterprise network powering high-velocity global
+                hiring. Our platform connects top-tier candidates with
+                world-changing opportunities through precision-engineered
+                workflows.
               </p>
             </div>
 
@@ -97,11 +119,11 @@ function CandidateLoginScreen() {
                 className="shrink-0"
                 label="Test Mock JSON"
                 payload={{
-                  screen: 'CandidateLoginScreen',
+                  screen: "CandidateLoginScreen",
                   fields: {
-                    email,
-                    remember,
-                    showPassword,
+                    email: form.email,
+                    remember: form.remember,
+                    showPassword: showPassword,
                   },
                 }}
               />
@@ -121,9 +143,10 @@ function CandidateLoginScreen() {
                   name="email"
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
                 />
               </div>
@@ -148,21 +171,26 @@ function CandidateLoginScreen() {
                   <input
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     required
+                    autoComplete="current-password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
                     className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 pr-12 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
                   />
                   <button
                     type="button"
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1c1c]"
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     <span className="material-symbols-outlined text-[20px]">
-                      {showPassword ? 'visibility_off' : 'visibility'}
+                      {showPassword ? "visibility_off" : "visibility"}
                     </span>
                   </button>
                 </div>
@@ -174,8 +202,10 @@ function CandidateLoginScreen() {
                   id="remember"
                   name="remember"
                   type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
+                  checked={form.remember}
+                  onChange={(e) =>
+                    setForm({ ...form, remember: e.target.checked })
+                  }
                   className="h-4 w-4 rounded-none border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
                 />
                 <label
@@ -215,7 +245,9 @@ function CandidateLoginScreen() {
             </form>
 
             <div className="mt-12 flex items-center justify-center gap-2 text-[#5d3f3c] opacity-60">
-              <span className="material-symbols-outlined text-[16px]">lock</span>
+              <span className="material-symbols-outlined text-[16px]">
+                lock
+              </span>
               <span className="text-[12px] font-semibold tracking-[0.05em]">
                 SECURE ENTERPRISE ACCESS ONLY
               </span>
@@ -232,7 +264,7 @@ function CandidateLoginScreen() {
         </section>
       </main>
     </div>
-  )
+  );
 }
 
-export default CandidateLoginScreen
+export default CandidateLoginScreen;

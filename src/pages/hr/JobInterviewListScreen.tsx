@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+
+/* eslint-disable react-hooks/refs */
 
 type InterviewStatus = "Confirmed" | "Completed" | "Rescheduled";
 
@@ -234,7 +237,7 @@ function buildSeedInterviews(): Interview[] {
   const fillers: Interview[] = [];
 
   // Create up to 42 interviews total, distributed across the anchor week.
-  let seq = 1006;
+  const seq = 1006;
   for (let i = 0; i < 37; i += 1) {
     const candidateName = names[i % names.length];
     const jobTitle = jobs[i % jobs.length];
@@ -329,6 +332,143 @@ function toCsvValue(value: string) {
   return `"${escaped}"`;
 }
 
+function buildInterviewTableColumns(
+  statusChipFn: (status: InterviewStatus) => string,
+  openMenuId: string | null,
+  setOpenMenuId: (id: string | null) => void,
+  onMarkCompleted: (it: Interview) => void,
+  onReschedule: (it: Interview) => void,
+  onCancel: (it: Interview) => void,
+  menuRef: React.RefObject<HTMLDivElement>,
+): TableColumn<Interview>[] {
+  return [
+    {
+      key: "candidateName",
+      header: "Candidate",
+      renderCell: (item) => (
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e2dfde] text-[12px] font-bold text-[#5f5e5e]">
+            {item.initials}
+          </div>
+          <div>
+            <p className="font-bold">{item.candidateName}</p>
+            <p className="text-[12px] text-[#5f5e5e]">{item.candidateEmail}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "jobTitle",
+      header: "Job Title",
+      renderCell: (item) => item.jobTitle,
+    },
+    {
+      key: "interviewer",
+      header: "Interviewer",
+      renderCell: (item) => item.interviewer,
+    },
+    {
+      key: "dateLabel",
+      header: "Date & Time",
+      renderCell: (item) => (
+        <div>
+          <p className="font-bold">{item.dateLabel}</p>
+          <p className="text-[12px] text-[#5f5e5e]">{item.timeLabel}</p>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      renderCell: (item) => (
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusChipFn(
+            item.status,
+          )}`}
+        >
+          {item.status}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      alignRight: true,
+      renderCell: (item) => (
+        <div className="relative text-right">
+          <button
+            type="button"
+            className="p-1 text-[#5f5e5e] hover:text-[#b90014]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenMenuId(openMenuId === item.id ? null : item.id);
+            }}
+            aria-label="Actions"
+          >
+            <span className="material-symbols-outlined">more_vert</span>
+          </button>
+
+          {openMenuId === item.id && (
+            <div
+              ref={menuRef}
+              className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded border border-[#e2dfde] bg-white shadow"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                onClick={() => {
+                  toast.info(
+                    `Interview: ${item.candidateName} · ${item.jobTitle}`,
+                  );
+                  setOpenMenuId(null);
+                }}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  visibility
+                </span>
+                View details
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                onClick={() => onReschedule(item)}
+                disabled={item.status === "Completed"}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  schedule
+                </span>
+                Reschedule
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                onClick={() => onMarkCompleted(item)}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  check_circle
+                </span>
+                Mark completed
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold text-[#ba1a1a] hover:bg-[#ffdad6]"
+                onClick={() => onCancel(item)}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  close
+                </span>
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+      ),
+    },
+  ];
+}
+
 function JobInterviewListScreen() {
   const navigate = useNavigate();
 
@@ -369,7 +509,7 @@ function JobInterviewListScreen() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [openMenuForId]);
 
-  function withinTimeframe(it: Interview) {
+  const withinTimeframe = useCallback((it: Interview) => {
     const t = it.startAt;
 
     if (timeframe === "Next 7 Days") {
@@ -389,7 +529,7 @@ function JobInterviewListScreen() {
     const end = Date.parse(`${customRange.end}T23:59:59.999Z`);
     if (Number.isNaN(start) || Number.isNaN(end)) return true;
     return t >= start && t <= end;
-  }
+  }, [timeframe, customRange]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -410,7 +550,7 @@ function JobInterviewListScreen() {
         );
       })
       .sort((a, b) => a.startAt - b.startAt);
-  }, [items, query, statusFilter, timeframe, customRange]);
+  }, [items, query, statusFilter, withinTimeframe]);
 
   const totalItems = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -438,7 +578,7 @@ function JobInterviewListScreen() {
       actionNeeded,
       completionRate,
     };
-  }, [items, timeframe, customRange]);
+  }, [items, withinTimeframe]);
 
   function goTo(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
@@ -447,6 +587,7 @@ function JobInterviewListScreen() {
 
   useEffect(() => {
     // Reset paging when filters/search change
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [query, statusFilter, timeframe, customRange.start, customRange.end]);
 
@@ -482,7 +623,7 @@ function JobInterviewListScreen() {
     );
   }
 
-  function markCompleted(it: Interview) {
+  const markCompleted = useCallback((it: Interview) => {
     if (it.status === "Completed") {
       toast.info("Already completed.");
       return;
@@ -493,9 +634,9 @@ function JobInterviewListScreen() {
     );
     toast.success("Marked as completed.");
     setOpenMenuForId(null);
-  }
+  }, []);
 
-  function reschedule(it: Interview) {
+  const reschedule = useCallback((it: Interview) => {
     setOpenMenuForId(null);
     toast.info("Rescheduling…");
     navigate("/internal/interviews/schedule", {
@@ -506,9 +647,9 @@ function JobInterviewListScreen() {
         interviewer: it.interviewer,
       },
     });
-  }
+  }, [navigate]);
 
-  function cancelInterview(it: Interview) {
+  const cancelInterview = useCallback((it: Interview) => {
     const ok = window.confirm(`Cancel interview for ${it.candidateName}?`);
     if (!ok) return;
 
@@ -520,7 +661,7 @@ function JobInterviewListScreen() {
 
     toast.info("Interview cancelled.");
     setOpenMenuForId(null);
-  }
+  }, []);
 
   function saveLocalOverrides() {
     // Store only interviews that differ from the deterministic seed by id.
@@ -529,14 +670,6 @@ function JobInterviewListScreen() {
     writeStoredInterviews(items);
     toast.success("Changes saved locally.");
   }
-
-  const visiblePageNumbers = useMemo(() => {
-    const pages: number[] = [];
-    const max = Math.min(totalPages, 3);
-    const start = Math.max(1, Math.min(currentPage, totalPages - max + 1));
-    for (let p = start; p < start + max; p += 1) pages.push(p);
-    return pages;
-  }, [currentPage, totalPages]);
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
@@ -695,222 +828,61 @@ function JobInterviewListScreen() {
       </div>
 
       {/* Table */}
-      <section className="overflow-hidden rounded-lg border border-[#e2dfde] bg-white">
-        <div className="flex items-center justify-between border-b border-[#e2dfde] bg-[#2f3131] p-6">
-          <h3 className="font-bold text-white">Interview Schedule</h3>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded bg-[#e2e2e2] px-3 py-1 text-[12px] font-semibold text-[#1a1c1c] hover:bg-white"
-              onClick={exportCsv}
-            >
-              Export CSV
-            </button>
-          </div>
+      <div className="mb-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-[20px] font-bold text-[#1a1c1c]">
+            Interview Schedule
+          </h3>
+          <button
+            type="button"
+            className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#93000d]"
+            onClick={exportCsv}
+          >
+            Export CSV
+          </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="bg-[#1A1A1A] text-white">
-                <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Candidate
-                </th>
-                <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Job Title
-                </th>
-                <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Interviewer
-                </th>
-                <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Date &amp; Time
-                </th>
-                <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-right text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="text-[14px]">
-              {pageSlice.map((it, idx) => {
-                const zebra = idx % 2 === 1 ? "bg-[#f9fafb]" : "bg-white";
-                return (
-                  <tr
-                    key={it.id}
-                    className={`${zebra} border-b border-[#e2dfde] transition-colors hover:bg-[#b90014]/5`}
-                    onClick={() => openDetails(it)}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e2dfde] text-[12px] font-bold text-[#5f5e5e]">
-                          {it.initials}
-                        </div>
-                        <div>
-                          <p className="font-bold">{it.candidateName}</p>
-                          <p className="text-[12px] text-[#5f5e5e]">
-                            {it.candidateEmail}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">{it.jobTitle}</td>
-                    <td className="px-6 py-4">{it.interviewer}</td>
-                    <td className="px-6 py-4">
-                      <p className="font-bold">{it.dateLabel}</p>
-                      <p className="text-[12px] text-[#5f5e5e]">
-                        {it.timeLabel}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusChip(
-                          it.status,
-                        )}`}
-                      >
-                        {it.status}
-                      </span>
-                    </td>
-                    <td className="relative px-6 py-4 text-right">
-                      <button
-                        type="button"
-                        className="p-1 text-[#5f5e5e] hover:text-[#b90014]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenMenuForId((prev) =>
-                            prev === it.id ? null : it.id,
-                          );
-                        }}
-                        aria-label="Actions"
-                      >
-                        <span className="material-symbols-outlined">
-                          more_vert
-                        </span>
-                      </button>
-
-                      {openMenuForId === it.id ? (
-                        <div
-                          ref={menuRef}
-                          className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded border border-[#e2dfde] bg-white shadow"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
-                            onClick={() => {
-                              toast.info(
-                                `Interview: ${it.candidateName} · ${it.jobTitle}`,
-                              );
-                              setOpenMenuForId(null);
-                            }}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">
-                              visibility
-                            </span>
-                            View details
-                          </button>
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
-                            onClick={() => reschedule(it)}
-                            disabled={it.status === "Completed"}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">
-                              schedule
-                            </span>
-                            Reschedule
-                          </button>
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
-                            onClick={() => markCompleted(it)}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">
-                              check_circle
-                            </span>
-                            Mark completed
-                          </button>
-                          <button
-                            type="button"
-                            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold text-[#ba1a1a] hover:bg-[#ffdad6]"
-                            onClick={() => cancelInterview(it)}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">
-                              close
-                            </span>
-                            Cancel
-                          </button>
-                        </div>
-                      ) : null}
-                    </td>
-                  </tr>
-                );
-              })}
-
-              {pageSlice.length === 0 ? (
-                <tr>
-                  <td
-                    className="px-6 py-10 text-center text-[14px] text-[#5f5e5e]"
-                    colSpan={6}
-                  >
-                    No interviews found.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between border-t border-[#e2dfde] p-4 text-[12px] font-semibold text-[#5f5e5e]">
-          <span>
-            Showing {rangeStart}-{rangeEnd} of {totalItems} interviews
-          </span>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded border border-[#e2dfde] p-2 hover:bg-[#f3f3f3]"
-              onClick={() => goTo(currentPage - 1)}
-              disabled={currentPage <= 1}
-              aria-label="Previous"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                chevron_left
-              </span>
-            </button>
-
-            {visiblePageNumbers.map((p) => (
-              <button
-                key={p}
-                type="button"
-                className={`rounded border border-[#e2dfde] p-2 ${
-                  p === currentPage
-                    ? "bg-[#b90014] text-white"
-                    : "hover:bg-[#f3f3f3]"
-                }`}
-                onClick={() => goTo(p)}
-              >
-                {p}
-              </button>
-            ))}
-
-            <button
-              type="button"
-              className="rounded border border-[#e2dfde] p-2 hover:bg-[#f3f3f3]"
-              onClick={() => goTo(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-              aria-label="Next"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                chevron_right
-              </span>
-            </button>
-          </div>
-        </div>
-      </section>
+        <CommonTable
+          columns={useMemo(
+            () => {
+              return buildInterviewTableColumns(
+                statusChip,
+                openMenuForId,
+                setOpenMenuForId,
+                markCompleted,
+                reschedule,
+                cancelInterview,
+                menuRef,
+              );
+            },
+            [
+              openMenuForId,
+              setOpenMenuForId,
+              markCompleted,
+              reschedule,
+              cancelInterview,
+            ],
+          )}
+          data={pageSlice}
+          keyExtractor={(item) => item.id}
+          loading={false}
+          emptyMessage="No interviews found."
+          zebra
+          hover
+          onRowClick={openDetails}
+          showPagination
+          pagination={{
+            enabled: true,
+            currentPage,
+            totalPages,
+            totalItems,
+            rangeStart,
+            rangeEnd,
+            onPageChange: goTo,
+          }}
+          tableWrapperClassName="overflow-hidden rounded-lg border border-[#e2dfde] bg-white"
+        />
+      </div>
 
       {/* Floating action button */}
       <button

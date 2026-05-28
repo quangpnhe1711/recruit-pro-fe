@@ -1,3 +1,4 @@
+import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 
 type StatCard = {
   label: string;
@@ -106,6 +107,54 @@ const pendingApprovals: PendingApproval[] = [
   },
 ];
 
+function buildRecentApplicationsColumns(): TableColumn<RecentApplication>[] {
+  return [
+    {
+      key: "candidateName",
+      header: "Candidate Name",
+      renderCell: (item) => <span className="font-semibold">{item.candidateName}</span>,
+    },
+    {
+      key: "jobAppliedFor",
+      header: "Job Applied For",
+      renderCell: (item) => <span className="text-[#5f5e5e]">{item.jobAppliedFor}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      renderCell: (item) => (
+        <span
+          className={`rounded px-3 py-1 text-[10px] font-bold uppercase ${item.statusClassName}`}
+        >
+          {item.status}
+        </span>
+      ),
+    },
+    {
+      key: "date",
+      header: "Date",
+      renderCell: (item) => <span className="text-[#5f5e5e]">{item.date}</span>,
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      alignRight: true,
+      renderCell: () => (
+        <button
+          type="button"
+          className="text-[#1a1c1c] transition-colors hover:text-[#b90014]"
+          aria-label="More actions"
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            more_vert
+          </span>
+        </button>
+      ),
+    },
+  ];
+}
+
 function HrDashboardScreen() {
   return (
     <>
@@ -179,65 +228,16 @@ function HrDashboardScreen() {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead className="bg-[#1a1c1c] text-white">
-                      <tr>
-                        <th className="px-6 py-3 text-[12px] font-semibold tracking-[0.05em]">
-                          Candidate Name
-                        </th>
-                        <th className="px-6 py-3 text-[12px] font-semibold tracking-[0.05em]">
-                          Job Applied For
-                        </th>
-                        <th className="px-6 py-3 text-[12px] font-semibold tracking-[0.05em]">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-[12px] font-semibold tracking-[0.05em]">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 text-right text-[12px] font-semibold tracking-[0.05em]">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-[14px]">
-                      {recentApplications.map((row, index) => (
-                        <tr
-                          key={`${row.candidateName}-${row.date}`}
-                          className={`border-b border-[#e2dfde] transition-colors hover:bg-[#e8e8e8]/20 ${
-                            index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"
-                          }`}
-                        >
-                          <td className="px-6 py-4 font-semibold">
-                            {row.candidateName}
-                          </td>
-                          <td className="px-6 py-4 text-[#5f5e5e]">
-                            {row.jobAppliedFor}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`rounded px-3 py-1 text-[10px] font-bold uppercase ${row.statusClassName}`}
-                            >
-                              {row.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-[#5f5e5e]">
-                            {row.date}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              type="button"
-                              className="text-[#1a1c1c] transition-colors hover:text-[#b90014]"
-                              aria-label="More actions"
-                            >
-                              <span className="material-symbols-outlined text-[20px]">
-                                more_vert
-                              </span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <CommonTable
+                    columns={buildRecentApplicationsColumns()}
+                    data={recentApplications}
+                    keyExtractor={(item) => `${item.candidateName}-${item.date}`}
+                    loading={false}
+                    emptyMessage="No recent applications."
+                    zebra
+                    hover
+                    tableWrapperClassName="overflow-hidden border border-[#e2dfde] bg-white"
+                  />
                 </div>
               </section>
 
