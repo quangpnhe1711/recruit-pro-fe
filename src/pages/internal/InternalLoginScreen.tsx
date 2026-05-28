@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import MockJsonButton from '../../common/components/MockJsonButton'
-import { setToken, setVariant } from '../../store/slices/authSlice'
+import {  setVariant } from '../../store/slices/authSlice'
 import { setProfile } from '../../store/slices/userSlice'
 
 function InternalLoginScreen() {
@@ -28,7 +28,6 @@ function InternalLoginScreen() {
       : `${employeeId || 'alex.rivera'}@recruitpro.com`
 
     dispatch(setVariant('internal'))
-    dispatch(setToken('demo-token-internal'))
     dispatch(
       setProfile({
         id: 'employee-1',
