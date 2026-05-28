@@ -20,6 +20,63 @@ type RegisterValues = {
 
 type ErrorMap = Record<string, string | undefined>;
 
+type CandidateRegisterMockPayload = {
+  screen: string;
+  forms: {
+    account: {
+      fullName: string;
+      email: string;
+      password: string;
+      phone: string;
+    };
+    professional: {
+      position: string;
+      experienceYears: number | null;
+      education: string;
+      address: string;
+      bio: string;
+    };
+    links: {
+      github: string;
+      linkedin: string;
+      resume: {
+        fileName: string;
+        mimeType: string;
+        size: number;
+      } | null;
+    };
+  };
+  insertInto: {
+    user: {
+      fullName: string;
+      email: string;
+      passwordHash: string;
+      phone: string;
+      role: "candidate";
+    };
+    candidate_profile: {
+      userId: string;
+      position: string;
+      experienceYears: number | null;
+      education: string;
+      address: string;
+      bio: string;
+    };
+    candidate_links: {
+      userId: string;
+      github: string;
+      linkedin: string;
+    };
+    candidate_resume: {
+      userId: string;
+      fileName: string;
+      mimeType: string;
+      size: number;
+    } | null;
+  };
+  notes: string[];
+};
+
 const steps = [
   {
     key: "account",
@@ -74,12 +131,89 @@ const baseInputClass =
 const baseTextareaClass =
   "w-full p-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] resize-none focus:outline-none focus:border-[#b90014] focus:border-2";
 
+function buildCandidateRegisterMockPayload(
+  values: RegisterValues,
+): CandidateRegisterMockPayload {
+  const experienceYears = values.experience
+    ? Number(values.experience)
+    : null;
+
+  return {
+    screen: "CandidateRegisterScreen",
+    forms: {
+      account: {
+        fullName: values.fullname,
+        email: values.email,
+        password: values.password,
+        phone: values.phone,
+      },
+      professional: {
+        position: values.position,
+        experienceYears,
+        education: values.education,
+        address: values.address,
+        bio: values.bio,
+      },
+      links: {
+        github: values.github,
+        linkedin: values.linkedin,
+        resume: values.resume
+          ? {
+              fileName: values.resume.name,
+              mimeType: values.resume.type || "application/octet-stream",
+              size: values.resume.size,
+            }
+          : null,
+      },
+    },
+    insertInto: {
+      user: {
+        fullName: values.fullname,
+        email: values.email,
+        passwordHash: "{{bcrypt(password)}}",
+        phone: values.phone,
+        role: "candidate",
+      },
+      candidate_profile: {
+        userId: "{{user.id}}",
+        position: values.position,
+        experienceYears,
+        education: values.education,
+        address: values.address,
+        bio: values.bio,
+      },
+      candidate_links: {
+        userId: "{{user.id}}",
+        github: values.github,
+        linkedin: values.linkedin,
+      },
+      candidate_resume: values.resume
+        ? {
+            userId: "{{user.id}}",
+            fileName: values.resume.name,
+            mimeType: values.resume.type || "application/octet-stream",
+            size: values.resume.size,
+          }
+        : null,
+    },
+    notes: [
+      "Account form feeds the user table; password is represented as a hash placeholder in the mock payload.",
+      "Professional form maps to candidate_profile.",
+      "Links form maps to candidate_links and the resume metadata block.",
+    ],
+  };
+}
+
 function CandidateRegisterScreen() {
   const totalSteps = steps.length;
   const [currentStep, setCurrentStep] = useState(1);
   const [values, setValues] = useState<RegisterValues>(initialValues);
   const [errors, setErrors] = useState<ErrorMap>({});
   const [submitState, setSubmitState] = useState("idle");
+  const mockPayload = useMemo(
+    () => buildCandidateRegisterMockPayload(values),
+    [values],
+  );
 
   const stepConfig = steps[currentStep - 1];
   const stepIndicatorText = useMemo(() => {
@@ -289,13 +423,21 @@ function CandidateRegisterScreen() {
               })}
             </div>
 
-            <div className="mb-8">
-              <h2 className="text-[32px] leading-10 tracking-[-0.01em] font-semibold text-[#1a1c1c] mb-2">
-                {stepConfig.title}
-              </h2>
-              <p className="text-[14px] leading-5 text-[#5f5e5e]">
-                {stepConfig.desc}
-              </p>
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-[32px] leading-10 tracking-[-0.01em] font-semibold text-[#1a1c1c] mb-2">
+                  {stepConfig.title}
+                </h2>
+                <p className="text-[14px] leading-5 text-[#5f5e5e]">
+                  {stepConfig.desc}
+                </p>
+              </div>
+
+              <MockJsonButton
+                className="self-start"
+                label="Mock API JSON"
+                payload={mockPayload}
+              />
             </div>
 
             <form className="space-y-8" onSubmit={handleSubmit}>

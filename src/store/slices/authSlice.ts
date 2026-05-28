@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import type { LoginResponseDto, UserDto } from "../../modules/auth/AuthSchema";
+import type { LoginResponseDto, UserDto } from "../../modules/auth/authSchema";
 
 export type Variant = "candidate" | "internal";
 
@@ -12,6 +12,8 @@ export type AuthState = {
   user: UserDto | null;
 
   currentVariant?: Variant;
+
+  isAuthenticated: boolean;
 };
 
 const initialState: AuthState = {
@@ -22,6 +24,8 @@ const initialState: AuthState = {
   user: null,
 
   currentVariant: undefined,
+
+  isAuthenticated: false,
 };
 
 const authSlice = createSlice({
@@ -38,6 +42,8 @@ const authSlice = createSlice({
       state.refreshToken = refreshToken;
 
       state.user = user;
+
+      state.isAuthenticated = true;
     },
 
     setAccessToken(state, action: PayloadAction<string>) {

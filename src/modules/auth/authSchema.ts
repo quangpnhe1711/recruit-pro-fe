@@ -21,3 +21,8 @@ export type LoginResponseDto = {
 
   user: UserDto;
 };
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};

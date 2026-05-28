@@ -10,7 +10,7 @@ function MockJsonButton({
   className = '',
 }: MockJsonButtonProps) {
   function handleClick() {
-    console.log('[mock-json]', payload)
+    console.log('[mock-json]', JSON.stringify(payload, null, 2))
   }
 
   return (
