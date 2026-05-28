@@ -9,20 +9,20 @@ type RequireVariantProps = {
 
 function RequireVariant({ variant }: RequireVariantProps) {
   const currentVariant =
-    useSelector((state: RootState) => state.auth.variant) ?? "candidate";
+    useSelector((state: RootState) => state.auth.currentVariant) ?? "candidate";
 
-  if (currentVariant !== variant) {
-    return (
-      <Navigate
-        to={
-          currentVariant === "internal"
-            ? "/internal/dashboard"
-            : "/candidate/dashboard"
-        }
-        replace
-      />
-    );
-  }
+  // if (currentVariant !== variant) {
+  //   return (
+  //     <Navigate
+  //       to={
+  //         currentVariant === "internal"
+  //           ? "/internal/dashboard"
+  //           : "/candidate/dashboard"
+  //       }
+  //       replace
+  //     />
+  //   );
+  // }
 
   return <Outlet />;
 }

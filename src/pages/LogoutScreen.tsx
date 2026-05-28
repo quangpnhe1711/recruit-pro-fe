@@ -8,7 +8,7 @@ import { clearProfile } from "../store/slices/userSlice";
 
 function LogoutScreen() {
   const dispatch = useDispatch();
-  const variant = useSelector((state: RootState) => state.auth.variant);
+  const variant = useSelector((state: RootState) => state.auth.currentVariant);
   const redirectTo = variant === "internal" ? "/internal/login" : "/login";
 
   useEffect(() => {

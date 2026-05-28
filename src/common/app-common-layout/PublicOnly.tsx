@@ -8,7 +8,7 @@ function PublicOnly() {
     (state: RootState) => state.auth.isAuthenticated,
   );
   const variant =
-    useSelector((state: RootState) => state.auth.variant) ?? "candidate";
+    useSelector((state: RootState) => state.auth.currentVariant) ?? "candidate";
 
   if (isAuthenticated) {
     return (

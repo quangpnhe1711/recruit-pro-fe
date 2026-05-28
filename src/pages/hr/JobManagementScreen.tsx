@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import { setVariant } from "../../store/slices/authSlice";
 
 type ApprovalStatus = "Approved" | "Pending" | "Draft" | "Rejected";
 
@@ -114,12 +117,86 @@ function approvalChip(status: ApprovalStatus) {
   }
 }
 
-function formatNowAsLabel() {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  }).format(new Date());
+function buildJobTableColumns(
+  onViewApplications: (job: Job) => void,
+  onOpenEdit: (job: Job) => void,
+  onDeleteJob: (job: Job) => void,
+): TableColumn<Job>[] {
+  return [
+    {
+      key: "title",
+      header: "Job Title",
+      renderCell: (job) => (
+        <div>
+          <p className="text-[14px] font-bold text-[#1a1c1c]">{job.title}</p>
+          <p className="font-mono text-[12px] text-[#5f5e5e]">ID: {job.id}</p>
+        </div>
+      ),
+    },
+    {
+      key: "department",
+      header: "Department",
+      renderCell: (job) => (
+        <p className="text-[14px] text-[#5f5e5e]">{job.department}</p>
+      ),
+    },
+    {
+      key: "createdDate",
+      header: "Created Date",
+      renderCell: (job) => (
+        <p className="text-[14px] text-[#5f5e5e]">{job.createdDate}</p>
+      ),
+    },
+    {
+      key: "approvalStatus",
+      header: "Approval Status",
+      renderCell: (job) => {
+        const chip = approvalChip(job.approvalStatus);
+        return (
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-[0.05em] ${chip.wrapper}`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
+            {job.approvalStatus}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      alignRight: true,
+      headerClassName: "text-right",
+      renderCell: (job) => (
+        <div className="flex items-center justify-end gap-3">
+          <button
+            type="button"
+            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+            title="View Applications"
+            onClick={() => onViewApplications(job)}
+          >
+            <span className="material-symbols-outlined">group</span>
+          </button>
+          <button
+            type="button"
+            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+            title="Edit"
+            onClick={() => onOpenEdit(job)}
+          >
+            <span className="material-symbols-outlined">edit</span>
+          </button>
+          <button
+            type="button"
+            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
+            title="Delete"
+            onClick={() => onDeleteJob(job)}
+          >
+            <span className="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+      ),
+    },
+  ];
 }
 
 function buildSeedJobs(): Job[] {
@@ -187,7 +264,7 @@ function buildSeedJobs(): Job[] {
   const fillerDepartments = ["Engineering", "Product", "Design", "Marketing", "Operations"];
   const fillerStatuses: ApprovalStatus[] = ["Approved", "Pending", "Draft", "Rejected"];
 
-  let idNum = 8900;
+  const idNum = 8900;
   for (let i = 0; i < 37; i += 1) {
     const dep = fillerDepartments[i % fillerDepartments.length];
     const status = fillerStatuses[i % fillerStatuses.length];
@@ -517,104 +594,20 @@ function JobManagementScreen() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left">
-                  <thead>
-                    <tr className="bg-[#1a1c1c] text-white">
-                      <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                        Job Title
-                      </th>
-                      <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                        Department
-                      </th>
-                      <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                        Created Date
-                      </th>
-                      <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.18em]">
-                        Approval Status
-                      </th>
-                      <th className="px-6 py-4 text-right text-[12px] font-semibold uppercase tracking-[0.18em]">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#e7bdb8]">
-                    {pageSlice.map((job, idx) => {
-                      const zebra = idx % 2 === 1 ? "bg-[#f3f3f3]/30" : "bg-white";
-                      const chip = approvalChip(job.approvalStatus);
-
-                      return (
-                        <tr
-                          key={job.id}
-                          className={`${zebra} transition-transform transition-colors hover:translate-x-[2px] hover:bg-[#f3f3f3]`}
-                        >
-                          <td className="px-6 py-4">
-                            <p className="text-[14px] font-bold text-[#1a1c1c]">
-                              {job.title}
-                            </p>
-                            <p className="font-mono text-[12px] text-[#5f5e5e]">
-                              ID: {job.id}
-                            </p>
-                          </td>
-                          <td className="px-6 py-4 text-[14px] text-[#5f5e5e]">
-                            {job.department}
-                          </td>
-                          <td className="px-6 py-4 text-[14px] text-[#5f5e5e]">
-                            {job.createdDate}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-[0.05em] ${chip.wrapper}`}
-                            >
-                              <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
-                              {job.approvalStatus}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-3">
-                              <button
-                                type="button"
-                                className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-                                title="View Applications"
-                                onClick={() => viewApplications(job)}
-                              >
-                                <span className="material-symbols-outlined">group</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-                                title="Edit"
-                                onClick={() => openEdit(job)}
-                              >
-                                <span className="material-symbols-outlined">edit</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
-                                title="Delete"
-                                onClick={() => deleteJob(job)}
-                              >
-                                <span className="material-symbols-outlined">delete</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-
-                    {pageSlice.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="px-6 py-10 text-center text-[14px] text-[#5f5e5e]"
-                        >
-                          No jobs found for current filters.
-                        </td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              </div>
+              <CommonTable
+                columns={buildJobTableColumns(
+                  viewApplications,
+                  openEdit,
+                  deleteJob,
+                )}
+                data={pageSlice}
+                keyExtractor={(item) => item.id}
+                loading={false}
+                emptyMessage="No jobs found for current filters."
+                zebra
+                hover
+                tableWrapperClassName="border border-[#e7bdb8] bg-white"
+              />
 
               {/* Pagination */}
               <div className="flex flex-col gap-4 border-t border-[#e7bdb8] bg-white px-6 py-4 md:flex-row md:items-center md:justify-between">

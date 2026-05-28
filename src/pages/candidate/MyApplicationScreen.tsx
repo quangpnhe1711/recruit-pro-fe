@@ -1,3 +1,6 @@
+import { useState, useMemo } from "react";
+import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import CommonPagination from "../../common/components/CommonPagination";
 
 type ApplicationItem = {
   icon: string;
@@ -53,7 +56,106 @@ const summaryCards = [
   { label: "Closed", value: 8 },
 ];
 
+function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
+  return [
+    {
+      key: "title",
+      header: "Job & Department",
+      renderCell: (item) => (
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#e2dfde] bg-white">
+            <span className="material-symbols-outlined text-[#b90014]">
+              {item.icon}
+            </span>
+          </div>
+          <div>
+            <h3 className="text-[20px] font-semibold leading-7 hover:text-[#b90014]">
+              {item.title}
+            </h3>
+            <p className="text-[14px] leading-5 text-[#5f5e5e]">
+              {item.department}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "appliedDate",
+      header: "Applied Date",
+      renderCell: (item) => <span className="text-[14px] text-[#5f5e5e]">{item.appliedDate}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      renderCell: (item) => (
+        <span
+          className={`inline-flex px-3 py-1 text-[10px] font-bold uppercase tracking-[0.05em] ${item.statusClass}`}
+        >
+          {item.status}
+        </span>
+      ),
+    },
+    {
+      key: "nextStep",
+      header: "Next Step",
+      renderCell: (item) => (
+        <span className="text-[14px] italic text-[#5f5e5e]">{item.nextStep}</span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      alignRight: true,
+      renderCell: (item) => (
+        <div className="flex justify-end gap-3">
+          {item.actionLabel === "Accept Offer" ? (
+            <button
+              className={`px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] transition-colors ${item.actionClass}`}
+              type="button"
+            >
+              {item.actionLabel}
+            </button>
+          ) : null}
+          <button
+            className="border-b-2 border-transparent text-[12px] font-bold text-[#1a1c1c] transition-colors hover:border-[#b90014]"
+            type="button"
+          >
+            View Detail
+          </button>
+          <button
+            className="text-[12px] font-bold text-[#ba1a1a] transition-opacity hover:opacity-70"
+            type="button"
+          >
+            {item.actionLabel === "Accept Offer"
+              ? "Withdraw"
+              : item.actionLabel}
+          </button>
+        </div>
+      ),
+    },
+  ];
+}
+
 function MyApplicationScreen() {
+  const [page, setPage] = useState(1);
+  const pageSize = 3;
+  const totalItems = applications.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  
+  const pageSlice = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return applications.slice(start, start + pageSize);
+  }, [page]);
+
+  const rangeStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalItems);
+
+  function goTo(next: number) {
+    const safe = Math.max(1, Math.min(totalPages, next));
+    setPage(safe);
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10 md:py-10">
           <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
@@ -115,123 +217,25 @@ function MyApplicationScreen() {
           </div>
 
           <section className="overflow-hidden border border-[#e2dfde] bg-white">
-            <div className="hidden grid-cols-12 bg-[#1a1c1c] px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.05em] text-white lg:grid">
-              <div className="col-span-4">Job &amp; Department</div>
-              <div className="col-span-2">Applied Date</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-2">Next Step</div>
-              <div className="col-span-2 text-right">Actions</div>
-            </div>
-
-            <div className="divide-y divide-[#e2dfde]">
-              {applications.map((item, index) => (
-                <div
-                  key={item.title}
-                  className={`group grid grid-cols-1 items-center gap-4 px-6 py-6 transition-transform hover:translate-x-1 lg:grid-cols-12 ${
-                    index % 2 === 1 ? "bg-[#f3f3f3]" : "bg-white"
-                  }`}
-                >
-                  <div className="flex items-start gap-4 lg:col-span-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#e2dfde] bg-white">
-                      <span className="material-symbols-outlined text-[#b90014]">
-                        {item.icon}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-[20px] font-semibold leading-7 group-hover:text-[#b90014]">
-                        {item.title}
-                      </h3>
-                      <p className="text-[14px] leading-5 text-[#5f5e5e]">
-                        {item.department}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-[14px] text-[#5f5e5e] lg:col-span-2">
-                    <span className="lg:hidden font-bold text-[#1a1c1c]">
-                      Applied:{" "}
-                    </span>
-                    {item.appliedDate}
-                  </div>
-
-                  <div className="lg:col-span-2">
-                    <span
-                      className={`inline-flex px-3 py-1 text-[10px] font-bold uppercase tracking-[0.05em] ${item.statusClass}`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-
-                  <div className="text-[14px] italic text-[#5f5e5e] lg:col-span-2">
-                    {item.nextStep}
-                  </div>
-
-                  <div className="flex justify-end gap-3 lg:col-span-2">
-                    {item.actionLabel === "Accept Offer" ? (
-                      <button
-                        className={`px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] transition-colors ${item.actionClass}`}
-                        type="button"
-                      >
-                        {item.actionLabel}
-                      </button>
-                    ) : null}
-                    <button
-                      className="border-b-2 border-transparent text-[12px] font-bold text-[#1a1c1c] transition-colors hover:border-[#b90014]"
-                      type="button"
-                    >
-                      View Detail
-                    </button>
-                    <button
-                      className="text-[12px] font-bold text-[#ba1a1a] transition-opacity hover:opacity-70"
-                      type="button"
-                    >
-                      {item.actionLabel === "Accept Offer"
-                        ? "Withdraw"
-                        : item.actionLabel}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CommonTable
+              columns={buildApplicationTableColumns()}
+              data={pageSlice}
+              keyExtractor={(item) => item.title}
+              loading={false}
+              emptyMessage="No applications found."
+              zebra
+              hover
+            />
           </section>
 
-          <div className="mt-8 flex flex-col items-start justify-between gap-4 px-1 md:flex-row md:items-center">
-            <p className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-              Showing 1 to 3 of 12 applications
-            </p>
-            <div className="flex gap-2">
-              <button
-                className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3]"
-                type="button"
-              >
-                <span className="material-symbols-outlined">chevron_left</span>
-              </button>
-              <button
-                className="flex h-10 w-10 items-center justify-center border border-[#1a1c1c] bg-[#1a1c1c] font-bold text-white"
-                type="button"
-              >
-                1
-              </button>
-              <button
-                className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3]"
-                type="button"
-              >
-                2
-              </button>
-              <button
-                className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3]"
-                type="button"
-              >
-                3
-              </button>
-              <button
-                className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3]"
-                type="button"
-              >
-                <span className="material-symbols-outlined">chevron_right</span>
-              </button>
-            </div>
-          </div>
+          <CommonPagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            onPageChange={goTo}
+          />
     </div>
   );
 }

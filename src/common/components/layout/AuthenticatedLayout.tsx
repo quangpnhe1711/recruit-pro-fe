@@ -9,7 +9,7 @@ import SideNavBar from "./SideNavBar";
 
 function AuthenticatedLayout() {
   const variant =
-    useSelector((state: RootState) => state.auth.variant) ?? "candidate";
+    useSelector((state: RootState) => state.auth.currentVariant) ?? "candidate";
   const isCandidate = variant === "candidate";
 
   return (
