@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
 
@@ -82,7 +82,9 @@ function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
     {
       key: "appliedDate",
       header: "Applied Date",
-      renderCell: (item) => <span className="text-[14px] text-[#5f5e5e]">{item.appliedDate}</span>,
+      renderCell: (item) => (
+        <span className="text-[14px] text-[#5f5e5e]">{item.appliedDate}</span>
+      ),
     },
     {
       key: "status",
@@ -99,7 +101,9 @@ function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
       key: "nextStep",
       header: "Next Step",
       renderCell: (item) => (
-        <span className="text-[14px] italic text-[#5f5e5e]">{item.nextStep}</span>
+        <span className="text-[14px] italic text-[#5f5e5e]">
+          {item.nextStep}
+        </span>
       ),
     },
     {
@@ -142,7 +146,7 @@ function MyApplicationScreen() {
   const pageSize = 3;
   const totalItems = applications.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  
+
   const pageSlice = useMemo(() => {
     const start = (page - 1) * pageSize;
     return applications.slice(start, start + pageSize);
@@ -158,84 +162,84 @@ function MyApplicationScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10 md:py-10">
-          <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <h1 className="mb-2 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                My Applications
-              </h1>
-              <p className="text-[14px] leading-5 text-[#5f5e5e]">
-                Manage and track your active recruitment journeys across the
-                RecruitPro network.
-              </p>
-            </div>
+      <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <h1 className="mb-2 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+            My Applications
+          </h1>
+          <p className="text-[14px] leading-5 text-[#5f5e5e]">
+            Manage and track your active recruitment journeys across the
+            RecruitPro network.
+          </p>
+        </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              {summaryCards.map((card) => (
-                <div
-                  key={card.label}
-                  className="min-w-[120px] border border-[#e2dfde] bg-white p-4 text-center"
-                >
-                  <span className="block text-[32px] font-bold text-[#b90014]">
-                    {card.value}
-                  </span>
-                  <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    {card.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-8 flex flex-wrap items-center gap-4 bg-[#f3f3f3] p-4">
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c]">
-                Filter By:
+        <div className="grid grid-cols-3 gap-4">
+          {summaryCards.map((card) => (
+            <div
+              key={card.label}
+              className="min-w-[120px] border border-[#e2dfde] bg-white p-4 text-center"
+            >
+              <span className="block text-[32px] font-bold text-[#b90014]">
+                {card.value}
               </span>
-              <select className="border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]">
-                <option>All Statuses</option>
-                <option>Under Review</option>
-                <option>Interviewing</option>
-                <option>Offered</option>
-                <option>Rejected</option>
-              </select>
+              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+                {card.label}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <select className="border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]">
-                <option>Sort by: Applied Date</option>
-                <option>Sort by: Job Title</option>
-                <option>Sort by: Company</option>
-              </select>
-            </div>
-            <div className="flex-1" />
-            <div className="relative w-full md:w-72">
-              <input
-                className="w-full border border-[#e2dfde] bg-white px-4 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                placeholder="Search applications..."
-                type="text"
-              />
-            </div>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          <section className="overflow-hidden border border-[#e2dfde] bg-white">
-            <CommonTable
-              columns={buildApplicationTableColumns()}
-              data={pageSlice}
-              keyExtractor={(item) => item.title}
-              loading={false}
-              emptyMessage="No applications found."
-              zebra
-              hover
-            />
-          </section>
-
-          <CommonPagination
-            currentPage={page}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            rangeStart={rangeStart}
-            rangeEnd={rangeEnd}
-            onPageChange={goTo}
+      <div className="mb-8 flex flex-wrap items-center gap-4 bg-[#f3f3f3] p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c]">
+            Filter By:
+          </span>
+          <select className="border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]">
+            <option>All Statuses</option>
+            <option>Under Review</option>
+            <option>Interviewing</option>
+            <option>Offered</option>
+            <option>Rejected</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <select className="border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]">
+            <option>Sort by: Applied Date</option>
+            <option>Sort by: Job Title</option>
+            <option>Sort by: Company</option>
+          </select>
+        </div>
+        <div className="flex-1" />
+        <div className="relative w-full md:w-72">
+          <input
+            className="w-full border border-[#e2dfde] bg-white px-4 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            placeholder="Search applications..."
+            type="text"
           />
+        </div>
+      </div>
+
+      <section className="overflow-hidden border border-[#e2dfde] bg-white">
+        <CommonTable
+          columns={buildApplicationTableColumns()}
+          data={pageSlice}
+          keyExtractor={(item) => item.title}
+          loading={false}
+          emptyMessage="No applications found."
+          zebra
+          hover
+        />
+      </section>
+
+      <CommonPagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        onPageChange={goTo}
+      />
     </div>
   );
 }

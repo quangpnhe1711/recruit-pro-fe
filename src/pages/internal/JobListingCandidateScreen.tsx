@@ -1,4 +1,6 @@
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import CommonPagination from "../../common/components/CommonPagination";
 
 type JobCard = {
   icon: string;
@@ -65,6 +67,24 @@ const filterGroups = [
 ];
 
 function JobListingCandidateScreen() {
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+  const totalItems = featuredJobs.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  const pageSlice = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return featuredJobs.slice(start, start + pageSize);
+  }, [page]);
+
+  const rangeStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalItems);
+
+  function goTo(next: number) {
+    const safe = Math.max(1, Math.min(totalPages, next));
+    setPage(safe);
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-6 md:px-10">
             <aside className="hidden w-72 flex-shrink-0 space-y-6 xl:block">
@@ -222,7 +242,7 @@ function JobListingCandidateScreen() {
               </div>
 
               <div className="space-y-4">
-                {featuredJobs.map((job) => (
+                {pageSlice.map((job) => (
                   <article
                     key={job.title}
                     className="group flex flex-col gap-4 border border-[#e2dfde] bg-white p-6 transition-all duration-200 hover:border-[#b90014] hover:shadow-sm md:flex-row md:items-start md:gap-6"
@@ -280,49 +300,14 @@ function JobListingCandidateScreen() {
                 ))}
               </div>
 
-              <nav className="flex items-center justify-center gap-2 py-4">
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded border border-[#e2dfde] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined">
-                    chevron_left
-                  </span>
-                </button>
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded bg-[#b90014] text-white"
-                  type="button"
-                >
-                  1
-                </button>
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded border border-[#e2dfde] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                  type="button"
-                >
-                  2
-                </button>
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded border border-[#e2dfde] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                  type="button"
-                >
-                  3
-                </button>
-                <span className="px-2 text-[#5f5e5e]">...</span>
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded border border-[#e2dfde] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                  type="button"
-                >
-                  12
-                </button>
-                <button
-                  className="flex h-10 w-10 items-center justify-center rounded border border-[#e2dfde] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined">
-                    chevron_right
-                  </span>
-                </button>
-              </nav>
+              <CommonPagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                onPageChange={goTo}
+              />
             </section>
     </div>
   );
