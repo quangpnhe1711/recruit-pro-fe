@@ -1,11 +1,11 @@
 Task:
 
-Go to [PROJECT]/Screen/[MODULE]
-Create [SCREEN_NAME] based on provided HTML.
+Go to Screen/[Hr]
+Create [CandidateList] based on provided HTML.
 
 Requirements:
 - Match design exactly
-- Reuse Header and Sidebar
+- Reuse Header and Sidebar, Common Table
 - Don't modify common
 - Responsive
 - Clean code

@@ -156,12 +156,6 @@ function InternalLoginScreen() {
                 <span>Secure Access</span>
                 <span className="material-symbols-outlined text-xl">login</span>
               </button>
-
-              {submitted ? (
-                <p className="text-[12px] text-[#5d3f3c]">
-                  Demo: form submitted (UI only).
-                </p>
-              ) : null}
             </form>
 
             <div className="mt-8 flex items-start gap-3 border-l-4 border-[#ba1a1a] bg-[#ffdad6]/20 p-4">

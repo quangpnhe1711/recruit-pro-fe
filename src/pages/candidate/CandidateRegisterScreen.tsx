@@ -2,80 +2,31 @@ import { useMemo, useState, type ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import MockJsonButton from "../../common/components/MockJsonButton";
 
-type RegisterValues = {
-  fullname: string;
+// 1. Định nghĩa lại Type FE khớp hoàn toàn với DTO C#
+type UserInfoValues = {
+  fullName: string;
   email: string;
   password: string;
   phone: string;
+};
+
+type CandidateProfileValues = {
   position: string;
-  experience: string;
+  experienceYears: number | null;
   education: string;
   address: string;
   bio: string;
-  resume: File | null;
   github: string;
   linkedin: string;
-  [key: string]: string | File | null;
+};
+
+type RegisterValues = {
+  userInfo: UserInfoValues;
+  candidateProfile: CandidateProfileValues;
+  resume: File | null; // Giữ riêng xử lý file (thường gửi qua FormData thay vì JSON body)
 };
 
 type ErrorMap = Record<string, string | undefined>;
-
-type CandidateRegisterMockPayload = {
-  screen: string;
-  forms: {
-    account: {
-      fullName: string;
-      email: string;
-      password: string;
-      phone: string;
-    };
-    professional: {
-      position: string;
-      experienceYears: number | null;
-      education: string;
-      address: string;
-      bio: string;
-    };
-    links: {
-      github: string;
-      linkedin: string;
-      resume: {
-        fileName: string;
-        mimeType: string;
-        size: number;
-      } | null;
-    };
-  };
-  insertInto: {
-    user: {
-      fullName: string;
-      email: string;
-      passwordHash: string;
-      phone: string;
-      role: "candidate";
-    };
-    candidate_profile: {
-      userId: string;
-      position: string;
-      experienceYears: number | null;
-      education: string;
-      address: string;
-      bio: string;
-    };
-    candidate_links: {
-      userId: string;
-      github: string;
-      linkedin: string;
-    };
-    candidate_resume: {
-      userId: string;
-      fileName: string;
-      mimeType: string;
-      size: number;
-    } | null;
-  };
-  notes: string[];
-};
 
 const steps = [
   {
@@ -98,29 +49,38 @@ const steps = [
     key: "links",
     label: "Links",
     title: "Links & Resume",
-    desc: "Finalize your profile with links and documents.",
+    desc: "Finalize your candidateProfile with links and documents.",
     sectionTitle: "Links & Resume",
     sectionIcon: "attachment",
   },
 ];
 
+// 2. Khởi tạo state theo cấu trúc phân tầng mới
 const initialValues: RegisterValues = {
-  fullname: "",
-  email: "",
-  password: "",
-  phone: "",
-  position: "",
-  experience: "",
-  education: "",
-  address: "",
-  bio: "",
+  userInfo: {
+    fullName: "",
+    email: "",
+    password: "",
+    phone: "",
+  },
+  candidateProfile: {
+    position: "",
+    experienceYears: null,
+    education: "",
+    address: "",
+    bio: "",
+    github: "",
+    linkedin: "",
+  },
   resume: null,
-  github: "",
-  linkedin: "",
 };
 
-const requiredByStep = {
-  1: ["fullname", "email", "password"],
+// Định nghĩa các trường bắt buộc theo tầng dữ liệu
+const requiredByStep: Record<
+  number,
+  { group: "userInfo" | "candidateProfile"; fields: string[] }[]
+> = {
+  1: [{ group: "userInfo", fields: ["fullName", "email", "password"] }],
   2: [],
   3: [],
 };
@@ -131,114 +91,87 @@ const baseInputClass =
 const baseTextareaClass =
   "w-full p-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] resize-none focus:outline-none focus:border-[#b90014] focus:border-2";
 
-function buildCandidateRegisterMockPayload(
-  values: RegisterValues,
-): CandidateRegisterMockPayload {
-  const experienceYears = values.experience
-    ? Number(values.experience)
-    : null;
-
-  return {
-    screen: "CandidateRegisterScreen",
-    forms: {
-      account: {
-        fullName: values.fullname,
-        email: values.email,
-        password: values.password,
-        phone: values.phone,
-      },
-      professional: {
-        position: values.position,
-        experienceYears,
-        education: values.education,
-        address: values.address,
-        bio: values.bio,
-      },
-      links: {
-        github: values.github,
-        linkedin: values.linkedin,
-        resume: values.resume
-          ? {
-              fileName: values.resume.name,
-              mimeType: values.resume.type || "application/octet-stream",
-              size: values.resume.size,
-            }
-          : null,
-      },
-    },
-    insertInto: {
-      user: {
-        fullName: values.fullname,
-        email: values.email,
-        passwordHash: "{{bcrypt(password)}}",
-        phone: values.phone,
-        role: "candidate",
-      },
-      candidate_profile: {
-        userId: "{{user.id}}",
-        position: values.position,
-        experienceYears,
-        education: values.education,
-        address: values.address,
-        bio: values.bio,
-      },
-      candidate_links: {
-        userId: "{{user.id}}",
-        github: values.github,
-        linkedin: values.linkedin,
-      },
-      candidate_resume: values.resume
-        ? {
-            userId: "{{user.id}}",
-            fileName: values.resume.name,
-            mimeType: values.resume.type || "application/octet-stream",
-            size: values.resume.size,
-          }
-        : null,
-    },
-    notes: [
-      "Account form feeds the user table; password is represented as a hash placeholder in the mock payload.",
-      "Professional form maps to candidate_profile.",
-      "Links form maps to candidate_links and the resume metadata block.",
-    ],
-  };
-}
-
 function CandidateRegisterScreen() {
   const totalSteps = steps.length;
   const [currentStep, setCurrentStep] = useState(1);
   const [values, setValues] = useState<RegisterValues>(initialValues);
   const [errors, setErrors] = useState<ErrorMap>({});
   const [submitState, setSubmitState] = useState("idle");
-  const mockPayload = useMemo(
-    () => buildCandidateRegisterMockPayload(values),
-    [values],
-  );
+
+  // Payload giả lập chuẩn chỉnh theo cấu trúc BE nhận được
+  const mockPayload = useMemo(() => {
+    return {
+      screen: "CandidateRegisterScreen",
+      payloadToBeSent: {
+        userInfo: values.userInfo,
+        candidateProfile: values.candidateProfile,
+      },
+      fileMetadata: values.resume
+        ? {
+            fileName: values.resume.name,
+            mimeType: values.resume.type || "application/octet-stream",
+            size: values.resume.size,
+          }
+        : null,
+      notes: [
+        "Cấu trúc JSON này map trực tiếp vào CandidateRegisterRequest ở C# Backend.",
+        "Trường resume (File) nên được xử lý bằng cách gửi qua FormData nếu upload cùng lúc.",
+      ],
+    };
+  }, [values]);
 
   const stepConfig = steps[currentStep - 1];
   const stepIndicatorText = useMemo(() => {
     return `Step ${currentStep} of ${totalSteps}: ${stepConfig.label}`;
   }, [currentStep, totalSteps, stepConfig.label]);
 
+  // 3. Hàm setField cải tiến hỗ trợ cập nhật Object lồng nhau
   const setField =
-    (name: keyof RegisterValues) =>
+    (group: "userInfo" | "candidateProfile" | "resume", field?: string) =>
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value =
-        name === "resume"
-          ? ((e.target as HTMLInputElement).files?.[0] ?? null)
+      if (group === "resume") {
+        const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+        setValues((prev) => ({
+          ...prev,
+          resume: file,
+        }));
+        setErrors((prev) => ({ ...prev, resume: undefined }));
+        return;
+      }
+
+      if (!field) return;
+
+      const targetValue =
+        e.target.type === "number"
+          ? e.target.value
+            ? Number(e.target.value)
+            : null
           : e.target.value;
 
-      setValues((prev) => ({ ...prev, [name]: value }));
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    };
+      setValues((prev) => ({
+        ...prev,
+        [group]: {
+          ...prev[group as "userInfo" | "candidateProfile"],
+          [field]: targetValue,
+        },
+      }));
 
+      // Xóa lỗi riêng lẻ của field đó khi user gõ tiếp
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    };
+  // 4. Cập nhật hàm Validate theo cấu trúc mới
   const validateCurrentStep = () => {
-    const requiredFields =
-      (requiredByStep as Record<number, string[]>)[currentStep] || [];
+    const rules = requiredByStep[currentStep] || [];
     const nextErrors: ErrorMap = {};
 
-    for (const field of requiredFields) {
-      if (!String(values[field] ?? "").trim()) nextErrors[field] = "Required";
+    for (const rule of rules) {
+      const groupObj = values[rule.group];
+      for (const field of rule.fields) {
+        const val = groupObj[field as keyof typeof groupObj];
+        if (!String(val ?? "").trim()) {
+          nextErrors[field] = "Required";
+        }
+      }
     }
 
     setErrors((prev) => ({ ...prev, ...nextErrors }));
@@ -254,24 +187,74 @@ function CandidateRegisterScreen() {
     setCurrentStep((s) => Math.max(1, s - 1));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateCurrentStep()) return;
 
-    const payload = {
-      screen: "CandidateRegisterScreen",
-      currentStep,
-      values,
-      submitState,
-    };
-
-    console.log("Submitting registration:", payload);
-
     setSubmitState("processing");
-    window.setTimeout(() => {
-      setSubmitState("success");
-      window.setTimeout(() => setSubmitState("idle"), 2000);
-    }, 1200);
+
+    // 1. Khởi tạo đối tượng FormData thay vì JSON body thông thường
+    const formData = new FormData();
+
+    // 2. Đóng gói cụm dữ liệu "userInfo" theo quy tắc đặt tên thuộc tính của C#
+    formData.append("UserInfo.FullName", values.userInfo.fullName);
+    formData.append("UserInfo.Email", values.userInfo.email);
+    formData.append("UserInfo.PasswordHash", values.userInfo.password);
+    formData.append("UserInfo.Phone", values.userInfo.phone);
+
+    // 3. Đóng gói cụm dữ liệu "candidateProfile"
+    formData.append(
+      "CandidateProfile.Position",
+      values.candidateProfile.position,
+    );
+    if (values.candidateProfile.experienceYears !== null) {
+      formData.append(
+        "CandidateProfile.ExperienceYears",
+        String(values.candidateProfile.experienceYears),
+      );
+    }
+    formData.append(
+      "CandidateProfile.Education",
+      values.candidateProfile.education,
+    );
+    formData.append(
+      "CandidateProfile.Address",
+      values.candidateProfile.address,
+    );
+    formData.append("CandidateProfile.Bio", values.candidateProfile.bio);
+    formData.append("CandidateProfile.Github", values.candidateProfile.github);
+    formData.append(
+      "CandidateProfile.Linkedin",
+      values.candidateProfile.linkedin,
+    );
+
+    // 4. Đóng gói FILE LẺ (Key "resume" phải trùng khớp 100% với tên biến ở tham số Controller C#)
+    if (values.resume) {
+      formData.append("resume", values.resume);
+    }
+
+    // 5. Tiến hành call API thực tế bằng Axios hoặc Fetch
+    try {
+      // Thay thế URL này bằng endpoint thực tế của Backend C# của bạn
+      const response = await fetch(
+        "https://localhost:7274/api/candidate/register",
+        {
+          method: "POST",
+          body: formData, // FormData sẽ tự động set Header Content-Type: multipart/form-data kèm theo boundary
+        },
+      );
+
+      if (response.ok) {
+        setSubmitState("success");
+        window.setTimeout(() => setSubmitState("idle"), 2000);
+      } else {
+        console.error("Backend returned an error response");
+        setSubmitState("idle");
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi dữ liệu lên Backend:", error);
+      setSubmitState("idle");
+    }
   };
 
   const dotClass = (index: number) => {
@@ -284,13 +267,14 @@ function CandidateRegisterScreen() {
     ].join(" ");
   };
 
-  const labelClass = (index) =>
+  const labelClass = (index: number) =>
     index <= currentStep ? "text-[#1a1c1c]" : "text-[#5f5e5e]";
 
-  const lineClass = (index) =>
+  const lineClass = (index: number) =>
     index < currentStep ? "bg-[#b90014]" : "bg-[#e2e2e2]";
 
-  const errorBorder = (name) => (errors[name] ? "!border-[#ba1a1a]" : "");
+  const errorBorder = (name: string) =>
+    errors[name] ? "!border-[#ba1a1a]" : "";
 
   return (
     <main className="flex min-h-screen w-full bg-white text-[#1a1c1c]">
@@ -350,14 +334,6 @@ function CandidateRegisterScreen() {
             Enterprise Talent Solutions v4.2
           </p>
         </div>
-
-        <div className="absolute bottom-0 right-0 w-3/4 h-2/3 opacity-40 mix-blend-screen pointer-events-none">
-          <img
-            alt="Recruitment Theme"
-            className="w-full h-full object-contain object-bottom"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqKo5vh-Z093e6sDtWSm56ScFtLcWKoKOED8KsYKx7HFj88R8cRG3Pa-pqf9UmyQ-e-_wBYxLmpbgxsfMpfPvVdsakJOMCqP0rj1ECdTy3Z4dmOnNHgHfN3_xeXAq5BUny2QezoUfsA18qZ7zihRRINMKaY-DIjmlygG8hqMx7sK1T9_lbLtJJDDeCN6CLw0ytYSVmOnCvc_iOO2xGy3bT6bpSpDhD22ONrs889jZXVMGKdJp9MgasBx-qNKxhZ9pXfZMok7G9Mw"
-          />
-        </div>
       </section>
 
       {/* Right Side */}
@@ -389,7 +365,7 @@ function CandidateRegisterScreen() {
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col items-center justify-start py-8 px-4 md:px-[40px] overflow-y-auto scrollbar-hide">
+        <div className="flex-1 flex flex-col items-center justify-start py-8 px-4 md:px-[40px] overflow-y-auto">
           <div className="w-full max-w-lg">
             {/* Progress */}
             <div className="mb-10 flex items-center justify-between">
@@ -403,19 +379,14 @@ function CandidateRegisterScreen() {
                     <div className="flex flex-col items-center gap-2 flex-1">
                       <div className={dotClass(index)}>{index}</div>
                       <span
-                        className={`text-[10px] uppercase tracking-wider font-bold ${labelClass(
-                          index,
-                        )}`}
+                        className={`text-[10px] uppercase tracking-wider font-bold ${labelClass(index)}`}
                       >
                         {s.label}
                       </span>
                     </div>
-
                     {index < totalSteps ? (
                       <div
-                        className={`h-[2px] flex-1 -mt-6 transition-all ${lineClass(
-                          index,
-                        )}`}
+                        className={`h-[2px] flex-1 -mt-6 transition-all ${lineClass(index)}`}
                       />
                     ) : null}
                   </div>
@@ -441,7 +412,7 @@ function CandidateRegisterScreen() {
             </div>
 
             <form className="space-y-8" onSubmit={handleSubmit}>
-              {/* Step 1 */}
+              {/* Step 1: Account (Gói trong userInfo) */}
               {currentStep === 1 ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 border-b border-[#e2dfde] pb-2">
@@ -457,20 +428,20 @@ function CandidateRegisterScreen() {
                     <div className="space-y-1.5 group">
                       <label
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
-                        htmlFor="fullname"
+                        htmlFor="fullName"
                       >
                         Full Name{" "}
                         <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
-                        id="fullname"
-                        name="fullname"
+                        id="fullName"
+                        name="fullName"
                         required
-                        className={`${baseInputClass} ${errorBorder("fullname")}`}
+                        className={`${baseInputClass} ${errorBorder("fullName")}`}
                         placeholder="Jane Doe"
                         type="text"
-                        value={values.fullname}
-                        onChange={setField("fullname")}
+                        value={values.userInfo.fullName}
+                        onChange={setField("userInfo", "fullName")}
                       />
                     </div>
 
@@ -489,8 +460,8 @@ function CandidateRegisterScreen() {
                         className={`${baseInputClass} ${errorBorder("email")}`}
                         placeholder="jane@recruitpro.com"
                         type="email"
-                        value={values.email}
-                        onChange={setField("email")}
+                        value={values.userInfo.email}
+                        onChange={setField("userInfo", "email")}
                       />
                     </div>
 
@@ -509,8 +480,8 @@ function CandidateRegisterScreen() {
                         className={`${baseInputClass} ${errorBorder("password")}`}
                         placeholder="••••••••"
                         type="password"
-                        value={values.password}
-                        onChange={setField("password")}
+                        value={values.userInfo.password}
+                        onChange={setField("userInfo", "password")}
                       />
                     </div>
 
@@ -524,19 +495,18 @@ function CandidateRegisterScreen() {
                       <input
                         id="phone"
                         name="phone"
-                        required
                         className={baseInputClass}
                         placeholder="(+84) 8123 45678"
                         type="tel"
-                        value={values.phone}
-                        onChange={setField("phone")}
+                        value={values.userInfo.phone}
+                        onChange={setField("userInfo", "phone")}
                       />
                     </div>
                   </div>
                 </div>
               ) : null}
 
-              {/* Step 2 */}
+              {/* Step 2: Professional Details (Gói trong candidateProfile) */}
               {currentStep === 2 ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 border-b border-[#e2dfde] pb-2">
@@ -562,26 +532,29 @@ function CandidateRegisterScreen() {
                         className={baseInputClass}
                         placeholder="Senior Talent Specialist"
                         type="text"
-                        value={values.position}
-                        onChange={setField("position")}
+                        value={values.candidateProfile.position}
+                        onChange={setField("candidateProfile", "position")}
                       />
                     </div>
 
                     <div className="md:col-span-1 space-y-1.5 group">
                       <label
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
-                        htmlFor="experience"
+                        htmlFor="experienceYears"
                       >
                         Years Exp.
                       </label>
                       <input
-                        id="experience"
-                        name="experience"
+                        id="experienceYears"
+                        name="experienceYears"
                         className={baseInputClass}
                         placeholder="5"
                         type="number"
-                        value={values.experience}
-                        onChange={setField("experience")}
+                        value={values.candidateProfile.experienceYears || ""}
+                        onChange={setField(
+                          "candidateProfile",
+                          "experienceYears",
+                        )}
                       />
                     </div>
                   </div>
@@ -599,8 +572,8 @@ function CandidateRegisterScreen() {
                       className={baseTextareaClass}
                       placeholder="List your degrees and institutions..."
                       rows={2}
-                      value={values.education}
-                      onChange={setField("education")}
+                      value={values.candidateProfile.education}
+                      onChange={setField("candidateProfile", "education")}
                     />
                   </div>
 
@@ -609,7 +582,7 @@ function CandidateRegisterScreen() {
                       className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                       htmlFor="address"
                     >
-                      Mailing Address
+                      Address
                     </label>
                     <textarea
                       id="address"
@@ -617,8 +590,8 @@ function CandidateRegisterScreen() {
                       className={baseTextareaClass}
                       placeholder="Street, City, State, ZIP..."
                       rows={2}
-                      value={values.address}
-                      onChange={setField("address")}
+                      value={values.candidateProfile.address}
+                      onChange={setField("candidateProfile", "address")}
                     />
                   </div>
 
@@ -635,14 +608,14 @@ function CandidateRegisterScreen() {
                       className={baseTextareaClass}
                       placeholder="Briefly describe your career goals and achievements..."
                       rows={4}
-                      value={values.bio}
-                      onChange={setField("bio")}
+                      value={values.candidateProfile.bio}
+                      onChange={setField("candidateProfile", "bio")}
                     />
                   </div>
                 </div>
               ) : null}
 
-              {/* Step 3 */}
+              {/* Step 3: Links & Resume (Gói trong candidateProfile và file rời) */}
               {currentStep === 3 ? (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 border-b border-[#e2dfde] pb-2">
@@ -706,8 +679,8 @@ function CandidateRegisterScreen() {
                           className={`pl-10 pr-4 ${baseInputClass}`}
                           placeholder="github.com/username"
                           type="url"
-                          value={values.github}
-                          onChange={setField("github")}
+                          value={values.candidateProfile.github}
+                          onChange={setField("candidateProfile", "github")}
                         />
                       </div>
                     </div>
@@ -729,8 +702,8 @@ function CandidateRegisterScreen() {
                           className={`pl-10 pr-4 ${baseInputClass}`}
                           placeholder="linkedin.com/in/username"
                           type="url"
-                          value={values.linkedin}
-                          onChange={setField("linkedin")}
+                          value={values.candidateProfile.linkedin}
+                          onChange={setField("candidateProfile", "linkedin")}
                         />
                       </div>
                     </div>
@@ -744,9 +717,7 @@ function CandidateRegisterScreen() {
                   <button
                     type="button"
                     onClick={handlePrev}
-                    className={`${
-                      currentStep === 1 ? "hidden" : ""
-                    } flex-1 h-14 border border-[#e2dfde] text-[#1a1c1c] text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f3f3f3] transition-all active:scale-[0.98]`}
+                    className={`${currentStep === 1 ? "hidden" : ""} flex-1 h-14 border border-[#e2dfde] text-[#1a1c1c] text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f3f3f3] transition-all active:scale-[0.98]`}
                   >
                     <span className="material-symbols-outlined">
                       arrow_back
@@ -757,9 +728,7 @@ function CandidateRegisterScreen() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className={`${
-                      currentStep === totalSteps ? "hidden" : ""
-                    } flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10`}
+                    className={`${currentStep === totalSteps ? "hidden" : ""} flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10`}
                   >
                     Next Step
                     <span className="material-symbols-outlined">
@@ -770,9 +739,7 @@ function CandidateRegisterScreen() {
                   <button
                     type="submit"
                     disabled={submitState === "processing"}
-                    className={`${
-                      currentStep === totalSteps ? "" : "hidden"
-                    } flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10 disabled:opacity-70`}
+                    className={`${currentStep === totalSteps ? "" : "hidden"} flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10 disabled:opacity-70`}
                   >
                     {submitState === "processing" ? (
                       <>

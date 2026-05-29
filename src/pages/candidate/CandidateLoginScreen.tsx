@@ -6,6 +6,7 @@ import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
 import { setCredentials, setVariant } from "../../store/slices/authSlice";
 import { getVariant } from "../../common/utils/variants";
+import { useLoading } from "../../common/hooks/useLoading";
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
@@ -13,37 +14,37 @@ const SPLIT_IMAGE_URL =
 function CandidateLoginScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { loading, withLoading } = useLoading();
   const [form, setForm] = useState({
     email: "",
     password: "",
     remember: false,
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
-    setSubmitted(true);
 
     // call authService
     try {
-      var data = await authService.login({
-        email: form.email,
-        password: form.password,
-      });
-    } catch (er) {
-      toast.error(data?.message || "Login failed");
+      const data = await withLoading(() =>
+        authService.login({
+          email: form.email,
+          password: form.password,
+        }),
+      );
+
+      dispatch(setCredentials(data.data));
+      dispatch(setVariant(getVariant(data.data.user.roles)));
+
+      console.log("Login response:", data);
+      toast.success(data?.message || "Login successful");
+      console.log("before navigate");
+      navigate("/candidate/dashboard", { replace: true });
+    } catch {
+      toast.error("Login failed");
       return;
     }
-
-    dispatch(setCredentials(data.data));
-    dispatch(setVariant(getVariant(data.data.user.roles)));
-
-    console.log("Login response:", data);
-    toast.success(data?.message || "Login successful");
-    console.log("before navigate");
-    navigate("/candidate/dashboard", { replace: true });
   }
 
   return (
@@ -219,9 +220,17 @@ function CandidateLoginScreen() {
               {/* Button */}
               <button
                 type="submit"
-                className="h-14 w-full bg-[#b90014] text-[12px] font-bold uppercase tracking-[0.25em] text-white transition-colors active:scale-[0.98] hover:bg-[#93000d]"
+                disabled={loading}
+                className="h-14 w-full bg-[#b90014] text-[12px] font-bold uppercase tracking-[0.25em] text-white transition-colors hover:bg-[#93000d] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Sign In
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Signing In...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
               </button>
 
               {/* Create account */}
@@ -236,12 +245,6 @@ function CandidateLoginScreen() {
                   </Link>
                 </p>
               </div>
-
-              {submitted ? (
-                <p className="text-center text-[12px] text-[#5d3f3c]">
-                  Demo: form submitted (UI only).
-                </p>
-              ) : null}
             </form>
 
             <div className="mt-12 flex items-center justify-center gap-2 text-[#5d3f3c] opacity-60">

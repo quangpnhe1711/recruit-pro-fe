@@ -26,8 +26,6 @@ type SideNavBarProps = {
   userRole?: string;
   userAvatarSrc?: string;
   initials?: string;
-  /** @deprecated NavLink already handles active state */
-  activeKey?: string;
 };
 
 const internalItems: SideNavItem[] = [
@@ -44,11 +42,7 @@ const internalBottomItems: SideNavItem[] = [
 const candidateItems: SideNavItem[] = [
   { icon: "dashboard", label: "Dashboard", to: "/candidate/dashboard" },
   { icon: "work", label: "Jobs", to: "/jobs" },
-  {
-    icon: "description",
-    label: "My Applications",
-    to: "/candidate/my-applications",
-  },
+  { icon: "description", label: "My Applications", to: "/candidate/my-applications" },
 ];
 
 const candidateBottomItems: SideNavItem[] = [
@@ -71,7 +65,7 @@ function SideNavBar({
 }: SideNavBarProps) {
   const authState = useSelector((state: RootState) => state.auth);
 
-  const resolvedVariant = authState?.variant ?? "candidate";
+  const resolvedVariant = authState?.currentVariant ?? "candidate";
 
   const resolvedItems =
     resolvedVariant === "candidate" ? candidateItems : internalItems;

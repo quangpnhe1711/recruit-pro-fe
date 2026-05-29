@@ -10,6 +10,8 @@ import HrDashboardScreen from "./pages/hr/HrDashboardScreen";
 import InterviewScheduleScreen from "./pages/hr/InterviewScheduleScreen";
 import JobInterviewListScreen from "./pages/hr/JobInterviewListScreen";
 import JobCreatingScreen from "./pages/hr/JobCreatingScreen";
+import CandidateListScreen from "./pages/hr/CandidateListScreen";
+import CandidateApplicationScreen from "./pages/hr/CandidateApplicationScreen";
 import JobsRouteScreen from "./pages/JobsRouteScreen";
 import { ToastContainer } from "react-toastify";
 import { Provider } from "react-redux";
@@ -85,6 +87,22 @@ function App() {
                   element={<JobCreatingScreen />}
                 />
                 <Route
+                  path="/internal/candidates"
+                  element={<CandidateListScreen />}
+                />
+                <Route
+                  path="/internal/candidates/list"
+                  element={<CandidateListScreen />}
+                />
+                <Route
+                  path="/internal/applications"
+                  element={<CandidateApplicationScreen />}
+                />
+                <Route
+                  path="/internal/applications/list"
+                  element={<CandidateApplicationScreen />}
+                />
+                <Route
                   path="/internal/interviews"
                   element={<JobInterviewListScreen />}
                 />
@@ -101,10 +119,6 @@ function App() {
                   element={<InterviewScheduleScreen />}
                 />
 
-                <Route
-                  path="/internal/applications"
-                  element={<Navigate to="/internal/dashboard" replace />}
-                />
                 <Route
                   path="/internal/settings"
                   element={<Navigate to="/internal/dashboard" replace />}
