@@ -1,4 +1,5 @@
 import { useMemo, useState, type ChangeEvent } from "react";
+import * as yup from "yup";
 import { Link } from "react-router-dom";
 import MockJsonButton from "../../common/components/MockJsonButton";
 
@@ -161,21 +162,34 @@ function CandidateRegisterScreen() {
     };
   // 4. Cập nhật hàm Validate theo cấu trúc mới
   const validateCurrentStep = () => {
-    const rules = requiredByStep[currentStep] || [];
-    const nextErrors: ErrorMap = {};
+    const schemas: Record<number, yup.ObjectSchema<any>> = {
+      1: yup.object({
+        fullname: yup.string().required("Required"),
+        email: yup.string().email("Invalid email").required("Required"),
+        password: yup
+          .string()
+          .min(6, "Minimum 6 characters")
+          .required("Required"),
+      }),
+      2: yup.object({}),
+      3: yup.object({}),
+    };
 
-    for (const rule of rules) {
-      const groupObj = values[rule.group];
-      for (const field of rule.fields) {
-        const val = groupObj[field as keyof typeof groupObj];
-        if (!String(val ?? "").trim()) {
-          nextErrors[field] = "Required";
-        }
+    try {
+      const schema = schemas[currentStep] || yup.object({});
+      schema.validateSync(values, { abortEarly: false });
+      setErrors((prev) => ({ ...prev }));
+      return true;
+    } catch (err) {
+      if (err instanceof yup.ValidationError) {
+        const nextErrors: ErrorMap = {};
+        err.inner.forEach((e) => {
+          if (e.path) nextErrors[e.path] = e.message;
+        });
+        setErrors((prev) => ({ ...prev, ...nextErrors }));
       }
+      return false;
     }
-
-    setErrors((prev) => ({ ...prev, ...nextErrors }));
-    return Object.keys(nextErrors).length === 0;
   };
 
   const handleNext = () => {

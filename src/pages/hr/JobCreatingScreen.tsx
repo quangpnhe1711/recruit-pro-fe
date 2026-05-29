@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -200,61 +201,56 @@ function JobCreatingScreen() {
   }
 
   function validateStep1() {
-    if (!title.trim()) {
-      toast.error("Job title is required.");
+    const schema = yup.object({
+      title: yup.string().trim().required('Job title is required.'),
+      department: yup.string().trim().required('Department is required.'),
+      employmentType: yup.string().required('Select an employment type.'),
+      workMode: yup.string().required('Select a work mode.'),
+      shortPitch: yup.string().trim().required('Short pitch is required.'),
+    });
+
+    try {
+      schema.validateSync({ title, department, employmentType, workMode, shortPitch }, { abortEarly: false });
+      return true;
+    } catch (err) {
+      if (err instanceof yup.ValidationError) toast.error(err.errors?.[0] || 'Validation error');
       return false;
     }
-    if (!department.trim()) {
-      toast.error("Department is required.");
-      return false;
-    }
-    if (!employmentType) {
-      toast.error("Select an employment type.");
-      return false;
-    }
-    if (!workMode) {
-      toast.error("Select a work mode.");
-      return false;
-    }
-    if (!shortPitch.trim()) {
-      toast.error("Short pitch is required.");
-      return false;
-    }
-    return true;
   }
 
   function validateStep2() {
-    if (!description.trim()) {
-      toast.error("Job description is required.");
+    const schema = yup.object({
+      description: yup.string().trim().required('Job description is required.'),
+      requirements: yup.array().of(yup.string()).min(1, 'Add at least one requirement.'),
+    });
+
+    try {
+      schema.validateSync({ description, requirements }, { abortEarly: false });
+      return true;
+    } catch (err) {
+      if (err instanceof yup.ValidationError) toast.error(err.errors?.[0] || 'Validation error');
       return false;
     }
-    if (requirements.length === 0) {
-      toast.error("Add at least one requirement.");
-      return false;
-    }
-    return true;
   }
 
   function validateStep3() {
-    const min = Number(salaryMin);
-    const max = Number(salaryMax);
-    if (skills.length === 0) {
-      toast.error("Add at least one skill.");
+    const schema = yup.object({
+      skills: yup.array().of(yup.string()).min(1, 'Add at least one skill.'),
+      salaryMin: yup.number().typeError('Enter a valid salary range.').positive().required(),
+      salaryMax: yup.number().typeError('Enter a valid salary range.').positive().required(),
+      currency: yup.string().trim().required('Select a currency.'),
+    }).test('min<=max', 'Salary min must be less than or equal to max.', (val) => {
+      if (!val) return false;
+      return Number(val.salaryMin) <= Number(val.salaryMax);
+    });
+
+    try {
+      schema.validateSync({ skills, salaryMin, salaryMax, currency }, { abortEarly: false });
+      return true;
+    } catch (err) {
+      if (err instanceof yup.ValidationError) toast.error(err.errors?.[0] || 'Validation error');
       return false;
     }
-    if (!salaryMin.trim() || !salaryMax.trim() || Number.isNaN(min) || Number.isNaN(max) || min <= 0 || max <= 0) {
-      toast.error("Enter a valid salary range.");
-      return false;
-    }
-    if (min > max) {
-      toast.error("Salary min must be less than or equal to max.");
-      return false;
-    }
-    if (!currency.trim()) {
-      toast.error("Select a currency.");
-      return false;
-    }
-    return true;
   }
 
   function addListItem(value: string, setter: (updater: (prev: string[]) => string[]) => void) {

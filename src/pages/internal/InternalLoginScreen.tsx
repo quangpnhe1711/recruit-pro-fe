@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import MockJsonButton from '../../common/components/MockJsonButton'
@@ -9,23 +12,30 @@ function InternalLoginScreen() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  const [employeeId, setEmployeeId] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  const schema = yup.object({
+    employeeId: yup.string().required('Employee ID or email is required'),
+    password: yup.string().required('Password is required'),
+  }).required();
+
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: { employeeId: '', password: '' },
+  })
 
   const employeeIdPlaceholder = useMemo(
     () => 'e.g. RP-8829 or name@recruitpro.com',
     [],
   )
 
-  function onSubmit(e) {
-    e.preventDefault()
+  function onSubmit(data) {
     setSubmitted(true)
 
-    const emailLike = employeeId.includes('@')
-      ? employeeId
-      : `${employeeId || 'alex.rivera'}@recruitpro.com`
+    const emailLike = data.employeeId.includes('@')
+      ? data.employeeId
+      : `${data.employeeId || 'alex.rivera'}@recruitpro.com`
 
     dispatch(setVariant('internal'))
     dispatch(
@@ -83,7 +93,7 @@ function InternalLoginScreen() {
               />
             </div>
 
-            <form className="space-y-6" onSubmit={onSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div>
                 <label
                   className="mb-2 block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
@@ -96,15 +106,13 @@ function InternalLoginScreen() {
                     badge
                   </span>
                   <input
-                    id="employee-id"
-                    name="employee-id"
-                    type="text"
-                    required
-                    placeholder={employeeIdPlaceholder}
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value)}
-                    className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-4 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
+                   id="employee-id"
+                   {...register('employeeId')}
+                   type="text"
+                   placeholder={employeeIdPlaceholder}
+                   className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-4 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
                   />
+                  {errors.employeeId ? <p className="text-[12px] text-[#ba1a1a]">{errors.employeeId.message}</p> : null}
                 </div>
               </div>
 
@@ -128,15 +136,13 @@ function InternalLoginScreen() {
                     lock
                   </span>
                   <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-12 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
+                   id="password"
+                   {...register('password')}
+                   type={showPassword ? 'text' : 'password'}
+                   placeholder="••••••••••••"
+                   className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-12 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
                   />
+                  {errors.password ? <p className="text-[12px] text-[#ba1a1a]">{errors.password.message}</p> : null}
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}

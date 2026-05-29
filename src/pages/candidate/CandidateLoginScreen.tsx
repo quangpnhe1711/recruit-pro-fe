@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { useDispatch, useStore } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import MockJsonButton from "../../common/components/MockJsonButton";
@@ -14,38 +17,62 @@ const SPLIT_IMAGE_URL =
 function CandidateLoginScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, withLoading } = useLoading();
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    remember: false,
+
+  const schema = yup
+    .object({
+      email: yup.string().email("Invalid email").required("Email is required"),
+      password: yup
+        .string()
+        .required("Password is required")
+        .min(6, "Minimum 6 characters"),
+      remember: yup.boolean(),
+    })
+    .required();
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
+      password: "",
+      remember: false,
+    },
   });
+
+  const form = watch();
+  const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { loading, withLoading } = useLoading();
 
-  async function onSubmit(e) {
-    e.preventDefault();
+  const onSubmit = async (data: LoginForm) => {
+    setLoginError("");
 
-    // call authService
     try {
-      const data = await withLoading(() =>
+      const res = await withLoading(() =>
         authService.login({
           email: form.email,
           password: form.password,
         }),
       );
 
-      dispatch(setCredentials(data.data));
-      dispatch(setVariant(getVariant(data.data.user.roles)));
+      dispatch(setCredentials(res.data));
+      dispatch(setVariant(getVariant(res.data.user.roles)));
 
-      console.log("Login response:", data);
-      toast.success(data?.message || "Login successful");
-      console.log("before navigate");
-      navigate("/candidate/dashboard", { replace: true });
-    } catch {
-      toast.error("Login failed");
+      navigate("/candidate/dashboard", {
+        replace: true,
+      });
+    } catch (error: any) {
+      setLoginError("Email hoặc mật khẩu không chính xác");
       return;
     }
-  }
+    toast.success("Đăng nhập thành công");
+  };
+
+  type LoginForm = yup.InferType<typeof schema>;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f9f9f9] text-[#1a1c1c]">
@@ -116,21 +143,9 @@ function CandidateLoginScreen() {
                   Enter your credentials to access your candidate portal.
                 </p>
               </div>
-              <MockJsonButton
-                className="shrink-0"
-                label="Test Mock JSON"
-                payload={{
-                  screen: "CandidateLoginScreen",
-                  fields: {
-                    email: form.email,
-                    remember: form.remember,
-                    showPassword: showPassword,
-                  },
-                }}
-              />
             </div>
 
-            <form className="space-y-6" onSubmit={onSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               {/* Email */}
               <div className="space-y-2">
                 <label
@@ -141,15 +156,17 @@ function CandidateLoginScreen() {
                 </label>
                 <input
                   id="email"
-                  name="email"
+                  {...register("email")}
                   type="email"
-                  required
                   autoComplete="email"
                   placeholder="name@company.com"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
                 />
+                {errors.email ? (
+                  <p className="text-[12px] text-[#ba1a1a]">
+                    {errors.email.message}
+                  </p>
+                ) : null}
               </div>
 
               {/* Password */}
@@ -171,17 +188,17 @@ function CandidateLoginScreen() {
                 <div className="relative">
                   <input
                     id="password"
-                    name="password"
+                    {...register("password")}
                     type={showPassword ? "text" : "password"}
-                    required
                     autoComplete="current-password"
                     placeholder="••••••••"
-                    value={form.password}
-                    onChange={(e) =>
-                      setForm({ ...form, password: e.target.value })
-                    }
                     className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 pr-12 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
                   />
+                  {errors.password ? (
+                    <p className="text-[12px] text-[#ba1a1a]">
+                      {errors.password.message}
+                    </p>
+                  ) : null}
                   <button
                     type="button"
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1c1c]"
@@ -201,12 +218,8 @@ function CandidateLoginScreen() {
               <div className="flex items-center">
                 <input
                   id="remember"
-                  name="remember"
+                  {...register("remember")}
                   type="checkbox"
-                  checked={form.remember}
-                  onChange={(e) =>
-                    setForm({ ...form, remember: e.target.checked })
-                  }
                   className="h-4 w-4 rounded-none border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
                 />
                 <label
@@ -232,6 +245,11 @@ function CandidateLoginScreen() {
                   "Sign In"
                 )}
               </button>
+              {loginError && (
+                <div className="rounded border border-red-300 bg-red-50 p-3">
+                  <p className="text-sm text-red-700">{loginError}</p>
+                </div>
+              )}
 
               {/* Create account */}
               <div className="border-t border-[#e7bdb8] pt-6 text-center">
@@ -247,20 +265,12 @@ function CandidateLoginScreen() {
               </div>
             </form>
 
-            <div className="mt-12 flex items-center justify-center gap-2 text-[#5d3f3c] opacity-60">
-              <span className="material-symbols-outlined text-[16px]">
-                lock
-              </span>
-              <span className="text-[12px] font-semibold tracking-[0.05em]">
-                SECURE ENTERPRISE ACCESS ONLY
-              </span>
-            </div>
             <div className="mt-4 flex justify-center">
               <Link
                 className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
-                to="/candidate/jobs"
+                to="/home"
               >
-                Preview Jobs Screen
+                Back to Home page
               </Link>
             </div>
           </div>
