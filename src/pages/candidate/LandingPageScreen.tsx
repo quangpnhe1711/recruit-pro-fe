@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import MockJsonButton from "../../common/components/MockJsonButton";
+import PublicHeader from "../../common/components/layout/PublicHeader";
 
 const featuredJobs = [
   {
@@ -31,61 +32,6 @@ const featuredJobs = [
 function LandingPageScreen() {
   return (
     <div className="bg-[#f9f9f9] text-[#1a1c1c] selected-none">
-      {/* TopNavBar */}
-      <header className="bg-white sticky top-0 z-50 border-b border-[#e2dfde]">
-        <nav className="flex justify-between items-center w-full px-4 md:px-[40px] h-16  ">
-          <div className="flex items-center gap-8">
-            <span className="text-[30px] font-extrabold text-[#b90014] tracking-tighter">
-              RecruitPro
-            </span>
-            <div className="hidden md:flex items-center gap-6">
-              <a
-                className="text-[#b90014] font-bold border-b-2 border-[#b90014] pb-1 text-[12px] tracking-[0.05em]"
-                href="#home"
-              >
-                Home
-              </a>
-              <a
-                className="text-[#5f5e5e] font-medium hover:text-[#b90014] transition-colors duration-200 text-[12px] tracking-[0.05em]"
-                href="#careers"
-              >
-                Careers
-              </a>
-              <a
-                className="text-[#5f5e5e] font-medium hover:text-[#b90014] transition-colors duration-200 text-[12px] tracking-[0.05em]"
-                href="#about"
-              >
-                About Us
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <MockJsonButton
-              className="hidden md:inline-flex"
-              label="Test Mock JSON"
-              payload={{
-                screen: "CandidateLandingPage",
-                actions: ["login", "register", "browse-jobs"],
-                featuredJobs: featuredJobs.map((job) => job.title),
-              }}
-            />
-            <Link
-              to="/login"
-              className="px-6 py-2 bg-[#1A1A1A] text-white font-semibold text-[12px] border-2 border-transparent hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
-            >
-              Log in
-            </Link>
-            <Link
-              to="/candidate/register"
-              className="px-6 py-2 bg-[white] text-[#b90014] border-2 font-semibold text-[12px] border-[#b90014] hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
-            >
-              Sign up
-            </Link>
-          </div>
-        </nav>
-      </header>
-
       <main>
         {/* Hero */}
         <section
@@ -259,106 +205,6 @@ function LandingPageScreen() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer id="about" className="bg-[#f3f3f3] border-t border-[#e2dfde]">
-          <div className="px-4 md:px-[40px] py-16">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-              <div>
-                <span className="text-[16px] font-extrabold block mb-6">
-                  RecruitPro
-                </span>
-                <p className="text-[#5f5e5e] text-[14px] leading-5">
-                  The definitive platform for internal career progression at
-                  RecruitPro. Build your future within the ecosystem you built.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-[#1a1c1c] font-bold text-[12px] mb-6 uppercase tracking-wider">
-                  Internal Links
-                </h4>
-                <ul className="space-y-4">
-                  {[
-                    "Dashboard",
-                    "My Applications",
-                    "Talent Pool",
-                    "Internal Helpdesk",
-                  ].map((item) => (
-                    <li key={item}>
-                      <a
-                        className="text-[#5f5e5e] hover:text-[#1a1c1c] transition-colors text-[12px] tracking-[0.05em]"
-                        href="#"
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-[#1a1c1c] font-bold text-[12px] mb-6 uppercase tracking-wider">
-                  Resources
-                </h4>
-                <ul className="space-y-4">
-                  {[
-                    "Interview Tips",
-                    "Career Paths",
-                    "Privacy Policy",
-                    "Security Disclosure",
-                  ].map((item) => (
-                    <li key={item}>
-                      <a
-                        className="text-[#5f5e5e] hover:text-[#1a1c1c] transition-colors text-[12px] tracking-[0.05em]"
-                        href="#"
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-[#1a1c1c] font-bold text-[12px] mb-6 uppercase tracking-wider">
-                  Contact
-                </h4>
-                <ul className="space-y-4 text-[#5f5e5e] text-[14px]">
-                  <li className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#b90014] text-[20px]">
-                      mail
-                    </span>
-                    hr-internal@recruitpro.com
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#b90014] text-[20px]">
-                      support_agent
-                    </span>
-                    Ext: 5542 (Helpdesk)
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-[#e2dfde] gap-4">
-              <p className="text-[#5f5e5e] text-[12px] tracking-[0.05em] text-center md:text-left">
-                © 2024 RecruitPro Internal. All rights reserved. For authorized
-                personnel only.
-              </p>
-              <div className="flex gap-6">
-                {["share", "hub", "groups"].map((icon) => (
-                  <a
-                    key={icon}
-                    className="text-[#5f5e5e] hover:text-[#b90014] transition-colors"
-                    href="#"
-                  >
-                    <span className="material-symbols-outlined">{icon}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
       </main>
     </div>
   );

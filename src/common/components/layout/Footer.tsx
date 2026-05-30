@@ -1,6 +1,11 @@
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store";
+
 function Footer() {
+  const authState = useSelector((state: RootState) => state.auth);
+
   return (
-    <footer className="border-t border-[#e2dfde] bg-gray-300 mt-12">
+    <footer className={`border-t border-[#e2dfde] bg-gray-300 ${authState.isAuthenticated ? "mt-12" : ""}`}>
       <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between md:px-10">
         <div>
           <p className="text-[16px] font-semibold text-[#1a1c1c]">RecruitPro</p>

@@ -66,6 +66,8 @@ const authSlice = createSlice({
       state.user = null;
 
       state.currentVariant = undefined;
+
+      state.isAuthenticated = false;
     },
   },
 });

@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
+import { logout } from "../../store/slices/authSlice";
 
 type AvatarMenuItem = {
   label: string;
@@ -27,6 +29,8 @@ function HeaderAvatarDropDown({
   items,
 }: AvatarMenuProps) {
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +50,12 @@ function HeaderAvatarDropDown({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  function handleLogout() {
+    dispatch(logout());
+    setOpen(false);
+    navigate("/login");
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -94,7 +104,7 @@ function HeaderAvatarDropDown({
             <Link
               className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
               to="/Home"
-              onClick={() => setOpen(false)}
+              onClick={handleLogout}
             >
               Logout
             </Link>

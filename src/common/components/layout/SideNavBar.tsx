@@ -91,8 +91,7 @@ function SideNavBar({
         ? { label: "Post New Job" }
         : null;
 
-  const shellClassName =
-    "fixed left-0 top-0 z-50 hidden h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A] lg:flex";
+  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A]`;
 
   const brandTitleClassName = "text-[20px] font-bold leading-7 text-white";
 
@@ -124,8 +123,10 @@ function SideNavBar({
         : "text-[#c8c6c5] hover:text-white"
     }`;
 
+    console.log("SideNavBar rendered with variant:", authState.isAuthenticated);
+
   return (
-    <aside className={shellClassName}>
+    <aside className={` ${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"}`}>
       <div className="px-6 py-8">
         <NavLink to={resolvedBrand.to} className="block">
           <h1 className={brandTitleClassName}>{resolvedBrand.title}</h1>

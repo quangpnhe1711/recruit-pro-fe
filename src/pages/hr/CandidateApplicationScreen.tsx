@@ -6,8 +6,19 @@ import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { setVariant } from "../../store/slices/authSlice";
 
 type ApplicationStatus = "New" | "Under Review" | "Interviewing" | "Rejected";
-type DateRange = "Anytime" | "Last 7 Days" | "Last 30 Days" | "This Quarter" | "This Year";
-type Department = "All Departments" | "Engineering" | "Marketing" | "Sales" | "HR" | "Design";
+type DateRange =
+  | "Anytime"
+  | "Last 7 Days"
+  | "Last 30 Days"
+  | "This Quarter"
+  | "This Year";
+type Department =
+  | "All Departments"
+  | "Engineering"
+  | "Marketing"
+  | "Sales"
+  | "HR"
+  | "Design";
 
 type Application = {
   id: string;
@@ -22,9 +33,26 @@ type Application = {
   status: ApplicationStatus;
 };
 
-const applicationStatuses: ApplicationStatus[] = ["New", "Under Review", "Interviewing", "Rejected"];
-const departments: Department[] = ["Engineering", "Marketing", "Sales", "HR", "Design"];
-const dateRanges: DateRange[] = ["Anytime", "Last 7 Days", "Last 30 Days", "This Quarter", "This Year"];
+const applicationStatuses: ApplicationStatus[] = [
+  "New",
+  "Under Review",
+  "Interviewing",
+  "Rejected",
+];
+const departments: Department[] = [
+  "Engineering",
+  "Marketing",
+  "Sales",
+  "HR",
+  "Design",
+];
+const dateRanges: DateRange[] = [
+  "Anytime",
+  "Last 7 Days",
+  "Last 30 Days",
+  "This Quarter",
+  "This Year",
+];
 
 const statusOptions: ("All Statuses" | ApplicationStatus)[] = [
   "All Statuses",
@@ -34,7 +62,14 @@ const statusOptions: ("All Statuses" | ApplicationStatus)[] = [
   "Rejected",
 ];
 
-const departmentOptions: Department[] = ["All Departments", "Engineering", "Marketing", "Sales", "HR", "Design"];
+const departmentOptions: Department[] = [
+  "All Departments",
+  "Engineering",
+  "Marketing",
+  "Sales",
+  "HR",
+  "Design",
+];
 
 function parseDateLabelToEpoch(label: string) {
   const parsed = Date.parse(label);
@@ -123,7 +158,9 @@ function buildApplicationTableColumns(
     {
       key: "appliedDate",
       header: "Applied Date",
-      renderCell: (app) => <p className="text-body-lg text-[#5f5e5e]">{app.appliedDate}</p>,
+      renderCell: (app) => (
+        <p className="text-body-lg text-[#5f5e5e]">{app.appliedDate}</p>
+      ),
     },
     {
       key: "status",
@@ -149,7 +186,10 @@ function buildApplicationTableColumns(
               className="flex items-center gap-1 rounded-lg bg-[#e31b23] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#b90014]"
               onClick={() => onSendEmail(app, "default")}
             >
-              Send Email <span className="material-symbols-outlined text-sm">expand_more</span>
+              Send Email{" "}
+              <span className="material-symbols-outlined text-sm">
+                expand_more
+              </span>
             </button>
             <div className="absolute right-0 z-50 mt-1 hidden w-48 rounded-lg border border-[#e7bdb8] bg-white shadow-xl group-hover:block">
               <a
@@ -196,7 +236,9 @@ function buildApplicationTableColumns(
             className="rounded-full p-2 text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3] hover:text-[#1a1c1c]"
             title="More options"
           >
-            <span className="material-symbols-outlined text-[24px]">more_vert</span>
+            <span className="material-symbols-outlined text-[24px]">
+              more_vert
+            </span>
           </button>
         </div>
       ),
@@ -348,12 +390,17 @@ function CandidateApplicationScreen() {
     dispatch(setVariant("internal"));
   }, [dispatch]);
 
-  const [applications, setApplications] = useState<Application[]>(buildSeedApplications());
+  const [applications, setApplications] = useState<Application[]>(
+    buildSeedApplications(),
+  );
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [departmentFilter, setDepartmentFilter] = useState<Department>("All Departments");
+  const [departmentFilter, setDepartmentFilter] =
+    useState<Department>("All Departments");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>("Anytime");
   const [page, setPage] = useState<number>(1);
+  const [currentTime] = useState(() => Date.now());
+
 
   const filtered = useMemo(() => {
     let result = applications;
@@ -366,7 +413,7 @@ function CandidateApplicationScreen() {
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           a.candidateEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          a.jobTitle.toLowerCase().includes(searchTerm.toLowerCase())
+          a.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -382,7 +429,7 @@ function CandidateApplicationScreen() {
 
     // Date range filter
     if (dateRangeFilter !== "Anytime") {
-      const now = Date.now();
+      const now = currentTime;
       let cutoffDate = now;
 
       switch (dateRangeFilter) {
@@ -404,7 +451,14 @@ function CandidateApplicationScreen() {
     }
 
     return result.sort((a, b) => b.appliedAt - a.appliedAt);
-  }, [applications, searchTerm, departmentFilter, statusFilter, dateRangeFilter]);
+  }, [
+    applications,
+    searchTerm,
+    departmentFilter,
+    statusFilter,
+    dateRangeFilter,
+    currentTime
+  ]);
 
   const pageSize = 5;
   const totalItems = filtered.length;
@@ -424,12 +478,14 @@ function CandidateApplicationScreen() {
   }
 
   function viewCV(application: Application) {
-    toast.info(`Viewing CV for ${application.candidateFirstName} ${application.candidateLastName}`);
+    toast.info(
+      `Viewing CV for ${application.candidateFirstName} ${application.candidateLastName}`,
+    );
   }
 
   function sendEmail(application: Application, emailType: string) {
     toast.info(
-      `Sending "${emailType}" email to ${application.candidateFirstName} ${application.candidateLastName}`
+      `Sending "${emailType}" email to ${application.candidateFirstName} ${application.candidateLastName}`,
     );
   }
 

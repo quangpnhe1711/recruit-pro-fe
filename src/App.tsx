@@ -21,6 +21,7 @@ import LogoutScreen from "./pages/LogoutScreen";
 import PublicOnly from "./common/app-common-layout/PublicOnly";
 import RequireAuth from "./common/app-common-layout/RequireAuth";
 import RequireVariant from "./common/app-common-layout/RequireVariant";
+import PublicLayout from "./common/components/layout/PublicLayout";
 
 function App() {
   return (
@@ -30,7 +31,11 @@ function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
 
           {/* Public */}
-          <Route path="/home" element={<CandidateLandingPage />} />
+          <Route element={<PublicLayout />}>
+            <Route path="/home" element={<CandidateLandingPage />} />
+            <Route path="/jobs" element={<JobsRouteScreen />} />
+          </Route>
+
           <Route element={<PublicOnly />}>
             <Route path="/login" element={<CandidateLoginScreen />} />
             <Route

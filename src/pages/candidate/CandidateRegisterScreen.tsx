@@ -164,12 +164,14 @@ function CandidateRegisterScreen() {
   const validateCurrentStep = () => {
     const schemas: Record<number, yup.ObjectSchema<any>> = {
       1: yup.object({
-        fullname: yup.string().required("Required"),
-        email: yup.string().email("Invalid email").required("Required"),
-        password: yup
-          .string()
-          .min(6, "Minimum 6 characters")
-          .required("Required"),
+        userInfo: yup.object({
+          fullName: yup.string().required("Required"),
+          email: yup.string().email("Invalid email").required("Required"),
+          password: yup
+            .string()
+            .min(6, "Minimum 6 characters")
+            .required("Required"),
+        }),
       }),
       2: yup.object({}),
       3: yup.object({}),

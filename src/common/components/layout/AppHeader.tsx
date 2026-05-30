@@ -37,7 +37,6 @@ function AppHeader({
   initials,
   showNotifications = true,
   menuItems = defaultMenuItems,
-  logoutTo = "/logout",
 }: AppHeaderProps) {
   const resolvedInitials = initials ?? getInitials(userName);
 
