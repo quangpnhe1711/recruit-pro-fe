@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-import type { RootState } from "../../store";
+import type { RootState } from "../store";
 
 function RequireAuth() {
   const isAuthenticated = useSelector(

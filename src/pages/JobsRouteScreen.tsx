@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
-import JobListingCandidateScreen from "./internal/JobListingCandidateScreen";
 import JobManagementScreen from "./hr/JobManagementScreen";
+import JobListingCandidateScreen from "./public/JobListingCandidateScreen";
 
 function JobsRouteScreen() {
   const variant = useSelector((state: RootState) => state.auth.currentVariant);

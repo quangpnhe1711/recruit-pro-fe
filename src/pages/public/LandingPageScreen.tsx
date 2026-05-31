@@ -1,6 +1,4 @@
 import { Link } from "react-router-dom";
-import MockJsonButton from "../../common/components/MockJsonButton";
-import PublicHeader from "../../common/components/layout/PublicHeader";
 
 const featuredJobs = [
   {
