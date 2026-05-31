@@ -14,8 +14,8 @@ import CandidateListScreen from "./pages/hr/CandidateListScreen";
 import CandidateApplicationScreen from "./pages/hr/CandidateApplicationScreen";
 import JobsRouteScreen from "./pages/JobsRouteScreen";
 import { ToastContainer } from "react-toastify";
-import { Provider } from "react-redux";
-import { store } from "./store";
+import { Provider, useSelector } from "react-redux";
+import { RootState, store } from "./store";
 import AuthenticatedLayout from "./common/components/layout/AuthenticatedLayout";
 import LogoutScreen from "./pages/LogoutScreen";
 import PublicOnly from "./common/app-common-layout/PublicOnly";
@@ -24,6 +24,9 @@ import RequireVariant from "./common/app-common-layout/RequireVariant";
 import PublicLayout from "./common/components/layout/PublicLayout";
 
 function App() {
+    const isAuthenticated = useSelector(
+      (state: RootState) => state.auth.isAuthenticated,
+    );
   return (
     <>
       <Provider store={store}>
@@ -33,7 +36,7 @@ function App() {
           {/* Public */}
           <Route element={<PublicLayout />}>
             <Route path="/home" element={<CandidateLandingPage />} />
-            <Route path="/jobs" element={<JobsRouteScreen />} />
+            {!isAuthenticated && (<Route path="/home" element={<Navigate to="/jobs" replace />} />)}
           </Route>
 
           <Route element={<PublicOnly />}>
@@ -60,6 +63,8 @@ function App() {
                 path="/internal/jobs"
                 element={<Navigate to="/jobs" replace />}
               />
+
+              {isAuthenticated && (<Route path="/home" element={<Navigate to="/jobs" replace />} />)}
 
               {/* Candidate */}
               <Route element={<RequireVariant variant="candidate" />}>
