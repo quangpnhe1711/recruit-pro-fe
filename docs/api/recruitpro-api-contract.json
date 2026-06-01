@@ -1,0 +1,1012 @@
+{
+  "meta": {
+    "app": "RecruitPro",
+    "apiPrefix": "/api",
+    "source": "init.sql",
+    "responseEnvelope": {
+      "success": true,
+      "statusCode": 200,
+      "message": "OK",
+      "data": null
+    }
+  },
+  "enums": {
+    "application_status": ["PENDING", "REVIEWING", "INTERVIEWING", "MANAGER_REVIEW", "ACCEPTED", "REJECTED"],
+    "employment_type": ["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT"],
+    "work_mode": ["ONSITE", "HYBRID", "REMOTE"],
+    "interview_status": ["SCHEDULED", "COMPLETED", "CANCELLED"],
+    "job_status": ["DRAFT", "PENDING_APPROVAL", "APPROVED", "CLOSED", "REJECTED"],
+    "meeting_type": ["ONLINE", "OFFLINE"],
+    "notification_type": ["SYSTEM", "JOB", "INTERVIEW", "APPLICATION"],
+    "user_status": ["ACTIVE", "INACTIVE", "BLOCKED"]
+  },
+  "rolePermissions": {
+    "candidate": [
+      "JOB_VIEW",
+      "APPLICATION_VIEW",
+      "APPLICATION_APPLY",
+      "INTERVIEW_VIEW",
+      "CANDIDATE_PROFILE_VIEW",
+      "CANDIDATE_PROFILE_UPDATE",
+      "SKILL_VIEW",
+      "NOTIFICATION_VIEW"
+    ],
+    "hr": [
+      "JOB_VIEW",
+      "JOB_CREATE",
+      "JOB_UPDATE",
+      "JOB_DELETE",
+      "JOB_APPROVE",
+      "APPLICATION_VIEW",
+      "APPLICATION_APPLY",
+      "APPLICATION_REVIEW",
+      "INTERVIEW_VIEW",
+      "INTERVIEW_CREATE",
+      "INTERVIEW_UPDATE",
+      "CANDIDATE_PROFILE_VIEW",
+      "CANDIDATE_PROFILE_UPDATE",
+      "DEPARTMENT_VIEW",
+      "SKILL_VIEW",
+      "NOTIFICATION_VIEW",
+      "SYSTEM_LOG_VIEW"
+    ],
+    "manager": [
+      "JOB_VIEW",
+      "JOB_APPROVE",
+      "APPLICATION_VIEW",
+      "APPLICATION_REVIEW",
+      "INTERVIEW_VIEW",
+      "INTERVIEW_CREATE",
+      "INTERVIEW_UPDATE",
+      "DEPARTMENT_VIEW",
+      "SKILL_VIEW",
+      "NOTIFICATION_VIEW",
+      "SYSTEM_LOG_VIEW"
+    ],
+    "systemAdmin": [
+      "USER_VIEW",
+      "USER_CREATE",
+      "USER_UPDATE",
+      "USER_DELETE",
+      "ROLE_VIEW",
+      "ROLE_MANAGE",
+      "PERMISSION_VIEW",
+      "PERMISSION_MANAGE",
+      "JOB_VIEW",
+      "JOB_CREATE",
+      "JOB_UPDATE",
+      "JOB_DELETE",
+      "JOB_APPROVE",
+      "APPLICATION_VIEW",
+      "APPLICATION_APPLY",
+      "APPLICATION_REVIEW",
+      "INTERVIEW_VIEW",
+      "INTERVIEW_CREATE",
+      "INTERVIEW_UPDATE",
+      "CANDIDATE_PROFILE_VIEW",
+      "CANDIDATE_PROFILE_UPDATE",
+      "DEPARTMENT_VIEW",
+      "DEPARTMENT_MANAGE",
+      "SKILL_VIEW",
+      "SKILL_MANAGE",
+      "NOTIFICATION_VIEW",
+      "SYSTEM_LOG_VIEW"
+    ]
+  },
+  "models": {
+    "UserDto": {
+      "id": "uuid",
+      "email": "string",
+      "fullName": "string",
+      "avatarUrl": "string|null",
+      "phone": "string|null",
+      "roles": ["string"],
+      "permissions": ["string"]
+    },
+    "DepartmentDto": {
+      "id": "uuid",
+      "name": "string",
+      "description": "string|null"
+    },
+    "SkillDto": {
+      "id": "uuid",
+      "name": "string"
+    },
+    "JobSkillDto": {
+      "skill": "SkillDto",
+      "minYearsExperience": "number|null",
+      "isRequired": "boolean"
+    },
+    "JobListItemDto": {
+      "id": "uuid",
+      "title": "string",
+      "department": "DepartmentDto",
+      "location": "string",
+      "workMode": "ONSITE|HYBRID|REMOTE",
+      "employmentType": "FULL_TIME|PART_TIME|INTERNSHIP|CONTRACT",
+      "minExperienceYears": "number",
+      "vacancyCount": "number",
+      "salaryMin": "number|null",
+      "salaryMax": "number|null",
+      "deadline": "string|null",
+      "status": "DRAFT|PENDING_APPROVAL|APPROVED|CLOSED|REJECTED",
+      "createdAt": "string",
+      "createdBy": "UserDto",
+      "approvedBy": "UserDto|null",
+      "applicationCount": "number",
+      "availableActions": ["string"]
+    },
+    "JobDetailDto": {
+      "id": "uuid",
+      "title": "string",
+      "department": "DepartmentDto",
+      "location": "string",
+      "workMode": "ONSITE|HYBRID|REMOTE",
+      "employmentType": "FULL_TIME|PART_TIME|INTERNSHIP|CONTRACT",
+      "minExperienceYears": "number",
+      "vacancyCount": "number",
+      "salaryMin": "number|null",
+      "salaryMax": "number|null",
+      "deadline": "string|null",
+      "status": "DRAFT|PENDING_APPROVAL|APPROVED|CLOSED|REJECTED",
+      "createdAt": "string",
+      "description": "string",
+      "requirements": ["string"],
+      "benefits": ["string"],
+      "skills": ["JobSkillDto"],
+      "summary": "string",
+      "hiringManager": "UserDto|null",
+      "applicationCount": "number",
+      "recentApplications": ["ApplicationListItemDto"],
+      "hiringFunnel": ["JobFunnelStageDto"],
+      "availableActions": ["string"]
+    },
+    "ApplicationListItemDto": {
+      "id": "uuid",
+      "candidate": {
+        "id": "uuid",
+        "fullName": "string",
+        "email": "string",
+        "avatarUrl": "string|null",
+        "currentPosition": "string|null"
+      },
+      "job": {
+        "id": "uuid",
+        "title": "string",
+        "department": "DepartmentDto"
+      },
+      "status": "PENDING|REVIEWING|INTERVIEWING|MANAGER_REVIEW|ACCEPTED|REJECTED",
+      "appliedAt": "string",
+      "reviewedBy": "UserDto|null",
+      "nextStep": "string|null"
+    },
+    "ApplicationDetailDto": {
+      "id": "uuid",
+      "candidate": "CandidateProfileDto",
+      "job": "JobDetailDto",
+      "status": "PENDING|REVIEWING|INTERVIEWING|MANAGER_REVIEW|ACCEPTED|REJECTED",
+      "appliedAt": "string",
+      "reviewedBy": "UserDto|null",
+      "notes": "string|null",
+      "availableActions": ["string"]
+    },
+    "CandidateProfileDto": {
+      "id": "uuid",
+      "user": "UserDto",
+      "currentPosition": "string|null",
+      "experienceYears": "number",
+      "education": "string|null",
+      "address": "string|null",
+      "bio": "string|null",
+      "resumeUrl": "string|null",
+      "githubUrl": "string|null",
+      "linkedinUrl": "string|null",
+      "skills": ["SkillDto"]
+    },
+    "InterviewDto": {
+      "id": "uuid",
+      "applicationId": "uuid",
+      "application": "ApplicationListItemDto",
+      "interviewDate": "string",
+      "meetingType": "ONLINE|OFFLINE",
+      "meetingLink": "string|null",
+      "location": "string|null",
+      "notes": "string|null",
+      "status": "SCHEDULED|COMPLETED|CANCELLED"
+    },
+    "NotificationDto": {
+      "id": "uuid",
+      "userId": "uuid",
+      "title": "string",
+      "content": "string",
+      "type": "SYSTEM|JOB|INTERVIEW|APPLICATION",
+      "isRead": "boolean",
+      "createdAt": "string"
+    },
+    "DashboardSummaryDto": {
+      "stats": {},
+      "recentApplications": ["ApplicationListItemDto"],
+      "upcomingInterviews": ["InterviewDto"],
+      "recommendedJobs": ["JobListItemDto"]
+    },
+    "JobFunnelStageDto": {
+      "label": "string",
+      "count": "number",
+      "color": "string"
+    }
+  },
+  "screens": [
+    {
+      "name": "LandingPageScreen",
+      "route": "/home",
+      "auth": "public",
+      "endpoints": ["GET /api/jobs", "GET /api/featured-jobs"]
+    },
+    {
+      "name": "JobListingCandidateScreen",
+      "route": "/jobs",
+      "auth": "public-or-authenticated",
+      "endpoints": ["GET /api/jobs", "GET /api/departments", "GET /api/skills"]
+    },
+    {
+      "name": "JobDetailScreen",
+      "route": "/jobs/:jobId",
+      "auth": "public-or-authenticated",
+      "endpoints": [
+        "GET /api/jobs/{jobId}",
+        "GET /api/jobs/{jobId}/applications",
+        "GET /api/jobs/{jobId}/funnel"
+      ],
+      "roleBasedActions": {
+        "anonymous": ["VIEW_ONLY"],
+        "candidate": ["VIEW_ONLY", "APPLY_JOB"],
+        "hr": ["VIEW_APPLICANTS", "EDIT_JOB", "CLOSE_POSTING", "APPROVE_JOB"],
+        "manager": ["VIEW_APPLICANTS", "APPROVE_JOB", "REVIEW_APPLICATION"],
+        "systemAdmin": ["VIEW_APPLICANTS", "EDIT_JOB", "CLOSE_POSTING", "APPROVE_JOB"]
+      }
+    },
+    {
+      "name": "CandidateLoginScreen",
+      "route": "/login",
+      "auth": "public",
+      "endpoints": ["POST /api/auth/login"]
+    },
+    {
+      "name": "InternalLoginScreen",
+      "route": "/internal/login",
+      "auth": "public",
+      "endpoints": ["POST /api/auth/login"]
+    },
+    {
+      "name": "CandidateRegisterScreen",
+      "route": "/register",
+      "auth": "public",
+      "endpoints": ["POST /api/auth/register"]
+    },
+    {
+      "name": "DashboardCandidateScreen",
+      "route": "/candidate/dashboard",
+      "auth": "candidate",
+      "endpoints": [
+        "GET /api/candidate/dashboard",
+        "GET /api/candidate/applications",
+        "GET /api/interviews/upcoming"
+      ]
+    },
+    {
+      "name": "MyApplicationScreen",
+      "route": "/candidate/my-applications",
+      "auth": "candidate",
+      "endpoints": [
+        "GET /api/candidate/applications",
+        "PATCH /api/candidate/applications/{applicationId}/withdraw"
+      ]
+    },
+    {
+      "name": "CandidateProfileAndCVManagementScreen",
+      "route": "/candidate/profile/*",
+      "auth": "candidate",
+      "endpoints": [
+        "GET /api/candidate/profile",
+        "PUT /api/candidate/profile",
+        "POST /api/candidate/profile/resume"
+      ]
+    },
+    {
+      "name": "HrDashboardScreen",
+      "route": "/hr/dashboard",
+      "auth": "hr-or-manager-or-admin",
+      "endpoints": [
+        "GET /api/hr/dashboard",
+        "GET /api/hr/applications/recent",
+        "GET /api/hr/jobs/pending-approval"
+      ]
+    },
+    {
+      "name": "JobManagementScreen",
+      "route": "/jobs (internal shell)",
+      "auth": "hr-or-manager-or-admin",
+      "endpoints": [
+        "GET /api/hr/jobs",
+        "POST /api/hr/jobs",
+        "PATCH /api/hr/jobs/{jobId}",
+        "DELETE /api/hr/jobs/{jobId}"
+      ]
+    },
+    {
+      "name": "JobCreatingScreen",
+      "route": "/hr/jobs/create",
+      "auth": "hr-or-admin",
+      "endpoints": ["POST /api/hr/jobs", "GET /api/departments", "GET /api/skills"]
+    },
+    {
+      "name": "CandidateListScreen",
+      "route": "/hr/candidates",
+      "auth": "hr-or-manager-or-admin",
+      "endpoints": [
+        "GET /api/hr/candidates",
+        "GET /api/hr/candidates/{candidateId}",
+        "PATCH /api/hr/candidates/{candidateId}"
+      ]
+    },
+    {
+      "name": "CandidateApplicationScreen",
+      "route": "/hr/applications",
+      "auth": "hr-or-manager-or-admin",
+      "endpoints": [
+        "GET /api/hr/applications",
+        "GET /api/hr/applications/{applicationId}",
+        "PATCH /api/hr/applications/{applicationId}/status",
+        "POST /api/hr/applications/{applicationId}/interviews"
+      ]
+    },
+    {
+      "name": "JobInterviewListScreen",
+      "route": "/hr/interviews",
+      "auth": "hr-or-manager-or-admin",
+      "endpoints": [
+        "GET /api/hr/interviews",
+        "PATCH /api/hr/interviews/{interviewId}"
+      ]
+    },
+    {
+      "name": "InterviewScheduleScreen",
+      "route": "/hr/interviews/schedule",
+      "auth": "hr-or-manager-or-admin",
+      "endpoints": [
+        "POST /api/hr/interviews",
+        "GET /api/hr/applications/{applicationId}"
+      ]
+    }
+  ],
+  "endpoints": [
+    {
+      "id": "auth-login",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "auth": false,
+      "contentType": "application/json",
+      "request": {
+        "email": "string",
+        "password": "string"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "string",
+          "refreshToken": "string",
+          "user": "UserDto"
+        }
+      }
+    },
+    {
+      "id": "auth-register",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "auth": false,
+      "contentType": "multipart/form-data",
+      "request": {
+        "userInfo.fullName": "string",
+        "userInfo.email": "string",
+        "userInfo.password": "string",
+        "userInfo.phone": "string",
+        "candidateProfile.position": "string",
+        "candidateProfile.experienceYears": "number|null",
+        "candidateProfile.education": "string",
+        "candidateProfile.address": "string",
+        "candidateProfile.bio": "string",
+        "candidateProfile.github": "string",
+        "candidateProfile.linkedin": "string",
+        "resume": "file|null"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 201,
+        "message": "Register successful",
+        "data": {
+          "user": "UserDto",
+          "candidateProfile": "CandidateProfileDto"
+        }
+      }
+    },
+    {
+      "id": "auth-refresh-token",
+      "method": "POST",
+      "path": "/api/auth/refresh-token",
+      "auth": false,
+      "contentType": "application/json",
+      "request": {
+        "refreshToken": "string"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Token refreshed",
+        "data": {
+          "accessToken": "string"
+        }
+      }
+    },
+    {
+      "id": "auth-me",
+      "method": "GET",
+      "path": "/api/auth/me",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": "UserDto"
+      }
+    },
+    {
+      "id": "auth-logout",
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Logged out",
+        "data": null
+      }
+    },
+    {
+      "id": "jobs-public-list",
+      "method": "GET",
+      "path": "/api/jobs",
+      "auth": false,
+      "query": {
+        "search": "string|null",
+        "departmentId": "uuid|null",
+        "workMode": "ONSITE|HYBRID|REMOTE|null",
+        "employmentType": "FULL_TIME|PART_TIME|INTERNSHIP|CONTRACT|null",
+        "status": "DRAFT|PENDING_APPROVAL|APPROVED|CLOSED|REJECTED|null",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["JobListItemDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "job-detail-public",
+      "method": "GET",
+      "path": "/api/jobs/{jobId}",
+      "auth": false,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": "JobDetailDto"
+      }
+    },
+    {
+      "id": "job-applications-public",
+      "method": "GET",
+      "path": "/api/jobs/{jobId}/applications",
+      "auth": false,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["ApplicationListItemDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "job-funnel-public",
+      "method": "GET",
+      "path": "/api/jobs/{jobId}/funnel",
+      "auth": false,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": ["JobFunnelStageDto"]
+      }
+    },
+    {
+      "id": "departments-list",
+      "method": "GET",
+      "path": "/api/departments",
+      "auth": false,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": ["DepartmentDto"]
+      }
+    },
+    {
+      "id": "skills-list",
+      "method": "GET",
+      "path": "/api/skills",
+      "auth": false,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": ["SkillDto"]
+      }
+    },
+    {
+      "id": "candidate-dashboard",
+      "method": "GET",
+      "path": "/api/candidate/dashboard",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": "DashboardSummaryDto"
+      }
+    },
+    {
+      "id": "candidate-applications-list",
+      "method": "GET",
+      "path": "/api/candidate/applications",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["ApplicationListItemDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "candidate-application-withdraw",
+      "method": "PATCH",
+      "path": "/api/candidate/applications/{applicationId}/withdraw",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Application withdrawn",
+        "data": "ApplicationListItemDto"
+      }
+    },
+    {
+      "id": "candidate-profile-get",
+      "method": "GET",
+      "path": "/api/candidate/profile",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": "CandidateProfileDto"
+      }
+    },
+    {
+      "id": "candidate-profile-update",
+      "method": "PUT",
+      "path": "/api/candidate/profile",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "currentPosition": "string|null",
+        "experienceYears": "number",
+        "education": "string|null",
+        "address": "string|null",
+        "bio": "string|null",
+        "githubUrl": "string|null",
+        "linkedinUrl": "string|null",
+        "skillIds": ["uuid"]
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Profile updated",
+        "data": "CandidateProfileDto"
+      }
+    },
+    {
+      "id": "candidate-resume-upload",
+      "method": "POST",
+      "path": "/api/candidate/profile/resume",
+      "auth": true,
+      "contentType": "multipart/form-data",
+      "request": {
+        "resume": "file"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Resume uploaded",
+        "data": {
+          "resumeUrl": "string"
+        }
+      }
+    },
+    {
+      "id": "hr-dashboard",
+      "method": "GET",
+      "path": "/api/hr/dashboard",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "activeJobs": "number",
+          "pendingApproval": "number",
+          "totalApplications": "number",
+          "timeToHireDays": "number",
+          "recentApplications": ["ApplicationListItemDto"],
+          "pendingJobs": ["JobListItemDto"],
+          "upcomingInterviews": ["InterviewDto"]
+        }
+      }
+    },
+    {
+      "id": "hr-jobs-list",
+      "method": "GET",
+      "path": "/api/hr/jobs",
+      "auth": true,
+      "query": {
+        "departmentId": "uuid|null",
+        "status": "DRAFT|PENDING_APPROVAL|APPROVED|CLOSED|REJECTED|null",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["JobListItemDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "hr-job-create",
+      "method": "POST",
+      "path": "/api/hr/jobs",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "departmentId": "uuid",
+        "title": "string",
+        "description": "string",
+        "requirements": ["string"],
+        "benefits": ["string"],
+        "location": "string",
+        "workMode": "ONSITE|HYBRID|REMOTE",
+        "employmentType": "FULL_TIME|PART_TIME|INTERNSHIP|CONTRACT",
+        "minExperienceYears": "number",
+        "vacancyCount": "number",
+        "salaryMin": "number|null",
+        "salaryMax": "number|null",
+        "deadline": "string|null",
+        "skillIds": ["uuid"]
+      },
+      "response": {
+        "success": true,
+        "statusCode": 201,
+        "message": "Job created",
+        "data": "JobDetailDto"
+      }
+    },
+    {
+      "id": "hr-job-update",
+      "method": "PATCH",
+      "path": "/api/hr/jobs/{jobId}",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "departmentId": "uuid|null",
+        "title": "string|null",
+        "description": "string|null",
+        "requirements": ["string"] ,
+        "benefits": ["string"],
+        "location": "string|null",
+        "workMode": "ONSITE|HYBRID|REMOTE|null",
+        "employmentType": "FULL_TIME|PART_TIME|INTERNSHIP|CONTRACT|null",
+        "minExperienceYears": "number|null",
+        "vacancyCount": "number|null",
+        "salaryMin": "number|null",
+        "salaryMax": "number|null",
+        "deadline": "string|null",
+        "status": "DRAFT|PENDING_APPROVAL|APPROVED|CLOSED|REJECTED|null",
+        "skillIds": ["uuid"]
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Job updated",
+        "data": "JobDetailDto"
+      }
+    },
+    {
+      "id": "hr-job-delete",
+      "method": "DELETE",
+      "path": "/api/hr/jobs/{jobId}",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Job deleted",
+        "data": null
+      }
+    },
+    {
+      "id": "hr-job-apply-status",
+      "method": "PATCH",
+      "path": "/api/hr/jobs/{jobId}/status",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "status": "DRAFT|PENDING_APPROVAL|APPROVED|CLOSED|REJECTED"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Status updated",
+        "data": "JobDetailDto"
+      }
+    },
+    {
+      "id": "hr-job-applications-list",
+      "method": "GET",
+      "path": "/api/hr/jobs/{jobId}/applications",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["ApplicationListItemDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "hr-job-funnel",
+      "method": "GET",
+      "path": "/api/hr/jobs/{jobId}/funnel",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": ["JobFunnelStageDto"]
+      }
+    },
+    {
+      "id": "hr-candidates-list",
+      "method": "GET",
+      "path": "/api/hr/candidates",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["CandidateProfileDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "hr-candidate-detail",
+      "method": "GET",
+      "path": "/api/hr/candidates/{candidateId}",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": "CandidateProfileDto"
+      }
+    },
+    {
+      "id": "hr-candidate-update",
+      "method": "PATCH",
+      "path": "/api/hr/candidates/{candidateId}",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "currentPosition": "string|null",
+        "experienceYears": "number|null",
+        "education": "string|null",
+        "address": "string|null",
+        "bio": "string|null",
+        "githubUrl": "string|null",
+        "linkedinUrl": "string|null",
+        "skillIds": ["uuid"]
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Candidate updated",
+        "data": "CandidateProfileDto"
+      }
+    },
+    {
+      "id": "hr-applications-list",
+      "method": "GET",
+      "path": "/api/hr/applications",
+      "auth": true,
+      "query": {
+        "status": "PENDING|REVIEWING|INTERVIEWING|MANAGER_REVIEW|ACCEPTED|REJECTED|null",
+        "jobId": "uuid|null",
+        "candidateId": "uuid|null",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["ApplicationListItemDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "hr-application-detail",
+      "method": "GET",
+      "path": "/api/hr/applications/{applicationId}",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": "ApplicationDetailDto"
+      }
+    },
+    {
+      "id": "hr-application-status",
+      "method": "PATCH",
+      "path": "/api/hr/applications/{applicationId}/status",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "status": "PENDING|REVIEWING|INTERVIEWING|MANAGER_REVIEW|ACCEPTED|REJECTED",
+        "notes": "string|null"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Application status updated",
+        "data": "ApplicationDetailDto"
+      }
+    },
+    {
+      "id": "hr-interview-create",
+      "method": "POST",
+      "path": "/api/hr/interviews",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "applicationId": "uuid",
+        "interviewDate": "string",
+        "meetingType": "ONLINE|OFFLINE",
+        "meetingLink": "string|null",
+        "location": "string|null",
+        "notes": "string|null"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 201,
+        "message": "Interview scheduled",
+        "data": "InterviewDto"
+      }
+    },
+    {
+      "id": "hr-interviews-list",
+      "method": "GET",
+      "path": "/api/hr/interviews",
+      "auth": true,
+      "query": {
+        "status": "SCHEDULED|COMPLETED|CANCELLED|null",
+        "dateFrom": "string|null",
+        "dateTo": "string|null",
+        "page": "number",
+        "pageSize": "number"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": {
+          "items": ["InterviewDto"],
+          "page": "number",
+          "pageSize": "number",
+          "totalItems": "number",
+          "totalPages": "number"
+        }
+      }
+    },
+    {
+      "id": "hr-interview-update",
+      "method": "PATCH",
+      "path": "/api/hr/interviews/{interviewId}",
+      "auth": true,
+      "contentType": "application/json",
+      "request": {
+        "interviewDate": "string|null",
+        "meetingType": "ONLINE|OFFLINE|null",
+        "meetingLink": "string|null",
+        "location": "string|null",
+        "notes": "string|null",
+        "status": "SCHEDULED|COMPLETED|CANCELLED|null"
+      },
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "Interview updated",
+        "data": "InterviewDto"
+      }
+    },
+    {
+      "id": "notifications-list",
+      "method": "GET",
+      "path": "/api/notifications",
+      "auth": true,
+      "response": {
+        "success": true,
+        "statusCode": 200,
+        "message": "OK",
+        "data": ["NotificationDto"]
+      }
+    }
+  ]
+}

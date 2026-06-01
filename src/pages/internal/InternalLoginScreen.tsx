@@ -178,7 +178,7 @@ function InternalLoginScreen() {
             <div className="mt-4 flex justify-center">
               <Link
                 className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
-                to="/internal/jobs"
+                to="/jobs"
               >
                 Preview Internal Jobs
               </Link>

@@ -373,7 +373,7 @@ function JobManagementScreen() {
   }
 
   function openNewJobModal() {
-    navigate("/internal/jobs/create");
+    navigate("/hr/jobs/create");
   }
 
   function openEdit(job: Job) {
@@ -427,7 +427,7 @@ function JobManagementScreen() {
 
       toast.success("Job updated.");
     } else {
-      // Creating new jobs is handled via /internal/jobs/create.
+      // Creating new jobs is handled via /hr/jobs/create.
       openNewJobModal();
       return;
     }
@@ -455,7 +455,7 @@ function JobManagementScreen() {
   }
 
   function viewApplications(job: Job) {
-    toast.info(`View applications for ${job.id}`);
+    navigate(`/jobs/${job.id}`);
   }
 
   function goToPage(next: number) {

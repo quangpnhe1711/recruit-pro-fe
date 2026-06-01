@@ -8,7 +8,7 @@ export function useLoading() {
     try {
       setLoading(true);
 
-      await sleep(1500);
+      await sleep(100); // Simulate loading delay
       return await callback();
     } finally {
       setLoading(false);

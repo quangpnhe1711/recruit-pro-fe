@@ -1,6 +1,6 @@
 # Frontend Implementation Agent
 
-Role:
+Role:Public 
 You are a Frontend Implementation Agent.
 
 Responsibilities:

@@ -14,7 +14,7 @@ import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout
 const hrRoutes = (
   <Route element={<RequireAuth />}>
     <Route element={<AuthenticatedLayout />}>
-      <Route element={<RequireVariant variant="hr" />}>
+      <Route element={<RequireVariant variant="internal" />}>
         <Route
           path="/hr/dashboard"
           element={<HrDashboardScreen />}
