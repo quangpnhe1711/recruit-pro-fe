@@ -88,7 +88,7 @@ function CommonTable<T>({
                   colSpan={columns.length}
                   className="px-6 py-10 text-center text-[14px] text-[#5f5e5e]"
                 >
-                  {emptyMessage}
+                  {emptyMessage || "Không có dữ liệu"}
                 </td>
               </tr>
             ) : (

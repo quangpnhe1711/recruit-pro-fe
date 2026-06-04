@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { candidateService, type CandidateDashboardDto } from "../../services/candidate/candidateService";
 
 type StatCard = {
   icon: string;
@@ -7,78 +11,65 @@ type StatCard = {
   helper: string;
 };
 
-type RecommendedJob = {
-  icon: string;
-  title: string;
-  meta: string;
-  tag: string;
-  chips: string[];
-  layout?: "compact";
-  actionLabel: string;
-};
-
-const statCards: StatCard[] = [
-  {
-    icon: "assignment",
-    iconClassName: "text-[#b90014]",
-    label: "Applied Jobs",
-    value: "04",
-    helper: "+1 since last week",
-  },
-  {
-    icon: "event",
-    iconClassName: "text-[#005f93]",
-    label: "Interviews",
-    value: "01",
-    helper: "Next scheduled today at 2:00 PM",
-  },
-  {
-    icon: "notifications_active",
-    iconClassName: "text-[#1a1c1c]",
-    label: "Unread",
-    value: "02",
-    helper: "Feedback received for UX Designer",
-  },
-];
-
-const recommendedJobs: RecommendedJob[] = [
-  {
-    icon: "hub",
-    title: "Staff UX Researcher",
-    meta: "Remote • $140k - $180k",
-    tag: "Full Time",
-    chips: ["User Testing", "Figma", "Strategy"],
-    actionLabel: "Quick Apply",
-  },
-  {
-    icon: "architecture",
-    title: "Design Systems Engineer",
-    meta: "New York, NY • $130k - $165k",
-    tag: "Hybrid",
-    chips: ["React", "Tailwind", "Typescript"],
-    actionLabel: "Quick Apply",
-  },
-  {
-    icon: "token",
-    title: "Visual Design Lead",
-    meta: "Remote • Hourly",
-    tag: "Contract",
-    chips: ["Branding", "Art Direction"],
-    layout: "compact",
-    actionLabel: "Apply Now",
-  },
-];
-
 function DashboardCandidateScreen() {
+  const [dashboard, setDashboard] = useState<CandidateDashboardDto | null>(null);
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  useEffect(() => {
+    let mounted = true;
+
+    candidateService
+      .getDashboard()
+      .then((res) => {
+        if (mounted && res.data) setDashboard(res.data);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const statCards = [
+    {
+      icon: "assignment",
+      iconClassName: "text-[#b90014]",
+      label: "Applied Jobs",
+      value: String(dashboard?.stats.appliedJobs ?? 4).padStart(2, "0"),
+      helper: "+1 since last week",
+    },
+    {
+      icon: "event",
+      iconClassName: "text-[#005f93]",
+      label: "Interviews",
+      value: String(dashboard?.stats.interviews ?? 1).padStart(2, "0"),
+      helper: dashboard?.upcomingInterview
+        ? `Next scheduled at ${dashboard.upcomingInterview.time}`
+        : "No interview scheduled",
+    },
+    {
+      icon: "notifications_active",
+      iconClassName: "text-[#1a1c1c]",
+      label: "Unread",
+      value: String(dashboard?.stats.unreadNotifications ?? 2).padStart(2, "0"),
+      helper: "New updates available",
+    },
+  ];
+
+  const recommendedJobs = dashboard?.recommendedJobs ?? [];
+  const upcomingInterview = dashboard?.upcomingInterview;
+  const stats = dashboard?.stats;
+
   return (
     <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
             <div className="mb-10">
               <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-                Welcome back, Alex
+                Welcome back, {dashboard?.greetingName ?? user?.fullName ?? "Candidate"}
               </h2>
               <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-                You have 1 interview scheduled for today and 2 new
-                notifications.
+                {stats
+                  ? `You have ${stats.interviews} interview${stats.interviews === 1 ? "" : "s"} scheduled and ${stats.unreadNotifications} new notification${stats.unreadNotifications === 1 ? "" : "s"}.`
+                  : "No dashboard activity available yet."}
               </p>
             </div>
 
@@ -104,16 +95,7 @@ function DashboardCandidateScreen() {
                       {card.value}
                     </p>
                     <p className="mt-2 flex items-center gap-2 text-[14px] text-[#5f5e5e]">
-                      {card.label === "Applied Jobs" ? (
-                        <>
-                          <span className="material-symbols-outlined text-[16px] text-[#b90014]">
-                            trending_up
-                          </span>
-                          <span>{card.helper}</span>
-                        </>
-                      ) : (
-                        <span>{card.helper}</span>
-                      )}
+                      <span>{card.helper}</span>
                     </p>
                   </div>
                 </div>
@@ -137,10 +119,10 @@ function DashboardCandidateScreen() {
                       Today
                     </span>
                     <h4 className="mt-4 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                      2:00 PM
+                      {upcomingInterview?.time ?? "No upcoming interview"}
                     </h4>
                     <p className="text-[16px] leading-6 text-[#c8c6c5]">
-                      Oct 24, 2024
+                      {upcomingInterview?.date ?? "No interview scheduled"}
                     </p>
                   </div>
 
@@ -150,7 +132,7 @@ function DashboardCandidateScreen() {
                         Job Title
                       </span>
                       <span className="text-[16px] font-bold">
-                        Senior Product Designer
+                        {upcomingInterview?.jobTitle ?? "No interview scheduled"}
                       </span>
                     </div>
 
@@ -159,14 +141,16 @@ function DashboardCandidateScreen() {
                         Interviewer
                       </span>
                       <span className="text-[16px]">
-                        Sarah Jenkins, Design Lead
+                        {upcomingInterview
+                          ? `${upcomingInterview.interviewerName}, ${upcomingInterview.interviewerTitle}`
+                          : "No interviewer assigned"}
                       </span>
                     </div>
                   </div>
 
                   <a
                     className="mt-auto flex w-full items-center justify-center gap-2 bg-[#b90014] py-4 text-[12px] font-bold uppercase tracking-[0.18em] transition-colors hover:brightness-110"
-                    href="#"
+                    href={upcomingInterview?.meetingUrl ?? "#"}
                   >
                     <span className="material-symbols-outlined">
                       video_call
@@ -195,19 +179,24 @@ function DashboardCandidateScreen() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {recommendedJobs.map((job) => {
-                    const isCompact = job.layout === "compact";
+                  {recommendedJobs.length === 0 ? (
+                    <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e] md:col-span-2">
+                      Không có dữ liệu
+                    </div>
+                  ) : (
+                    recommendedJobs.map((job) => {
+                      const isCompact = job.layout === "compact";
 
-                    if (isCompact) {
-                      return (
-                        <div
-                          key={job.title}
-                          className="border border-[#e2dfde] bg-white p-6 md:col-span-2"
-                        >
+                      if (isCompact) {
+                        return (
+                          <div
+                            key={job.id}
+                            className="border border-[#e2dfde] bg-white p-6 md:col-span-2"
+                          >
                           <div className="flex items-center gap-6">
                             <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center border border-[#e2dfde] bg-[#eeeeee]">
                               <span className="material-symbols-outlined text-4xl text-[#b90014]">
-                                {job.icon}
+                                work
                               </span>
                             </div>
 
@@ -217,14 +206,14 @@ function DashboardCandidateScreen() {
                                   {job.title}
                                 </h4>
                                 <span className="bg-[#e2dfde]/30 px-2 py-1 text-[10px] font-bold uppercase text-[#5f5e5e]">
-                                  {job.tag}
+                                  {job.employmentType}
                                 </span>
                               </div>
                               <p className="mb-2 text-[14px] text-[#5f5e5e]">
                                 {job.meta}
                               </p>
                               <div className="flex flex-wrap gap-2">
-                                {job.chips.map((chip) => (
+                                {job.skills.map((chip) => (
                                   <span
                                     key={chip}
                                     className="rounded-full bg-[#eeeeee] px-2 py-1 text-[10px] font-semibold text-[#5f5e5e]"
@@ -239,7 +228,7 @@ function DashboardCandidateScreen() {
                               className="bg-[#e31b23] px-10 py-4 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:brightness-110"
                               type="button"
                             >
-                              {job.actionLabel}
+                              {job.actionLabel ?? "Apply Now"}
                             </button>
                           </div>
                         </div>
@@ -248,17 +237,17 @@ function DashboardCandidateScreen() {
 
                     return (
                       <div
-                        key={job.title}
+                        key={job.id}
                         className="border border-[#e2dfde] bg-white p-6 transition-shadow hover:shadow-sm"
                       >
                         <div className="mb-4 flex items-start justify-between">
                           <div className="flex h-12 w-12 items-center justify-center border border-[#e2dfde] bg-[#eeeeee]">
                             <span className="material-symbols-outlined text-[#b90014]">
-                              {job.icon}
+                              work
                             </span>
                           </div>
                           <span className="bg-[#e2dfde]/30 px-2 py-1 text-[10px] font-bold uppercase text-[#5f5e5e]">
-                            {job.tag}
+                            {job.employmentType}
                           </span>
                         </div>
 
@@ -270,7 +259,7 @@ function DashboardCandidateScreen() {
                         </p>
 
                         <div className="mb-6 flex flex-wrap gap-2">
-                          {job.chips.map((chip) => (
+                          {job.skills.map((chip) => (
                             <span
                               key={chip}
                               className="rounded-full bg-[#eeeeee] px-3 py-1 text-[10px] font-semibold text-[#5f5e5e]"
@@ -284,11 +273,12 @@ function DashboardCandidateScreen() {
                           className="w-full border border-[#1a1c1c] py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#1a1c1c] transition-colors hover:bg-[#1a1c1c] hover:text-white"
                           type="button"
                         >
-                          {job.actionLabel}
+                          {job.actionLabel ?? "Quick Apply"}
                         </button>
                       </div>
                     );
-                  })}
+                    })
+                  )}
                 </div>
               </div>
             </div>

@@ -2,14 +2,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useDispatch, useStore } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import MockJsonButton from "../../common/components/MockJsonButton";
 import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
 import { setCredentials, setVariant } from "../../store/slices/authSlice";
-import { getVariant } from "../../common/utils/variants";
 import { useLoading } from "../../common/hooks/useLoading";
+import { getVariant } from "../../common/utils/helpers";
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
@@ -48,7 +47,7 @@ function CandidateLoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const { loading, withLoading } = useLoading();
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async () => {
     setLoginError("");
 
     try {
@@ -65,11 +64,12 @@ function CandidateLoginScreen() {
       navigate("/candidate/dashboard", {
         replace: true,
       });
-    } catch (error: any) {
+    } catch {
       setLoginError("Email hoặc mật khẩu không chính xác");
       return;
     }
     toast.success("Đăng nhập thành công");
+    
   };
 
   type LoginForm = yup.InferType<typeof schema>;

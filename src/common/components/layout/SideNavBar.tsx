@@ -66,6 +66,7 @@ function SideNavBar({
   const authState = useSelector((state: RootState) => state.auth);
 
   const resolvedVariant = authState?.currentVariant ?? "candidate";
+  const authUser = authState.user;
 
   const resolvedItems =
     resolvedVariant === "candidate" ? candidateItems : internalItems;
@@ -83,13 +84,13 @@ function SideNavBar({
         : "/internal/dashboard",
   };
 
-  const resolvedUserName = resolvedVariant === "candidate" ? "Alex Thompson" : "Alex Rivera";
-  const resolvedUserRole = resolvedVariant === "candidate" ? "Senior Candidate" : "Senior Recruiter";
+  const resolvedUserName =
+    authUser?.fullName ?? (resolvedVariant === "candidate" ? "Candidate" : "Internal User");
+  const resolvedUserRole =
+    authUser?.roles?.[0] ?? (resolvedVariant === "candidate" ? "Candidate" : "Internal User");
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
-  const resolvedCta = resolvedVariant === "internal"
-        ? { label: "Post New Job" }
-        : null;
+  const resolvedCta = resolvedVariant === "internal" ? { label: "Post New Job" } : null;
 
   const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A]`;
 
@@ -122,8 +123,6 @@ function SideNavBar({
         ? "text-white"
         : "text-[#c8c6c5] hover:text-white"
     }`;
-
-    console.log("SideNavBar rendered with variant:", authState.isAuthenticated);
 
   return (
     <aside className={` ${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"}`}>

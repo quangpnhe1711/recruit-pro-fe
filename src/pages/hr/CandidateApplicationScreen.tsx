@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { setVariant } from "../../store/slices/authSlice";
+import { hrService } from "../../services/hr/hrService";
 
 type ApplicationStatus = "New" | "Under Review" | "Interviewing" | "Rejected";
 type DateRange =
@@ -246,142 +247,6 @@ function buildApplicationTableColumns(
   ];
 }
 
-function buildSeedApplications(): Application[] {
-  const fixed: Application[] = [
-    {
-      id: "APP-5001",
-      candidateFirstName: "Marcus",
-      candidateLastName: "Thorne",
-      candidateEmail: "m.thorne@example.com",
-      candidateAvatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBSEdv-aX2NipNHgHi_a1wsfzaRx_Hd_CeSSFiZK821CNqiU0sILyshIU22KEVUVC1QnOYpcqstBdvseabbkghRjJrX7-Tl9dWrA7dfVMV0UFk2xRL-YiFwbdpIlhMcp0Nlyx8WTAtL3HUK9lCLdsBfQPbSxpv458RW0IozKCtAvcVd5Qg-ETJUu9E7vgqwhRF-VJWql7VXiHaEsEoUQNuLxWWft0CnNVSEBYQ0kBhmfrhgm3nYpAjkyu3HAoFr-kzAmvseYx361g",
-      jobTitle: "Senior Frontend Engineer",
-      department: "Engineering",
-      appliedDate: "Oct 12, 2024",
-      appliedAt: parseDateLabelToEpoch("Oct 12, 2024"),
-      status: "New",
-    },
-    {
-      id: "APP-5002",
-      candidateFirstName: "Elena",
-      candidateLastName: "Rodriguez",
-      candidateEmail: "e.rod@digitalmkt.com",
-      candidateAvatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBe5f_mZMAWtsgG2WMbe2Xrx_xuDzZVr4ic6kxWZUXZohkOPmqphV_cBYT3BBCE0vxx0unufTcpxuKmJ6krDe7r3DUDayDFbLU0GaETRwzZImdif64CnlsUTpShYjQ161gsmXEunkSXkHjRtFPUUgg3ILIsVrkvYF9oJ0b3rEpQuHg8VHg-LDCXaQdC0pXF4DB_FRqoAIcGz3AfkNrPXzTi2t-ZfTiRR7JRQTT1c7ImkxIVRiMdnlJNK42N9LCtxs_p_m8onLNUeA",
-      jobTitle: "Creative Director",
-      department: "Marketing",
-      appliedDate: "Oct 10, 2024",
-      appliedAt: parseDateLabelToEpoch("Oct 10, 2024"),
-      status: "Interviewing",
-    },
-    {
-      id: "APP-5003",
-      candidateFirstName: "David",
-      candidateLastName: "Chen",
-      candidateEmail: "d.chen@globaltech.io",
-      candidateAvatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBX2jyIkAkG6u6ZOPE_9445HtJ6NLr83DHpcd6Jfc5ZYG_ojYGz9vgcWT6dY0wouMumaDuFYNIBxEE10uuxl04EH98BVOOQzOhVD-G9fKDQKySbI-wYTGNEEi3m2UQTwhip8eAAewb-QCmDQTK2nynTpzv0oyCnDybLglGoPbrfsPLNYWZ80QN1Whc9OXhAj5E3RPUvJmypSxX4bnyCmrbT-VX_CdOtiwqWke7Y3_M7d2l7-21dQi6S_XSSEoEY3HLr5HN_xNon_g",
-      jobTitle: "Sales Operations Lead",
-      department: "Sales",
-      appliedDate: "Oct 08, 2024",
-      appliedAt: parseDateLabelToEpoch("Oct 08, 2024"),
-      status: "Under Review",
-    },
-    {
-      id: "APP-5004",
-      candidateFirstName: "Sarah",
-      candidateLastName: "Jenkins",
-      candidateEmail: "sarah.j@hr-solutions.com",
-      candidateAvatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDFfVFf_uXP9FttxcNIUYCKruhgyy3AMcqceLY5rZZbbG-CUGyw3U2DPjNh8ig5tzo7OzRrHoDzL4z14ElS0-mJh6GiDTENsoyCUHQnPu7H49rvKpalj6hGVSNqRaQHNkeGI-87zF87-lPPRHItteSVuTGN9WC7eq2I9aCrKYlAYWG91hyCZjMe9M8nAtugWriQwdFtjRZX_qivpSzY7yo-hd9gyiQpZ2xW_Vb3FoYtHrUB2nwy9IGekCgaDBK_FcTSEadFcQAynQ",
-      jobTitle: "HR Specialist",
-      department: "HR",
-      appliedDate: "Oct 05, 2024",
-      appliedAt: parseDateLabelToEpoch("Oct 05, 2024"),
-      status: "Rejected",
-    },
-    {
-      id: "APP-5005",
-      candidateFirstName: "Jordan",
-      candidateLastName: "Lee",
-      candidateEmail: "jordan.lee@devops.net",
-      candidateAvatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuB4Epl0dLZXceU407-_2vn_mUmcy0tt1oNaHGUdgVjtCbfMYaGni6oR5pRJqimnOH3zaIFdkeuQ_rFSNp04HQczPmv6N4Oge6Su2Asp6v9YTYjEoi9PJxH6y5CWXchn88dmiSPFfis88TohC2GbsR2bopITd2-047F5amjuOTJf44dv2WmzDcMskqgocD7XYgmsR9p1c_gPfe2TPbszlbc9buSrOTUNz6z5W7J7gv6HL8mgW1mUdDVMFyTx3fyTQbp4LJitSWa0sA",
-      jobTitle: "Cloud Architect",
-      department: "Engineering",
-      appliedDate: "Oct 02, 2024",
-      appliedAt: parseDateLabelToEpoch("Oct 02, 2024"),
-      status: "New",
-    },
-  ];
-
-  const fillers: Application[] = [];
-  const firstNames = [
-    "Alice",
-    "Bob",
-    "Charlotte",
-    "David",
-    "Emma",
-    "Frank",
-    "Grace",
-    "Henry",
-    "Ivy",
-    "Jack",
-  ];
-  const lastNames = [
-    "Smith",
-    "Johnson",
-    "Williams",
-    "Brown",
-    "Jones",
-    "Miller",
-    "Davis",
-    "Rodriguez",
-    "Martinez",
-    "Garcia",
-  ];
-  const jobTitles = [
-    "Backend Engineer",
-    "Product Manager",
-    "Data Analyst",
-    "UX Designer",
-    "DevOps Engineer",
-    "Marketing Manager",
-    "Sales Executive",
-    "HR Coordinator",
-    "QA Engineer",
-    "Solutions Architect",
-  ];
-
-  const idNum = 5006;
-  for (let i = 0; i < 53; i += 1) {
-    const firstName = firstNames[i % firstNames.length];
-    const lastName = lastNames[i % lastNames.length];
-    const dept = departments[i % departments.length];
-    const status = applicationStatuses[i % applicationStatuses.length];
-    const jobTitle = jobTitles[i % jobTitles.length];
-
-    const day = 1 + ((i * 2) % 28);
-    const month = i % 3 === 0 ? "Sep" : i % 3 === 1 ? "Oct" : "Nov";
-    const label = `${month} ${day.toString().padStart(2, "0")}, 2024`;
-
-    fillers.push({
-      id: `APP-${idNum + i}`,
-      candidateFirstName: firstName,
-      candidateLastName: lastName,
-      candidateEmail: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@company.com`,
-      candidateAvatar: `https://i.pravatar.cc/150?img=${i + 100}`,
-      jobTitle,
-      department: dept,
-      appliedDate: label,
-      appliedAt: parseDateLabelToEpoch(label),
-      status,
-    });
-  }
-
-  return [...fixed, ...fillers];
-}
-
 function CandidateApplicationScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -390,8 +255,42 @@ function CandidateApplicationScreen() {
     dispatch(setVariant("internal"));
   }, [dispatch]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    hrService
+      .getApplications()
+      .then((res) => {
+        if (!mounted) return;
+
+        const items = Array.isArray(res.data) ? res.data : [];
+
+        setApplications(
+          items.map((item: any) => ({
+            id: item.id,
+            candidateFirstName: item.candidate.firstName,
+            candidateLastName: item.candidate.lastName,
+            candidateEmail: item.candidate.email,
+            candidateAvatar: item.candidate.avatarUrl,
+            jobTitle: item.job.title,
+            department: item.job.department,
+            appliedDate: item.appliedDate ? new Date(item.appliedDate).toLocaleDateString() : "",
+            appliedAt: item.appliedDate ? Date.parse(item.appliedDate) : Date.now(),
+            status: item.status,
+          })),
+        );
+      })
+      .catch(() => {
+        if (mounted) setApplications([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const [applications, setApplications] = useState<Application[]>(
-    buildSeedApplications(),
+    [],
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [departmentFilter, setDepartmentFilter] =
@@ -478,15 +377,31 @@ function CandidateApplicationScreen() {
   }
 
   function viewCV(application: Application) {
-    toast.info(
-      `Viewing CV for ${application.candidateFirstName} ${application.candidateLastName}`,
-    );
+    hrService
+      .getApplicationCv(application.id)
+      .then((res) => {
+        const url = res.data?.fileUrl;
+        if (url) {
+          window.open(url, "_blank", "noopener,noreferrer");
+          return;
+        }
+        toast.info("CV not available");
+      })
+      .catch(() => toast.error("Unable to load CV"));
   }
 
   function sendEmail(application: Application, emailType: string) {
-    toast.info(
-      `Sending "${emailType}" email to ${application.candidateFirstName} ${application.candidateLastName}`,
-    );
+    hrService
+      .sendApplicationEmail(application.id, {
+        templateType: emailType,
+        subject: emailType,
+      })
+      .then(() =>
+        toast.success(
+          `Sent "${emailType}" email to ${application.candidateFirstName} ${application.candidateLastName}`,
+        ),
+      )
+      .catch(() => toast.error("Unable to send email"));
   }
 
   function goToPage(next: number) {
@@ -606,7 +521,7 @@ function CandidateApplicationScreen() {
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}
-        emptyMessage="No applications found for current filters."
+        emptyMessage="Không có dữ liệu"
         zebra
         hover
         tableWrapperClassName="border border-[#e7bdb8] bg-white rounded-xl overflow-hidden shadow-sm"

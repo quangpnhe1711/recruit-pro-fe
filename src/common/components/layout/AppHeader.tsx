@@ -1,4 +1,7 @@
+import { useSelector } from "react-redux";
+
 import HeaderAvatarDropDown from "../../../pages/internal/HeaderAvatarDropDown";
+import type { RootState } from "../../../store";
 
 export type AppHeaderMenuItem = {
   label: string;
@@ -6,13 +9,8 @@ export type AppHeaderMenuItem = {
 };
 
 type AppHeaderProps = {
-  userName?: string;
-  userRole?: string;
-  avatarSrc?: string;
-  initials?: string;
   showNotifications?: boolean;
   menuItems?: AppHeaderMenuItem[];
-  logoutTo?: string;
 };
 
 function getInitials(name: string) {
@@ -31,14 +29,27 @@ const defaultMenuItems: AppHeaderMenuItem[] = [
 ];
 
 function AppHeader({
-  userName = "Alex Rivera",
-  userRole = "Senior Recruiter",
-  avatarSrc,
-  initials,
   showNotifications = true,
-  menuItems = defaultMenuItems,
+  menuItems,
 }: AppHeaderProps) {
-  const resolvedInitials = initials ?? getInitials(userName);
+  const authUser = useSelector((state: RootState) => state.auth.user);
+  const variant =
+    useSelector((state: RootState) => state.auth.currentVariant) ?? "candidate";
+
+  const userName = authUser?.fullName ?? "No user";
+  const userRole =
+    authUser?.roles?.[0] ??
+    (variant === "candidate" ? "Candidate" : "Internal User");
+  const avatarSrc = authUser?.avatarUrl ?? undefined;
+  const resolvedInitials = getInitials(userName);
+  const resolvedMenuItems =
+    menuItems ??
+    (variant === "candidate"
+      ? defaultMenuItems
+      : [
+          { label: "Profile", to: "/internal/profile" },
+          { label: "Settings", to: "/settings" },
+        ]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white">
@@ -63,7 +74,7 @@ function AppHeader({
               role={userRole}
               avatarSrc={avatarSrc}
               initials={resolvedInitials}
-              items={menuItems}
+              items={resolvedMenuItems}
             />
           </div>
         </div>

@@ -1,4 +1,6 @@
-import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import { useEffect, useState } from "react";
+import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import { hrService, type HrDashboardDto } from "../../services/hr/hrService";
 
 type StatCard = {
   label: string;
@@ -156,6 +158,70 @@ function buildRecentApplicationsColumns(): TableColumn<RecentApplication>[] {
 }
 
 function HrDashboardScreen() {
+  const [dashboard, setDashboard] = useState<HrDashboardDto | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    hrService
+      .getDashboard()
+      .then((res) => {
+        if (mounted && res.data) setDashboard(res.data);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const statCardsData: StatCard[] = dashboard
+    ? [
+        {
+          label: "Active Postings",
+          value: String(dashboard.stats.activePostings),
+          helper: "+2 from last week",
+          helperClassName: "text-[#0079b9]",
+          icon: "work",
+        },
+        {
+          label: "Total Applicants",
+          value: String(dashboard.stats.totalApplicants),
+          helper: "15.2% conversion rate",
+          helperClassName: "text-[#0079b9]",
+          icon: "group",
+        },
+        {
+          label: "Interviews Today",
+          value: String(dashboard.stats.interviewsToday),
+          helper: dashboard.stats.nextInterviewLabel,
+          helperClassName: "text-[#ba1a1a]",
+          icon: "schedule",
+        },
+      ]
+    : statCards;
+
+  const recentApplicationsData: RecentApplication[] =
+    dashboard?.recentApplications?.map((item) => ({
+      candidateName: item.candidateName,
+      jobAppliedFor: item.jobAppliedFor,
+      status: item.status,
+      statusClassName:
+        item.status === "Interviewing"
+          ? "bg-[#005f93]/10 text-[#005f93]"
+          : item.status === "Offer Sent"
+            ? "bg-[#b90014]/10 text-[#b90014]"
+            : "bg-[#e2dfde] text-[#636262]",
+      date: new Date(item.date).toLocaleDateString(),
+    })) ?? recentApplications;
+
+  const pendingApprovalsData: PendingApproval[] =
+    dashboard?.pendingApprovals?.map((item) => ({
+      title: item.title,
+      meta: item.meta,
+      extraCount: item.approverCount > 1 ? `+${item.approverCount - 1}` : undefined,
+    })) ?? pendingApprovals;
+
   return (
     <>
       <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
@@ -183,7 +249,7 @@ function HrDashboardScreen() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {statCards.map((card) => (
+              {statCardsData.map((card) => (
                 <div
                   key={card.label}
                   className="flex cursor-default items-center justify-between border border-[#e2dfde] bg-white p-6 transition-colors hover:border-[#b90014]"
@@ -230,7 +296,7 @@ function HrDashboardScreen() {
                 <div className="overflow-x-auto">
                   <CommonTable
                     columns={buildRecentApplicationsColumns()}
-                    data={recentApplications}
+                    data={recentApplicationsData}
                     keyExtractor={(item) => `${item.candidateName}-${item.date}`}
                     loading={false}
                     emptyMessage="No recent applications."
@@ -253,7 +319,7 @@ function HrDashboardScreen() {
                   </div>
 
                   <div className="flex flex-1 flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide">
-                    {pendingApprovals.map((item) => (
+                    {pendingApprovalsData.map((item) => (
                       <div
                         key={item.title}
                         className="border border-[#e2dfde] bg-white p-4 transition-all hover:shadow-sm"

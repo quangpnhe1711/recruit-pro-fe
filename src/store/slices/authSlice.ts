@@ -4,6 +4,21 @@ import type { LoginResponseDto, UserDto } from "../../modules/auth/authSchema";
 
 export type Variant = "candidate" | "internal";
 
+const readAuthFromStorage = () => {
+  const accessToken = localStorage.getItem("access_token");
+  const refreshToken = localStorage.getItem("refresh_token");
+  const variant = localStorage.getItem("current_variant") as Variant | null;
+
+  return {
+    accessToken,
+    refreshToken,
+    currentVariant: variant ?? undefined,
+    isAuthenticated: Boolean(accessToken && refreshToken),
+  };
+};
+
+const persistedAuth = readAuthFromStorage();
+
 export type AuthState = {
   accessToken: string | null;
 
@@ -17,15 +32,11 @@ export type AuthState = {
 };
 
 const initialState: AuthState = {
-  accessToken: null,
-
-  refreshToken: null,
-
+  accessToken: persistedAuth.accessToken,
+  refreshToken: persistedAuth.refreshToken,
   user: null,
-
-  currentVariant: undefined,
-
-  isAuthenticated: false,
+  currentVariant: persistedAuth.currentVariant,
+  isAuthenticated: persistedAuth.isAuthenticated,
 };
 
 const authSlice = createSlice({
@@ -44,6 +55,9 @@ const authSlice = createSlice({
       state.user = user;
 
       state.isAuthenticated = true;
+
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
     },
 
     setAccessToken(state, action: PayloadAction<string>) {
@@ -52,6 +66,8 @@ const authSlice = createSlice({
 
     setVariant(state, action: PayloadAction<Variant>) {
       state.currentVariant = action.payload;
+
+      localStorage.setItem("current_variant", action.payload);
     },
 
     updateUser(state, action: PayloadAction<UserDto>) {
@@ -68,6 +84,10 @@ const authSlice = createSlice({
       state.currentVariant = undefined;
 
       state.isAuthenticated = false;
+
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("current_variant");
     },
   },
 });

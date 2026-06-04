@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
+import { candidateService } from "../../services/candidate/candidateService";
 
 type ApplicationItem = {
   icon: string;
@@ -14,46 +15,10 @@ type ApplicationItem = {
   actionClass: string;
 };
 
-const applications: ApplicationItem[] = [
-  {
-    icon: "work",
-    title: "Lead Product Designer",
-    department: "Luvina Tech - Design Team",
-    appliedDate: "Oct 24, 2023",
-    status: "Interviewing",
-    statusClass: "bg-[#005f93]/10 text-[#005f93]",
-    nextStep: "Schedule technical interview",
-    actionLabel: "Withdraw",
-    actionClass: "text-[#ba1a1a]",
-  },
-  {
-    icon: "terminal",
-    title: "Senior Backend Engineer",
-    department: "Nexus Systems - Infrastructure",
-    appliedDate: "Oct 28, 2023",
-    status: "Under Review",
-    statusClass: "bg-[#e2dfde] text-[#636262]",
-    nextStep: "Awaiting recruiter feedback",
-    actionLabel: "Withdraw",
-    actionClass: "text-[#ba1a1a]",
-  },
-  {
-    icon: "star",
-    title: "Staff Frontend Architect",
-    department: "InnovaSoft - Core Web",
-    appliedDate: "Oct 12, 2023",
-    status: "Offered",
-    statusClass: "bg-[#001d32]/10 text-[#004b74]",
-    nextStep: "Review & sign offer letter",
-    actionLabel: "Accept Offer",
-    actionClass: "bg-[#b90014] text-white hover:bg-[#93000d]",
-  },
-];
-
 const summaryCards = [
-  { label: "Total", value: 12 },
-  { label: "Active", value: 4 },
-  { label: "Closed", value: 8 },
+  { label: "Total", value: 0 },
+  { label: "Active", value: 0 },
+  { label: "Closed", value: 0 },
 ];
 
 function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
@@ -143,6 +108,8 @@ function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
 
 function MyApplicationScreen() {
   const [page, setPage] = useState(1);
+  const [applications, setApplications] = useState<ApplicationItem[]>([]);
+  const [summary, setSummary] = useState(summaryCards);
   const pageSize = 3;
   const totalItems = applications.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -154,6 +121,50 @@ function MyApplicationScreen() {
 
   const rangeStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(page * pageSize, totalItems);
+
+  useEffect(() => {
+    let mounted = true;
+
+    candidateService
+      .getApplications()
+      .then((res) => {
+        if (!mounted) return;
+
+        const items = (res.data ?? []).map((item: any, index) => ({
+          icon: ["work", "terminal", "star"][index % 3],
+          title: item.jobTitle,
+          department: item.companyOrDepartment,
+          appliedDate: item.appliedDate ? new Date(item.appliedDate).toLocaleDateString() : "",
+          status: item.status,
+          statusClass:
+            item.status === "Interviewing"
+              ? "bg-[#005f93]/10 text-[#005f93]"
+              : item.status === "Offered"
+                ? "bg-[#001d32]/10 text-[#004b74]"
+                : "bg-[#e2dfde] text-[#636262]",
+          nextStep: item.nextStep,
+          actionLabel: item.availableActions?.includes("acceptOffer") ? "Accept Offer" : "Withdraw",
+          actionClass: item.availableActions?.includes("acceptOffer")
+            ? "bg-[#b90014] text-white hover:bg-[#93000d]"
+            : "text-[#ba1a1a]",
+        }));
+
+        setApplications(items);
+        const extra = res.extra as any;
+        if (extra?.summary) {
+          setSummary([
+            { label: "Total", value: extra.summary.total },
+            { label: "Active", value: extra.summary.active },
+            { label: "Closed", value: extra.summary.closed },
+          ]);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function goTo(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
@@ -174,7 +185,7 @@ function MyApplicationScreen() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          {summaryCards.map((card) => (
+          {summary.map((card) => (
             <div
               key={card.label}
               className="min-w-[120px] border border-[#e2dfde] bg-white p-4 text-center"

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import { hrService } from "../../services/hr/hrService";
 
 /* eslint-disable react-hooks/refs */
 
@@ -498,6 +499,40 @@ function JobInterviewListScreen() {
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
+    hrService
+      .getInterviews()
+      .then((res) => {
+        if (!mounted || !res.data?.length) return;
+
+        setItems(
+          res.data.map((item: any) => {
+            const parsed = parseDateAndTime(item.dateLabel, item.timeLabel);
+            return {
+              id: item.id,
+              candidateName: item.candidateName,
+              candidateEmail: item.candidateEmail,
+              initials: getInitials(item.candidateName),
+              jobTitle: item.jobTitle,
+              interviewer: item.interviewer,
+              dateLabel: item.dateLabel,
+              timeLabel: item.timeLabel,
+              startAt: item.startAt ? Date.parse(item.startAt) : parsed.startAt,
+              endAt: item.endAt ? Date.parse(item.endAt) : parsed.endAt,
+              status: item.status,
+            };
+          }),
+        );
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     function onDocClick(e: MouseEvent) {
       if (!openMenuForId) return;
       const target = e.target as Node | null;
@@ -629,11 +664,16 @@ function JobInterviewListScreen() {
       return;
     }
 
-    setItems((prev) =>
-      prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
-    );
-    toast.success("Marked as completed.");
-    setOpenMenuForId(null);
+    hrService
+      .updateInterviewStatus(it.id, "Completed")
+      .then(() => {
+        setItems((prev) =>
+          prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
+        );
+        toast.success("Marked as completed.");
+        setOpenMenuForId(null);
+      })
+      .catch(() => toast.error("Unable to update interview"));
   }, []);
 
   const reschedule = useCallback((it: Interview) => {
@@ -653,14 +693,17 @@ function JobInterviewListScreen() {
     const ok = window.confirm(`Cancel interview for ${it.candidateName}?`);
     if (!ok) return;
 
-    setItems((prev) => prev.filter((x) => x.id !== it.id));
-
-    const stored = loadStoredInterviews();
-    const remaining = stored.filter((x) => x.id !== it.id);
-    writeStoredInterviews(remaining);
-
-    toast.info("Interview cancelled.");
-    setOpenMenuForId(null);
+    hrService
+      .deleteInterview(it.id)
+      .then(() => {
+        setItems((prev) => prev.filter((x) => x.id !== it.id));
+        const stored = loadStoredInterviews();
+        const remaining = stored.filter((x) => x.id !== it.id);
+        writeStoredInterviews(remaining);
+        toast.info("Interview cancelled.");
+        setOpenMenuForId(null);
+      })
+      .catch(() => toast.error("Unable to cancel interview"));
   }, []);
 
   function saveLocalOverrides() {

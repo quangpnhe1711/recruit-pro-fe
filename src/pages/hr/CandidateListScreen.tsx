@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { setVariant } from "../../store/slices/authSlice";
+import { hrService } from "../../services/hr/hrService";
 
 type CandidateStatus = "New" | "Under Review" | "Interviewed" | "Rejected";
 type CandidateSource = "Portal" | "LinkedIn" | "Bulk Import";
@@ -180,111 +181,6 @@ function buildCandidateTableColumns(
   ];
 }
 
-function buildSeedCandidates(): Candidate[] {
-  const fixed: Candidate[] = [
-    {
-      id: "CD-2401",
-      firstName: "Sarah",
-      lastName: "Jenkins",
-      email: "sarah.j@enterprise.com",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuC24_HK8aNVUAq6s0OxsgMzvJ-jprMFwtIjOOYHT5lPZ3GdL1F7z02HxMEqJEiDKH1Sih3Z2eaP92V6xzpQJ_8AvUMJQZbjlVp0X4GnZJUVylO7pgdiuN4sKwB8ZWY7UOocmtQD0aIQASBu8uQnNGLYLdNWBuJBDk13P2ueWg7emO6g-d-bd6811CP5qqy-QSPi6JjzBj5dCnw4iiMxP0Hnbz83w6F6SnEtp2T1rKHD6OYO0mWeUkds2GwYw-wqm9e7EP12hAd99A",
-      source: "Portal",
-      appliedDate: "Oct 24, 2023",
-      appliedAt: parseDateLabelToEpoch("Oct 24, 2023"),
-      status: "Interviewed",
-    },
-    {
-      id: "CD-2402",
-      firstName: "Marcus",
-      lastName: "Thorne",
-      email: "m.thorne@network.org",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCGByYoMQt2IEUHEgFPt39zD9YFEgAoN6DKN8NAd0OMJTu1faXjISCjbRFJgESuoTuffCihFRjI_JzJjZ7GFKl00U6M-I1LTX2POERqBNgQhYq8fFo39r5RO6OltIj8XE5JRqa2GSqOyGDwSzb7ksNSY-FHhro0Swf8ouNguRRSGKri6Zy0EgZtyKFgljCauJpaPoAtCY1CX0_bdMxZrN6M6C_sJrSDRlk7ZWjvDbyrIDJoHYBlk2rL8qGjAJgivuRcqnnemFTTfQ",
-      source: "LinkedIn",
-      appliedDate: "Oct 26, 2023",
-      appliedAt: parseDateLabelToEpoch("Oct 26, 2023"),
-      status: "Under Review",
-    },
-    {
-      id: "CD-2403",
-      firstName: "Elena",
-      lastName: "Rodriguez",
-      email: "erod@internal.com",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuC4i_chCt1JqQL_To1I-EDXzpjjmtaJah1WBSQLeNU6eg5IovTbk0IgU3r0GpdB9m7tE4cDmZmn1hDsHkNJg2lvj08B3XeolsZNxLxGw2jYDnkCv83CrTJDbA0lBPPaVXvvT3BzqkOEXxjHYVWj9NiikIwVISbYz6Dsb6xlFrzjTX3OgBPuQI-EHjc7UFbIPC31MCD1mIsvC4uka1UF4cKePPT558V7od55EUklJKeM_V3Wl814pyzWWWrfG6WTnXjkxUqL9GR_hA",
-      source: "Bulk Import",
-      appliedDate: "Oct 28, 2023",
-      appliedAt: parseDateLabelToEpoch("Oct 28, 2023"),
-      status: "New",
-    },
-    {
-      id: "CD-2404",
-      firstName: "Julian",
-      lastName: "Vane",
-      email: "j.vane@consulting.com",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCVUMH6aEyla10hY0XLW1DM_K2lS8YoKDQcRmFXO7qhviFJkfGtX0cSZn05vVERei6yGWn-51gZLCYX3p8eR88rZQq_i8nkF4KKf0nhT4Y2zSIshaS5P9mJiOxG5xugu2KHhDeHWirYN-_tTGCLFXb-vUFg2S_FSXvMYXDg43lczj8gjhKj0lzm7g_AiX2MWiAFaBSdij21gSlMl7vtuRtie1heTk2HT4_13Sk7vcYWf8S4wNbVrW0uOqRNedCL_SxjGSF7FGwtUA",
-      source: "Portal",
-      appliedDate: "Oct 29, 2023",
-      appliedAt: parseDateLabelToEpoch("Oct 29, 2023"),
-      status: "Rejected",
-    },
-  ];
-
-  const fillers: Candidate[] = [];
-  const firstNames = [
-    "Alice",
-    "Bob",
-    "Charlotte",
-    "David",
-    "Emma",
-    "Frank",
-    "Grace",
-    "Henry",
-    "Ivy",
-    "Jack",
-  ];
-  const lastNames = [
-    "Smith",
-    "Johnson",
-    "Williams",
-    "Brown",
-    "Jones",
-    "Miller",
-    "Davis",
-    "Rodriguez",
-    "Martinez",
-    "Garcia",
-  ];
-
-  const idNum = 2405;
-  for (let i = 0; i < 36; i += 1) {
-    const firstName = firstNames[i % firstNames.length];
-    const lastName = lastNames[i % lastNames.length];
-    const source = sources[i % sources.length];
-    const status = statuses[i % statuses.length];
-
-    const day = 1 + ((i * 3) % 28);
-    const month = i % 2 === 0 ? "Sep" : "Oct";
-    const label = `${month} ${day.toString().padStart(2, "0")}, 2023`;
-
-    fillers.push({
-      id: `CD-${idNum + i}`,
-      firstName,
-      lastName,
-      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@company.com`,
-      avatar: `https://i.pravatar.cc/150?img=${i}`,
-      source,
-      appliedDate: label,
-      appliedAt: parseDateLabelToEpoch(label),
-      status,
-    });
-  }
-
-  return [...fixed, ...fillers];
-}
-
 function CandidateListScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -293,7 +189,40 @@ function CandidateListScreen() {
     dispatch(setVariant("internal"));
   }, [dispatch]);
 
-  const [candidates, setCandidates] = useState<Candidate[]>(buildSeedCandidates());
+  useEffect(() => {
+    let mounted = true;
+
+    hrService
+      .getCandidates()
+      .then((res) => {
+        if (!mounted) return;
+
+        const items = Array.isArray(res.data) ? res.data : [];
+
+        setCandidates(
+          items.map((item: any) => ({
+            id: item.id,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            email: item.email,
+            avatar: item.avatarUrl,
+            source: item.source === "BulkImport" ? "Bulk Import" : item.source,
+            appliedDate: item.appliedDate ? new Date(item.appliedDate).toLocaleDateString() : "",
+            appliedAt: item.appliedDate ? Date.parse(item.appliedDate) : Date.now(),
+            status: item.status,
+          })),
+        );
+      })
+      .catch(() => {
+        if (mounted) setCandidates([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
   const [sourceFilter, setSourceFilter] = useState<string>("All Sources");
@@ -508,7 +437,7 @@ function CandidateListScreen() {
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}
-        emptyMessage="No candidates found for current filters."
+        emptyMessage="Không có dữ liệu"
         zebra
         hover
         tableWrapperClassName="border-x border-b border-[#e7bdb8] bg-white"

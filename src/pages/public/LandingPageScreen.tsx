@@ -1,33 +1,29 @@
 import { Link } from "react-router-dom";
-
-const featuredJobs = [
-  {
-    icon: "engineering",
-    tag: "New",
-    tagClass: "bg-[#b90014]/10 text-[#b90014]",
-    title: "Senior System Architect",
-    meta: "Infrastructure & DevOps | San Francisco, CA",
-    chips: ["Remote Friendly", "Full-Time"],
-  },
-  {
-    icon: "campaign",
-    tag: "Hot",
-    tagClass: "bg-[#eeeeee] text-[#5f5e5e]",
-    title: "Marketing Director",
-    meta: "Growth & Strategy | London, UK",
-    chips: ["Leadership", "HQ Based"],
-  },
-  {
-    icon: "monitoring",
-    tag: "Urgent",
-    tagClass: "bg-[#eeeeee] text-[#5f5e5e]",
-    title: "Data Analytics Lead",
-    meta: "Business Intelligence | Singapore",
-    chips: ["Technical", "Hybrid"],
-  },
-];
+import { useEffect, useState } from "react";
+import { publicService, type HomeResponseDto } from "../../services/public/publicService";
 
 function LandingPageScreen() {
+  const [homeData, setHomeData] = useState<HomeResponseDto | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    publicService
+      .getHome()
+      .then((res) => {
+        if (mounted && res.data) setHomeData(res.data);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const featuredJobs = homeData?.featuredJobs ?? [];
+  const hero = homeData?.hero;
+  const stats = homeData?.stats;
+
   return (
     <div className="bg-[#f9f9f9] text-[#1a1c1c] selected-none">
       <main>
@@ -51,14 +47,19 @@ function LandingPageScreen() {
                 INTERNAL PORTAL
               </span>
               <h1 className="text-white text-[44px] md:text-[64px] leading-[1.1] font-extrabold tracking-tight mb-8">
-                Empowering Your <br />
-                Career Growth Within{" "}
-                <span className="text-[#ffdad6]">RecruitPro</span>
+                {hero?.title ? (
+                  hero.title
+                ) : (
+                  <>
+                    Empowering Your <br />
+                    Career Growth Within{" "}
+                    <span className="text-[#ffdad6]">RecruitPro</span>
+                  </>
+                )}
               </h1>
               <p className="text-[#eeeeee] text-[16px] leading-6 mb-10 max-w-xl">
-                Explore exclusive internal opportunities and take the next step
-                in your professional journey with the team you already know and
-                trust.
+                {hero?.subtitle ??
+                  "Explore exclusive internal opportunities and take the next step in your professional journey with the team you already know and trust."}
               </p>
               <div className="flex gap-4">
                 <Link
@@ -84,7 +85,7 @@ function LandingPageScreen() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div className="p-8 md:border-r md:border-white/10 md:last:border-r-0">
                 <h2 className="text-[#b90014] text-[48px] font-extrabold mb-2">
-                  500+
+                  {stats ? `${stats.internalHires}+` : "500+"}
                 </h2>
                 <p className="text-[#e5e2e1] text-[12px] font-semibold tracking-[0.18em]">
                   INTERNAL HIRES
@@ -92,7 +93,7 @@ function LandingPageScreen() {
               </div>
               <div className="p-8 md:border-r md:border-white/10 md:last:border-r-0">
                 <h2 className="text-[#b90014] text-[48px] font-extrabold mb-2">
-                  15
+                  {stats?.departments ?? 15}
                 </h2>
                 <p className="text-[#e5e2e1] text-[12px] font-semibold tracking-[0.18em]">
                   DEPARTMENTS
@@ -100,7 +101,7 @@ function LandingPageScreen() {
               </div>
               <div className="p-8">
                 <h2 className="text-[#b90014] text-[48px] font-extrabold mb-2">
-                  4.8
+                  {stats?.avgEmployeeRating ?? 4.8}
                 </h2>
                 <p className="text-[#e5e2e1] text-[12px] font-semibold tracking-[0.18em]">
                   AVG EMPLOYEE RATING
@@ -133,19 +134,21 @@ function LandingPageScreen() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {featuredJobs.map((job) => (
+              {featuredJobs.map((job, index) => (
                 <div
-                  key={job.title}
+                  key={job.id}
                   className="bg-white border border-[#e2dfde] p-8 hover:border-[#b90014] transition-colors group"
                 >
                   <div className="flex justify-between items-start mb-6">
                     <div className="bg-[#eeeeee] p-3">
                       <span className="material-symbols-outlined text-[#b90014]">
-                        {job.icon}
+                        {index % 3 === 0 ? "engineering" : index % 3 === 1 ? "campaign" : "monitoring"}
                       </span>
                     </div>
                     <span
-                      className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${job.tagClass}`}
+                      className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                        job.tag === "New" ? "bg-[#b90014]/10 text-[#b90014]" : "bg-[#eeeeee] text-[#5f5e5e]"
+                      }`}
                     >
                       {job.tag}
                     </span>
@@ -154,10 +157,10 @@ function LandingPageScreen() {
                     {job.title}
                   </h3>
                   <p className="text-[#5f5e5e] text-[14px] leading-5 mb-6">
-                    {job.meta}
+                    {job.department} | {job.location}
                   </p>
                   <div className="flex flex-wrap gap-2 mb-8">
-                    {job.chips.map((chip) => (
+                    {[job.workMode, job.employmentType].map((chip) => (
                       <span
                         key={chip}
                         className="bg-[#f3f3f3] px-2 py-1 text-[11px] font-bold text-[#5d3f3c] uppercase"

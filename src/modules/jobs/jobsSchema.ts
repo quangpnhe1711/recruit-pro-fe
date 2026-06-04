@@ -21,7 +21,8 @@ export type EmploymentType =
   | "FULL_TIME"
   | "PART_TIME"
   | "INTERNSHIP"
-  | "CONTRACT";
+  | "CONTRACT"
+  | "FREELANCE";
 
 export type WorkMode = "ONSITE" | "HYBRID" | "REMOTE";
 
@@ -46,10 +47,15 @@ export type JobListItemDto = {
   deadline: string | null;
   status: JobStatus;
   createdAt: string;
+  postedAt?: string | null;
   createdBy: UserDto;
   approvedBy: UserDto | null;
   applicationCount: number;
   availableActions: string[];
+  tags?: string[];
+  skills?: Array<JobSkillDto | SkillDto>;
+  shortDescription?: string | null;
+  summary?: string | null;
 };
 
 export type JobFunnelStageDto = {
@@ -123,13 +129,29 @@ export type PaginatedResponse<T> = {
 };
 
 export type PublicJobQueryParams = {
-  search?: string | null;
-  departmentId?: string | null;
-  workMode?: WorkMode | null;
-  employmentType?: EmploymentType | null;
-  status?: JobStatus | null;
+  keyword?: string | null;
+  employmentTypes?: EmploymentType[];
+  skills?: string[];
+  sortBy?: "newest" | "salaryDesc" | "relevant" | string | null;
   page?: number;
   pageSize?: number;
+};
+
+export type JobSearchFilterOption = {
+  label: string;
+  value: string;
+};
+
+export type JobSearchFiltersDto = {
+  employmentTypes: JobSearchFilterOption[];
+  skills: JobSearchFilterOption[];
+};
+
+export type JobStatisticsDto = {
+  hiringFunnel?: JobFunnelStageDto[];
+  applicationSummary?: {
+    funnel?: JobFunnelStageDto[];
+  };
 };
 
 export type HrJobQueryParams = {
@@ -177,6 +199,7 @@ export const employmentTypeLabels: Record<EmploymentType, string> = {
   PART_TIME: "Part-time",
   INTERNSHIP: "Internship",
   CONTRACT: "Contract",
+  FREELANCE: "Freelance",
 };
 
 export const workModeLabels: Record<WorkMode, string> = {

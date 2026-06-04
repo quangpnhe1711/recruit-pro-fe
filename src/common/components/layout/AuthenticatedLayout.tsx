@@ -17,11 +17,7 @@ function AuthenticatedLayout() {
       <SideNavBar />
 
       <div className="flex min-h-screen flex-col lg:pl-64">
-        <AppHeader
-          userName={isCandidate ? "Alex Thompson" : "Alex Rivera"}
-          userRole={isCandidate ? "Senior Candidate" : "Senior Recruiter"}
-          logoutTo="/logout"
-        />
+        <AppHeader />
 
         <main className={`flex-1 ${isCandidate ? "pb-24 lg:pb-0" : ""}`}>
           <Outlet />

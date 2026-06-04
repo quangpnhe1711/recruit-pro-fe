@@ -7,8 +7,10 @@ import type {
   DepartmentDto,
   HrJobQueryParams,
   JobDetailDto,
+  JobSearchFiltersDto,
   JobFunnelStageDto,
   JobListItemDto,
+  JobStatisticsDto,
   PaginatedResponse,
   PublicJobQueryParams,
   SkillDto,
@@ -26,14 +28,53 @@ function buildParams<T extends Record<string, unknown>>(params?: T) {
   return Object.keys(cleaned).length ? cleaned : undefined;
 }
 
+function serializeParams(params: Record<string, unknown>) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item !== undefined && item !== null && item !== "") {
+          searchParams.append(key, String(item));
+        }
+      });
+      return;
+    }
+
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  return searchParams.toString();
+}
+
 export const jobsService = {
   listPublicJobs: async (
     params?: PublicJobQueryParams,
   ): Promise<ApiResponse<PaginatedResponse<JobListItemDto>>> => {
+    const requestParams = buildParams({
+      Page: params?.page,
+      PageSize: params?.pageSize,
+      Keyword: params?.keyword,
+      EmploymentTypes: params?.employmentTypes,
+      Skills: params?.skills,
+      SortBy: params?.sortBy,
+    });
+
     return request.get<ApiResponse<PaginatedResponse<JobListItemDto>>>(
       endpoints.jobs.list,
-      { params: buildParams(params) },
+      requestParams
+        ? {
+            params: requestParams,
+            paramsSerializer: serializeParams,
+          }
+        : undefined,
     );
+  },
+
+  getPublicJobFilters: async (): Promise<ApiResponse<JobSearchFiltersDto>> => {
+    return request.get<ApiResponse<JobSearchFiltersDto>>(endpoints.jobs.filters);
   },
 
   getJobDetail: async (jobId: string): Promise<ApiResponse<JobDetailDto>> => {
@@ -49,7 +90,27 @@ export const jobsService = {
   },
 
   getJobFunnel: async (jobId: string): Promise<ApiResponse<JobFunnelStageDto[]>> => {
-    return request.get<ApiResponse<JobFunnelStageDto[]>>(endpoints.jobs.funnel(jobId));
+    return request.get<ApiResponse<JobFunnelStageDto[]>>(endpoints.jobs.statistics(jobId));
+  },
+
+  getJobStatistics: async (jobId: string): Promise<ApiResponse<JobStatisticsDto>> => {
+    return request.get<ApiResponse<JobStatisticsDto>>(endpoints.jobs.statistics(jobId));
+  },
+
+  getRecentJobApplications: async (
+    jobId: string,
+  ): Promise<ApiResponse<ApplicationListItemDto[]>> => {
+    return request.get<ApiResponse<ApplicationListItemDto[]>>(endpoints.jobs.recentApplications(jobId));
+  },
+
+  applyToJob: async (
+    jobId: string,
+    data?: { coverLetter?: string | null },
+  ): Promise<ApiResponse<null>> => {
+    return request.post<ApiResponse<null>, { coverLetter?: string | null }>(
+      endpoints.jobs.apply(jobId),
+      data,
+    );
   },
 
   listDepartments: async (): Promise<ApiResponse<DepartmentDto[]>> => {
