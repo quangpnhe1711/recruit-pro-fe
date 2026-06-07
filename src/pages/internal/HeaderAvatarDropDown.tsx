@@ -60,7 +60,7 @@ function HeaderAvatarDropDown({
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="flex items-center gap-3 rounded-full border border-[#e2dfde] bg-white px-2 py-1 text-left transition-colors hover:border-[#b90014] cursor-pointer"
+        className="glass-surface flex cursor-pointer items-center gap-3 rounded-full border border-white/50 px-2 py-1 text-left hover:border-[rgba(182,64,44,0.35)]"
         type="button"
         onClick={() => setOpen((value) => !value)}
       >
@@ -71,30 +71,30 @@ function HeaderAvatarDropDown({
             src={avatarSrc}
           />
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#b90014] text-[12px] font-bold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--rp-primary)] text-[12px] font-bold text-white shadow-[0_10px_24px_rgba(182,64,44,0.32)]">
             {initials}
           </div>
         )}
         <div className="hidden sm:block">
-          <p className="text-[12px] font-semibold text-[#1a1c1c]">{name}</p>
-          {role ? <p className="text-[12px] text-[#5f5e5e]">{role}</p> : null}
+          <p className="text-[12px] font-semibold text-[var(--rp-text)]">{name}</p>
+          {role ? <p className="text-[12px] text-[var(--rp-muted)]">{role}</p> : null}
         </div>
-        <span className="material-symbols-outlined text-[20px] text-[#5f5e5e]">
+        <span className="material-symbols-outlined text-[20px] text-[var(--rp-muted)]">
           expand_more
         </span>
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-lg border border-[#e2dfde] bg-white shadow-sm">
-          <div className="border-b border-[#e2dfde] px-4 py-3">
-            <p className="text-[12px] font-semibold text-[#1a1c1c]">{name}</p>
-            {role ? <p className="text-[12px] text-[#5f5e5e]">{role}</p> : null}
+        <div className="glass-surface absolute right-0 z-50 mt-3 w-64 overflow-hidden rounded-[22px] border border-white/50">
+          <div className="border-b border-[rgba(24,33,38,0.08)] px-4 py-3">
+            <p className="text-[12px] font-semibold text-[var(--rp-text)]">{name}</p>
+            {role ? <p className="text-[12px] text-[var(--rp-muted)]">{role}</p> : null}
           </div>
           <div className="py-2">
             {items.map((item) => (
               <Link
                 key={item.label}
-                className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
+                className="flex items-center px-4 py-3 text-[12px] font-semibold text-[var(--rp-text)] hover:bg-[rgba(182,64,44,0.07)] hover:text-[var(--rp-primary)]"
                 to={item.to}
                 onClick={() => setOpen(false)}
               >
@@ -102,7 +102,7 @@ function HeaderAvatarDropDown({
               </Link>
             ))}
             <Link
-              className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
+              className="flex items-center px-4 py-3 text-[12px] font-semibold text-[var(--rp-text)] hover:bg-[rgba(182,64,44,0.07)] hover:text-[var(--rp-primary)]"
               to="/Home"
               onClick={handleLogout}
             >

@@ -332,15 +332,15 @@ function JobListingCandidateScreen() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-6 md:px-10">
+    <div className="page-shell-wide flex w-full gap-6 py-6">
       <aside className="hidden w-72 flex-shrink-0 space-y-6 xl:block">
-        <div className="border border-[#e2dfde] bg-white p-6">
+        <div className="surface-card sticky top-28 p-6">
           <div className="mb-6 flex items-center justify-between">
             <h3 className="text-[20px] font-semibold text-[#1a1c1c]">
               Filters
             </h3>
             <button
-              className="text-[12px] font-semibold text-[#b90014] hover:underline"
+              className="text-[12px] font-semibold text-[var(--rp-primary)] hover:underline"
               type="button"
               onClick={clearAllFilters}
             >
@@ -350,7 +350,7 @@ function JobListingCandidateScreen() {
 
           <div className="space-y-8">
             <div>
-              <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
+              <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--rp-muted)]">
                 Salary Range
               </label>
               <div className="space-y-3">
@@ -360,11 +360,11 @@ function JobListingCandidateScreen() {
                   return (
                     <label
                       key={range.id}
-                      className="flex cursor-pointer items-center gap-3 text-[14px] text-[#5f5e5e]"
+                      className="flex cursor-pointer items-center gap-3 text-[14px] text-[var(--rp-muted)]"
                     >
                       <span
-                        className={`flex h-4 w-4 items-center justify-center border ${
-                          checked ? "border-[#b90014] bg-[#b90014]" : "border-[#d4cecc] bg-white"
+                        className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
+                          checked ? "border-[var(--rp-primary)] bg-[var(--rp-primary)]" : "border-[rgba(24,33,38,0.16)] bg-white"
                         }`}
                       >
                         {checked ? (
@@ -385,7 +385,7 @@ function JobListingCandidateScreen() {
             </div>
 
             <div>
-              <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
+              <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--rp-muted)]">
                 Employment Type
               </label>
               <div className="flex flex-wrap gap-2">
@@ -397,10 +397,10 @@ function JobListingCandidateScreen() {
                   return (
                     <button
                       key={option.value}
-                      className={`min-w-[96px] px-4 py-2 text-[12px] font-semibold transition-colors ${
+                      className={`rounded-full px-4 py-2 text-[12px] font-semibold transition-colors ${
                         isActive
-                          ? "bg-[#b90014] text-white"
-                          : "bg-[#efedec] text-[#6a6868] hover:bg-[#e5dfdd]"
+                          ? "bg-[var(--rp-primary)] text-white"
+                          : "bg-[rgba(17,36,43,0.06)] text-[var(--rp-muted)] hover:bg-[rgba(17,36,43,0.1)]"
                       }`}
                       type="button"
                       onClick={() => toggleEmploymentType(option.value)}
@@ -413,13 +413,13 @@ function JobListingCandidateScreen() {
             </div>
 
             <div>
-              <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
+              <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--rp-muted)]">
                 Required Skills
               </label>
-              <div className="border border-[#e7bdb8]">
+              <div className="input-shell">
                 <div className="flex items-center gap-2 px-3 py-3">
                   <input
-                    className="flex-1 text-[14px] text-[#5f5e5e] outline-none"
+                    className="flex-1 bg-transparent text-[14px] text-[var(--rp-muted)] outline-none"
                     placeholder="Add skill..."
                     type="text"
                     value={skillInput}
@@ -432,7 +432,7 @@ function JobListingCandidateScreen() {
                     }}
                   />
                   <button
-                    className="text-[#5d3f3c] transition-colors hover:text-[#b90014]"
+                    className="text-[var(--rp-muted)] hover:text-[var(--rp-primary)]"
                     type="button"
                     onClick={() => addSkill(skillInput)}
                   >
@@ -446,7 +446,7 @@ function JobListingCandidateScreen() {
                   {selectedSkills.map((skill) => (
                     <button
                       key={skill}
-                      className="inline-flex items-center gap-1 bg-[#efedec] px-3 py-1 text-[12px] text-[#5f5e5e]"
+                      className="tag-chip"
                       type="button"
                       onClick={() => removeSkill(skill)}
                     >
@@ -462,7 +462,7 @@ function JobListingCandidateScreen() {
                   {skillSuggestions.map((option) => (
                     <button
                       key={`${option.value}-${option.label}`}
-                      className="rounded-full border border-[#e2dfde] px-3 py-1 text-[12px] text-[#5f5e5e] transition-colors hover:border-[#b90014] hover:text-[#b90014]"
+                      className="tag-chip border border-[rgba(24,33,38,0.08)] bg-transparent hover:border-[rgba(182,64,44,0.2)] hover:text-[var(--rp-primary)]"
                       type="button"
                       onClick={() => addSkill(option.label)}
                     >
@@ -475,7 +475,7 @@ function JobListingCandidateScreen() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border border-[#e2dfde] bg-[#b90014] p-6 text-white">
+        <div className="surface-card-strong relative overflow-hidden p-6 text-white">
           <div className="absolute -bottom-6 -right-6 opacity-10">
             <span className="material-symbols-outlined text-[120px]">
               rocket_launch
@@ -486,7 +486,7 @@ function JobListingCandidateScreen() {
             Get notified immediately when high-matching roles are posted.
           </p>
           <button
-            className="w-full rounded-none bg-white py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-[#b90014] transition-transform active:scale-[0.98]"
+            className="btn-secondary w-full bg-white px-5 py-3 text-[12px] font-bold uppercase tracking-[0.05em] text-[var(--rp-primary)]"
             type="button"
           >
             Enable Notifications
@@ -495,16 +495,17 @@ function JobListingCandidateScreen() {
       </aside>
 
       <section className="flex-1 space-y-6">
-        <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+        <div className="reveal-up flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h2 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] md:text-[32px] md:leading-10">
+            <span className="section-kicker">Open Roles</span>
+            <h2 className="mt-4 text-[24px] font-semibold leading-8 tracking-[-0.01em] md:text-[32px] md:leading-10">
               Your Opportunities
             </h2>
-            <p className="text-[14px] text-[#5f5e5e]">
+            <p className="text-[14px] text-[var(--rp-muted)]">
               Found {totalItems} relevant positions for your profile
             </p>
             <Link
-              className="mt-2 inline-flex text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
+              className="mt-2 inline-flex text-[12px] font-semibold tracking-[0.05em] text-[var(--rp-primary)] hover:underline"
               to="/internal/candidate-profile"
             >
               Open Candidate Profile
@@ -512,9 +513,9 @@ function JobListingCandidateScreen() {
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className="relative">
+            <div className="input-shell relative">
               <input
-                className="w-[280px] border border-[#e2dfde] bg-white py-2 pl-10 pr-4 text-[14px] outline-none transition-colors focus:border-[#b90014]"
+                className="w-[280px] bg-transparent py-3 pl-10 pr-4 text-[14px] outline-none"
                 placeholder="Search jobs..."
                 type="text"
                 value={search}
@@ -525,18 +526,18 @@ function JobListingCandidateScreen() {
                 }}
               />
 
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#5f5e5e]">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[var(--rp-muted)]">
                 search
               </span>
             </div>
 
             <div className="flex items-center gap-4">
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
+              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--rp-muted)]">
                 Sort by:
               </span>
 
               <select
-                className="border-b-2 border-[#e7bdb8] bg-transparent py-1 text-[12px] font-semibold outline-none focus:border-[#b90014]"
+                className="input-shell px-4 py-3 text-[12px] font-semibold outline-none"
                 value={sortBy}
                 onChange={(event) => {
                   setLoading(true);
@@ -554,20 +555,20 @@ function JobListingCandidateScreen() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e]">
+            <div className="surface-card p-6 text-[14px] text-[var(--rp-muted)]">
               Loading jobs...
             </div>
           ) : jobs.length === 0 ? (
-            <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e]">
+            <div className="surface-card p-6 text-[14px] text-[var(--rp-muted)]">
               No matching jobs found.
             </div>
           ) : jobs.map((job) => (
             <article
               key={job.id}
-              className="group flex flex-col gap-4 border border-[#e2dfde] bg-white p-6 transition-all duration-200 hover:border-[#b90014] hover:shadow-sm md:flex-row md:items-start md:gap-6"
+              className="surface-card group flex flex-col gap-4 p-6 transition-all duration-200 hover:-translate-y-1 hover:border-[rgba(182,64,44,0.24)] md:flex-row md:items-start md:gap-6"
             >
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center bg-[#f3f3f3]">
-                <span className="material-symbols-outlined text-[32px] text-[#b90014]">
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-[20px] bg-[rgba(182,64,44,0.1)]">
+                <span className="material-symbols-outlined text-[32px] text-[var(--rp-primary)]">
                   work
                 </span>
               </div>
@@ -576,16 +577,16 @@ function JobListingCandidateScreen() {
                 <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
                     <Link
-                      className="text-[20px] font-semibold leading-7 transition-colors group-hover:text-[#b90014]"
+                      className="text-[20px] font-semibold leading-7 transition-colors group-hover:text-[var(--rp-primary)]"
                       to={`/jobs/${job.id}`}
                     >
                       {job.title}
                     </Link>
-                    <p className="text-[14px] font-medium text-[#5f5e5e]">
+                    <p className="text-[14px] font-medium text-[var(--rp-muted)]">
                       {job.department?.name ?? "General"} • {job.location}
                       {job.workMode ? ` (${job.workMode})` : ""} • {resolveLevel(job.minExperienceYears)}
                     </p>
-                    <p className="mt-1 text-[13px] text-[#7a7776]">
+                    <p className="mt-1 text-[13px] text-[var(--rp-muted)]">
                       {formatEmploymentType(job.employmentType)}
                     </p>
                   </div>
@@ -595,7 +596,7 @@ function JobListingCandidateScreen() {
                         ? `${formatCurrency(job.salaryMin ?? job.salaryMax ?? 0)} - ${formatCurrency(job.salaryMax ?? job.salaryMin ?? 0)}`
                         : "Negotiable"}
                     </p>
-                    <p className="text-[12px] uppercase text-[#5f5e5e]">
+                    <p className="text-[12px] uppercase text-[var(--rp-muted)]">
                       {job.postedAt ?? job.createdAt
                         ? `Posted ${new Date(job.postedAt ?? job.createdAt).toLocaleDateString()}`
                         : ""}
@@ -605,21 +606,18 @@ function JobListingCandidateScreen() {
 
                 <div className="mb-4 flex flex-wrap gap-2">
                   {extractJobTags(job).map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded bg-[#eeeeee] px-2 py-1 text-[12px] font-semibold text-[#636262]"
-                    >
+                    <span key={tag} className="tag-chip">
                       {tag}
                     </span>
                   ))}
                 </div>
 
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <p className="max-w-3xl text-[14px] leading-5 text-[#5f5e5e]">
+                  <p className="max-w-3xl text-[14px] leading-6 text-[var(--rp-muted)]">
                     {job.shortDescription ?? job.summary ?? "Explore this opportunity to learn more about the role and team."}
                   </p>
                   <Link
-                    className="inline-flex items-center justify-center bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-white transition-colors hover:bg-[#b90014]"
+                    className="btn-primary px-6 py-3 text-[12px] font-bold uppercase tracking-[0.05em]"
                     to={`/jobs/${job.id}`}
                   >
                     Apply Now

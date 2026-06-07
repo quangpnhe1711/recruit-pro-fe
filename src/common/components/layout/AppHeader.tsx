@@ -40,6 +40,8 @@ function AppHeader({
   const userRole =
     authUser?.roles?.[0] ??
     (variant === "candidate" ? "Candidate" : "Internal User");
+  const portalLabel =
+    variant === "candidate" ? "Candidate workspace" : "Internal operations";
   const avatarSrc = authUser?.avatarUrl ?? undefined;
   const resolvedInitials = getInitials(userName);
   const resolvedMenuItems =
@@ -52,15 +54,22 @@ function AppHeader({
         ]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 md:px-10">
-        <div className="flex flex-1 items-center" />
+    <header className="sticky top-0 z-40 border-b border-white/40 bg-[rgba(247,242,234,0.62)] backdrop-blur-xl">
+      <div className="page-shell flex h-20 items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[24px] font-extrabold tracking-[-0.08em] text-[var(--rp-text)]">
+            RecruitPro
+          </p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[var(--rp-muted)]">
+            {portalLabel}
+          </p>
+        </div>
 
         <div className="flex items-center gap-4 md:gap-6">
           {showNotifications ? (
-            <div className="hidden items-center gap-4 border-r border-[#e2dfde] pr-6 md:flex">
+            <div className="hidden items-center gap-4 border-r border-[rgba(24,33,38,0.08)] pr-6 md:flex">
               <button
-                className="text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                className="glass-surface rounded-full p-3 text-[var(--rp-muted)] hover:text-[var(--rp-primary)]"
                 type="button"
               >
                 <span className="material-symbols-outlined">notifications</span>

@@ -40,14 +40,14 @@ function CommonTable<T>({
   keyExtractor,
   loading = false,
   emptyMessage = "No data available",
-  headerClassName = "bg-[#1A1A1A] text-white",
+  headerClassName = "bg-[#11242b] text-white",
   zebra = true,
   hover = true,
   onRowClick,
   pagination,
   showPagination = false,
-  tableHeaderBg = "bg-[#1A1A1A]",
-  tableWrapperClassName = "overflow-hidden rounded-lg border border-[#e2dfde] bg-white",
+  tableHeaderBg = "bg-[#11242b]",
+  tableWrapperClassName = "surface-card overflow-hidden",
 }: CommonTableProps<T>) {
   const shouldShowPagination = showPagination && pagination?.enabled;
 
@@ -94,14 +94,14 @@ function CommonTable<T>({
             ) : (
               data.map((item, idx) => {
                 const rowBg =
-                  zebra && idx % 2 === 1 ? "bg-[#f9fafb]" : "bg-white";
-                const rowHover = hover ? "hover:bg-[#b90014]/5" : "";
+                  zebra && idx % 2 === 1 ? "bg-[rgba(17,36,43,0.025)]" : "bg-transparent";
+                const rowHover = hover ? "hover:bg-[rgba(182,64,44,0.05)]" : "";
                 const rowCursor = onRowClick ? "cursor-pointer" : "";
 
                 return (
                   <tr
                     key={keyExtractor(item, idx)}
-                    className={`${rowBg} border-b border-[#e2dfde] transition-colors ${rowHover} ${rowCursor}`}
+                    className={`${rowBg} border-b border-[rgba(24,33,38,0.08)] transition-colors ${rowHover} ${rowCursor}`}
                     onClick={() => onRowClick?.(item, idx)}
                   >
                     {columns.map((col) => (

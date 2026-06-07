@@ -29,10 +29,11 @@ type SideNavBarProps = {
 };
 
 const internalItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Dashboard", to: "/internal/dashboard" },
+  { icon: "dashboard", label: "Dashboard", to: "/hr/dashboard" },
   { icon: "work", label: "Jobs", to: "/jobs" },
-  { icon: "description", label: "Applications", to: "/internal/applications" },
-  { icon: "analytics", label: "Analytics", to: "/internal/analytics" },
+  { icon: "group", label: "Candidates", to: "/hr/candidates" },
+  { icon: "description", label: "Applications", to: "/hr/applications" },
+  { icon: "event", label: "Interviews", to: "/hr/interviews" },
 ];
 
 const internalBottomItems: SideNavItem[] = [
@@ -81,7 +82,7 @@ function SideNavBar({
     to:
       resolvedVariant === "candidate"
         ? "/candidate/dashboard"
-        : "/internal/dashboard",
+        : "/hr/dashboard",
   };
 
   const resolvedUserName =
@@ -90,105 +91,99 @@ function SideNavBar({
     authUser?.roles?.[0] ?? (resolvedVariant === "candidate" ? "Candidate" : "Internal User");
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
-  const resolvedCta = resolvedVariant === "internal" ? { label: "Post New Job" } : null;
-
-  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A]`;
-
-  const brandTitleClassName = "text-[20px] font-bold leading-7 text-white";
-
-  const brandSubtitleClassName =
-    "text-[12px] font-semibold uppercase tracking-[0.05em] text-[#c8c6c5]";
-
-  const userCardClassName =
-    "flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-3";
-
-  const userNameClassName = "truncate text-[12px] font-semibold text-white";
-
-  const userRoleClassName = "truncate text-[12px] text-[#c8c6c5]";
+  const resolvedCta =
+    resolvedVariant === "internal"
+      ? { label: "Post New Job", to: "/hr/jobs/create" }
+      : null;
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) => {
     const common =
-      "flex items-center gap-3 border-l-4 px-4 py-3 text-[12px] font-semibold tracking-[0.05em] transition-colors";
+      "inline-flex items-center gap-2 rounded-full px-4 py-3 text-[12px] font-semibold tracking-[0.08em] transition-all duration-200 whitespace-nowrap";
 
     return `${common} ${
       isActive
-        ? "border-[#b90014] bg-white/5 text-white"
-        : "border-transparent text-[#c8c6c5] hover:bg-white/5 hover:text-white"
+        ? "bg-[var(--rp-text)] text-white shadow-[0_14px_30px_rgba(17,36,43,0.18)]"
+        : "bg-white/55 text-[var(--rp-muted)] hover:bg-white hover:text-[var(--rp-text)]"
     }`;
   };
 
-  const bottomLinkClassName = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-3 text-[12px] font-semibold tracking-[0.05em] transition-colors ${
-      isActive
-        ? "text-white"
-        : "text-[#c8c6c5] hover:text-white"
-    }`;
-
   return (
-    <aside className={` ${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"}`}>
-      <div className="px-6 py-8">
-        <NavLink to={resolvedBrand.to} className="block">
-          <h1 className={brandTitleClassName}>{resolvedBrand.title}</h1>
-          <p className={brandSubtitleClassName}>{resolvedBrand.subtitle}</p>
-        </NavLink>
-      </div>
+    <aside className={`${authState.isAuthenticated ? "block" : "hidden"} sticky top-20 z-30`}>
+      <div className="border-b border-white/35 bg-[rgba(247,242,234,0.78)] backdrop-blur-xl">
+        <div className="page-shell flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
+            <NavLink
+              to={resolvedBrand.to}
+              className="hidden rounded-full bg-[rgba(17,36,43,0.92)] px-4 py-3 text-[12px] font-bold uppercase tracking-[0.16em] text-white lg:inline-flex"
+            >
+              {resolvedBrand.subtitle}
+            </NavLink>
 
-      <nav className="flex-1 space-y-1 px-2">
-        {resolvedItems.map((item) => (
-          <NavLink key={item.label} className={navLinkClassName} to={item.to}>
-            <span className="material-symbols-outlined text-[20px]">
-              {item.icon}
-            </span>
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="mt-auto px-4 pb-6">
-        {resolvedCta ? (
-          <button
-            type="button"
-            className="mb-6 w-full rounded-none bg-[#e31b23] px-4 py-4 text-[16px] font-semibold text-white transition-colors hover:brightness-110"
-            onClick={() => {
-              // Placeholder for CTA action, e.g., open a modal or navigate
-            }}
-          >
-            {resolvedCta.label}
-          </button>
-        ) : null}
-
-        {resolvedBottomItems.length ? (
-          <nav className="mb-6 space-y-1">
-            {resolvedBottomItems.map((item) => (
-              <NavLink key={item.label} className={bottomLinkClassName} to={item.to}>
-                <span className="material-symbols-outlined text-[20px]">
-                  {item.icon}
-                </span>
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-        ) : null}
-
-        {showUserCard ? (
-          <div className={userCardClassName}>
-            {userAvatarSrc ? (
-              <img
-                alt={resolvedUserName}
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-[#b90014]"
-                src={userAvatarSrc}
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b90014] text-[12px] font-bold text-white">
-                {resolvedInitials}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className={userNameClassName}>{resolvedUserName}</p>
-              <p className={userRoleClassName}>{resolvedUserRole}</p>
-            </div>
+            <nav className="scrollbar-hide flex min-w-0 flex-1 items-center gap-3 overflow-x-auto">
+              {resolvedItems.map((item) => (
+                <NavLink key={item.label} className={navLinkClassName} to={item.to}>
+                  <span className="material-symbols-outlined text-[18px]">
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
           </div>
-        ) : null}
+
+          <div className="flex items-center justify-between gap-3 lg:justify-end">
+            {resolvedBottomItems.length ? (
+              <nav className="hidden items-center gap-2 xl:flex">
+                {resolvedBottomItems.map((item) => (
+                  <NavLink
+                    key={item.label}
+                    className="inline-flex items-center gap-2 rounded-full px-4 py-3 text-[12px] font-semibold tracking-[0.08em] text-[var(--rp-muted)] hover:bg-white/70 hover:text-[var(--rp-text)]"
+                    to={item.to}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      {item.icon}
+                    </span>
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+            ) : null}
+
+            {resolvedCta ? (
+              <NavLink
+                to={resolvedCta.to}
+                className="btn-primary px-5 py-3 text-[12px] font-semibold tracking-[0.08em]"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                {resolvedCta.label}
+              </NavLink>
+            ) : null}
+
+            {showUserCard ? (
+              <div className="hidden items-center gap-3 rounded-full border border-white/40 bg-white/62 px-3 py-2 shadow-[0_16px_34px_rgba(17,36,43,0.08)] xl:flex">
+                {userAvatarSrc ? (
+                  <img
+                    alt={resolvedUserName}
+                    className="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--rp-primary)]"
+                    src={userAvatarSrc}
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--rp-primary)] text-[12px] font-bold text-white">
+                    {resolvedInitials}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-[12px] font-semibold text-[var(--rp-text)]">
+                    {resolvedUserName}
+                  </p>
+                  <p className="truncate text-[12px] text-[var(--rp-muted)]">
+                    {resolvedUserRole}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
     </aside>
   );

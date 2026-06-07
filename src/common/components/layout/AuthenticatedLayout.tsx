@@ -13,11 +13,10 @@ function AuthenticatedLayout() {
   const isCandidate = variant === "candidate";
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <SideNavBar />
-
-      <div className="flex min-h-screen flex-col lg:pl-64">
+    <div className="app-shell min-h-screen text-[#1a1c1c]">
+      <div className="flex min-h-screen flex-col">
         <AppHeader />
+        <SideNavBar />
 
         <main className={`flex-1 ${isCandidate ? "pb-24 lg:pb-0" : ""}`}>
           <Outlet />

@@ -2,27 +2,27 @@ import { Link } from "react-router-dom";
 
 function PublicHeader() {
   return (
-    <header className="bg-white sticky top-0 z-50 border-b border-[#e2dfde]">
-      <nav className="flex justify-between items-center w-full px-4 md:px-[40px] h-16  ">
+    <header className="sticky top-0 z-50 border-b border-white/40 bg-[rgba(247,242,234,0.72)] backdrop-blur-xl">
+      <nav className="page-shell-wide flex h-20 items-center justify-between gap-4">
         <div className="flex items-center gap-8">
-          <Link to="/" className="text-[30px] font-extrabold text-[#b90014] tracking-tighter">
+          <Link to="/" className="text-[30px] font-extrabold tracking-[-0.08em] text-[var(--rp-text)]">
             RecruitPro
           </Link>
           <div className="hidden md:flex items-center gap-6">
             <a
-              className="text-[#b90014] font-bold border-b-2 border-[#b90014] pb-1 text-[12px] tracking-[0.05em]"
+              className="border-b-2 border-[var(--rp-primary)] pb-1 text-[12px] font-bold tracking-[0.12em] text-[var(--rp-primary)]"
               href="#home"
             >
               Home
             </a>
             <a
-              className="text-[#5f5e5e] font-medium hover:text-[#b90014] transition-colors duration-200 text-[12px] tracking-[0.05em]"
+              className="text-[12px] font-semibold tracking-[0.12em] text-[var(--rp-muted)] hover:text-[var(--rp-primary)]"
               href="#careers"
             >
               Careers
             </a>
             <a
-              className="text-[#5f5e5e] font-medium hover:text-[#b90014] transition-colors duration-200 text-[12px] tracking-[0.05em]"
+              className="text-[12px] font-semibold tracking-[0.12em] text-[var(--rp-muted)] hover:text-[var(--rp-primary)]"
               href="#about"
             >
               About Us
@@ -33,13 +33,13 @@ function PublicHeader() {
         <div className="flex items-center gap-4">
           <Link
             to="/login"
-            className="px-6 py-2 bg-[#1A1A1A] text-white font-semibold text-[12px] border-2 border-transparent hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
+            className="btn-secondary px-5 py-3 text-[12px] font-bold tracking-[0.12em]"
           >
             Log in
           </Link>
           <Link
             to="/candidate/register"
-            className="px-6 py-2 bg-[white] text-[#b90014] border-2 font-semibold text-[12px] border-[#b90014] hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
+            className="btn-primary px-5 py-3 text-[12px] font-bold tracking-[0.12em]"
           >
             Sign up
           </Link>

@@ -61,12 +61,13 @@ function DashboardCandidateScreen() {
   const stats = dashboard?.stats;
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
-            <div className="mb-10">
-              <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+    <section className="page-shell space-y-8 py-10">
+            <div className="reveal-up mb-10">
+              <span className="section-kicker">Candidate Hub</span>
+              <h2 className="mt-4 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
                 Welcome back, {dashboard?.greetingName ?? user?.fullName ?? "Candidate"}
               </h2>
-              <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
+              <p className="mt-1 text-[16px] leading-6 text-[var(--rp-muted)]">
                 {stats
                   ? `You have ${stats.interviews} interview${stats.interviews === 1 ? "" : "s"} scheduled and ${stats.unreadNotifications} new notification${stats.unreadNotifications === 1 ? "" : "s"}.`
                   : "No dashboard activity available yet."}
@@ -74,10 +75,11 @@ function DashboardCandidateScreen() {
             </div>
 
             <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-              {statCards.map((card) => (
+              {statCards.map((card, index) => (
                 <div
                   key={card.label}
-                  className="cursor-pointer border border-[#e2dfde] bg-white p-6 transition-colors hover:border-[#b90014]"
+                  className="metric-card reveal-scale cursor-pointer p-6 hover:-translate-y-1"
+                  style={{ animationDelay: `${index * 90}ms` }}
                 >
                   <div className="flex items-start justify-between">
                     <span
@@ -94,7 +96,7 @@ function DashboardCandidateScreen() {
                     <p className="text-[56px] font-extrabold leading-none text-[#1a1c1c]">
                       {card.value}
                     </p>
-                    <p className="mt-2 flex items-center gap-2 text-[14px] text-[#5f5e5e]">
+                    <p className="mt-2 flex items-center gap-2 text-[14px] text-[var(--rp-muted)]">
                       <span>{card.helper}</span>
                     </p>
                   </div>
@@ -105,7 +107,7 @@ function DashboardCandidateScreen() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               <div className="lg:col-span-4">
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#b90014]">
+                  <span className="material-symbols-outlined text-[var(--rp-primary)]">
                     calendar_today
                   </span>
                   <h3 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
@@ -113,9 +115,9 @@ function DashboardCandidateScreen() {
                   </h3>
                 </div>
 
-                <div className="flex h-full flex-col border-l-4 border-[#b90014] bg-[#1A1A1A] p-6 text-white">
+                <div className="surface-card-strong flex h-full flex-col p-6 text-white">
                   <div className="mb-6">
-                    <span className="rounded-full bg-[#b90014] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
+                    <span className="inline-flex rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
                       Today
                     </span>
                     <h4 className="mt-4 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
@@ -149,7 +151,7 @@ function DashboardCandidateScreen() {
                   </div>
 
                   <a
-                    className="mt-auto flex w-full items-center justify-center gap-2 bg-[#b90014] py-4 text-[12px] font-bold uppercase tracking-[0.18em] transition-colors hover:brightness-110"
+                    className="btn-primary mt-auto flex w-full px-5 py-4 text-[12px] font-bold uppercase tracking-[0.18em]"
                     href={upcomingInterview?.meetingUrl ?? "#"}
                   >
                     <span className="material-symbols-outlined">
@@ -163,7 +165,7 @@ function DashboardCandidateScreen() {
               <div className="lg:col-span-8">
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[#b90014]">
+                    <span className="material-symbols-outlined text-[var(--rp-primary)]">
                       recommend
                     </span>
                     <h3 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
@@ -171,7 +173,7 @@ function DashboardCandidateScreen() {
                     </h3>
                   </div>
                   <a
-                    className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
+                    className="text-[12px] font-semibold tracking-[0.05em] text-[var(--rp-primary)] hover:underline"
                     href="#"
                   >
                     View All Listings
@@ -180,7 +182,7 @@ function DashboardCandidateScreen() {
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {recommendedJobs.length === 0 ? (
-                    <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e] md:col-span-2">
+                    <div className="surface-card p-6 text-[14px] text-[var(--rp-muted)] md:col-span-2">
                       Không có dữ liệu
                     </div>
                   ) : (
@@ -191,11 +193,11 @@ function DashboardCandidateScreen() {
                         return (
                           <div
                             key={job.id}
-                            className="border border-[#e2dfde] bg-white p-6 md:col-span-2"
+                            className="surface-card p-6 md:col-span-2"
                           >
                           <div className="flex items-center gap-6">
-                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center border border-[#e2dfde] bg-[#eeeeee]">
-                              <span className="material-symbols-outlined text-4xl text-[#b90014]">
+                            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-[20px] bg-[rgba(182,64,44,0.1)]">
+                              <span className="material-symbols-outlined text-4xl text-[var(--rp-primary)]">
                                 work
                               </span>
                             </div>
@@ -205,19 +207,16 @@ function DashboardCandidateScreen() {
                                 <h4 className="text-[16px] font-bold text-[#1a1c1c]">
                                   {job.title}
                                 </h4>
-                                <span className="bg-[#e2dfde]/30 px-2 py-1 text-[10px] font-bold uppercase text-[#5f5e5e]">
+                                <span className="tag-chip uppercase">
                                   {job.employmentType}
                                 </span>
                               </div>
-                              <p className="mb-2 text-[14px] text-[#5f5e5e]">
+                              <p className="mb-2 text-[14px] text-[var(--rp-muted)]">
                                 {job.meta}
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 {job.skills.map((chip) => (
-                                  <span
-                                    key={chip}
-                                    className="rounded-full bg-[#eeeeee] px-2 py-1 text-[10px] font-semibold text-[#5f5e5e]"
-                                  >
+                                  <span key={chip} className="tag-chip">
                                     {chip}
                                   </span>
                                 ))}
@@ -225,7 +224,7 @@ function DashboardCandidateScreen() {
                             </div>
 
                             <button
-                              className="bg-[#e31b23] px-10 py-4 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:brightness-110"
+                              className="btn-primary px-10 py-4 text-[12px] font-bold uppercase tracking-[0.18em]"
                               type="button"
                             >
                               {job.actionLabel ?? "Apply Now"}
@@ -238,15 +237,15 @@ function DashboardCandidateScreen() {
                     return (
                       <div
                         key={job.id}
-                        className="border border-[#e2dfde] bg-white p-6 transition-shadow hover:shadow-sm"
+                        className="surface-card p-6 transition-shadow hover:-translate-y-1"
                       >
                         <div className="mb-4 flex items-start justify-between">
-                          <div className="flex h-12 w-12 items-center justify-center border border-[#e2dfde] bg-[#eeeeee]">
-                            <span className="material-symbols-outlined text-[#b90014]">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[rgba(182,64,44,0.1)]">
+                            <span className="material-symbols-outlined text-[var(--rp-primary)]">
                               work
                             </span>
                           </div>
-                          <span className="bg-[#e2dfde]/30 px-2 py-1 text-[10px] font-bold uppercase text-[#5f5e5e]">
+                          <span className="tag-chip uppercase">
                             {job.employmentType}
                           </span>
                         </div>
@@ -254,23 +253,20 @@ function DashboardCandidateScreen() {
                         <h4 className="mb-1 text-[16px] font-bold text-[#1a1c1c] transition-colors hover:text-[#b90014]">
                           {job.title}
                         </h4>
-                        <p className="mb-4 text-[14px] text-[#5f5e5e]">
+                        <p className="mb-4 text-[14px] text-[var(--rp-muted)]">
                           {job.meta}
                         </p>
 
                         <div className="mb-6 flex flex-wrap gap-2">
                           {job.skills.map((chip) => (
-                            <span
-                              key={chip}
-                              className="rounded-full bg-[#eeeeee] px-3 py-1 text-[10px] font-semibold text-[#5f5e5e]"
-                            >
+                            <span key={chip} className="tag-chip">
                               {chip}
                             </span>
                           ))}
                         </div>
 
                         <button
-                          className="w-full border border-[#1a1c1c] py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#1a1c1c] transition-colors hover:bg-[#1a1c1c] hover:text-white"
+                          className="btn-secondary w-full px-5 py-3 text-[12px] font-bold uppercase tracking-[0.18em]"
                           type="button"
                         >
                           {job.actionLabel ?? "Quick Apply"}

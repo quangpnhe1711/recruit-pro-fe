@@ -4,7 +4,7 @@ import PublicHeader from "./PublicHeader";
 
 function PublicLayout() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="app-shell flex min-h-screen flex-col">
       <PublicHeader />
 
       <main className="flex-1">

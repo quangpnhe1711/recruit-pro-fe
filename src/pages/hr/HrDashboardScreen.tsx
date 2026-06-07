@@ -224,13 +224,14 @@ function HrDashboardScreen() {
 
   return (
     <>
-      <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="page-shell space-y-6 py-6">
+            <div className="reveal-up flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+                <span className="section-kicker">Operations</span>
+                <h2 className="mt-4 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
                   Recruitment Overview
                 </h2>
-                <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
+                <p className="mt-1 text-[16px] leading-6 text-[var(--rp-muted)]">
                   Performance metrics for Q4 Hiring Cycle
                 </p>
               </div>
@@ -238,7 +239,7 @@ function HrDashboardScreen() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className="flex items-center gap-2 bg-[#e2e2e2] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#e2dfde]"
+                  className="btn-secondary px-4 py-3 text-[12px] font-semibold tracking-[0.05em]"
                 >
                   <span className="material-symbols-outlined text-[18px]">
                     download
@@ -249,13 +250,14 @@ function HrDashboardScreen() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {statCardsData.map((card) => (
+              {statCardsData.map((card, index) => (
                 <div
                   key={card.label}
-                  className="flex cursor-default items-center justify-between border border-[#e2dfde] bg-white p-6 transition-colors hover:border-[#b90014]"
+                  className="metric-card reveal-scale flex cursor-default items-center justify-between p-6 hover:-translate-y-1"
+                  style={{ animationDelay: `${index * 80}ms` }}
                 >
                   <div>
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--rp-muted)]">
                       {card.label}
                     </p>
                     <h3 className="mt-2 text-[40px] font-bold leading-none text-[#1a1c1c]">
@@ -270,8 +272,8 @@ function HrDashboardScreen() {
                     </p>
                   </div>
 
-                  <div className="flex h-12 w-12 items-center justify-center bg-[#ffdad6]">
-                    <span className="material-symbols-outlined text-[#b90014]">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[rgba(182,64,44,0.12)]">
+                    <span className="material-symbols-outlined text-[var(--rp-primary)]">
                       {card.icon}
                     </span>
                   </div>
@@ -280,14 +282,14 @@ function HrDashboardScreen() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <section className="lg:col-span-2 overflow-hidden border border-[#e2dfde] bg-white">
-                <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
+              <section className="surface-card lg:col-span-2 overflow-hidden">
+                <div className="flex items-center justify-between border-b border-[rgba(24,33,38,0.08)] bg-white/40 px-6 py-4">
                   <h4 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
                     Recent Applications
                   </h4>
                   <button
                     type="button"
-                    className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
+                    className="text-[12px] font-bold tracking-[0.05em] text-[var(--rp-primary)] hover:underline"
                   >
                     View All
                   </button>
@@ -302,18 +304,18 @@ function HrDashboardScreen() {
                     emptyMessage="No recent applications."
                     zebra
                     hover
-                    tableWrapperClassName="overflow-hidden border border-[#e2dfde] bg-white"
+                    tableWrapperClassName="overflow-hidden bg-transparent"
                   />
                 </div>
               </section>
 
               <aside className="flex flex-col gap-6">
-                <section className="flex h-full flex-col border border-[#e2dfde] bg-white p-6">
+                <section className="surface-card flex h-full flex-col p-6">
                   <div className="mb-6 flex items-center justify-between">
                     <h4 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
                       Pending Approvals
                     </h4>
-                    <span className="rounded-full bg-[#b90014] px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-[var(--rp-primary)] px-2 py-0.5 text-[10px] font-bold text-white">
                       3
                     </span>
                   </div>
@@ -322,7 +324,7 @@ function HrDashboardScreen() {
                     {pendingApprovalsData.map((item) => (
                       <div
                         key={item.title}
-                        className="border border-[#e2dfde] bg-white p-4 transition-all hover:shadow-sm"
+                        className="input-shell bg-white/50 p-4 transition-all hover:-translate-y-1"
                       >
                         <div className="flex items-start justify-between">
                           <div>
@@ -333,7 +335,7 @@ function HrDashboardScreen() {
                               {item.meta}
                             </p>
                           </div>
-                          <span className="material-symbols-outlined text-[20px] text-[#c8c6c5]">
+                          <span className="material-symbols-outlined text-[20px] text-[var(--rp-muted)]">
                             history
                           </span>
                         </div>
@@ -356,7 +358,7 @@ function HrDashboardScreen() {
 
                           <button
                             type="button"
-                            className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
+                            className="text-[12px] font-bold tracking-[0.05em] text-[var(--rp-primary)] hover:underline"
                           >
                             Review Draft
                           </button>
@@ -367,7 +369,7 @@ function HrDashboardScreen() {
 
                   <button
                     type="button"
-                    className="mt-6 w-full border border-[#e2dfde] py-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                    className="btn-secondary mt-6 w-full px-5 py-3 text-[12px] font-semibold tracking-[0.05em]"
                   >
                     View All Approvals
                   </button>
@@ -376,7 +378,7 @@ function HrDashboardScreen() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-              <section className="relative overflow-hidden bg-[#1a1c1c] p-6 md:col-span-1">
+              <section className="surface-card-strong relative overflow-hidden p-6 md:col-span-1">
                 <div className="relative z-10">
                   <h4 className="mb-2 text-[20px] font-semibold leading-7 text-white">
                     Hiring Velocity
@@ -392,26 +394,26 @@ function HrDashboardScreen() {
                 </div>
               </section>
 
-              <section className="flex flex-col items-start gap-6 border border-[#e2dfde] bg-[#f3f3f3] p-6 md:col-span-3 md:flex-row md:items-center">
+              <section className="surface-card flex flex-col items-start gap-6 p-6 md:col-span-3 md:flex-row md:items-center">
                 <div className="flex-1">
                   <h4 className="mb-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
                     Diversity & Inclusion Report
                   </h4>
-                  <p className="max-w-md text-[14px] leading-5 text-[#5f5e5e]">
+                  <p className="max-w-md text-[14px] leading-6 text-[var(--rp-muted)]">
                     Your team has reached 85% of the annual inclusion targets.
                     Explore the full breakdown to optimize your outreach
                     strategies.
                   </p>
                   <button
                     type="button"
-                    className="mt-4 bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-[#c8c6c5] hover:text-[#1a1c1c]"
+                    className="btn-primary mt-4 px-6 py-3 text-[12px] font-bold tracking-[0.05em]"
                   >
                     View Full Report
                   </button>
                 </div>
 
-                <div className="flex h-32 w-full items-center justify-center border border-[#e2dfde] bg-[#e2e2e2] md:w-48">
-                  <span className="material-symbols-outlined text-[48px] text-[#5f5e5e]">
+                <div className="input-shell flex h-32 w-full items-center justify-center bg-white/40 md:w-48">
+                  <span className="material-symbols-outlined text-[48px] text-[var(--rp-muted)]">
                     bar_chart
                   </span>
                 </div>
@@ -421,7 +423,7 @@ function HrDashboardScreen() {
 
       <button
         type="button"
-        className="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#b90014] text-white shadow-xl transition-transform active:scale-90 md:hidden"
+        className="btn-primary fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full text-white md:hidden"
         aria-label="Post new job"
       >
         <span className="material-symbols-outlined text-[32px]">add</span>

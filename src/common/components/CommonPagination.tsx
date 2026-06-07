@@ -34,7 +34,7 @@ function CommonPagination({
   }
 
   return (
-    <div className="flex items-center justify-between border-t border-[#e2dfde] p-4 text-[12px] font-semibold text-[#5f5e5e]">
+    <div className="flex items-center justify-between border-t border-[rgba(24,33,38,0.08)] p-4 text-[12px] font-semibold text-[var(--rp-muted)]">
       <span>
         Showing {rangeStart} to {rangeEnd} of {totalItems} applications
       </span>
@@ -42,7 +42,7 @@ function CommonPagination({
       <div className="flex gap-2">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="input-shell flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage <= 1 || disabled}
           aria-label="Previous"
@@ -54,10 +54,10 @@ function CommonPagination({
           <button
             key={p}
             type="button"
-            className={`flex h-10 w-10 items-center justify-center border cursor-pointer font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`flex h-10 w-10 items-center justify-center rounded-full cursor-pointer font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               p === currentPage
-                ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
-                : "border-[#e2dfde] hover:bg-[#f3f3f3]"
+                ? "bg-[var(--rp-text)] text-white shadow-[0_10px_24px_rgba(17,36,43,0.18)]"
+                : "input-shell hover:bg-white"
             }`}
             onClick={() => goTo(p)}
             disabled={disabled}
@@ -68,7 +68,7 @@ function CommonPagination({
 
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:opacity-50 disabled:cursor-not-allowed "
+          className="input-shell flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage >= totalPages || disabled}
           aria-label="Next"
