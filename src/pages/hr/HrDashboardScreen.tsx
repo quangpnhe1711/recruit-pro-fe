@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import PermissionGuard from "../../guards/PermissionGuard";
+import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService, type HrDashboardDto } from "../../services/hr/hrService";
 
 type StatCard = {
@@ -236,15 +238,17 @@ function HrDashboardScreen() {
               </div>
 
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 bg-[#e2e2e2] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#e2dfde]"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    download
-                  </span>
-                  Export Report
-                </button>
+                <PermissionGuard permissions={PERMISSIONS.DASHBOARD_EXPORT}>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 bg-[#e2e2e2] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#e2dfde]"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      download
+                    </span>
+                    Export Report
+                  </button>
+                </PermissionGuard>
               </div>
             </div>
 
@@ -354,23 +358,27 @@ function HrDashboardScreen() {
                             ) : null}
                           </div>
 
-                          <button
-                            type="button"
-                            className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
-                          >
-                            Review Draft
-                          </button>
+                          <PermissionGuard permissions={PERMISSIONS.JOB_APPROVE}>
+                            <button
+                              type="button"
+                              className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
+                            >
+                              Review Draft
+                            </button>
+                          </PermissionGuard>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <button
-                    type="button"
-                    className="mt-6 w-full border border-[#e2dfde] py-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
-                  >
-                    View All Approvals
-                  </button>
+                  <PermissionGuard permissions={PERMISSIONS.JOB_APPROVE}>
+                    <button
+                      type="button"
+                      className="mt-6 w-full border border-[#e2dfde] py-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                    >
+                      View All Approvals
+                    </button>
+                  </PermissionGuard>
                 </section>
               </aside>
             </div>
@@ -402,12 +410,14 @@ function HrDashboardScreen() {
                     Explore the full breakdown to optimize your outreach
                     strategies.
                   </p>
-                  <button
-                    type="button"
-                    className="mt-4 bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-[#c8c6c5] hover:text-[#1a1c1c]"
-                  >
-                    View Full Report
-                  </button>
+                  <PermissionGuard permissions={PERMISSIONS.DASHBOARD_VIEW_INTERNAL}>
+                    <button
+                      type="button"
+                      className="mt-4 bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-[#c8c6c5] hover:text-[#1a1c1c]"
+                    >
+                      View Full Report
+                    </button>
+                  </PermissionGuard>
                 </div>
 
                 <div className="flex h-32 w-full items-center justify-center border border-[#e2dfde] bg-[#e2e2e2] md:w-48">

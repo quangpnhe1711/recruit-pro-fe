@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom'
 
+import { usePermissions } from '../../../hooks/usePermissions'
+
 type BottomNavItem = {
   icon: string
   label: string
@@ -7,17 +9,49 @@ type BottomNavItem = {
 }
 
 const defaultItems: BottomNavItem[] = [
-  { icon: 'home', label: 'Home', to: '/candidate/dashboard' },
-  { icon: 'work', label: 'Jobs', to: '/jobs' },
-  { icon: 'inbox', label: 'Applications', to: '/candidate/my-applications' },
-  { icon: 'person', label: 'Profile', to: '/candidate/profile' },
+  {
+    icon: 'dashboard',
+    label: 'Dashboard',
+    to: '/candidate/dashboard',
+  },
+  {
+    icon: 'work',
+    label: 'Jobs',
+    to: '/jobs',
+  },
+  {
+    icon: 'inbox',
+    label: 'My Applications',
+    to: '/candidate/my-applications',
+  },
+  {
+    icon: 'schedule',
+    label: 'Interviews',
+    to: '/candidate/interviews',
+  },
+  {
+    icon: 'person',
+    label: 'Profile',
+    to: '/candidate/profile',
+  },
 ]
 
 function BottomNavBar() {
+  const { portalVariant } = usePermissions()
+
+  if (portalVariant !== 'candidate') {
+    return null
+  }
+
+  const items = defaultItems
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#e2dfde] bg-white/95 backdrop-blur lg:hidden">
-      <div className="grid grid-cols-4">
-        {defaultItems.map((item) => (
+      <div
+        className="grid"
+        style={{ gridTemplateColumns: `repeat(${Math.max(items.length, 1)}, minmax(0, 1fr))` }}
+      >
+        {items.map((item) => (
           <NavLink
             key={item.label}
             className={({ isActive }) =>

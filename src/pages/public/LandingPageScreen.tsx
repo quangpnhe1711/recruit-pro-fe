@@ -1,6 +1,18 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { publicService, type HomeResponseDto } from "../../services/public/publicService";
+import { jobsService } from "../../services/jobs/jobsService";
+
+type HomeResponseDto = {
+  featuredJobs: Array<{
+    id: string;
+    title: string;
+    department: string;
+    location: string;
+    workMode: string;
+    employmentType: string;
+    tag: string;
+  }>;
+};
 
 function LandingPageScreen() {
   const [homeData, setHomeData] = useState<HomeResponseDto | null>(null);
@@ -8,10 +20,22 @@ function LandingPageScreen() {
   useEffect(() => {
     let mounted = true;
 
-    publicService
-      .getHome()
+    jobsService
+      .listPublicJobs({ page: 1, pageSize: 3, sortBy: "newest" })
       .then((res) => {
-        if (mounted && res.data) setHomeData(res.data);
+        if (!mounted || !res.data) return;
+
+        setHomeData({
+          featuredJobs: res.data.items.slice(0, 3).map((job, index) => ({
+            id: job.id,
+            title: job.title,
+            department: typeof job.department === "string" ? job.department : job.department?.name ?? "General",
+            location: job.location,
+            workMode: job.workMode,
+            employmentType: job.employmentType,
+            tag: index === 0 ? "New" : "Open",
+          })),
+        });
       })
       .catch(() => undefined);
 

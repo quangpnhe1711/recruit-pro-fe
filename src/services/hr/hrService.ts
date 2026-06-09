@@ -87,10 +87,12 @@ export type HrInterviewItemDto = {
 export type HrInterviewScheduleDataDto = {
   candidate: {
     id: string;
+    applicationId: string;
+    jobId: string;
     name: string;
     roleLabel: string;
     appliedFor: string;
-    avatarUrl: string;
+    avatarUrl: string | null;
   };
   interviewers: Array<{
     id: string;
@@ -121,15 +123,61 @@ export const hrService = {
   },
 
   getCandidates: async (params?: Record<string, unknown>): Promise<ApiResponse<HrCandidateItemDto[]>> => {
-    return request.get<ApiResponse<HrCandidateItemDto[]>>(endpoints.hr.candidates, {
+    const response = await request.get<ApiResponse<{ items?: HrCandidateItemDto[] }>>(endpoints.hr.candidates, {
       params: buildParams(params),
     });
+
+    return {
+      ...response,
+      data: response.data?.items ?? [],
+    };
   },
 
   getApplications: async (params?: Record<string, unknown>): Promise<ApiResponse<HrApplicationItemDto[]>> => {
-    return request.get<ApiResponse<HrApplicationItemDto[]>>(endpoints.hr.applications, {
+    const response = await request.get<ApiResponse<{ items?: Array<{
+      id: string;
+      candidate: {
+        id: string;
+        fullName: string;
+        email: string;
+        avatarUrl?: string | null;
+      };
+      job: {
+        id: string;
+        title: string;
+        department?: {
+          name?: string;
+        } | null;
+      };
+      appliedAt: string;
+      status: string;
+    }> }>>(endpoints.hr.applications, {
       params: buildParams(params),
     });
+
+    return {
+      ...response,
+      data: (response.data?.items ?? []).map((item) => {
+        const nameParts = item.candidate.fullName.trim().split(/\s+/);
+        return {
+          id: item.id,
+          candidate: {
+            id: item.candidate.id,
+            firstName: nameParts[0] ?? item.candidate.fullName,
+            lastName: nameParts.slice(1).join(" "),
+            email: item.candidate.email,
+            avatarUrl: item.candidate.avatarUrl ?? "",
+          },
+          job: {
+            id: item.job.id,
+            title: item.job.title,
+            department: item.job.department?.name ?? "",
+          },
+          appliedDate: item.appliedAt,
+          status: item.status,
+        };
+      }),
+    };
   },
 
   getApplicationCv: async (
@@ -151,9 +199,14 @@ export const hrService = {
   },
 
   getInterviews: async (params?: Record<string, unknown>): Promise<ApiResponse<HrInterviewItemDto[]>> => {
-    return request.get<ApiResponse<HrInterviewItemDto[]>>(endpoints.hr.interviews, {
+    const response = await request.get<ApiResponse<{ items?: HrInterviewItemDto[] }>>(endpoints.hr.interviews, {
       params: buildParams(params),
     });
+
+    return {
+      ...response,
+      data: response.data?.items ?? [],
+    };
   },
 
   updateInterviewStatus: async (
@@ -170,8 +223,12 @@ export const hrService = {
     return request.delete<ApiResponse<null>>(endpoints.hr.interviewDetail(interviewId));
   },
 
-  getInterviewScheduleData: async (): Promise<ApiResponse<HrInterviewScheduleDataDto>> => {
-    return request.get<ApiResponse<HrInterviewScheduleDataDto>>(endpoints.hr.interviewScheduleData);
+  getInterviewScheduleData: async (
+    params?: { applicationId?: string },
+  ): Promise<ApiResponse<HrInterviewScheduleDataDto>> => {
+    return request.get<ApiResponse<HrInterviewScheduleDataDto>>(endpoints.hr.interviewScheduleData, {
+      params: buildParams(params),
+    });
   },
 
   createInterview: async (

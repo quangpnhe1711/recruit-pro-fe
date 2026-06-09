@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import type { LoginResponseDto, UserDto } from "../../modules/auth/authSchema";
+import { resolvePortalVariantFromUser } from "../../permissions/rolePermissions";
 
 export type Variant = "candidate" | "internal";
 
@@ -47,17 +48,23 @@ const authSlice = createSlice({
   reducers: {
     setCredentials(state, action: PayloadAction<LoginResponseDto>) {
       const { accessToken, refreshToken, user } = action.payload;
+      const resolvedVariant = resolvePortalVariantFromUser(
+        user,
+        state.currentVariant ?? "candidate",
+      );
 
       state.accessToken = accessToken;
 
       state.refreshToken = refreshToken;
 
       state.user = user;
+      state.currentVariant = resolvedVariant;
 
       state.isAuthenticated = true;
 
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("refresh_token", refreshToken);
+      localStorage.setItem("current_variant", resolvedVariant);
     },
 
     setAccessToken(state, action: PayloadAction<string>) {

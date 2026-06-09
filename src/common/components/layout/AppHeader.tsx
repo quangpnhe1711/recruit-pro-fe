@@ -1,5 +1,8 @@
 import { useSelector } from "react-redux";
 
+import { usePermissions } from "../../../hooks/usePermissions";
+import { PERMISSIONS } from "../../../permissions/permissions";
+import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 import HeaderAvatarDropDown from "../../../pages/internal/HeaderAvatarDropDown";
 import type { RootState } from "../../../store";
 
@@ -25,30 +28,52 @@ function getInitials(name: string) {
 
 const defaultMenuItems: AppHeaderMenuItem[] = [
   { label: "Profile", to: "/candidate/profile" },
-  { label: "Settings", to: "/settings" },
 ];
+
+function formatRoleLabel(role: string | null | undefined, portalVariant: "candidate" | "internal") {
+  if (portalVariant === "candidate") {
+    return "Candidate";
+  }
+
+  switch (role) {
+    case ROLE_NAMES.HR:
+      return "HR";
+    case ROLE_NAMES.MANAGER:
+      return "Manager";
+    case ROLE_NAMES.SYSTEM_ADMIN:
+      return "System Admin";
+    default:
+      return "Internal User";
+  }
+}
 
 function AppHeader({
   showNotifications = true,
   menuItems,
 }: AppHeaderProps) {
   const authUser = useSelector((state: RootState) => state.auth.user);
-  const variant =
-    useSelector((state: RootState) => state.auth.currentVariant) ?? "candidate";
+  const { defaultPath, hasPermission, portalVariant, primaryRole } = usePermissions();
 
   const userName = authUser?.fullName ?? "No user";
-  const userRole =
-    authUser?.roles?.[0] ??
-    (variant === "candidate" ? "Candidate" : "Internal User");
+  const userRole = formatRoleLabel(primaryRole, portalVariant);
   const avatarSrc = authUser?.avatarUrl ?? undefined;
   const resolvedInitials = getInitials(userName);
+  const canViewOwnProfile = hasPermission(PERMISSIONS.CANDIDATE_VIEW_OWN_PROFILE);
+  const canViewInternalProfile = hasPermission(PERMISSIONS.PROFILE_VIEW_INTERNAL);
   const resolvedMenuItems =
     menuItems ??
-    (variant === "candidate"
+    (portalVariant === "candidate"
       ? defaultMenuItems
       : [
-          { label: "Profile", to: "/internal/profile" },
-          { label: "Settings", to: "/settings" },
+          ...(canViewInternalProfile
+            ? [{ label: "Profile", to: "/internal/profile" }]
+            : canViewOwnProfile
+              ? [{ label: "Profile", to: "/candidate/profile" }]
+            : []),
+          ...(primaryRole === ROLE_NAMES.SYSTEM_ADMIN
+            ? [{ label: "Admin Dashboard", to: "/system-admin/dashboard" }]
+            : []),
+          { label: "Dashboard", to: defaultPath },
         ]);
 
   return (

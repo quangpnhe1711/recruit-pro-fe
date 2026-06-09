@@ -1,9 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
-import { setVariant } from "../../store/slices/authSlice";
+import PermissionGuard from "../../guards/PermissionGuard";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
+import { jobsService } from "../../services/jobs/jobsService";
 
 type ApprovalStatus = "Approved" | "Pending" | "Draft" | "Rejected";
 
@@ -121,6 +123,11 @@ function buildJobTableColumns(
   onViewApplications: (job: Job) => void,
   onOpenEdit: (job: Job) => void,
   onDeleteJob: (job: Job) => void,
+  options: {
+    canDeleteJobs: boolean;
+    canEditJobs: boolean;
+    canViewApplications: boolean;
+  },
 ): TableColumn<Job>[] {
   return [
     {
@@ -169,30 +176,36 @@ function buildJobTableColumns(
       headerClassName: "text-right",
       renderCell: (job) => (
         <div className="flex items-center justify-end gap-3">
-          <button
-            type="button"
-            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-            title="View Applications"
-            onClick={() => onViewApplications(job)}
-          >
-            <span className="material-symbols-outlined">group</span>
-          </button>
-          <button
-            type="button"
-            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-            title="Edit"
-            onClick={() => onOpenEdit(job)}
-          >
-            <span className="material-symbols-outlined">edit</span>
-          </button>
-          <button
-            type="button"
-            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
-            title="Delete"
-            onClick={() => onDeleteJob(job)}
-          >
-            <span className="material-symbols-outlined">delete</span>
-          </button>
+          {options.canViewApplications ? (
+            <button
+              type="button"
+              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+              title="View Applications"
+              onClick={() => onViewApplications(job)}
+            >
+              <span className="material-symbols-outlined">group</span>
+            </button>
+          ) : null}
+          {options.canEditJobs ? (
+            <button
+              type="button"
+              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+              title="Edit"
+              onClick={() => onOpenEdit(job)}
+            >
+              <span className="material-symbols-outlined">edit</span>
+            </button>
+          ) : null}
+          {options.canDeleteJobs ? (
+            <button
+              type="button"
+              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
+              title="Delete"
+              onClick={() => onDeleteJob(job)}
+            >
+              <span className="material-symbols-outlined">delete</span>
+            </button>
+          ) : null}
         </div>
       ),
     },
@@ -300,22 +313,20 @@ function buildSeedJobs(): Job[] {
 }
 
 function JobManagementScreen() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const canCreateJobs = hasPermission(PERMISSIONS.JOB_CREATE);
+  const canEditJobs = hasPermission(PERMISSIONS.JOB_UPDATE);
+  const canDeleteJobs = hasPermission(PERMISSIONS.JOB_DELETE);
+  const canViewApplications = hasPermission(PERMISSIONS.JOB_VIEW_APPLICATIONS);
 
   const [createdJobIds, setCreatedJobIds] = useState<Set<string>>(() => {
     const created = readCreatedJobsFromStorage();
     return new Set(created.map((j) => j.id));
   });
 
-  useEffect(() => {
-    dispatch(setVariant("internal"));
-  }, [dispatch]);
-
-  const [jobs, setJobs] = useState<Job[]>(() => {
-    const created = readCreatedJobsFromStorage();
-    return [...created, ...buildSeedJobs()];
-  });
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState<string>("All Departments");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
   const [page, setPage] = useState<number>(1);
@@ -328,6 +339,51 @@ function JobManagementScreen() {
     department: "Engineering",
     approvalStatus: "Draft",
   });
+
+  useEffect(() => {
+    let mounted = true;
+
+    jobsService
+      .listHrJobs()
+      .then((response) => {
+        if (!mounted) return;
+
+        const items = response.data?.items ?? [];
+        setJobs(
+          items.map((item) => ({
+            id: item.id,
+            title: item.title,
+            department: item.department.name,
+            createdDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+            createdAt: item.createdAt ? Date.parse(item.createdAt) : Date.now(),
+            approvalStatus:
+              item.status === "APPROVED"
+                ? "Approved"
+                : item.status === "REJECTED"
+                  ? "Rejected"
+                  : item.status === "DRAFT"
+                    ? "Draft"
+                    : "Pending",
+            applicationsCount: item.applicationCount,
+          })),
+        );
+      })
+      .catch(() => {
+        if (mounted) {
+          setJobs([]);
+          toast.error("Unable to load jobs");
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     return jobs
@@ -386,7 +442,7 @@ function JobManagementScreen() {
     setModalOpen(true);
   }
 
-  function saveModal() {
+  async function saveModal() {
     if (!draft.title.trim()) {
       toast.error("Job title is required.");
       return;
@@ -397,35 +453,38 @@ function JobManagementScreen() {
       const nextDepartment = draft.department;
       const nextStatus = draft.approvalStatus;
 
-      setJobs((prev) =>
-        prev.map((j) =>
-          j.id === editingId
-            ? {
-                ...j,
-                title: nextTitle,
-                department: nextDepartment,
-                approvalStatus: nextStatus,
-              }
-            : j
-        )
-      );
+      try {
+        await jobsService.updateJob(editingId, {
+          title: nextTitle,
+          department: nextDepartment,
+          status:
+            nextStatus === "Approved"
+              ? "APPROVED"
+              : nextStatus === "Rejected"
+                ? "REJECTED"
+                : nextStatus === "Draft"
+                  ? "DRAFT"
+                  : "PENDING_APPROVAL",
+        });
 
-      if (createdJobIds.has(editingId)) {
-        const created = readCreatedJobsFromStorage();
-        const updated = created.map((j) =>
-          j.id === editingId
-            ? {
-                ...j,
-                title: nextTitle,
-                department: nextDepartment,
-                approvalStatus: "Pending" as ApprovalStatus,
-              }
-            : j
+        setJobs((prev) =>
+          prev.map((j) =>
+            j.id === editingId
+              ? {
+                  ...j,
+                  title: nextTitle,
+                  department: nextDepartment,
+                  approvalStatus: nextStatus,
+                }
+              : j,
+          ),
         );
-        writeCreatedJobsToStorage(updated);
-      }
 
-      toast.success("Job updated.");
+        toast.success("Job updated.");
+      } catch {
+        toast.error("Unable to update job.");
+        return;
+      }
     } else {
       // Creating new jobs is handled via /hr/jobs/create.
       openNewJobModal();
@@ -435,23 +494,17 @@ function JobManagementScreen() {
     setModalOpen(false);
   }
 
-  function deleteJob(job: Job) {
+  async function deleteJob(job: Job) {
     const ok = window.confirm(`Delete ${job.title} (${job.id})?`);
     if (!ok) return;
 
-    setJobs((prev) => prev.filter((j) => j.id !== job.id));
-
-    if (createdJobIds.has(job.id)) {
-      const remaining = readCreatedJobsFromStorage().filter((j) => j.id !== job.id);
-      writeCreatedJobsToStorage(remaining);
-      setCreatedJobIds((prev) => {
-        const next = new Set(prev);
-        next.delete(job.id);
-        return next;
-      });
+    try {
+      await jobsService.deleteJob(job.id);
+      setJobs((prev) => prev.filter((j) => j.id !== job.id));
+      toast.info("Job deleted.");
+    } catch {
+      toast.error("Unable to delete job.");
     }
-
-    toast.info("Job deleted.");
   }
 
   function viewApplications(job: Job) {
@@ -481,6 +534,7 @@ function JobManagementScreen() {
                 type="button"
                 className="flex items-center gap-2 bg-[#b90014] px-6 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
                 onClick={openNewJobModal}
+                disabled={!canCreateJobs}
               >
                 <span className="material-symbols-outlined">add</span>
                 Post New Job
@@ -599,10 +653,15 @@ function JobManagementScreen() {
                   viewApplications,
                   openEdit,
                   deleteJob,
+                  {
+                    canDeleteJobs,
+                    canEditJobs,
+                    canViewApplications,
+                  },
                 )}
                 data={pageSlice}
                 keyExtractor={(item) => item.id}
-                loading={false}
+                loading={loading}
                 emptyMessage="No jobs found for current filters."
                 zebra
                 hover
@@ -702,7 +761,7 @@ function JobManagementScreen() {
             </section>
 
           {/* Modal */}
-        {modalOpen ? (
+        {modalOpen && canEditJobs ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
             <div className="w-full max-w-xl border border-[#e7bdb8] bg-white">
               <div className="flex items-center justify-between border-b border-[#e7bdb8] px-6 py-4">

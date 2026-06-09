@@ -1,6 +1,8 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
+import { usePermissions } from "../../../hooks/usePermissions";
+import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 
 export type SideNavItem = {
   icon: string;
@@ -14,8 +16,6 @@ type SideNavBrand = {
   to?: string;
 };
 
-
-
 type SideNavBarProps = {
   variant?: "internal" | "candidate";
   items?: SideNavItem[];
@@ -28,25 +28,128 @@ type SideNavBarProps = {
   initials?: string;
 };
 
-const internalItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Dashboard", to: "/internal/dashboard" },
-  { icon: "work", label: "Jobs", to: "/jobs" },
-  { icon: "description", label: "Applications", to: "/internal/applications" },
-  { icon: "analytics", label: "Analytics", to: "/internal/analytics" },
+const hrItems: SideNavItem[] = [
+  {
+    icon: "dashboard",
+    label: "Dashboard",
+    to: "/hr/dashboard",
+  },
+  {
+    icon: "work",
+    label: "Jobs",
+    to: "/jobs",
+  },
+  {
+    icon: "group",
+    label: "Candidates",
+    to: "/hr/candidates",
+  },
+  {
+    icon: "description",
+    label: "Applications",
+    to: "/hr/applications",
+  },
+  {
+    icon: "schedule",
+    label: "Interviews",
+    to: "/hr/interviews",
+  },
+  {
+    icon: "person",
+    label: "Profile",
+    to: "/internal/profile",
+  },
 ];
 
-const internalBottomItems: SideNavItem[] = [
-  { icon: "help", label: "Support", to: "/internal/support" },
+const managerItems: SideNavItem[] = [
+  {
+    icon: "dashboard",
+    label: "Dashboard",
+    to: "/hr/dashboard",
+  },
+  {
+    icon: "approval",
+    label: "Job Approvals",
+    to: "/jobs",
+  },
+  {
+    icon: "description",
+    label: "Applications",
+    to: "/hr/applications",
+  },
+  {
+    icon: "schedule",
+    label: "Interviews",
+    to: "/hr/interviews",
+  },
+  {
+    icon: "analytics",
+    label: "Reports",
+    to: "/manager/reports",
+  },
+  {
+    icon: "person",
+    label: "Profile",
+    to: "/internal/profile",
+  },
 ];
+
+const adminItems: SideNavItem[] = [
+  {
+    icon: "dashboard",
+    label: "Dashboard",
+    to: "/system-admin/dashboard",
+  },
+  {
+    icon: "group",
+    label: "Users",
+    to: "/system-admin/users",
+  },
+  {
+    icon: "shield_person",
+    label: "Roles",
+    to: "/system-admin/roles",
+  },
+  {
+    icon: "admin_panel_settings",
+    label: "Permissions",
+    to: "/system-admin/permissions",
+  },
+  {
+    icon: "history",
+    label: "Audit Logs",
+    to: "/system-admin/audit-logs",
+  },
+];
+
+const internalBottomItems: SideNavItem[] = [];
 
 const candidateItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Dashboard", to: "/candidate/dashboard" },
-  { icon: "work", label: "Jobs", to: "/jobs" },
-  { icon: "description", label: "My Applications", to: "/candidate/my-applications" },
-];
-
-const candidateBottomItems: SideNavItem[] = [
-  { icon: "help", label: "Support", to: "/candidate/support" },
+  {
+    icon: "dashboard",
+    label: "Dashboard",
+    to: "/candidate/dashboard",
+  },
+  {
+    icon: "work",
+    label: "Jobs",
+    to: "/jobs",
+  },
+  {
+    icon: "description",
+    label: "My Applications",
+    to: "/candidate/my-applications",
+  },
+  {
+    icon: "schedule",
+    label: "Interviews",
+    to: "/candidate/interviews",
+  },
+  {
+    icon: "person",
+    label: "Profile",
+    to: "/candidate/profile",
+  },
 ];
 
 function getInitials(name: string) {
@@ -59,38 +162,70 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+function formatRoleLabel(role: string | null | undefined) {
+  switch (role) {
+    case ROLE_NAMES.CANDIDATE:
+      return "Candidate";
+    case ROLE_NAMES.HR:
+      return "HR";
+    case ROLE_NAMES.MANAGER:
+      return "Manager";
+    case ROLE_NAMES.SYSTEM_ADMIN:
+      return "System Admin";
+    default:
+      return "Internal User";
+  }
+}
+
 function SideNavBar({
   showUserCard = true,
   userAvatarSrc,
 }: SideNavBarProps) {
+  const navigate = useNavigate();
   const authState = useSelector((state: RootState) => state.auth);
+  const { defaultPath, portalVariant, primaryRole } = usePermissions();
 
-  const resolvedVariant = authState?.currentVariant ?? "candidate";
   const authUser = authState.user;
 
+  const internalItems =
+    primaryRole === ROLE_NAMES.SYSTEM_ADMIN
+      ? adminItems
+      : primaryRole === ROLE_NAMES.MANAGER
+        ? managerItems
+        : hrItems;
+
   const resolvedItems =
-    resolvedVariant === "candidate" ? candidateItems : internalItems;
+    portalVariant === "candidate" ? candidateItems : internalItems;
 
   const resolvedBottomItems =
-    resolvedVariant === "candidate" ? candidateBottomItems : internalBottomItems;
+    portalVariant === "candidate" ? [] : internalBottomItems;
 
   const resolvedBrand = {
     title: "RecruitPro",
     subtitle:
-      resolvedVariant === "candidate" ? "Candidate Portal" : "Internal Portal",
-    to:
-      resolvedVariant === "candidate"
-        ? "/candidate/dashboard"
-        : "/internal/dashboard",
+      portalVariant === "candidate"
+        ? "Candidate Portal"
+        : primaryRole === ROLE_NAMES.SYSTEM_ADMIN
+          ? "System Administration"
+          : primaryRole === ROLE_NAMES.MANAGER
+            ? "Hiring Review"
+            : "Recruitment Operations",
+    to: defaultPath,
   };
 
   const resolvedUserName =
-    authUser?.fullName ?? (resolvedVariant === "candidate" ? "Candidate" : "Internal User");
+    authUser?.fullName ?? (portalVariant === "candidate" ? "Candidate" : "Internal User");
   const resolvedUserRole =
-    authUser?.roles?.[0] ?? (resolvedVariant === "candidate" ? "Candidate" : "Internal User");
+    portalVariant === "candidate"
+      ? "Candidate"
+      : formatRoleLabel(primaryRole);
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
-  const resolvedCta = resolvedVariant === "internal" ? { label: "Post New Job" } : null;
+  const resolvedCta =
+    portalVariant === "internal"
+      && primaryRole === ROLE_NAMES.HR
+      ? { label: "Post New Job" }
+      : null;
 
   const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A]`;
 
@@ -150,7 +285,7 @@ function SideNavBar({
             type="button"
             className="mb-6 w-full rounded-none bg-[#e31b23] px-4 py-4 text-[16px] font-semibold text-white transition-colors hover:brightness-110"
             onClick={() => {
-              // Placeholder for CTA action, e.g., open a modal or navigate
+              navigate("/hr/jobs/create");
             }}
           >
             {resolvedCta.label}

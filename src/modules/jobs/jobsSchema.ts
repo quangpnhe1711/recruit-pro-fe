@@ -162,20 +162,25 @@ export type HrJobQueryParams = {
 };
 
 export type CreateJobRequest = {
-  departmentId: string;
   title: string;
-  description: string;
-  requirements: string[];
-  benefits: string[];
+  departmentId?: string | null;
+  department?: string | null;
+  employmentType?: EmploymentType | string | null;
+  workMode?: WorkMode | string | null;
   location: string;
-  workMode: WorkMode;
-  employmentType: EmploymentType;
-  minExperienceYears: number;
-  vacancyCount: number;
+  shortPitch?: string | null;
+  description: string;
+  responsibilities?: string[];
+  requirements: string[];
+  skills?: string[];
+  skillIds?: string[];
   salaryMin: number | null;
   salaryMax: number | null;
-  deadline: string | null;
-  skillIds: string[];
+  currency?: string | null;
+  vacancyCount: number;
+  minExperienceYears?: number | null;
+  benefits?: string[];
+  deadline?: string | null;
 };
 
 export type UpdateJobRequest = Partial<CreateJobRequest> & {

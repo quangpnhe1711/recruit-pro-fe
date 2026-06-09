@@ -49,6 +49,48 @@ function serializeParams(params: Record<string, unknown>) {
   return searchParams.toString();
 }
 
+function toPaginatedResponse<T>(
+  payload: { items?: T[]; meta?: ApiResponse<unknown>["meta"] } | null | undefined,
+): PaginatedResponse<T> {
+  const items = payload?.items ?? [];
+  const meta = payload?.meta;
+
+  return {
+    items,
+    page: meta?.page ?? 1,
+    pageSize: meta?.pageSize ?? items.length,
+    totalItems: meta?.totalItems ?? items.length,
+    totalPages: meta?.totalPages ?? 1,
+  };
+}
+
+function normalizeJobListItem(item: Partial<JobListItemDto> & { department?: unknown; postedAt?: string | null }) {
+  const departmentName =
+    typeof item.department === "string"
+      ? item.department
+      : typeof item.department === "object" && item.department && "name" in item.department
+        ? String((item.department as { name?: unknown }).name ?? "")
+        : "";
+
+  return {
+    ...item,
+    department: {
+      id: departmentName,
+      name: departmentName,
+      description: null,
+    },
+    minExperienceYears: item.minExperienceYears ?? 0,
+    createdAt: item.createdAt ?? item.postedAt ?? new Date().toISOString(),
+    availableActions: item.availableActions ?? [],
+    applicationCount: item.applicationCount ?? 0,
+    createdBy: item.createdBy ?? { id: "", fullName: "", email: "", avatarUrl: null, phone: null, roles: [] },
+    approvedBy: item.approvedBy ?? null,
+    vacancyCount: item.vacancyCount ?? 0,
+    deadline: item.deadline ?? null,
+    status: item.status ?? "APPROVED",
+  } as JobListItemDto;
+}
+
 export const jobsService = {
   listPublicJobs: async (
     params?: PublicJobQueryParams,
@@ -62,7 +104,12 @@ export const jobsService = {
       SortBy: params?.sortBy,
     });
 
-    return request.get<ApiResponse<PaginatedResponse<JobListItemDto>>>(
+    const response = await request.get<
+      ApiResponse<{
+        items?: JobListItemDto[];
+        meta?: ApiResponse<unknown>["meta"];
+      }>
+    >(
       endpoints.jobs.list,
       requestParams
         ? {
@@ -71,10 +118,38 @@ export const jobsService = {
           }
         : undefined,
     );
+
+    return {
+      ...response,
+      data: {
+        ...toPaginatedResponse(response.data),
+        items: toPaginatedResponse(response.data).items.map(normalizeJobListItem),
+      },
+      meta: response.data?.meta ?? response.meta,
+    };
   },
 
   getPublicJobFilters: async (): Promise<ApiResponse<JobSearchFiltersDto>> => {
-    return request.get<ApiResponse<JobSearchFiltersDto>>(endpoints.jobs.filters);
+    const response = await request.get<
+      ApiResponse<{
+        employmentTypes?: string[];
+        skills?: string[];
+      }>
+    >(endpoints.jobs.filters);
+
+    return {
+      ...response,
+      data: {
+        employmentTypes: (response.data?.employmentTypes ?? []).map((value) => ({
+          label: value,
+          value: value.toUpperCase().replace(/[\s-]+/g, "_"),
+        })),
+        skills: (response.data?.skills ?? []).map((value) => ({
+          label: value,
+          value,
+        })),
+      },
+    };
   },
 
   getJobDetail: async (jobId: string): Promise<ApiResponse<JobDetailDto>> => {
@@ -90,7 +165,11 @@ export const jobsService = {
   },
 
   getJobFunnel: async (jobId: string): Promise<ApiResponse<JobFunnelStageDto[]>> => {
-    return request.get<ApiResponse<JobFunnelStageDto[]>>(endpoints.jobs.statistics(jobId));
+    const response = await request.get<ApiResponse<JobStatisticsDto>>(endpoints.jobs.statistics(jobId));
+    return {
+      ...response,
+      data: response.data?.hiringFunnel ?? [],
+    };
   },
 
   getJobStatistics: async (jobId: string): Promise<ApiResponse<JobStatisticsDto>> => {
@@ -118,20 +197,53 @@ export const jobsService = {
   },
 
   listSkills: async (): Promise<ApiResponse<SkillDto[]>> => {
-    return request.get<ApiResponse<SkillDto[]>>(endpoints.skills);
+    const response = await request.get<ApiResponse<SkillDto[]>>(endpoints.skills);
+
+    return {
+      ...response,
+      data: response.data ?? [],
+    };
   },
 
   listHrJobs: async (
     params?: HrJobQueryParams,
-  ): Promise<ApiResponse<PaginatedResponse<JobListItemDto>>> => {
-    return request.get<ApiResponse<PaginatedResponse<JobListItemDto>>>(
+  ): Promise<ApiResponse<PaginatedResponse<JobListItemDto> & {
+    stats?: {
+      activeJobs: number;
+      pendingApproval: number;
+      totalApplications: number;
+      timeToHireDays: number;
+    };
+  }>> => {
+    const response = await request.get<
+      ApiResponse<{
+        items?: JobListItemDto[];
+        meta?: ApiResponse<unknown>["meta"];
+        stats?: {
+          activeJobs: number;
+          pendingApproval: number;
+          totalApplications: number;
+          timeToHireDays: number;
+        };
+      }>
+    >(
       endpoints.hrJobs.list,
       { params: buildParams(params) },
     );
+
+    return {
+      ...response,
+      data: {
+        ...toPaginatedResponse(response.data),
+        items: toPaginatedResponse(response.data).items.map(normalizeJobListItem),
+        stats: response.data?.stats,
+      },
+      meta: response.data?.meta ?? response.meta,
+    };
   },
 
-  createJob: async (data: CreateJobRequest): Promise<ApiResponse<JobDetailDto>> => {
-    return request.post<ApiResponse<JobDetailDto>, CreateJobRequest>(
+  createJob: async (data: CreateJobRequest): Promise<ApiResponse<{ jobId: string; approvalStatus: string }>> => {
+    return request.post<ApiResponse<{ jobId: string; approvalStatus: string }>, CreateJobRequest>(
       endpoints.hrJobs.list,
       data,
     );
@@ -140,8 +252,8 @@ export const jobsService = {
   updateJob: async (
     jobId: string,
     data: UpdateJobRequest,
-  ): Promise<ApiResponse<JobDetailDto>> => {
-    return request.patch<ApiResponse<JobDetailDto>, UpdateJobRequest>(
+  ): Promise<ApiResponse<{ jobId: string; approvalStatus: string }>> => {
+    return request.patch<ApiResponse<{ jobId: string; approvalStatus: string }>, UpdateJobRequest>(
       endpoints.hrJobs.detail(jobId),
       data,
     );
@@ -150,8 +262,8 @@ export const jobsService = {
   updateJobStatus: async (
     jobId: string,
     data: UpdateJobStatusRequest,
-  ): Promise<ApiResponse<JobDetailDto>> => {
-    return request.patch<ApiResponse<JobDetailDto>, UpdateJobStatusRequest>(
+  ): Promise<ApiResponse<{ jobId: string; approvalStatus: string }>> => {
+    return request.patch<ApiResponse<{ jobId: string; approvalStatus: string }>, UpdateJobStatusRequest>(
       endpoints.hrJobs.status(jobId),
       data,
     );

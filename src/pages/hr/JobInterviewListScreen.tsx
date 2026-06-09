@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 
 /* eslint-disable react-hooks/refs */
@@ -337,10 +339,17 @@ function buildInterviewTableColumns(
   statusChipFn: (status: InterviewStatus) => string,
   openMenuId: string | null,
   setOpenMenuId: (id: string | null) => void,
+  onViewDetails: (it: Interview) => void,
   onMarkCompleted: (it: Interview) => void,
   onReschedule: (it: Interview) => void,
   onCancel: (it: Interview) => void,
   menuRef: React.RefObject<HTMLDivElement>,
+  actions: {
+    canViewInterviews: boolean;
+    canUpdateInterviews: boolean;
+    canApproveInterviews: boolean;
+    canDeleteInterviews: boolean;
+  },
 ): TableColumn<Interview>[] {
   return [
     {
@@ -396,82 +405,105 @@ function buildInterviewTableColumns(
       header: "Actions",
       headerClassName: "text-right",
       alignRight: true,
-      renderCell: (item) => (
-        <div className="relative text-right">
-          <button
-            type="button"
-            className="p-1 text-[#5f5e5e] hover:text-[#b90014]"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenMenuId(openMenuId === item.id ? null : item.id);
-            }}
-            aria-label="Actions"
-          >
-            <span className="material-symbols-outlined">more_vert</span>
-          </button>
+      renderCell: (item) => {
+        const canOpenActionsMenu =
+          actions.canViewInterviews ||
+          actions.canUpdateInterviews ||
+          actions.canApproveInterviews ||
+          actions.canDeleteInterviews;
 
-          {openMenuId === item.id && (
-            <div
-              ref={menuRef}
-              className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded border border-[#e2dfde] bg-white shadow"
-              onClick={(e) => e.stopPropagation()}
-            >
+        return (
+          <div className="relative text-right">
+            {canOpenActionsMenu ? (
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
-                onClick={() => {
-                  toast.info(
-                    `Interview: ${item.candidateName} · ${item.jobTitle}`,
-                  );
-                  setOpenMenuId(null);
+                className="p-1 text-[#5f5e5e] hover:text-[#b90014]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenuId(openMenuId === item.id ? null : item.id);
                 }}
+                aria-label="Actions"
               >
-                <span className="material-symbols-outlined text-[18px]">
-                  visibility
-                </span>
-                View details
+                <span className="material-symbols-outlined">more_vert</span>
               </button>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
-                onClick={() => onReschedule(item)}
-                disabled={item.status === "Completed"}
+            ) : null}
+
+            {canOpenActionsMenu && openMenuId === item.id ? (
+              <div
+                ref={menuRef}
+                className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded border border-[#e2dfde] bg-white shadow"
+                onClick={(e) => e.stopPropagation()}
               >
-                <span className="material-symbols-outlined text-[18px]">
-                  schedule
-                </span>
-                Reschedule
-              </button>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
-                onClick={() => onMarkCompleted(item)}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  check_circle
-                </span>
-                Mark completed
-              </button>
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold text-[#ba1a1a] hover:bg-[#ffdad6]"
-                onClick={() => onCancel(item)}
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  close
-                </span>
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
-      ),
+                {actions.canViewInterviews ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                    onClick={() => {
+                      onViewDetails(item);
+                      setOpenMenuId(null);
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      visibility
+                    </span>
+                    View details
+                  </button>
+                ) : null}
+                {actions.canUpdateInterviews ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                    onClick={() => onReschedule(item)}
+                    disabled={item.status === "Completed"}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      schedule
+                    </span>
+                    Reschedule
+                  </button>
+                ) : null}
+                {actions.canApproveInterviews ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                    onClick={() => onMarkCompleted(item)}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      check_circle
+                    </span>
+                    Mark completed
+                  </button>
+                ) : null}
+                {actions.canDeleteInterviews ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold text-[#ba1a1a] hover:bg-[#ffdad6]"
+                    onClick={() => onCancel(item)}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      close
+                    </span>
+                    Cancel
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 }
 
 function JobInterviewListScreen() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const canViewInterviews = hasPermission(PERMISSIONS.INTERVIEW_VIEW_ALL);
+  const canExportInterviews = hasPermission(PERMISSIONS.INTERVIEW_EXPORT);
+  const canCreateInterviews = hasPermission(PERMISSIONS.INTERVIEW_CREATE);
+  const canUpdateInterviews = hasPermission(PERMISSIONS.INTERVIEW_UPDATE);
+  const canApproveInterviews = hasPermission(PERMISSIONS.INTERVIEW_APPROVE);
+  const canDeleteInterviews = hasPermission(PERMISSIONS.INTERVIEW_DELETE);
 
   const [items, setItems] = useState<Interview[]>(() => {
     const stored = loadStoredInterviews();
@@ -679,7 +711,7 @@ function JobInterviewListScreen() {
   const reschedule = useCallback((it: Interview) => {
     setOpenMenuForId(null);
     toast.info("Rescheduling…");
-    navigate("/internal/interviews/schedule", {
+    navigate("/hr/interviews/schedule", {
       state: {
         candidateName: it.candidateName,
         candidateEmail: it.candidateEmail,
@@ -741,6 +773,7 @@ function JobInterviewListScreen() {
             type="button"
             className="rounded border border-[#e2dfde] bg-white px-4 py-2 text-[12px] font-semibold text-[#5f5e5e] hover:bg-[#f3f3f3]"
             onClick={saveLocalOverrides}
+            disabled={!canUpdateInterviews}
           >
             Save
           </button>
@@ -880,6 +913,7 @@ function JobInterviewListScreen() {
             type="button"
             className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#93000d]"
             onClick={exportCsv}
+            disabled={!canExportInterviews}
           >
             Export CSV
           </button>
@@ -888,24 +922,36 @@ function JobInterviewListScreen() {
         <CommonTable
           columns={useMemo(
             () => {
-              return buildInterviewTableColumns(
-                statusChip,
+                return buildInterviewTableColumns(
+                  statusChip,
+                  openMenuForId,
+                  setOpenMenuForId,
+                  openDetails,
+                  markCompleted,
+                  reschedule,
+                  cancelInterview,
+                  menuRef,
+                  {
+                    canViewInterviews,
+                    canUpdateInterviews,
+                    canApproveInterviews,
+                    canDeleteInterviews,
+                  },
+                );
+              },
+              [
+                openDetails,
                 openMenuForId,
                 setOpenMenuForId,
                 markCompleted,
                 reschedule,
                 cancelInterview,
-                menuRef,
-              );
-            },
-            [
-              openMenuForId,
-              setOpenMenuForId,
-              markCompleted,
-              reschedule,
-              cancelInterview,
-            ],
-          )}
+                canViewInterviews,
+                canUpdateInterviews,
+                canApproveInterviews,
+                canDeleteInterviews,
+              ],
+            )}
           data={pageSlice}
           keyExtractor={(item) => item.id}
           loading={false}
@@ -928,17 +974,19 @@ function JobInterviewListScreen() {
       </div>
 
       {/* Floating action button */}
-      <button
-        type="button"
-        className="fixed bottom-10 right-10 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#b90014] text-white shadow-lg transition-all hover:scale-105 active:scale-95"
-        onClick={() => {
-          toast.info("Create a new interview");
-          navigate("/internal/interviews/schedule");
-        }}
-        aria-label="Add interview"
-      >
-        <span className="material-symbols-outlined">add</span>
-      </button>
+      {canCreateInterviews ? (
+        <button
+          type="button"
+          className="fixed bottom-10 right-10 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#b90014] text-white shadow-lg transition-all hover:scale-105 active:scale-95"
+          onClick={() => {
+            toast.info("Create a new interview");
+            navigate("/hr/interviews/schedule");
+          }}
+          aria-label="Add interview"
+        >
+          <span className="material-symbols-outlined">add</span>
+        </button>
+      ) : null}
     </div>
   );
 }

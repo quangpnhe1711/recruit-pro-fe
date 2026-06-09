@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
-import { setVariant } from "../../store/slices/authSlice";
+import PermissionGuard from "../../guards/PermissionGuard";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 
 type CandidateStatus = "New" | "Under Review" | "Interviewed" | "Rejected";
@@ -96,6 +96,7 @@ function sourceChip(source: CandidateSource) {
 function buildCandidateTableColumns(
   onViewProfile: (candidate: Candidate) => void,
   onEditProfile: (candidate: Candidate) => void,
+  canEditCandidate: boolean,
 ): TableColumn<Candidate>[] {
   return [
     {
@@ -160,21 +161,25 @@ function buildCandidateTableColumns(
       headerClassName: "text-right",
       renderCell: (candidate) => (
         <div className="flex items-center justify-end gap-4">
-          <button
-            type="button"
-            className="text-sm font-bold text-[#b90014] transition-colors hover:underline"
-            onClick={() => onViewProfile(candidate)}
-          >
-            View Profile
-          </button>
-          <button
-            type="button"
-            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-            title="Edit"
-            onClick={() => onEditProfile(candidate)}
-          >
-            <span className="material-symbols-outlined">edit</span>
-          </button>
+          <PermissionGuard permissions={PERMISSIONS.CANDIDATE_VIEW_DETAIL}>
+            <button
+              type="button"
+              className="text-sm font-bold text-[#b90014] transition-colors hover:underline"
+              onClick={() => onViewProfile(candidate)}
+            >
+              View Profile
+            </button>
+          </PermissionGuard>
+          {canEditCandidate ? (
+            <button
+              type="button"
+              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+              title="Edit"
+              onClick={() => onEditProfile(candidate)}
+            >
+              <span className="material-symbols-outlined">edit</span>
+            </button>
+          ) : null}
         </div>
       ),
     },
@@ -182,12 +187,10 @@ function buildCandidateTableColumns(
 }
 
 function CandidateListScreen() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    dispatch(setVariant("internal"));
-  }, [dispatch]);
+  const { hasPermission } = usePermissions();
+  const canImportCandidates = hasPermission(PERMISSIONS.CANDIDATE_IMPORT);
+  const canCreateCandidates = hasPermission(PERMISSIONS.CANDIDATE_CREATE);
+  const canEditCandidates = hasPermission(PERMISSIONS.CANDIDATE_UPDATE);
 
   useEffect(() => {
     let mounted = true;
@@ -308,22 +311,26 @@ function CandidateListScreen() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="flex items-center gap-2 border border-[#1a1c1c] bg-white px-6 py-3 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-            onClick={handleImport}
-          >
-            <span className="material-symbols-outlined text-xl">upload_file</span>
-            <span>Import Candidates</span>
-          </button>
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-[#e31b23] px-6 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90"
-            onClick={handleAddCandidate}
-          >
-            <span className="material-symbols-outlined text-xl">person_add</span>
-            <span>Add Candidate</span>
-          </button>
+          <PermissionGuard permissions={PERMISSIONS.CANDIDATE_IMPORT}>
+            <button
+              type="button"
+              className="flex items-center gap-2 border border-[#1a1c1c] bg-white px-6 py-3 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+              onClick={handleImport}
+            >
+              <span className="material-symbols-outlined text-xl">upload_file</span>
+              <span>Import Candidates</span>
+            </button>
+          </PermissionGuard>
+          <PermissionGuard permissions={PERMISSIONS.CANDIDATE_CREATE}>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-[#e31b23] px-6 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90"
+              onClick={handleAddCandidate}
+            >
+              <span className="material-symbols-outlined text-xl">person_add</span>
+              <span>Add Candidate</span>
+            </button>
+          </PermissionGuard>
         </div>
       </div>
 
@@ -433,7 +440,7 @@ function CandidateListScreen() {
 
       {/* Candidate Table */}
       <CommonTable
-        columns={buildCandidateTableColumns(viewProfile, editProfile)}
+        columns={buildCandidateTableColumns(viewProfile, editProfile, canEditCandidates)}
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}

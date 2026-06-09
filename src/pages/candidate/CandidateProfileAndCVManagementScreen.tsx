@@ -1,5 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import PermissionGuard from "../../guards/PermissionGuard";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
+import {
+  candidateService,
+  type CandidateProfileResponseDto,
+} from "../../services/candidate/candidateService";
 
 type SkillItem = {
   label: string;
@@ -165,6 +172,11 @@ function compareStartDate(
 }
 
 function CandidateProfileAndCVManagementScreen() {
+  const { hasPermission } = usePermissions();
+  const canEditProfile = hasPermission(PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE);
+  const canManageSkills = hasPermission(PERMISSIONS.CANDIDATE_UPDATE_OWN_SKILLS);
+  const canManageExperience = hasPermission(PERMISSIONS.CANDIDATE_CREATE_OWN_EXPERIENCE);
+  const canManageResume = hasPermission(PERMISSIONS.CANDIDATE_UPLOAD_OWN_RESUME);
   const [profile, setProfile] = useState(initialProfile);
   const [skills, setSkills] = useState(initialSkills);
   const [experienceEntries, setExperienceEntries] = useState(initialExperience);
@@ -174,6 +186,8 @@ function CandidateProfileAndCVManagementScreen() {
   const [entryDraft, setEntryDraft] = useState<EntryDraft>(emptyEntryDraft);
   const [showEntryComposer, setShowEntryComposer] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeMeta, setResumeMeta] = useState<CandidateProfileResponseDto["resume"] | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const profilePayload = useMemo(
     () => ({
@@ -185,52 +199,134 @@ function CandidateProfileAndCVManagementScreen() {
     [experienceEntries, profile, skills],
   );
 
+  useEffect(() => {
+    let mounted = true;
+
+    candidateService
+      .getProfile()
+      .then((res) => {
+        if (!mounted || !res.data) {
+          return;
+        }
+
+        setProfile({
+          name: res.data.profile.name,
+          headline: res.data.profile.headline,
+          email: res.data.profile.email,
+          phone: res.data.profile.phone ?? "",
+          location: res.data.profile.location,
+          memberSince: res.data.profile.memberSince,
+          bio: res.data.profile.bio ?? "",
+          github: res.data.profile.github ?? "",
+          linkedin: res.data.profile.linkedin ?? "",
+        });
+        setSkills(
+          res.data.skills.map((skill) => ({
+            label: skill.label,
+            active: skill.active,
+          })),
+        );
+        setResumeMeta(res.data.resume ?? null);
+        setExperienceEntries(res.data.experienceEntries ?? []);
+      })
+      .catch(() => {
+        if (mounted) {
+          toast.error("Không thể tải hồ sơ ứng viên");
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   function handleProfileChange(field: keyof ProfileState, value: string) {
     setProfile((prev) => ({ ...prev, [field]: value }));
   }
 
   async function handleSaveProfile() {
-    const formData = new FormData();
-
-    formData.append(
-      "profile",
-      JSON.stringify({
-        profile,
-        skills: skills.map((s) => s.label),
-        experienceEntries,
-      }),
-    );
-
-    if (resumeFile) {
-      formData.append("resume", resumeFile);
-    }
-
-    console.log("Submitting profile data:", profilePayload);
-    console.log("Submitting resume file:", resumeFile);
-
     try {
-      // await axios.post("/api/candidate/profile", formData, {
-      //   headers: {
-      //     "Content-Type": "multipart/form-data",
-      //   },
-      // });
+      const profileResult = await candidateService.updateProfile({
+        name: profile.name,
+        headline: profile.headline,
+        email: profile.email,
+        phone: profile.phone,
+        location: profile.location,
+        bio: profile.bio,
+        github: profile.github,
+        linkedin: profile.linkedin,
+      });
+
+      if (profileResult.data) {
+        setProfile({
+          name: profileResult.data.profile.name,
+          headline: profileResult.data.profile.headline,
+          email: profileResult.data.profile.email,
+          phone: profileResult.data.profile.phone ?? "",
+          location: profileResult.data.profile.location,
+          memberSince: profileResult.data.profile.memberSince,
+          bio: profileResult.data.profile.bio ?? "",
+          github: profileResult.data.profile.github ?? "",
+          linkedin: profileResult.data.profile.linkedin ?? "",
+        });
+      }
+
+      const latestProfile = await candidateService.getProfile();
+      const selectedSkillIds =
+        latestProfile.data?.skills
+          .filter((skill) =>
+            skills.some(
+              (item) => item.active && item.label.toLowerCase() === skill.label.toLowerCase(),
+            ),
+          )
+          .map((skill) => skill.id) ?? [];
+
+      if (latestProfile.data?.skills?.length) {
+        const updatedSkills = await candidateService.updateSkills(selectedSkillIds);
+        if (updatedSkills.data) {
+          setSkills(
+            updatedSkills.data.skills.map((skill) => ({
+              label: skill.label,
+              active: skill.active,
+            })),
+          );
+        }
+      }
+
+      if (resumeFile) {
+        const uploadResult = await candidateService.uploadResume(resumeFile);
+        if (uploadResult.data) {
+          setResumeMeta({
+            id: uploadResult.data.resumeId,
+            fileName: uploadResult.data.fileName,
+            fileUrl: resumeMeta?.fileUrl ?? "",
+            uploadedAt: uploadResult.data.uploadedAt,
+          });
+          setResumeFile(null);
+        }
+      }
 
       setIsEditingProfile(false);
+      toast.success("Cập nhật hồ sơ thành công");
     } catch (error) {
       console.error(error);
+      toast.error("Không thể lưu hồ sơ");
     }
   }
 
-  function handleResumeFileChange(e) {
+  function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) {
       toast.error("No file selected. Please choose a valid resume file.");
+      return;
     }
 
-    if (file) {
-      setResumeFile(file);
-    }
-
+    setResumeFile(file);
     toast.success("Resume file selected: " + file.name);
   }
 
@@ -247,7 +343,7 @@ function CandidateProfileAndCVManagementScreen() {
     setSkills((prev) => prev.filter((skill) => skill.label !== label));
   }
 
-  function handleAddEntry() {
+  async function handleAddEntry() {
     const title = entryDraft.title.trim();
     const company = entryDraft.company.trim();
     const bullets = entryDraft.bullets
@@ -271,48 +367,27 @@ function CandidateProfileAndCVManagementScreen() {
       bullets,
     };
 
-    setExperienceEntries((prev) => {
-      const updated = newEntry.period.isCurrent
-        ? prev.map((entry, index) => {
-            const currentIndex = prev.findIndex(
-              (item) => item.period.isCurrent,
-            );
+    try {
+      const response = await candidateService.createExperience({
+        title: newEntry.title,
+        company: newEntry.company,
+        period: {
+          startMonth: newEntry.period.startMonth,
+          startYear: newEntry.period.startYear,
+          endMonth: newEntry.period.endMonth ?? null,
+          endYear: newEntry.period.endYear ?? null,
+          isCurrent: newEntry.period.isCurrent,
+        },
+        bullets: newEntry.bullets,
+      });
 
-            if (
-              index !== currentIndex ||
-              currentIndex === -1 ||
-              !entry.period.isCurrent
-            )
-              return entry;
-
-            return {
-              ...entry,
-              period: {
-                ...entry.period,
-                endMonth: newEntry.period.startMonth,
-                endYear: newEntry.period.startYear,
-                isCurrent: false,
-              },
-            };
-          })
-        : prev;
-
-      const insertIndex = updated.findIndex(
-        (entry) => compareStartDate(newEntry.period, entry.period) < 0,
-      );
-
-      if (insertIndex === -1) {
-        return [...updated, newEntry];
-      }
-
-      return [
-        ...updated.slice(0, insertIndex),
-        newEntry,
-        ...updated.slice(insertIndex),
-      ];
-    });
-    setEntryDraft(emptyEntryDraft);
-    setShowEntryComposer(false);
+      setExperienceEntries(response.data?.experienceEntries ?? []);
+      setEntryDraft(emptyEntryDraft);
+      setShowEntryComposer(false);
+      toast.success("Experience entry added");
+    } catch {
+      toast.error("Unable to save experience entry");
+    }
   }
 
   return (
@@ -328,23 +403,27 @@ function CandidateProfileAndCVManagementScreen() {
               className="relative mb-6 overflow-hidden rounded-xl border border-[#e2dfde] bg-white p-6 md:p-8"
             >
               <div className="mb-6 flex flex-col gap-3 md:absolute md:right-6 md:top-6 md:flex-row">
-                <button
-                  className="inline-flex items-center justify-center gap-2 rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110"
-                  type="button"
-                  onClick={handleSaveProfile}
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    save
-                  </span>
-                  Save Changes
-                </button>
-                <button
-                  className="rounded border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                  type="button"
-                  onClick={() => setIsEditingProfile((value) => !value)}
-                >
-                  {isEditingProfile ? "Done Editing" : "Edit Profile"}
-                </button>
+                <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE}>
+                  <button
+                    className="inline-flex items-center justify-center gap-2 rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110"
+                    type="button"
+                    onClick={handleSaveProfile}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      save
+                    </span>
+                    Save Changes
+                  </button>
+                </PermissionGuard>
+                <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE}>
+                  <button
+                    className="rounded border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+                    type="button"
+                    onClick={() => setIsEditingProfile((value) => !value)}
+                  >
+                    {isEditingProfile ? "Done Editing" : "Edit Profile"}
+                  </button>
+                </PermissionGuard>
               </div>
 
               <div className="flex flex-col gap-8 md:flex-row md:items-start">
@@ -366,7 +445,7 @@ function CandidateProfileAndCVManagementScreen() {
 
                 <div className="space-y-4">
                   <div>
-                    {isEditingProfile ? (
+                    {isEditingProfile && canEditProfile ? (
                       <input
                         className="w-full max-w-2xl rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[32px] font-semibold leading-10 tracking-[-0.01em] outline-none focus:border-[#1a1c1c]"
                         value={profile.name}
@@ -379,7 +458,7 @@ function CandidateProfileAndCVManagementScreen() {
                         {profile.name}
                       </h1>
                     )}
-                    {isEditingProfile ? (
+                    {isEditingProfile && canEditProfile ? (
                       <input
                         className="mt-1 w-full max-w-2xl rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[20px] font-semibold text-[#b90014] outline-none focus:border-[#1a1c1c]"
                         value={profile.headline}
@@ -395,7 +474,7 @@ function CandidateProfileAndCVManagementScreen() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {isEditingProfile ? (
+                    {isEditingProfile && canEditProfile ? (
                       <>
                         <input
                           className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
@@ -478,7 +557,7 @@ function CandidateProfileAndCVManagementScreen() {
                       <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
                         Bio
                       </label>
-                      {isEditingProfile ? (
+                      {isEditingProfile && canEditProfile ? (
                         <textarea
                           className="min-h-[120px] w-full resize-none rounded-none border border-[#e2dfde] bg-[#f3f3f3] p-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
                           value={profile.bio}
@@ -504,12 +583,13 @@ function CandidateProfileAndCVManagementScreen() {
                           </span>
                           <input
                             className="flex-1 border-none bg-transparent p-0 text-[14px] outline-none"
-                            value={profile.github}
-                            onChange={(e) =>
-                              handleProfileChange("github", e.target.value)
-                            }
-                            type="text"
-                          />
+                          value={profile.github}
+                          onChange={(e) =>
+                            handleProfileChange("github", e.target.value)
+                          }
+                          type="text"
+                          disabled={!canEditProfile}
+                        />
                         </div>
                         <div className="flex items-center gap-3 rounded border border-[#e2dfde] bg-white px-3 py-2">
                           <span className="material-symbols-outlined text-[#5f5e5e]">
@@ -517,12 +597,13 @@ function CandidateProfileAndCVManagementScreen() {
                           </span>
                           <input
                             className="flex-1 border-none bg-transparent p-0 text-[14px] outline-none"
-                            value={profile.linkedin}
-                            onChange={(e) =>
-                              handleProfileChange("linkedin", e.target.value)
-                            }
-                            type="text"
-                          />
+                          value={profile.linkedin}
+                          onChange={(e) =>
+                            handleProfileChange("linkedin", e.target.value)
+                          }
+                          type="text"
+                          disabled={!canEditProfile}
+                        />
                         </div>
                       </div>
                     </div>
@@ -534,19 +615,21 @@ function CandidateProfileAndCVManagementScreen() {
                     <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
                       Skills
                     </h2>
-                    <button
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
-                      type="button"
-                      onClick={() => setShowSkillComposer((value) => !value)}
-                    >
-                      <span className="material-symbols-outlined text-[16px]">
-                        add_circle
-                      </span>
-                      Add Skill
-                    </button>
+                    <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_SKILLS}>
+                      <button
+                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
+                        type="button"
+                        onClick={() => setShowSkillComposer((value) => !value)}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          add_circle
+                        </span>
+                        Add Skill
+                      </button>
+                    </PermissionGuard>
                   </div>
 
-                  {showSkillComposer ? (
+                  {showSkillComposer && canManageSkills ? (
                     <div className="mb-4 flex gap-2">
                       <input
                         className="flex-1 rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
@@ -574,13 +657,19 @@ function CandidateProfileAndCVManagementScreen() {
                             : "border-[#c8c6c5] bg-[#e2dfde] text-[#636262]"
                         }`}
                         type="button"
-                        onClick={() => handleRemoveSkill(skill.label)}
-                        title="Click to remove"
+                        onClick={() => {
+                          if (canManageSkills) {
+                            handleRemoveSkill(skill.label);
+                          }
+                        }}
+                        title={canManageSkills ? "Click to remove" : skill.label}
                       >
                         {skill.label}
-                        <span className="material-symbols-outlined text-[14px]">
-                          close
-                        </span>
+                        {canManageSkills ? (
+                          <span className="material-symbols-outlined text-[14px]">
+                            close
+                          </span>
+                        ) : null}
                       </button>
                     ))}
                   </div>
@@ -610,38 +699,55 @@ function CandidateProfileAndCVManagementScreen() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[16px] font-semibold">
-                          Alex_Thompson_CV_2024.pdf
+                          {resumeMeta?.fileName ?? "No resume uploaded"}
                         </p>
                         <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                          Uploaded on Oct 12, 2024
+                          {resumeMeta?.uploadedAt
+                            ? `Uploaded on ${new Date(resumeMeta.uploadedAt).toLocaleDateString()}`
+                            : "Upload your latest resume"}
                         </p>
                       </div>
                       <div className="flex gap-1">
                         <button
                           className="p-2 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
                           type="button"
+                          disabled={!resumeMeta?.fileUrl}
+                          onClick={() => {
+                            if (resumeMeta?.fileUrl) {
+                              window.open(resumeMeta.fileUrl, "_blank", "noopener,noreferrer");
+                            }
+                          }}
                         >
                           <span className="material-symbols-outlined text-[20px]">
                             visibility
                           </span>
                         </button>
-                        <button
-                          className="p-2 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-                          type="button"
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            download
-                          </span>
-                        </button>
+                        <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPLOAD_OWN_RESUME}>
+                          <button
+                            className="p-2 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                            type="button"
+                            disabled={!resumeMeta?.fileUrl}
+                            onClick={() => {
+                              if (resumeMeta?.fileUrl) {
+                                window.open(resumeMeta.fileUrl, "_blank", "noopener,noreferrer");
+                              }
+                            }}
+                          >
+                            <span className="material-symbols-outlined text-[20px]">
+                              download
+                            </span>
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </div>
 
-                    <div className="relative">
+                    <div className={`relative ${canManageResume ? "" : "pointer-events-none opacity-60"}`}>
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx"
                         className="absolute inset-0 opacity-0 cursor-pointer"
                         onChange={handleResumeFileChange}
+                        disabled={!canManageResume}
                       />
 
                       <button
@@ -667,19 +773,21 @@ function CandidateProfileAndCVManagementScreen() {
                     <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
                       Experience &amp; Education
                     </h2>
-                    <button
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
-                      type="button"
-                      onClick={() => setShowEntryComposer((value) => !value)}
-                    >
-                      <span className="material-symbols-outlined text-[16px]">
-                        add_circle
-                      </span>
-                      Add Entry
-                    </button>
+                    <PermissionGuard permissions={PERMISSIONS.CANDIDATE_CREATE_OWN_EXPERIENCE}>
+                      <button
+                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
+                        type="button"
+                        onClick={() => setShowEntryComposer((value) => !value)}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          add_circle
+                        </span>
+                        Add Entry
+                      </button>
+                    </PermissionGuard>
                   </div>
 
-                  {showEntryComposer ? (
+                  {showEntryComposer && canManageExperience ? (
                     <div className="mb-8 space-y-3 rounded border border-[#e2dfde] bg-[#f3f3f3] p-4">
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         <input

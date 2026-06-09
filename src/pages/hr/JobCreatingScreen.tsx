@@ -2,6 +2,9 @@ import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
+import { jobsService } from "../../services/jobs/jobsService";
 
 type EmploymentType = "Full-time" | "Contract";
 type WorkMode = "Remote" | "Hybrid";
@@ -10,6 +13,7 @@ type DraftState = {
   step: number;
   title: string;
   department: string;
+  location: string;
   employmentType: EmploymentType | "";
   workMode: WorkMode | "";
   shortPitch: string;
@@ -38,16 +42,6 @@ const departments = ["Engineering", "Product", "Design", "Marketing", "Sales"];
 const currencies = ["USD", "EUR", "GBP", "JPY", "VND"];
 
 const draftStorageKey = "rp_internal_jobcreating_draft_v1";
-const createdJobsStorageKey = "rp_internal_created_jobs_v1";
-
-function formatNowAsLabel() {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  }).format(new Date());
-}
-
 function safeJsonParse<T>(raw: string | null): T | null {
   if (!raw) return null;
   try {
@@ -77,6 +71,7 @@ function loadDraft(): DraftState | null {
       typeof parsed.department === "string" && parsed.department
         ? parsed.department
         : "Engineering",
+    location: typeof parsed.location === "string" ? parsed.location : "",
     employmentType:
       parsed.employmentType === "Full-time" || parsed.employmentType === "Contract"
         ? parsed.employmentType
@@ -95,51 +90,12 @@ function loadDraft(): DraftState | null {
   };
 }
 
-function readCreatedJobs(): CreatedJob[] {
-  const parsed = safeJsonParse<unknown>(window.localStorage.getItem(createdJobsStorageKey));
-  if (!Array.isArray(parsed)) return [];
-
-  return parsed
-    .map((j) => {
-      if (!j || typeof j !== "object") return null;
-      const obj = j as Record<string, unknown>;
-
-      const id = typeof obj.id === "string" ? obj.id : "";
-      const title = typeof obj.title === "string" ? obj.title : "";
-      const department = typeof obj.department === "string" ? obj.department : "";
-      const createdDate = typeof obj.createdDate === "string" ? obj.createdDate : "";
-      const createdAt = typeof obj.createdAt === "number" ? obj.createdAt : Date.now();
-
-      if (!id || !title || !department || !createdDate) return null;
-
-      return {
-        id,
-        title,
-        department,
-        createdDate,
-        createdAt,
-        approvalStatus: "Pending" as const,
-        applicationsCount: 0,
-      };
-    })
-    .filter(Boolean) as CreatedJob[];
-}
-
-function writeCreatedJobs(jobs: CreatedJob[]) {
-  window.localStorage.setItem(createdJobsStorageKey, JSON.stringify(jobs));
-}
-
-function generateJobId(existingIds: Set<string>) {
-  // JB-XXXX with collision retry
-  for (let i = 0; i < 20; i += 1) {
-    const candidate = `JB-${Math.floor(1000 + Math.random() * 9000)}`;
-    if (!existingIds.has(candidate)) return candidate;
-  }
-  return `JB-${Date.now()}`;
-}
-
 function JobCreatingScreen() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const canCreateJob = hasPermission(PERMISSIONS.JOB_CREATE);
+  const canApproveJob = hasPermission(PERMISSIONS.JOB_APPROVE);
+  const canUseTemplate = hasPermission(PERMISSIONS.JOB_USE_TEMPLATE);
 
   const initialDraft = useMemo(() => loadDraft(), []);
 
@@ -148,6 +104,7 @@ function JobCreatingScreen() {
   // Step 1
   const [title, setTitle] = useState<string>(() => initialDraft?.title ?? "");
   const [department, setDepartment] = useState<string>(() => initialDraft?.department ?? "Engineering");
+  const [location, setLocation] = useState<string>(() => initialDraft?.location ?? "");
   const [employmentType, setEmploymentType] = useState<EmploymentType | "">(
     () => initialDraft?.employmentType ?? ""
   );
@@ -175,6 +132,7 @@ function JobCreatingScreen() {
       step: nextStep,
       title,
       department,
+      location,
       employmentType,
       workMode,
       shortPitch,
@@ -194,6 +152,7 @@ function JobCreatingScreen() {
   function applyEngineeringTemplate() {
     setTitle("Senior Software Engineer");
     setDepartment("Engineering");
+    setLocation("Ho Chi Minh City");
     setEmploymentType("Full-time");
     setWorkMode("Hybrid");
     setShortPitch("Build high-performance internal recruiting workflows for enterprise teams.");
@@ -204,13 +163,17 @@ function JobCreatingScreen() {
     const schema = yup.object({
       title: yup.string().trim().required('Job title is required.'),
       department: yup.string().trim().required('Department is required.'),
+      location: yup.string().trim().required('Location is required.'),
       employmentType: yup.string().required('Select an employment type.'),
       workMode: yup.string().required('Select a work mode.'),
       shortPitch: yup.string().trim().required('Short pitch is required.'),
     });
 
     try {
-      schema.validateSync({ title, department, employmentType, workMode, shortPitch }, { abortEarly: false });
+      schema.validateSync(
+        { title, department, location, employmentType, workMode, shortPitch },
+        { abortEarly: false }
+      );
       return true;
     } catch (err) {
       if (err instanceof yup.ValidationError) toast.error(err.errors?.[0] || 'Validation error');
@@ -286,6 +249,7 @@ function JobCreatingScreen() {
         step: next,
         title,
         department,
+        location,
         employmentType,
         workMode,
         shortPitch,
@@ -312,28 +276,38 @@ function JobCreatingScreen() {
     setStep((prev) => Math.max(1, prev - 1));
   }
 
-  function publishJob() {
+  async function publishJob() {
     if (!validateStep1() || !validateStep2() || !validateStep3()) return;
 
-    const existing = readCreatedJobs();
-    const existingIds = new Set(existing.map((j) => j.id));
-    const id = generateJobId(existingIds);
+    try {
+      await jobsService.createJob({
+        title: title.trim(),
+        department,
+        location: location.trim(),
+        employmentType,
+        workMode,
+        shortPitch,
+        description,
+        responsibilities,
+        requirements,
+        skills,
+        salaryMin: salaryMin ? Number(salaryMin) : null,
+        salaryMax: salaryMax ? Number(salaryMax) : null,
+        currency,
+        vacancyCount: 1,
+        benefits: [],
+        deadline: null,
+        departmentId: null,
+        skillIds: [],
+        minExperienceYears: 0,
+      });
 
-    const job: CreatedJob = {
-      id,
-      title: title.trim(),
-      department,
-      createdDate: formatNowAsLabel(),
-      createdAt: Date.now(),
-      approvalStatus: "Pending",
-      applicationsCount: 0,
-    };
-
-    writeCreatedJobs([job, ...existing]);
-    window.localStorage.removeItem(draftStorageKey);
-
-    toast.success("Job submitted for approval.");
-    navigate("/jobs");
+      window.localStorage.removeItem(draftStorageKey);
+      toast.success("Job submitted for approval.");
+      navigate("/jobs");
+    } catch {
+      toast.error("Unable to submit job");
+    }
   }
 
   const stepper = (
@@ -455,6 +429,19 @@ function JobCreatingScreen() {
 
                     <div className="space-y-2">
                       <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
+                        Location
+                      </label>
+                      <input
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                        placeholder="e.g. Ho Chi Minh City"
+                        type="text"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                         Work Mode
                       </label>
                       <div className="flex gap-4">
@@ -500,6 +487,7 @@ function JobCreatingScreen() {
                       type="button"
                       className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                       onClick={() => persistDraft(1)}
+                      disabled={!canCreateJob}
                     >
                       Save Draft
                     </button>
@@ -508,6 +496,7 @@ function JobCreatingScreen() {
                       type="button"
                       className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
                       onClick={continueNext}
+                      disabled={!canCreateJob}
                     >
                       Continue to Description
                       <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -630,6 +619,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                         onClick={() => persistDraft(2)}
+                        disabled={!canCreateJob}
                       >
                         Save Draft
                       </button>
@@ -639,6 +629,7 @@ function JobCreatingScreen() {
                       type="button"
                       className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
                       onClick={continueNext}
+                      disabled={!canCreateJob}
                     >
                       Continue to Skills & Pay
                       <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -749,6 +740,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                         onClick={() => persistDraft(3)}
+                        disabled={!canCreateJob}
                       >
                         Save Draft
                       </button>
@@ -758,6 +750,7 @@ function JobCreatingScreen() {
                       type="button"
                       className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
                       onClick={continueNext}
+                      disabled={!canCreateJob}
                     >
                       Continue to Review
                       <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -775,7 +768,7 @@ function JobCreatingScreen() {
                       </p>
                       <p className="mt-3 text-[16px] font-semibold">{title || "—"}</p>
                       <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                        {department} · {employmentType || "—"} · {workMode || "—"}
+                        {department} · {location || "—"} · {employmentType || "—"} · {workMode || "—"}
                       </p>
                       <p className="mt-4 text-[14px] text-[#1a1c1c]">{shortPitch || "—"}</p>
                     </div>
@@ -842,6 +835,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                         onClick={() => persistDraft(4)}
+                        disabled={!canCreateJob}
                       >
                         Save Draft
                       </button>
@@ -851,6 +845,7 @@ function JobCreatingScreen() {
                       type="button"
                       className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
                       onClick={publishJob}
+                      disabled={!canCreateJob || !canApproveJob}
                     >
                       Publish Job
                       <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -879,6 +874,7 @@ function JobCreatingScreen() {
                 type="button"
                 className="flex flex-col items-center justify-center rounded-lg bg-[#e8e8e8] p-6 text-center transition-colors hover:bg-[#e2e2e2]"
                 onClick={applyEngineeringTemplate}
+                disabled={!canUseTemplate}
               >
                 <span className="material-symbols-outlined mb-2 text-[32px] text-[#b90014]">history</span>
                 <p className="text-[12px] font-bold uppercase tracking-[0.05em]">Recent Templates</p>

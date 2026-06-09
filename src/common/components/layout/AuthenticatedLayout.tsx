@@ -1,16 +1,13 @@
 import { Outlet } from "react-router-dom";
-import { useSelector } from "react-redux";
-
-import type { RootState } from "../../../store";
+import { usePermissions } from "../../../hooks/usePermissions";
 import AppHeader from "./AppHeader";
 import BottomNavBar from "./BottomNavBar";
 import Footer from "./Footer";
 import SideNavBar from "./SideNavBar";
 
 function AuthenticatedLayout() {
-  const variant =
-    useSelector((state: RootState) => state.auth.currentVariant) ?? "candidate";
-  const isCandidate = variant === "candidate";
+  const { portalVariant } = usePermissions();
+  const isCandidate = portalVariant === "candidate";
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">

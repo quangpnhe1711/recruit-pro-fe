@@ -1,14 +1,11 @@
-import { useSelector } from "react-redux";
-import { RootState } from "../store";
+import { usePermissions } from "../hooks/usePermissions";
 import JobManagementScreen from "./hr/JobManagementScreen";
 import JobListingCandidateScreen from "./public/JobListingCandidateScreen";
 
 function JobsRouteScreen() {
-  const variant = useSelector((state: RootState) => state.auth.currentVariant);
+  const { portalVariant } = usePermissions();
 
-  // If user is in internal portal, show Job Management at /jobs.
-  // Otherwise keep existing candidate-facing job listing.
-  if (variant === "internal") {
+  if (portalVariant === "internal") {
     return <JobManagementScreen />;
   }
 

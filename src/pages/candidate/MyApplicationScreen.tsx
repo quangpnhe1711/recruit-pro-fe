@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 import { candidateService } from "../../services/candidate/candidateService";
 
 type ApplicationItem = {
@@ -21,7 +23,11 @@ const summaryCards = [
   { label: "Closed", value: 0 },
 ];
 
-function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
+function buildApplicationTableColumns(
+  canViewApplications: boolean,
+  canWithdrawApplications: boolean,
+  canAcceptOffer: boolean,
+): TableColumn<ApplicationItem>[] {
   return [
     {
       key: "title",
@@ -74,39 +80,51 @@ function buildApplicationTableColumns(): TableColumn<ApplicationItem>[] {
     {
       key: "actions",
       header: "Actions",
-      headerClassName: "text-right",
-      alignRight: true,
-      renderCell: (item) => (
-        <div className="flex justify-end gap-3">
-          {item.actionLabel === "Accept Offer" ? (
-            <button
-              className={`px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] transition-colors ${item.actionClass}`}
-              type="button"
-            >
-              {item.actionLabel}
-            </button>
-          ) : null}
-          <button
-            className="border-b-2 border-transparent text-[12px] font-bold text-[#1a1c1c] transition-colors hover:border-[#b90014]"
-            type="button"
-          >
-            View Detail
-          </button>
-          <button
-            className="text-[12px] font-bold text-[#ba1a1a] transition-opacity hover:opacity-70"
-            type="button"
-          >
-            {item.actionLabel === "Accept Offer"
-              ? "Withdraw"
-              : item.actionLabel}
-          </button>
-        </div>
-      ),
+        headerClassName: "text-right",
+        alignRight: true,
+        renderCell: (item) => {
+          const canAcceptThisApplication =
+            item.actionLabel === "Accept Offer" && canAcceptOffer;
+
+          return (
+            <div className="flex justify-end gap-3">
+              {item.actionLabel === "Accept Offer" ? (
+                <button
+                  className={`px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] transition-colors ${item.actionClass}`}
+                  type="button"
+                  disabled={!canAcceptThisApplication}
+                >
+                  {item.actionLabel}
+                </button>
+              ) : null}
+              <button
+                className="border-b-2 border-transparent text-[12px] font-bold text-[#1a1c1c] transition-colors hover:border-[#b90014]"
+                type="button"
+                disabled={!canViewApplications}
+              >
+                View Detail
+              </button>
+              <button
+                className="text-[12px] font-bold text-[#ba1a1a] transition-opacity hover:opacity-70"
+                type="button"
+                disabled={!canWithdrawApplications}
+              >
+                {item.actionLabel === "Accept Offer"
+                  ? "Withdraw"
+                  : item.actionLabel}
+              </button>
+            </div>
+          );
+        },
     },
   ];
 }
 
 function MyApplicationScreen() {
+  const { hasPermission } = usePermissions();
+  const canViewApplications = hasPermission(PERMISSIONS.APPLICATION_VIEW_OWN);
+  const canWithdrawApplications = hasPermission(PERMISSIONS.APPLICATION_WITHDRAW_OWN);
+  const canAcceptOffer = hasPermission(PERMISSIONS.APPLICATION_ACCEPT_OFFER_OWN);
   const [page, setPage] = useState(1);
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [summary, setSummary] = useState(summaryCards);
@@ -130,7 +148,7 @@ function MyApplicationScreen() {
       .then((res) => {
         if (!mounted) return;
 
-        const items = (res.data ?? []).map((item: any, index) => ({
+        const items = (res.data?.items ?? []).map((item: any, index) => ({
           icon: ["work", "terminal", "star"][index % 3],
           title: item.jobTitle,
           department: item.companyOrDepartment,
@@ -150,12 +168,12 @@ function MyApplicationScreen() {
         }));
 
         setApplications(items);
-        const extra = res.extra as any;
-        if (extra?.summary) {
+        const summary = res.data?.summary;
+        if (summary) {
           setSummary([
-            { label: "Total", value: extra.summary.total },
-            { label: "Active", value: extra.summary.active },
-            { label: "Closed", value: extra.summary.closed },
+            { label: "Total", value: summary.total },
+            { label: "Active", value: summary.active },
+            { label: "Closed", value: summary.closed },
           ]);
         }
       })
@@ -233,7 +251,11 @@ function MyApplicationScreen() {
 
       <section className="overflow-hidden border border-[#e2dfde] bg-white">
         <CommonTable
-          columns={buildApplicationTableColumns()}
+          columns={buildApplicationTableColumns(
+            canViewApplications,
+            canWithdrawApplications,
+            canAcceptOffer,
+          )}
           data={pageSlice}
           keyExtractor={(item) => item.title}
           loading={false}

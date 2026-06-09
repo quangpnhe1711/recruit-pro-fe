@@ -2,6 +2,8 @@ import { useMemo, useState, type ChangeEvent } from "react";
 import * as yup from "yup";
 import { Link } from "react-router-dom";
 import MockJsonButton from "../../common/components/MockJsonButton";
+import { toast } from "react-toastify";
+import { candidateService } from "../../services/candidate/candidateService";
 
 // 1. Định nghĩa lại Type FE khớp hoàn toàn với DTO C#
 type UserInfoValues = {
@@ -105,7 +107,15 @@ function CandidateRegisterScreen() {
       screen: "CandidateRegisterScreen",
       payloadToBeSent: {
         userInfo: values.userInfo,
-        candidateProfile: values.candidateProfile,
+        profile: {
+          currentPosition: values.candidateProfile.position,
+          experienceYears: values.candidateProfile.experienceYears,
+          education: values.candidateProfile.education,
+          address: values.candidateProfile.address,
+          bio: values.candidateProfile.bio,
+          githubUrl: values.candidateProfile.github,
+          linkedInUrl: values.candidateProfile.linkedin,
+        },
       },
       fileMetadata: values.resume
         ? {
@@ -115,8 +125,8 @@ function CandidateRegisterScreen() {
           }
         : null,
       notes: [
-        "Cấu trúc JSON này map trực tiếp vào CandidateRegisterRequest ở C# Backend.",
-        "Trường resume (File) nên được xử lý bằng cách gửi qua FormData nếu upload cùng lúc.",
+        "Payload đã được map sang CandidateRegisterRequest thực tế của backend.",
+        "File resume được gửi cùng request qua multipart/form-data.",
       ],
     };
   }, [values]);
@@ -209,66 +219,27 @@ function CandidateRegisterScreen() {
 
     setSubmitState("processing");
 
-    // 1. Khởi tạo đối tượng FormData thay vì JSON body thông thường
-    const formData = new FormData();
-
-    // 2. Đóng gói cụm dữ liệu "userInfo" theo quy tắc đặt tên thuộc tính của C#
-    formData.append("UserInfo.FullName", values.userInfo.fullName);
-    formData.append("UserInfo.Email", values.userInfo.email);
-    formData.append("UserInfo.PasswordHash", values.userInfo.password);
-    formData.append("UserInfo.Phone", values.userInfo.phone);
-
-    // 3. Đóng gói cụm dữ liệu "candidateProfile"
-    formData.append(
-      "CandidateProfile.Position",
-      values.candidateProfile.position,
-    );
-    if (values.candidateProfile.experienceYears !== null) {
-      formData.append(
-        "CandidateProfile.ExperienceYears",
-        String(values.candidateProfile.experienceYears),
-      );
-    }
-    formData.append(
-      "CandidateProfile.Education",
-      values.candidateProfile.education,
-    );
-    formData.append(
-      "CandidateProfile.Address",
-      values.candidateProfile.address,
-    );
-    formData.append("CandidateProfile.Bio", values.candidateProfile.bio);
-    formData.append("CandidateProfile.Github", values.candidateProfile.github);
-    formData.append(
-      "CandidateProfile.Linkedin",
-      values.candidateProfile.linkedin,
-    );
-
-    // 4. Đóng gói FILE LẺ (Key "resume" phải trùng khớp 100% với tên biến ở tham số Controller C#)
-    if (values.resume) {
-      formData.append("resume", values.resume);
-    }
-
-    // 5. Tiến hành call API thực tế bằng Axios hoặc Fetch
     try {
-      // Thay thế URL này bằng endpoint thực tế của Backend C# của bạn
-      const response = await fetch(
-        "https://localhost:7274/api/candidate/register",
-        {
-          method: "POST",
-          body: formData, // FormData sẽ tự động set Header Content-Type: multipart/form-data kèm theo boundary
+      await candidateService.register({
+        userInfo: values.userInfo,
+        profile: {
+          currentPosition: values.candidateProfile.position,
+          experienceYears: values.candidateProfile.experienceYears,
+          education: values.candidateProfile.education,
+          address: values.candidateProfile.address,
+          bio: values.candidateProfile.bio,
+          githubUrl: values.candidateProfile.github,
+          linkedInUrl: values.candidateProfile.linkedin,
         },
-      );
+        resume: values.resume,
+      });
 
-      if (response.ok) {
-        setSubmitState("success");
-        window.setTimeout(() => setSubmitState("idle"), 2000);
-      } else {
-        console.error("Backend returned an error response");
-        setSubmitState("idle");
-      }
+      setSubmitState("success");
+      toast.success("Tạo tài khoản thành công");
+      window.setTimeout(() => setSubmitState("idle"), 2000);
     } catch (error) {
       console.error("Lỗi khi gửi dữ liệu lên Backend:", error);
+      toast.error("Không thể tạo tài khoản");
       setSubmitState("idle");
     }
   };

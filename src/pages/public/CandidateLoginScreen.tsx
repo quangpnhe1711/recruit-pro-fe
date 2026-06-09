@@ -6,9 +6,9 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
-import { setCredentials, setVariant } from "../../store/slices/authSlice";
+import { setCredentials } from "../../store/slices/authSlice";
 import { useLoading } from "../../common/hooks/useLoading";
-import { getVariant } from "../../common/utils/helpers";
+import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
@@ -52,16 +52,21 @@ function CandidateLoginScreen() {
 
     try {
       const res = await withLoading(() =>
-        authService.login({
+        authService.candidateLogin({
           email: form.email,
           password: form.password,
         }),
       );
 
-      dispatch(setCredentials(res.data));
-      dispatch(setVariant(getVariant(res.data.user.roles)));
+      if (!res.data) {
+        throw new Error("Missing login payload");
+      }
 
-      navigate("/candidate/dashboard", {
+      dispatch(setCredentials(res.data));
+
+      const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
+
+      navigate(getRoleHomePath(primaryRole) ?? "/candidate/dashboard", {
         replace: true,
       });
     } catch {

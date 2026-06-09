@@ -1,5 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import PermissionGuard from "../../guards/PermissionGuard";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
 
 type RecentApplication = {
@@ -57,16 +60,11 @@ type JobDetailApiDto = {
 };
 
 type JobStatisticsApiDto = {
-  applicationSummary?: {
-    funnel?: Array<{
-      label: string;
-      count: number;
-    }>;
-  } | null;
-  hiringFunnel?: Array<{
-    label: string;
-    count: number;
-  }> | null;
+  applied?: number;
+  screening?: number;
+  interview?: number;
+  offer?: number;
+  hired?: number;
 };
 
 type RecentApplicationApiDto = {
@@ -124,6 +122,16 @@ function getStatusClassName(status: RecentApplication["status"]) {
 
 function Icon({ name }: { name: string }) {
   return <span className="material-symbols-outlined">{name}</span>;
+}
+
+function resolveDepartmentName(
+  department: JobDetailApiDto["department"],
+) {
+  if (typeof department === "string") {
+    return department;
+  }
+
+  return department?.name ?? "";
 }
 
 function AppSidebar() {
@@ -195,8 +203,18 @@ function AppSidebar() {
 
 function JobDetailScreen() {
   const navigate = useNavigate();
+  const { hasPermission, isAuthenticated, portalVariant } = usePermissions();
   const params = useParams();
   const jobId = params.jobId ?? "JB-9402";
+  const showInternalChrome = isAuthenticated && portalVariant === "internal";
+  const canEditJob = hasPermission(PERMISSIONS.JOB_UPDATE);
+  const canApproveJob = hasPermission(PERMISSIONS.JOB_APPROVE);
+  const canViewApplications = hasPermission(PERMISSIONS.JOB_VIEW_APPLICATIONS);
+  const canViewRecentApplications = hasPermission(
+    PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS,
+  );
+  const canViewStatistics = hasPermission(PERMISSIONS.JOB_VIEW_STATISTICS);
+  const canShareJob = hasPermission(PERMISSIONS.JOB_SHARE);
   const [job, setJob] = useState<JobDetail>(jobDirectory[jobId] ?? fallbackJob);
   const [recentApplications, setRecentApplications] = useState<RecentApplication[]>([]);
   const [hiringFunnel, setHiringFunnel] = useState<FunnelStage[]>([]);
@@ -221,7 +239,7 @@ function JobDetailScreen() {
             : data.salaryMin != null || data.salaryMax != null
               ? `$${(data.salaryMin ?? data.salaryMax ?? 0).toLocaleString()} — $${(data.salaryMax ?? data.salaryMin ?? 0).toLocaleString()}`
               : "Negotiable",
-          department: data.department?.name ?? data.department,
+          department: resolveDepartmentName(data.department),
           jobType: data.jobType ?? data.employmentType ?? "",
           vacancyCount: data.vacancyCount ?? 0,
           description: Array.isArray(data.description)
@@ -234,63 +252,76 @@ function JobDetailScreen() {
       })
       .catch(() => undefined);
 
-    jobsService.getJobStatistics(jobId)
-      .then((res) => {
-        if (!mounted) return;
-        const data = res.data as JobStatisticsApiDto | null;
-        const funnel = data?.applicationSummary?.funnel ?? data?.hiringFunnel ?? [];
-        const maxCount = Math.max(...funnel.map((item) => item.count ?? 0), 1);
+    if (canViewStatistics) {
+      jobsService.getJobStatistics(jobId)
+        .then((res) => {
+          if (!mounted) return;
+          const data = res.data as JobStatisticsApiDto | null;
+          const funnel = [
+            { label: "Applied", count: data?.applied ?? 0 },
+            { label: "Screening", count: data?.screening ?? 0 },
+            { label: "Interview", count: data?.interview ?? 0 },
+            { label: "Offer", count: data?.offer ?? 0 },
+            { label: "Hired", count: data?.hired ?? 0 },
+          ];
 
-        setHiringFunnel(
-          funnel.map((item) => ({
-            label: item.label,
-            count: item.count,
-            widthClassName: `w-[${Math.max(5, Math.round(((item.count ?? 0) / maxCount) * 100))}%]`,
-          })),
-        );
-      })
-      .catch(() => undefined);
+          setHiringFunnel(
+            funnel.map((item) => ({
+              label: item.label,
+              count: item.count,
+              widthClassName: "",
+            })),
+          );
+        })
+        .catch(() => undefined);
+    } else {
+      setHiringFunnel([]);
+    }
 
-    jobsService
-      .getRecentJobApplications(jobId)
-      .then((res) => {
-        if (!mounted) return;
-        const payload = res.data as { items?: RecentApplicationApiDto[] } | RecentApplicationApiDto[] | null;
-        const items = Array.isArray(payload?.items) ? payload.items : Array.isArray(payload) ? payload : [];
-        setRecentApplications(
-          items.slice(0, 5).map((item) => ({
-            id: item.id,
-            candidateName: item.candidate?.fullName ?? item.candidateName,
-            applied: item.appliedAt ? new Date(item.appliedAt).toLocaleDateString() : item.applied ?? "",
-            status:
-              item.status === "REVIEWING" || item.status === "Reviewing"
-                ? "Reviewing"
-                : item.status === "SCREENING" || item.status === "Screening"
-                  ? "Screening"
-                  : "Qualified",
-            score: String(item.score ?? "0"),
-            avatarUrl: item.candidate?.avatarUrl ?? item.avatarUrl,
-            initials:
-              item.candidate?.fullName
-                ?.split(" ")
-                .map((part) => part[0])
-                .join("")
-                .slice(0, 2) ?? undefined,
-          })),
-        );
-      })
-      .catch(() => undefined);
+    if (canViewRecentApplications) {
+      jobsService
+        .getRecentJobApplications(jobId)
+        .then((res) => {
+          if (!mounted) return;
+          const payload = res.data as RecentApplicationApiDto[] | null;
+          const items = Array.isArray(payload) ? payload : [];
+          setRecentApplications(
+            items.slice(0, 5).map((item) => ({
+              id: item.id,
+              candidateName: item.candidate?.fullName ?? item.candidateName,
+              applied: item.appliedAt ? new Date(item.appliedAt).toLocaleDateString() : item.applied ?? "",
+              status:
+                item.status === "REVIEWING" || item.status === "Reviewing"
+                  ? "Reviewing"
+                  : item.status === "SCREENING" || item.status === "Screening"
+                    ? "Screening"
+                    : "Qualified",
+              score: String(item.score ?? "0"),
+              avatarUrl: item.candidate?.avatarUrl ?? item.avatarUrl,
+              initials:
+                item.candidate?.fullName
+                  ?.split(" ")
+                  .map((part) => part[0])
+                  .join("")
+                  .slice(0, 2) ?? undefined,
+            })),
+          );
+        })
+        .catch(() => undefined);
+    } else {
+      setRecentApplications([]);
+    }
 
     return () => {
       mounted = false;
     };
-  }, [jobId]);
+  }, [canViewRecentApplications, canViewStatistics, jobId]);
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
-      <AppSidebar />
+      {showInternalChrome ? <AppSidebar /> : null}
 
-      <main className="flex min-h-screen flex-col md:ml-64">
+      <main className={`flex min-h-screen flex-col ${showInternalChrome ? "md:ml-64" : ""}`}>
 
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-6 py-6 md:px-10">
           <nav className="mb-6 flex items-center gap-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
@@ -333,27 +364,36 @@ function JobDetailScreen() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="flex items-center gap-2 border border-black bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-              >
-                <Icon name="edit" />
-                Edit Job
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-2 bg-[#b90014] px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-white transition-all hover:brightness-110"
-              >
-                <Icon name="visibility" />
-                View Applications
-              </button>
-              <button
-                type="button"
-                className="flex items-center gap-2 border border-[#5f5e5e] bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a] transition-colors hover:bg-[#ba1a1a]/5"
-              >
-                <Icon name="close" />
-                Close Posting
-              </button>
+              <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 border border-black bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+                  disabled={!canEditJob}
+                >
+                  <Icon name="edit" />
+                  Edit Job
+                </button>
+              </PermissionGuard>
+              <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_APPLICATIONS}>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 bg-[#b90014] px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-white transition-all hover:brightness-110"
+                  disabled={!canViewApplications}
+                >
+                  <Icon name="visibility" />
+                  View Applications
+                </button>
+              </PermissionGuard>
+              <PermissionGuard permissions={PERMISSIONS.JOB_APPROVE}>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 border border-[#5f5e5e] bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a] transition-colors hover:bg-[#ba1a1a]/5"
+                  disabled={!canApproveJob}
+                >
+                  <Icon name="close" />
+                  Close Posting
+                </button>
+              </PermissionGuard>
             </div>
           </section>
 
@@ -392,7 +432,8 @@ function JobDetailScreen() {
                 </ul>
               </section>
 
-              <section className="overflow-hidden border border-[#e2dfde] bg-white">
+              <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS}>
+                <section className="overflow-hidden border border-[#e2dfde] bg-white">
                 <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
                   <h3 className="flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
                     <span className="material-symbols-outlined text-[#b90014]">
@@ -403,6 +444,7 @@ function JobDetailScreen() {
                   <button
                     type="button"
                     className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
+                    disabled={!canViewApplications}
                   >
                     View All 42
                   </button>
@@ -480,11 +522,13 @@ function JobDetailScreen() {
                     </tbody>
                   </table>
                 </div>
-              </section>
+                </section>
+              </PermissionGuard>
             </div>
 
             <div className="flex flex-col gap-6 lg:col-span-4">
-              <section className="border border-[#e2dfde] bg-white p-6">
+              <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_STATISTICS}>
+                <section className="border border-[#e2dfde] bg-white p-6">
                 <h3 className="mb-6 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
                   Hiring Funnel
                 </h3>
@@ -501,12 +545,25 @@ function JobDetailScreen() {
                         </span>
                       </div>
                       <div className="h-2 w-full overflow-hidden bg-[#eeeeee]">
-                        <div className={`h-full bg-[#b90014] ${stage.widthClassName}`} />
+                        <div
+                          className="h-full bg-[#b90014]"
+                          style={{
+                            width: `${Math.max(
+                              5,
+                              Math.round(
+                                (stage.count /
+                                  Math.max(...hiringFunnel.map((item) => item.count), 1)) *
+                                  100,
+                              ),
+                            )}%`,
+                          }}
+                        />
                       </div>
                     </div>
                   ))}
                 </div>
-              </section>
+                </section>
+              </PermissionGuard>
 
               <section className="border border-[#e2dfde] bg-[#f3f3f3] p-6">
                 <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
@@ -540,21 +597,25 @@ function JobDetailScreen() {
                   </div>
                 </div>
 
-                <div className="mt-8 border-t border-[#e2dfde] pt-6">
-                  <button
-                    type="button"
-                    className="w-full border border-black bg-white py-3 text-[12px] font-bold tracking-[0.05em] text-[#1a1c1c] transition-all hover:bg-black hover:text-white"
-                  >
-                    Copy Shareable Link
-                  </button>
-                </div>
+                <PermissionGuard permissions={PERMISSIONS.JOB_SHARE}>
+                  <div className="mt-8 border-t border-[#e2dfde] pt-6">
+                    <button
+                      type="button"
+                      className="w-full border border-black bg-white py-3 text-[12px] font-bold tracking-[0.05em] text-[#1a1c1c] transition-all hover:bg-black hover:text-white"
+                      disabled={!canShareJob}
+                    >
+                      Copy Shareable Link
+                    </button>
+                  </div>
+                </PermissionGuard>
               </section>
             </div>
           </div>
         </div>
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-[#e2dfde] bg-white md:hidden">
+      {showInternalChrome ? (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-[#e2dfde] bg-white md:hidden">
         {[
           { icon: "dashboard", label: "Dashboard", active: false },
           { icon: "work", label: "Jobs", active: true },
@@ -579,7 +640,8 @@ function JobDetailScreen() {
             </span>
           </a>
         ))}
-      </nav>
+        </nav>
+      ) : null}
     </div>
   );
 }

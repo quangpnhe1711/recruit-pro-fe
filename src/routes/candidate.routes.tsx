@@ -1,27 +1,61 @@
 import { Route } from "react-router-dom";
 
 import RequireAuth from "../guards/RequireAuth";
-import RequireVariant from "../guards/RequireVariant";
+import RouteGuard from "../guards/RouteGuard";
+import { PERMISSIONS } from "../permissions/permissions";
 
 import DashboardCandidateScreen from "../pages/candidate/DashboardCandidateScreen";
 import MyApplicationScreen from "../pages/candidate/MyApplicationScreen";
 import CandidateProfileAndCVManagementScreen from "../pages/candidate/CandidateProfileAndCVManagementScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
+import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
 
 const candidateRoutes = (
   <Route element={<RequireAuth />}>
     <Route element={<AuthenticatedLayout />}>
-      <Route element={<RequireVariant variant="candidate" />}>
+      <Route
+        element={
+          <RouteGuard permissions={PERMISSIONS.DASHBOARD_VIEW_OWN} />
+        }
+      >
         <Route
           path="/candidate/dashboard"
           element={<DashboardCandidateScreen />}
         />
+      </Route>
 
+      <Route
+        element={
+          <RouteGuard permissions={PERMISSIONS.APPLICATION_VIEW_OWN} />
+        }
+      >
         <Route
           path="/candidate/my-applications"
           element={<MyApplicationScreen />}
         />
+      </Route>
 
+      <Route
+        element={
+          <RouteGuard permissions={PERMISSIONS.INTERVIEW_VIEW_OWN} />
+        }
+      >
+        <Route
+          path="/candidate/interviews"
+          element={
+            <FeaturePlaceholderScreen
+              title="Candidate Interviews"
+              description="This shared interview view is reserved for the candidate interview workflow and will surface scheduled sessions, confirmations, and updates here."
+            />
+          }
+        />
+      </Route>
+
+      <Route
+        element={
+          <RouteGuard permissions={PERMISSIONS.CANDIDATE_VIEW_OWN_PROFILE} />
+        }
+      >
         <Route
           path="/candidate/profile/*"
           element={<CandidateProfileAndCVManagementScreen />}

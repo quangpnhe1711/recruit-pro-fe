@@ -5,10 +5,15 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../store";
 import { logout } from "../store/slices/authSlice";
 import { clearProfile } from "../store/slices/userSlice";
+import { resolvePortalVariantFromUser } from "../permissions/rolePermissions";
 
 function LogoutScreen() {
   const dispatch = useDispatch();
-  const variant = useSelector((state: RootState) => state.auth.currentVariant);
+  const authState = useSelector((state: RootState) => state.auth);
+  const variant = resolvePortalVariantFromUser(
+    authState.user,
+    authState.currentVariant ?? "candidate",
+  );
   const redirectTo = variant === "internal" ? "/internal/login" : "/login";
 
   useEffect(() => {

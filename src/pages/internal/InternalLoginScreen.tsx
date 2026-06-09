@@ -5,8 +5,15 @@ import * as yup from 'yup'
 import { useDispatch } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import MockJsonButton from '../../common/components/MockJsonButton'
-import {  setVariant } from '../../store/slices/authSlice'
-import { setProfile } from '../../store/slices/userSlice'
+import { authService } from '../../services/auth/authService'
+import { setCredentials } from '../../store/slices/authSlice'
+import { toast } from 'react-toastify'
+import { getPrimaryRole, getRoleHomePath } from '../../permissions/rolePermissions'
+
+type InternalLoginForm = {
+  employeeId: string
+  password: string
+}
 
 function InternalLoginScreen() {
   const dispatch = useDispatch()
@@ -20,33 +27,40 @@ function InternalLoginScreen() {
     password: yup.string().required('Password is required'),
   }).required();
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<InternalLoginForm>({
     resolver: yupResolver(schema),
     defaultValues: { employeeId: '', password: '' },
   })
+
+  const employeeId = watch('employeeId')
 
   const employeeIdPlaceholder = useMemo(
     () => 'e.g. RP-8829 or name@recruitpro.com',
     [],
   )
 
-  function onSubmit(data) {
+  async function onSubmit(data: InternalLoginForm) {
     setSubmitted(true)
 
-    const emailLike = data.employeeId.includes('@')
-      ? data.employeeId
-      : `${data.employeeId || 'alex.rivera'}@recruitpro.com`
-
-    dispatch(setVariant('internal'))
-    dispatch(
-      setProfile({
-        id: 'employee-1',
-        name: 'Alex Rivera',
-        email: emailLike,
+    try {
+      const res = await authService.internalLogin({
+        employeeIdOrEmail: data.employeeId,
+        password: data.password,
       })
-    )
 
-    navigate('/internal/dashboard', { replace: true })
+      if (!res.data) {
+        throw new Error('Missing login payload')
+      }
+
+      dispatch(setCredentials(res.data))
+      toast.success('Đăng nhập thành công')
+
+      const primaryRole = getPrimaryRole(res.data.user.roles ?? [])
+      navigate(getRoleHomePath(primaryRole) ?? '/hr/dashboard', { replace: true })
+    } catch {
+      toast.error('Employee ID/email hoặc mật khẩu không chính xác')
+      setSubmitted(false)
+    }
   }
 
   return (

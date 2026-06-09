@@ -1,9 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
-import { setVariant } from "../../store/slices/authSlice";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 
 type ApplicationStatus = "New" | "Under Review" | "Interviewing" | "Rejected";
@@ -112,6 +111,10 @@ function departmentBadgeColors(dept: Department) {
 function buildApplicationTableColumns(
   onViewCV: (app: Application) => void,
   onSendEmail: (app: Application, emailType: string) => void,
+  options: {
+    canSendEmail: boolean;
+    canViewCv: boolean;
+  },
 ): TableColumn<Application>[] {
   return [
     {
@@ -181,57 +184,61 @@ function buildApplicationTableColumns(
       headerClassName: "text-right",
       renderCell: (app) => (
         <div className="flex items-center justify-end gap-2">
-          <div className="group relative">
+          {options.canSendEmail ? (
+            <div className="group relative">
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-lg bg-[#e31b23] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#b90014]"
+                onClick={() => onSendEmail(app, "default")}
+              >
+                Send Email{" "}
+                <span className="material-symbols-outlined text-sm">
+                  expand_more
+                </span>
+              </button>
+              <div className="absolute right-0 z-50 mt-1 hidden w-48 rounded-lg border border-[#e7bdb8] bg-white shadow-xl group-hover:block">
+                <a
+                  className="block px-4 py-2 text-sm text-[#1a1c1c] transition-colors hover:bg-[#b90014]/5 hover:text-[#b90014]"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSendEmail(app, "Interview Invitation");
+                  }}
+                >
+                  Interview Invitation
+                </a>
+                <a
+                  className="block px-4 py-2 text-sm text-[#1a1c1c] transition-colors hover:bg-[#b90014]/5 hover:text-[#b90014]"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSendEmail(app, "Job Offer");
+                  }}
+                >
+                  Job Offer
+                </a>
+                <a
+                  className="block px-4 py-2 text-sm text-[#1a1c1c] transition-colors hover:bg-[#b90014]/5 hover:text-[#b90014]"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSendEmail(app, "Rejection Mail");
+                  }}
+                >
+                  Rejection Mail
+                </a>
+              </div>
+            </div>
+          ) : null}
+          {options.canViewCv ? (
             <button
               type="button"
-              className="flex items-center gap-1 rounded-lg bg-[#e31b23] px-4 py-2 text-sm font-bold text-white transition-all hover:bg-[#b90014]"
-              onClick={() => onSendEmail(app, "default")}
+              className="rounded-lg bg-[#e31b23] px-6 py-2 text-sm font-bold text-white shadow-md shadow-[#b90014]/10 transition-all hover:bg-[#b90014]"
+              onClick={() => onViewCV(app)}
             >
-              Send Email{" "}
-              <span className="material-symbols-outlined text-sm">
-                expand_more
-              </span>
+              View CV
             </button>
-            <div className="absolute right-0 z-50 mt-1 hidden w-48 rounded-lg border border-[#e7bdb8] bg-white shadow-xl group-hover:block">
-              <a
-                className="block px-4 py-2 text-sm text-[#1a1c1c] transition-colors hover:bg-[#b90014]/5 hover:text-[#b90014]"
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onSendEmail(app, "Interview Invitation");
-                }}
-              >
-                Interview Invitation
-              </a>
-              <a
-                className="block px-4 py-2 text-sm text-[#1a1c1c] transition-colors hover:bg-[#b90014]/5 hover:text-[#b90014]"
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onSendEmail(app, "Job Offer");
-                }}
-              >
-                Job Offer
-              </a>
-              <a
-                className="block px-4 py-2 text-sm text-[#1a1c1c] transition-colors hover:bg-[#b90014]/5 hover:text-[#b90014]"
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onSendEmail(app, "Rejection Mail");
-                }}
-              >
-                Rejection Mail
-              </a>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="rounded-lg bg-[#e31b23] px-6 py-2 text-sm font-bold text-white shadow-md shadow-[#b90014]/10 transition-all hover:bg-[#b90014]"
-            onClick={() => onViewCV(app)}
-          >
-            View CV
-          </button>
+          ) : null}
           <button
             type="button"
             className="rounded-full p-2 text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3] hover:text-[#1a1c1c]"
@@ -248,12 +255,9 @@ function buildApplicationTableColumns(
 }
 
 function CandidateApplicationScreen() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    dispatch(setVariant("internal"));
-  }, [dispatch]);
+  const { hasPermission } = usePermissions();
+  const canSendEmail = hasPermission(PERMISSIONS.APPLICATION_SEND_EMAIL);
+  const canViewCv = hasPermission(PERMISSIONS.APPLICATION_VIEW_CV);
 
   useEffect(() => {
     let mounted = true;
@@ -517,7 +521,10 @@ function CandidateApplicationScreen() {
 
       {/* Data Table with Pagination */}
       <CommonTable
-        columns={buildApplicationTableColumns(viewCV, sendEmail)}
+        columns={buildApplicationTableColumns(viewCV, sendEmail, {
+          canSendEmail,
+          canViewCv,
+        })}
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}

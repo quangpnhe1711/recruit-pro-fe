@@ -5,6 +5,11 @@ import { LoginRequest, LoginResponseDto } from "../../modules/auth/authSchema";
 import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
 
+export type InternalLoginRequest = {
+  employeeIdOrEmail: string;
+  password: string;
+};
+
 export const authService = {
   login: async (data: LoginRequest): Promise<ApiResponse<LoginResponseDto>> => {
     return request.post<ApiResponse<LoginResponseDto>>(
@@ -13,7 +18,29 @@ export const authService = {
     );
   },
 
+  candidateLogin: async (
+    data: LoginRequest,
+  ): Promise<ApiResponse<LoginResponseDto>> => {
+    return request.post<ApiResponse<LoginResponseDto>, LoginRequest>(
+      endpoints.auth.candidateLogin,
+      data,
+    );
+  },
+
+  internalLogin: async (
+    data: InternalLoginRequest,
+  ): Promise<ApiResponse<LoginResponseDto>> => {
+    return request.post<ApiResponse<LoginResponseDto>, InternalLoginRequest>(
+      endpoints.auth.internalLogin,
+      data,
+    );
+  },
+
   logout: async (): Promise<ApiResponse<null>> => {
-    return request.post<ApiResponse<null>>(endpoints.auth.logout);
+    return Promise.resolve({
+      success: true,
+      message: "Logged out locally",
+      data: null,
+    });
   },
 };

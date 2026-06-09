@@ -41,14 +41,12 @@ export type CandidateApplicationItemDto = {
 };
 
 export type CandidateApplicationsResponseDto = {
-  data: CandidateApplicationItemDto[];
+  items: CandidateApplicationItemDto[];
   meta?: ApiResponse<unknown>["meta"];
-  extra?: {
-    summary?: {
-      total: number;
-      active: number;
-      closed: number;
-    };
+  summary?: {
+    total: number;
+    active: number;
+    closed: number;
   };
 };
 
@@ -115,6 +113,25 @@ export type CandidateExperienceRequest = {
   bullets: string[];
 };
 
+export type CandidateRegisterPayload = {
+  userInfo: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone: string;
+  };
+  profile?: {
+    currentPosition?: string;
+    experienceYears?: number | null;
+    education?: string;
+    address?: string;
+    bio?: string;
+    githubUrl?: string;
+    linkedInUrl?: string;
+  } | null;
+  resume?: File | null;
+};
+
 function buildParams<T extends Record<string, unknown>>(params?: T) {
   if (!params) return undefined;
 
@@ -126,14 +143,62 @@ function buildParams<T extends Record<string, unknown>>(params?: T) {
 }
 
 export const candidateService = {
+  register: async (
+    payload: CandidateRegisterPayload,
+  ): Promise<ApiResponse<{ userId: string; candidateId: string; resumeUploaded: boolean }>> => {
+    const formData = new FormData();
+
+    formData.append("UserInfo.FullName", payload.userInfo.fullName);
+    formData.append("UserInfo.Email", payload.userInfo.email);
+    formData.append("UserInfo.PasswordHash", payload.userInfo.password);
+    formData.append("UserInfo.Phone", payload.userInfo.phone);
+
+    if (payload.profile) {
+      if (payload.profile.currentPosition) {
+        formData.append("Profile.CurrentPosition", payload.profile.currentPosition);
+      }
+      if (payload.profile.experienceYears != null) {
+        formData.append("Profile.ExperienceYears", String(payload.profile.experienceYears));
+      }
+      if (payload.profile.education) {
+        formData.append("Profile.Education", payload.profile.education);
+      }
+      if (payload.profile.address) {
+        formData.append("Profile.Address", payload.profile.address);
+      }
+      if (payload.profile.bio) {
+        formData.append("Profile.Bio", payload.profile.bio);
+      }
+      if (payload.profile.githubUrl) {
+        formData.append("Profile.GitHubUrl", payload.profile.githubUrl);
+      }
+      if (payload.profile.linkedInUrl) {
+        formData.append("Profile.LinkedInUrl", payload.profile.linkedInUrl);
+      }
+    }
+
+    if (payload.resume) {
+      formData.append("resume", payload.resume);
+    }
+
+    return request.post<
+      ApiResponse<{ userId: string; candidateId: string; resumeUploaded: boolean }>,
+      FormData
+    >(endpoints.candidates.register, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
   getDashboard: async (): Promise<ApiResponse<CandidateDashboardDto>> => {
     return request.get<ApiResponse<CandidateDashboardDto>>(endpoints.candidate.dashboard);
   },
 
   getApplications: async (
     params?: Record<string, unknown>,
-  ): Promise<ApiResponse<CandidateApplicationItemDto[]>> => {
-    return request.get<ApiResponse<CandidateApplicationItemDto[]>>(
+  ): Promise<ApiResponse<CandidateApplicationsResponseDto>> => {
+    return request.get<ApiResponse<CandidateApplicationsResponseDto>>(
       endpoints.candidate.applications,
       { params: buildParams(params) },
     );
@@ -153,15 +218,15 @@ export const candidateService = {
 
   updateProfile: async (
     data: CandidateProfileUpdateRequest,
-  ): Promise<ApiResponse<CandidateProfileResponseDto["profile"]>> => {
-    return request.put<ApiResponse<CandidateProfileResponseDto["profile"]>, CandidateProfileUpdateRequest>(
+  ): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    return request.put<ApiResponse<CandidateProfileResponseDto>, CandidateProfileUpdateRequest>(
       endpoints.candidate.profile,
       data,
     );
   },
 
-  updateSkills: async (skillIds: string[]): Promise<ApiResponse<null>> => {
-    return request.put<ApiResponse<null>, { skillIds: string[] }>(
+  updateSkills: async (skillIds: string[]): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    return request.put<ApiResponse<CandidateProfileResponseDto>, { skillIds: string[] }>(
       endpoints.candidate.profileSkills,
       { skillIds },
     );
@@ -169,8 +234,8 @@ export const candidateService = {
 
   createExperience: async (
     data: CandidateExperienceRequest,
-  ): Promise<ApiResponse<null>> => {
-    return request.post<ApiResponse<null>, CandidateExperienceRequest>(
+  ): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    return request.post<ApiResponse<CandidateProfileResponseDto>, CandidateExperienceRequest>(
       endpoints.candidate.profileExperience,
       data,
     );
@@ -179,15 +244,15 @@ export const candidateService = {
   updateExperience: async (
     experienceId: string,
     data: CandidateExperienceRequest,
-  ): Promise<ApiResponse<null>> => {
-    return request.put<ApiResponse<null>, CandidateExperienceRequest>(
+  ): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    return request.put<ApiResponse<CandidateProfileResponseDto>, CandidateExperienceRequest>(
       endpoints.candidate.profileExperienceDetail(experienceId),
       data,
     );
   },
 
-  deleteExperience: async (experienceId: string): Promise<ApiResponse<null>> => {
-    return request.delete<ApiResponse<null>>(
+  deleteExperience: async (experienceId: string): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    return request.delete<ApiResponse<CandidateProfileResponseDto>>(
       endpoints.candidate.profileExperienceDetail(experienceId),
     );
   },
