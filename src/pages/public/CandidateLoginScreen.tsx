@@ -9,6 +9,9 @@ import { toast } from "react-toastify";
 import { setCredentials } from "../../store/slices/authSlice";
 import { useLoading } from "../../common/hooks/useLoading";
 import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
+import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
+
+const rememberedCandidateEmailKey = "rp_candidate_remembered_email";
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
@@ -36,15 +39,16 @@ function CandidateLoginScreen() {
   } = useForm<LoginForm>({
     resolver: yupResolver(schema),
     defaultValues: {
-      email: "",
+      email: localStorage.getItem(rememberedCandidateEmailKey) ?? "",
       password: "",
-      remember: false,
+      remember: Boolean(localStorage.getItem(rememberedCandidateEmailKey)),
     },
   });
 
   const form = watch();
   const [loginError, setLoginError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const { loading, withLoading } = useLoading();
 
   const onSubmit = async () => {
@@ -64,6 +68,12 @@ function CandidateLoginScreen() {
 
       dispatch(setCredentials(res.data));
 
+      if (form.remember) {
+        localStorage.setItem(rememberedCandidateEmailKey, form.email.trim());
+      } else {
+        localStorage.removeItem(rememberedCandidateEmailKey);
+      }
+
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
 
       navigate(getRoleHomePath(primaryRole) ?? "/candidate/dashboard", {
@@ -76,6 +86,11 @@ function CandidateLoginScreen() {
     toast.success("Đăng nhập thành công");
     
   };
+
+  async function handleForgotPassword(identifier: string) {
+    const response = await authService.candidateForgotPassword({ identifier });
+    toast.success(response.message || "Temporary password has been issued if the account exists.");
+  }
 
   type LoginForm = yup.InferType<typeof schema>;
 
@@ -183,12 +198,13 @@ function CandidateLoginScreen() {
                   >
                     Password
                   </label>
-                  <a
-                    href="#"
+                  <button
+                    type="button"
                     className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] transition-colors hover:underline"
+                    onClick={() => setForgotPasswordOpen(true)}
                   >
                     Forgot Password?
-                  </a>
+                  </button>
                 </div>
                 <div className="relative">
                   <input
@@ -281,6 +297,14 @@ function CandidateLoginScreen() {
           </div>
         </section>
       </main>
+      <ForgotPasswordDialog
+        title="Candidate Password Reset"
+        label="Candidate Email"
+        placeholder="name@company.com"
+        open={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+        onSubmit={handleForgotPassword}
+      />
     </div>
   );
 }

@@ -9,10 +9,14 @@ import { authService } from '../../services/auth/authService'
 import { setCredentials } from '../../store/slices/authSlice'
 import { toast } from 'react-toastify'
 import { getPrimaryRole, getRoleHomePath } from '../../permissions/rolePermissions'
+import ForgotPasswordDialog from '../../common/components/auth/ForgotPasswordDialog'
+
+const rememberedInternalIdentifierKey = "rp_internal_remembered_identifier";
 
 type InternalLoginForm = {
   employeeId: string
   password: string
+  remember: boolean
 }
 
 function InternalLoginScreen() {
@@ -21,6 +25,7 @@ function InternalLoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
   const schema = yup.object({
     employeeId: yup.string().required('Employee ID or email is required'),
@@ -29,7 +34,11 @@ function InternalLoginScreen() {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<InternalLoginForm>({
     resolver: yupResolver(schema),
-    defaultValues: { employeeId: '', password: '' },
+    defaultValues: {
+      employeeId: localStorage.getItem(rememberedInternalIdentifierKey) ?? '',
+      password: '',
+      remember: Boolean(localStorage.getItem(rememberedInternalIdentifierKey)),
+    },
   })
 
   const employeeId = watch('employeeId')
@@ -53,6 +62,11 @@ function InternalLoginScreen() {
       }
 
       dispatch(setCredentials(res.data))
+      if (data.remember) {
+        localStorage.setItem(rememberedInternalIdentifierKey, data.employeeId.trim())
+      } else {
+        localStorage.removeItem(rememberedInternalIdentifierKey)
+      }
       toast.success('Đăng nhập thành công')
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? [])
@@ -61,6 +75,11 @@ function InternalLoginScreen() {
       toast.error('Employee ID/email hoặc mật khẩu không chính xác')
       setSubmitted(false)
     }
+  }
+
+  async function handleForgotPassword(identifier: string) {
+    const response = await authService.internalForgotPassword({ identifier })
+    toast.success(response.message || "Temporary password has been issued if the account exists.")
   }
 
   return (
@@ -138,12 +157,13 @@ function InternalLoginScreen() {
                   >
                     Password
                   </label>
-                  <a
-                    href="#"
+                  <button
+                    type="button"
                     className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] transition-all hover:underline"
+                    onClick={() => setForgotPasswordOpen(true)}
                   >
-                    Forgot?
-                  </a>
+                    Forgot Password?
+                  </button>
                 </div>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-[#5d3f3c]">
@@ -168,6 +188,20 @@ function InternalLoginScreen() {
                     </span>
                   </button>
                 </div>
+              </div>
+              <div className="flex items-center">
+                <input
+                  id="remember"
+                  {...register('remember')}
+                  type="checkbox"
+                  className="h-4 w-4 rounded-none border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
+                />
+                <label
+                  htmlFor="remember"
+                  className="ml-3 select-none text-[14px] leading-[20px] text-[#5d3f3c]"
+                >
+                  Remember this account
+                </label>
               </div>
               <button
                 type="submit"
@@ -200,6 +234,14 @@ function InternalLoginScreen() {
           </div>
         </div>
       </main>
+      <ForgotPasswordDialog
+        title="Internal Password Reset"
+        label="Corporate Email"
+        placeholder="name@recruitpro.com"
+        open={forgotPasswordOpen}
+        onClose={() => setForgotPasswordOpen(false)}
+        onSubmit={handleForgotPassword}
+      />
     </div>
   )
 }

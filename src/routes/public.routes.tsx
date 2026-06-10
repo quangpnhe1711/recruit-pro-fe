@@ -9,9 +9,14 @@ import JobsRouteScreen from "../pages/JobsRouteScreen";
 import JobDetailScreen from "../pages/public/JobDetailScreen";
 import AdaptiveLayout from "../guards/AdaptiveLayout";
 import LandingPageScreen from "../pages/public/LandingPageScreen";
+import PublicLayout from "../common/components/layout/PublicLayout";
 
 const publicRoutes = (
   <>
+    <Route element={<PublicLayout />}>
+      <Route path="/home" element={<LandingPageScreen />} />
+    </Route>
+
     <Route element={<AdaptiveLayout />}>
       <Route path="/jobs" element={<JobsRouteScreen />} />
       <Route path="/internal/jobs" element={<Navigate to="/jobs" replace />} />
@@ -19,7 +24,6 @@ const publicRoutes = (
         path="/internal/jobs/create"
         element={<Navigate to="/hr/jobs/create" replace />}
       />
-                <Route path="/home" element={<LandingPageScreen />} />
 
       <Route path="/jobs/:jobId" element={<JobDetailScreen />} />
     </Route>

@@ -56,7 +56,7 @@ export function getRoleHomePath(role: string | null) {
     case ROLE_NAMES.HR:
       return "/hr/dashboard";
     case ROLE_NAMES.MANAGER:
-      return "/hr/dashboard";
+      return "/manager/dashboard";
     case ROLE_NAMES.SYSTEM_ADMIN:
       return "/system-admin/dashboard";
     default:

@@ -909,14 +909,28 @@ function JobInterviewListScreen() {
           <h3 className="text-[20px] font-bold text-[#1a1c1c]">
             Interview Schedule
           </h3>
-          <button
-            type="button"
-            className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#93000d]"
-            onClick={exportCsv}
-            disabled={!canExportInterviews}
-          >
-            Export CSV
-          </button>
+          <div className="flex items-center gap-3">
+            {canCreateInterviews ? (
+              <button
+                type="button"
+                className="rounded border border-[#b90014] bg-white px-4 py-2 text-[12px] font-semibold text-[#b90014] transition-colors hover:bg-[#fff3f2]"
+                onClick={() => {
+                  toast.info("Create a new interview");
+                  navigate("/hr/interviews/schedule");
+                }}
+              >
+                Schedule Interview
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#93000d]"
+              onClick={exportCsv}
+              disabled={!canExportInterviews}
+            >
+              Export CSV
+            </button>
+          </div>
         </div>
 
         <CommonTable
@@ -972,21 +986,6 @@ function JobInterviewListScreen() {
           tableWrapperClassName="overflow-hidden rounded-lg border border-[#e2dfde] bg-white"
         />
       </div>
-
-      {/* Floating action button */}
-      {canCreateInterviews ? (
-        <button
-          type="button"
-          className="fixed bottom-10 right-10 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#b90014] text-white shadow-lg transition-all hover:scale-105 active:scale-95"
-          onClick={() => {
-            toast.info("Create a new interview");
-            navigate("/hr/interviews/schedule");
-          }}
-          aria-label="Add interview"
-        >
-          <span className="material-symbols-outlined">add</span>
-        </button>
-      ) : null}
     </div>
   );
 }

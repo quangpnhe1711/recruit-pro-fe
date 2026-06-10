@@ -9,10 +9,21 @@ const readAuthFromStorage = () => {
   const accessToken = localStorage.getItem("access_token");
   const refreshToken = localStorage.getItem("refresh_token");
   const variant = localStorage.getItem("current_variant") as Variant | null;
+  const userRaw = localStorage.getItem("auth_user");
+  let user: UserDto | null = null;
+
+  if (userRaw) {
+    try {
+      user = JSON.parse(userRaw) as UserDto;
+    } catch {
+      localStorage.removeItem("auth_user");
+    }
+  }
 
   return {
     accessToken,
     refreshToken,
+    user,
     currentVariant: variant ?? undefined,
     isAuthenticated: Boolean(accessToken && refreshToken),
   };
@@ -35,7 +46,7 @@ export type AuthState = {
 const initialState: AuthState = {
   accessToken: persistedAuth.accessToken,
   refreshToken: persistedAuth.refreshToken,
-  user: null,
+  user: persistedAuth.user,
   currentVariant: persistedAuth.currentVariant,
   isAuthenticated: persistedAuth.isAuthenticated,
 };
@@ -65,10 +76,12 @@ const authSlice = createSlice({
       localStorage.setItem("access_token", accessToken);
       localStorage.setItem("refresh_token", refreshToken);
       localStorage.setItem("current_variant", resolvedVariant);
+      localStorage.setItem("auth_user", JSON.stringify(user));
     },
 
     setAccessToken(state, action: PayloadAction<string>) {
       state.accessToken = action.payload;
+      localStorage.setItem("access_token", action.payload);
     },
 
     setVariant(state, action: PayloadAction<Variant>) {
@@ -79,6 +92,7 @@ const authSlice = createSlice({
 
     updateUser(state, action: PayloadAction<UserDto>) {
       state.user = action.payload;
+      localStorage.setItem("auth_user", JSON.stringify(action.payload));
     },
 
     logout(state) {
@@ -95,6 +109,7 @@ const authSlice = createSlice({
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("current_variant");
+      localStorage.removeItem("auth_user");
     },
   },
 });

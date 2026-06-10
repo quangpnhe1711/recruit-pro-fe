@@ -10,6 +10,10 @@ export type InternalLoginRequest = {
   password: string;
 };
 
+export type ForgotPasswordRequest = {
+  identifier: string;
+};
+
 export const authService = {
   login: async (data: LoginRequest): Promise<ApiResponse<LoginResponseDto>> => {
     return request.post<ApiResponse<LoginResponseDto>>(
@@ -32,6 +36,24 @@ export const authService = {
   ): Promise<ApiResponse<LoginResponseDto>> => {
     return request.post<ApiResponse<LoginResponseDto>, InternalLoginRequest>(
       endpoints.auth.internalLogin,
+      data,
+    );
+  },
+
+  candidateForgotPassword: async (
+    data: ForgotPasswordRequest,
+  ): Promise<ApiResponse<string>> => {
+    return request.post<ApiResponse<string>, ForgotPasswordRequest>(
+      endpoints.auth.candidateForgotPassword,
+      data,
+    );
+  },
+
+  internalForgotPassword: async (
+    data: ForgotPasswordRequest,
+  ): Promise<ApiResponse<string>> => {
+    return request.post<ApiResponse<string>, ForgotPasswordRequest>(
+      endpoints.auth.internalForgotPassword,
       data,
     );
   },

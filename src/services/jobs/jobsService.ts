@@ -11,6 +11,9 @@ import type {
   JobFunnelStageDto,
   JobListItemDto,
   JobStatisticsDto,
+  ManagerJobApprovalDetailDto,
+  ManagerJobApprovalQueryParams,
+  ManagerJobApprovalQueueResponseDto,
   PaginatedResponse,
   PublicJobQueryParams,
   SkillDto,
@@ -271,5 +274,22 @@ export const jobsService = {
 
   deleteJob: async (jobId: string): Promise<ApiResponse<null>> => {
     return request.delete<ApiResponse<null>>(endpoints.hrJobs.detail(jobId));
+  },
+
+  getManagerApprovalQueue: async (
+    params?: ManagerJobApprovalQueryParams,
+  ): Promise<ApiResponse<ManagerJobApprovalQueueResponseDto>> => {
+    return request.get<ApiResponse<ManagerJobApprovalQueueResponseDto>>(
+      endpoints.manager.jobApprovalQueue,
+      { params: buildParams(params) },
+    );
+  },
+
+  getManagerApprovalDetail: async (
+    jobId: string,
+  ): Promise<ApiResponse<ManagerJobApprovalDetailDto>> => {
+    return request.get<ApiResponse<ManagerJobApprovalDetailDto>>(
+      endpoints.manager.jobApprovalDetail(jobId),
+    );
   },
 };

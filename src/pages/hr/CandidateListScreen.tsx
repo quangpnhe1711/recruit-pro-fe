@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PermissionGuard from "../../guards/PermissionGuard";
@@ -187,6 +188,7 @@ function buildCandidateTableColumns(
 }
 
 function CandidateListScreen() {
+  const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const canImportCandidates = hasPermission(PERMISSIONS.CANDIDATE_IMPORT);
   const canCreateCandidates = hasPermission(PERMISSIONS.CANDIDATE_CREATE);
@@ -290,7 +292,7 @@ function CandidateListScreen() {
   }
 
   function handleImport() {
-    toast.info("Import candidates functionality");
+    navigate("/hr/candidates/import");
   }
 
   function handleAddCandidate() {

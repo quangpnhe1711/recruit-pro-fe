@@ -94,6 +94,170 @@ export type ApplicationListItemDto = {
   nextStep: string | null;
 };
 
+export type ApplicationReviewDecision = "hire" | "hold" | "reject";
+
+export type ApplicationReviewDetailDto = {
+  applicationId: string;
+  referenceCode: string;
+  stageLabel: string;
+  status: string;
+  appliedAt: string | null;
+  nextStep: string;
+  candidate: {
+    id: string;
+    fullName: string;
+    email: string;
+    phone: string | null;
+    avatarUrl: string | null;
+    currentPosition: string | null;
+    experienceYears: number | null;
+    education: string | null;
+    address: string | null;
+    bio: string | null;
+    linkedinUrl: string | null;
+    githubUrl: string | null;
+    skills: string[];
+  };
+  job: {
+    id: string;
+    title: string;
+    departmentName: string;
+    requiredSkills: string[];
+  };
+  insights: {
+    skillsMatchPercent: number;
+    matchedSkillCount: number;
+    requiredSkillCount: number;
+    submittedInterviewNotes: number;
+    totalInterviews: number;
+  };
+  interviews: Array<{
+    id: string;
+    label: string;
+    interviewDate: string;
+    status: string;
+    notes: string | null;
+  }>;
+  reviewedBy: UserDto | null;
+};
+
+export type ManagerReviewQueueItemDto = {
+  applicationId: string;
+  candidateName: string;
+  candidateInitials: string;
+  candidateAvatarUrl: string | null;
+  candidateLocation: string;
+  jobTitle: string;
+  score: number;
+  recommendation: string;
+  status: string;
+  appliedAt: string | null;
+  completedInterviews: number;
+  totalInterviews: number;
+};
+
+export type ManagerReviewQueueResponseDto = {
+  items: ManagerReviewQueueItemDto[];
+  meta: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  summary: {
+    pendingFinalApprovals: number;
+    recommendedCount: number;
+    flaggedCount: number;
+    averageScore: number;
+  };
+};
+
+export type ManagerJobApprovalQueueItemDto = {
+  jobId: string;
+  referenceCode: string;
+  title: string;
+  departmentName: string;
+  hiringTeamLabel: string;
+  hrOwnerName: string;
+  status: string;
+  submittedAt: string | null;
+  vacancyCount: number;
+  requiredSkillsCount: number;
+  applicationsCount: number;
+  isOverdue: boolean;
+};
+
+export type ManagerJobApprovalQueueResponseDto = {
+  items: ManagerJobApprovalQueueItemDto[];
+  meta: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+  summary: {
+    pendingApprovals: number;
+    submittedToday: number;
+    overdueReviews: number;
+    departmentsWaiting: number;
+  };
+};
+
+export type ManagerJobApprovalDetailDto = {
+  jobId: string;
+  referenceCode: string;
+  title: string;
+  status: string;
+  statusLabel: string;
+  submittedAt: string | null;
+  submittedAgoLabel: string;
+  hrOwner: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phone: string | null;
+  };
+  department: {
+    departmentId: string;
+    name: string;
+    description: string | null;
+  };
+  location: string;
+  workMode: string;
+  employmentType: string;
+  vacancyCount: number;
+  minExperienceYears: number | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  deadline: string | null;
+  description: string[];
+  requirements: string[];
+  benefits: string[];
+  skills: Array<{
+    skillId: string;
+    name: string;
+    minYearsExperience: number | null;
+    isRequired: boolean;
+  }>;
+  insights: {
+    applicationsCount: number;
+    activePipelineCount: number;
+    requiredSkillsCount: number;
+    optionalSkillsCount: number;
+    hasSalaryRange: boolean;
+  };
+  interviewFlow: Array<{
+    order: number;
+    label: string;
+    description: string;
+  }>;
+  approvalSnapshot: {
+    approvedByName: string | null;
+    lastUpdatedAt: string | null;
+    summary: string;
+  } | null;
+};
+
 export type JobDetailDto = {
   id: string;
   title: string;
@@ -157,6 +321,13 @@ export type JobStatisticsDto = {
 export type HrJobQueryParams = {
   departmentId?: string | null;
   status?: JobStatus | null;
+  page?: number;
+  pageSize?: number;
+};
+
+export type ManagerJobApprovalQueryParams = {
+  keyword?: string | null;
+  department?: string | null;
   page?: number;
   pageSize?: number;
 };

@@ -3,6 +3,8 @@ export const endpoints = {
     login: "/auth/login",
     candidateLogin: "/auth/candidate/login",
     internalLogin: "/auth/internal/login",
+    candidateForgotPassword: "/auth/candidate/forgot-password",
+    internalForgotPassword: "/auth/internal/forgot-password",
     logout: "/auth/logout",
   },
   public: {
@@ -19,9 +21,13 @@ export const endpoints = {
   },
   candidates: {
     register: "/candidates/register",
+    importTemplate: "/candidates/import/template",
+    importPreview: "/candidates/import/preview",
+    importConfirm: "/candidates/import",
   },
   candidate: {
     dashboard: "/candidate/dashboard",
+    interviews: "/candidate/interviews",
     applications: "/candidate/applications",
     applicationWithdraw: (applicationId: string) =>
       `/candidate/applications/${applicationId}/withdraw`,
@@ -40,6 +46,8 @@ export const endpoints = {
     dashboard: "/hr/dashboard",
     candidates: "/hr/candidates",
     applications: "/hr/applications",
+    applicationDetail: (applicationId: string) => `/hr/applications/${applicationId}`,
+    applicationDecision: (applicationId: string) => `/hr/applications/${applicationId}/decision`,
     applicationCv: (applicationId: string) => `/hr/applications/${applicationId}/cv`,
     applicationSendEmail: (applicationId: string) =>
       `/hr/applications/${applicationId}/send-email`,
@@ -48,6 +56,13 @@ export const endpoints = {
     interviewDetail: (interviewId: string) => `/hr/interviews/${interviewId}`,
     interviewScheduleData: "/hr/interviews/schedule-data",
     createInterview: "/hr/interviews",
+  },
+  manager: {
+    dashboard: "/manager/dashboard",
+    reviewQueue: "/manager/applications/review-queue",
+    jobApprovalQueue: "/manager/jobs/approval-queue",
+    jobApprovalDetail: (jobId: string) => `/manager/jobs/${jobId}/approval-detail`,
+    recruitmentAnalytics: "/manager/reports/recruitment-analytics",
   },
   hrJobs: {
     list: "/hr/jobs",

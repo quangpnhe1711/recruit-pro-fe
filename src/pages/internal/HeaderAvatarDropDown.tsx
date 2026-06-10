@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
+import type { RootState } from "../../store";
 
 type AvatarMenuItem = {
   label: string;
@@ -31,6 +32,7 @@ function HeaderAvatarDropDown({
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const currentVariant = useSelector((state: RootState) => state.auth.currentVariant);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +56,7 @@ function HeaderAvatarDropDown({
   function handleLogout() {
     dispatch(logout());
     setOpen(false);
-    navigate("/login");
+    navigate(currentVariant === "internal" ? "/internal/login" : "/login");
   }
 
   return (
@@ -101,13 +103,13 @@ function HeaderAvatarDropDown({
                 {item.label}
               </Link>
             ))}
-            <Link
+            <button
+              type="button"
               className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
-              to="/Home"
               onClick={handleLogout}
             >
               Logout
-            </Link>
+            </button>
           </div>
         </div>
       ) : null}

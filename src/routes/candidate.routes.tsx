@@ -8,7 +8,7 @@ import DashboardCandidateScreen from "../pages/candidate/DashboardCandidateScree
 import MyApplicationScreen from "../pages/candidate/MyApplicationScreen";
 import CandidateProfileAndCVManagementScreen from "../pages/candidate/CandidateProfileAndCVManagementScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
-import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
+import CandidateInterviewScreen from "../pages/candidate/CandidateInterviewScreen";
 
 const candidateRoutes = (
   <Route element={<RequireAuth />}>
@@ -42,12 +42,7 @@ const candidateRoutes = (
       >
         <Route
           path="/candidate/interviews"
-          element={
-            <FeaturePlaceholderScreen
-              title="Candidate Interviews"
-              description="This shared interview view is reserved for the candidate interview workflow and will surface scheduled sessions, confirmations, and updates here."
-            />
-          }
+          element={<CandidateInterviewScreen />}
         />
       </Route>
 

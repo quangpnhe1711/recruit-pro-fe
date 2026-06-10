@@ -2,6 +2,10 @@ import axios from "axios";
 
 const authFreeEndpoints = [
   "/auth/login",
+  "/auth/candidate/login",
+  "/auth/internal/login",
+  "/auth/candidate/forgot-password",
+  "/auth/internal/forgot-password",
   "/auth/register",
   "/auth/refresh-token",
 ];
@@ -62,6 +66,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
+        localStorage.removeItem("auth_user");
+        localStorage.removeItem("current_variant");
 
         window.location.href = "/login";
 

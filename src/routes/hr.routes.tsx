@@ -6,7 +6,13 @@ import { PERMISSIONS } from "../permissions/permissions";
 
 import HrDashboardScreen from "../pages/hr/HrDashboardScreen";
 import CandidateListScreen from "../pages/hr/CandidateListScreen";
+import CandidateImportScreen from "../pages/hr/CandidateImportScreen";
 import CandidateApplicationScreen from "../pages/hr/CandidateApplicationScreen";
+import CandidateReviewDetailScreen from "../pages/hr/CandidateReviewDetailScreen";
+import ManagerCandidateReviewListScreen from "../pages/hr/ManagerCandidateReviewListScreen";
+import ManagerDashboardScreen from "../pages/manager/ManagerDashboardScreen";
+import ManagerJobApprovalDetailScreen from "../pages/manager/ManagerJobApprovalDetailScreen";
+import ManagerRecruitmentAnalyticsScreen from "../pages/manager/ManagerRecruitmentAnalyticsScreen";
 import JobCreatingScreen from "../pages/hr/JobCreatingScreen";
 import JobInterviewListScreen from "../pages/hr/JobInterviewListScreen";
 import InterviewScheduleScreen from "../pages/hr/InterviewScheduleScreen";
@@ -24,6 +30,10 @@ const hrRoutes = (
         <Route
           path="/hr/dashboard"
           element={<HrDashboardScreen />}
+        />
+        <Route
+          path="/manager/dashboard"
+          element={<ManagerDashboardScreen />}
         />
       </Route>
 
@@ -57,6 +67,10 @@ const hrRoutes = (
           path="/hr/candidates"
           element={<CandidateListScreen />}
         />
+        <Route
+          path="/hr/candidates/import"
+          element={<CandidateImportScreen />}
+        />
       </Route>
 
       <Route
@@ -65,6 +79,18 @@ const hrRoutes = (
         <Route
           path="/hr/applications"
           element={<CandidateApplicationScreen />}
+        />
+        <Route
+          path="/manager/applications"
+          element={<ManagerCandidateReviewListScreen />}
+        />
+        <Route
+          path="/hr/applications/:applicationId"
+          element={<CandidateReviewDetailScreen />}
+        />
+        <Route
+          path="/manager/applications/:applicationId"
+          element={<CandidateReviewDetailScreen />}
         />
       </Route>
 
@@ -82,12 +108,16 @@ const hrRoutes = (
       >
         <Route
           path="/manager/reports"
-          element={
-            <FeaturePlaceholderScreen
-              title="Manager Reports"
-              description="This reporting workspace is reserved for hiring KPIs, source statistics, funnel metrics, and approval-oriented management reporting."
-            />
-          }
+          element={<ManagerRecruitmentAnalyticsScreen />}
+        />
+      </Route>
+
+      <Route
+        element={<RouteGuard permissions={PERMISSIONS.JOB_APPROVE} />}
+      >
+        <Route
+          path="/manager/jobs/:jobId/approval"
+          element={<ManagerJobApprovalDetailScreen />}
         />
       </Route>
 

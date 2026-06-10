@@ -40,6 +40,19 @@ export type CandidateApplicationItemDto = {
   availableActions: string[];
 };
 
+export type CandidateInterviewItemDto = {
+  id: string;
+  candidateName: string;
+  candidateEmail: string;
+  jobTitle: string;
+  interviewer: string;
+  dateLabel: string;
+  timeLabel: string;
+  startAt: string;
+  endAt: string;
+  status: string;
+};
+
 export type CandidateApplicationsResponseDto = {
   items: CandidateApplicationItemDto[];
   meta?: ApiResponse<unknown>["meta"];
@@ -54,6 +67,7 @@ export type CandidateProfileResponseDto = {
   profile: {
     id: string;
     name: string;
+    avatarUrl: string | null;
     headline: string;
     email: string;
     phone: string;
@@ -202,6 +216,17 @@ export const candidateService = {
       endpoints.candidate.applications,
       { params: buildParams(params) },
     );
+  },
+
+  getInterviews: async (): Promise<ApiResponse<CandidateInterviewItemDto[]>> => {
+    const response = await request.get<ApiResponse<{ items?: CandidateInterviewItemDto[] }>>(
+      endpoints.candidate.interviews,
+    );
+
+    return {
+      ...response,
+      data: response.data?.items ?? [],
+    };
   },
 
   withdrawApplication: async (applicationId: string): Promise<ApiResponse<null>> => {

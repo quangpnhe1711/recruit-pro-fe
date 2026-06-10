@@ -1,6 +1,11 @@
 import type { ApiResponse } from "../../common/types";
 import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
+import type {
+  ApplicationReviewDecision,
+  ApplicationReviewDetailDto,
+  ManagerReviewQueueResponseDto,
+} from "../../modules/jobs/jobsSchema";
 
 function buildParams<T extends Record<string, unknown>>(params?: T) {
   if (!params) return undefined;
@@ -117,6 +122,32 @@ export type CreateInterviewRequest = {
   status: "draft" | "confirmed";
 };
 
+export type CandidateImportPreviewRowDto = {
+  rowNumber: number;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  source: string;
+  positionApplied: string;
+  notes: string;
+  isValid: boolean;
+  errors: string[];
+};
+
+export type CandidateImportPreviewResponseDto = {
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  rows: CandidateImportPreviewRowDto[];
+};
+
+export type CandidateImportResultDto = {
+  importedCount: number;
+  skippedCount: number;
+  createdCandidateIds: string[];
+  invitationEmails: string[];
+};
+
 export const hrService = {
   getDashboard: async (): Promise<ApiResponse<HrDashboardDto>> => {
     return request.get<ApiResponse<HrDashboardDto>>(endpoints.hr.dashboard);
@@ -131,6 +162,46 @@ export const hrService = {
       ...response,
       data: response.data?.items ?? [],
     };
+  },
+
+  downloadCandidateImportTemplate: async (): Promise<Blob> => {
+    return request.get<Blob>(endpoints.candidates.importTemplate, {
+      responseType: "blob",
+    });
+  },
+
+  previewCandidateImport: async (
+    file: File,
+  ): Promise<ApiResponse<CandidateImportPreviewResponseDto>> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return request.post<ApiResponse<CandidateImportPreviewResponseDto>, FormData>(
+      endpoints.candidates.importPreview,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
+
+  importCandidates: async (
+    rows: Array<{
+      rowNumber: number;
+      fullName: string;
+      email: string;
+      phoneNumber: string;
+      source: string;
+      positionApplied: string;
+      notes: string;
+    }>,
+  ): Promise<ApiResponse<CandidateImportResultDto>> => {
+    return request.post<ApiResponse<CandidateImportResultDto>, { rows: typeof rows }>(
+      endpoints.candidates.importConfirm,
+      { rows },
+    );
   },
 
   getApplications: async (params?: Record<string, unknown>): Promise<ApiResponse<HrApplicationItemDto[]>> => {
@@ -185,6 +256,35 @@ export const hrService = {
   ): Promise<ApiResponse<{ resumeId: string; fileName: string; fileUrl: string }>> => {
     return request.get<ApiResponse<{ resumeId: string; fileName: string; fileUrl: string }>>(
       endpoints.hr.applicationCv(applicationId),
+    );
+  },
+
+  getApplicationDetail: async (
+    applicationId: string,
+  ): Promise<ApiResponse<ApplicationReviewDetailDto>> => {
+    return request.get<ApiResponse<ApplicationReviewDetailDto>>(
+      endpoints.hr.applicationDetail(applicationId),
+    );
+  },
+
+  updateApplicationDecision: async (
+    applicationId: string,
+    decision: ApplicationReviewDecision,
+  ): Promise<ApiResponse<ApplicationReviewDetailDto>> => {
+    return request.patch<ApiResponse<ApplicationReviewDetailDto>, { decision: ApplicationReviewDecision }>(
+      endpoints.hr.applicationDecision(applicationId),
+      { decision },
+    );
+  },
+
+  getManagerReviewQueue: async (
+    params?: { page?: number; pageSize?: number; keyword?: string },
+  ): Promise<ApiResponse<ManagerReviewQueueResponseDto>> => {
+    return request.get<ApiResponse<ManagerReviewQueueResponseDto>>(
+      endpoints.manager.reviewQueue,
+      {
+        params: buildParams(params),
+      },
     );
   },
 

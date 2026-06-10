@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -7,6 +8,8 @@ import {
   candidateService,
   type CandidateProfileResponseDto,
 } from "../../services/candidate/candidateService";
+import type { RootState } from "../../store";
+import { updateUser } from "../../store/slices/authSlice";
 
 type SkillItem = {
   label: string;
@@ -148,6 +151,16 @@ const emptyEntryDraft: EntryDraft = {
   isCurrent: false,
 };
 
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 function formatPeriod(period: ExperienceEntry["period"]) {
   const startLabel = `${monthOptions[period.startMonth - 1]} ${period.startYear}`;
 
@@ -172,12 +185,15 @@ function compareStartDate(
 }
 
 function CandidateProfileAndCVManagementScreen() {
+  const dispatch = useDispatch();
+  const authUser = useSelector((state: RootState) => state.auth.user);
   const { hasPermission } = usePermissions();
   const canEditProfile = hasPermission(PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE);
   const canManageSkills = hasPermission(PERMISSIONS.CANDIDATE_UPDATE_OWN_SKILLS);
   const canManageExperience = hasPermission(PERMISSIONS.CANDIDATE_CREATE_OWN_EXPERIENCE);
   const canManageResume = hasPermission(PERMISSIONS.CANDIDATE_UPLOAD_OWN_RESUME);
   const [profile, setProfile] = useState(initialProfile);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(authUser?.avatarUrl ?? null);
   const [skills, setSkills] = useState(initialSkills);
   const [experienceEntries, setExperienceEntries] = useState(initialExperience);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -188,16 +204,22 @@ function CandidateProfileAndCVManagementScreen() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeMeta, setResumeMeta] = useState<CandidateProfileResponseDto["resume"] | null>(null);
   const [loading, setLoading] = useState(true);
+  const displayAvatarUrl = profileAvatarUrl ?? authUser?.avatarUrl ?? null;
+  const profileInitials = getInitials(profile.name || authUser?.fullName || "Candidate");
 
-  const profilePayload = useMemo(
-    () => ({
-      screen: "CandidateProfileAndCVManagementScreen",
-      profile,
-      skills: skills.map((skill) => skill.label),
-      experienceEntries,
-    }),
-    [experienceEntries, profile, skills],
-  );
+  function syncAuthUser(profileData: CandidateProfileResponseDto["profile"]) {
+    if (!authUser) {
+      return;
+    }
+
+    dispatch(updateUser({
+      ...authUser,
+      fullName: profileData.name,
+      email: profileData.email,
+      phone: profileData.phone ?? authUser.phone ?? null,
+      avatarUrl: profileData.avatarUrl ?? authUser.avatarUrl ?? null,
+    }));
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -220,6 +242,8 @@ function CandidateProfileAndCVManagementScreen() {
           github: res.data.profile.github ?? "",
           linkedin: res.data.profile.linkedin ?? "",
         });
+        setProfileAvatarUrl(res.data.profile.avatarUrl ?? null);
+        syncAuthUser(res.data.profile);
         setSkills(
           res.data.skills.map((skill) => ({
             label: skill.label,
@@ -274,6 +298,8 @@ function CandidateProfileAndCVManagementScreen() {
           github: profileResult.data.profile.github ?? "",
           linkedin: profileResult.data.profile.linkedin ?? "",
         });
+        setProfileAvatarUrl(profileResult.data.profile.avatarUrl ?? null);
+        syncAuthUser(profileResult.data.profile);
       }
 
       const latestProfile = await candidateService.getProfile();
@@ -428,19 +454,20 @@ function CandidateProfileAndCVManagementScreen() {
 
               <div className="flex flex-col gap-8 md:flex-row md:items-start">
                 <div className="relative">
-                  <img
-                    alt="Alex Thompson"
-                    className="h-32 w-32 rounded-lg border-2 border-[#b90014] object-cover"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAv0v_JFlncGaMzvhobx8TVjvDkl_FfcTYrRB24lXEVSbqrUcKF-b9Zv7V10Paw7EP9TNTuojK3OfXwgF9AqUzfmfYUh8XEy2k2HkRll4OlDeareuUbvHLdEhv-nB_7v9NBPzxv3sx-UEftIPP13d3DGt_lPmwwHhq1f-kQ3FE33lLLMfIYK0Omw4_VJLr3nld1uLamLUQ9ADC31kLw0p_OpTSXHPVvcC4d4YY5AWwQgX3q_DfImyhtiS57pWXGxH0_mT_bvLsn2g"
-                  />
-                  <button
-                    className="absolute -bottom-2 -right-2 rounded-full border border-[#e2dfde] bg-white p-2 text-[#1a1c1c] shadow-sm transition-colors hover:text-[#b90014]"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">
-                      edit
-                    </span>
-                  </button>
+                  {displayAvatarUrl ? (
+                    <img
+                      alt={profile.name}
+                      className="h-32 w-32 rounded-lg border-2 border-[#b90014] object-cover"
+                      src={displayAvatarUrl}
+                    />
+                  ) : (
+                    <div className="flex h-32 w-32 items-center justify-center rounded-lg border-2 border-[#b90014] bg-[#b90014]/10 text-[32px] font-bold text-[#b90014]">
+                      {profileInitials}
+                    </div>
+                  )}
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-[#e2dfde] bg-white px-3 py-1 text-[11px] font-semibold text-[#5f5e5e] shadow-sm whitespace-nowrap">
+                    Avatar sync from account
+                  </div>
                 </div>
 
                 <div className="space-y-4">

@@ -47,7 +47,7 @@ const hrItems: SideNavItem[] = [
   {
     icon: "description",
     label: "Applications",
-    to: "/hr/applications",
+    to: "/manager/applications",
   },
   {
     icon: "schedule",
@@ -65,7 +65,7 @@ const managerItems: SideNavItem[] = [
   {
     icon: "dashboard",
     label: "Dashboard",
-    to: "/hr/dashboard",
+    to: "/manager/dashboard",
   },
   {
     icon: "approval",
@@ -215,6 +215,7 @@ function SideNavBar({
 
   const resolvedUserName =
     authUser?.fullName ?? (portalVariant === "candidate" ? "Candidate" : "Internal User");
+  const resolvedUserAvatarSrc = userAvatarSrc ?? authUser?.avatarUrl ?? undefined;
   const resolvedUserRole =
     portalVariant === "candidate"
       ? "Candidate"
@@ -307,11 +308,11 @@ function SideNavBar({
 
         {showUserCard ? (
           <div className={userCardClassName}>
-            {userAvatarSrc ? (
+            {resolvedUserAvatarSrc ? (
               <img
                 alt={resolvedUserName}
                 className="h-10 w-10 rounded-full object-cover ring-2 ring-[#b90014]"
-                src={userAvatarSrc}
+                src={resolvedUserAvatarSrc}
               />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b90014] text-[12px] font-bold text-white">

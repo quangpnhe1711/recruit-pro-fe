@@ -326,6 +326,12 @@ function JobManagementScreen() {
   });
 
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [stats, setStats] = useState({
+    activeJobs: 0,
+    pendingApproval: 0,
+    totalApplications: 0,
+    timeToHireDays: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState<string>("All Departments");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
@@ -367,6 +373,12 @@ function JobManagementScreen() {
             applicationsCount: item.applicationCount,
           })),
         );
+        setStats(response.data?.stats ?? {
+          activeJobs: 0,
+          pendingApproval: 0,
+          totalApplications: 0,
+          timeToHireDays: 0,
+        });
       })
       .catch(() => {
         if (mounted) {
@@ -408,20 +420,6 @@ function JobManagementScreen() {
 
   const rangeStart = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, totalItems);
-
-  const stats = useMemo(() => {
-    const activeJobs = jobs.length;
-    const pendingApproval = jobs.filter((j) => j.approvalStatus === "Pending").length;
-    const totalApplications = jobs.reduce((acc, j) => acc + j.applicationsCount, 0);
-    const timeToHireDays = 18;
-
-    return {
-      activeJobs,
-      pendingApproval,
-      totalApplications,
-      timeToHireDays,
-    };
-  }, [jobs]);
 
   function resetToFirstPage() {
     setPage(1);
@@ -526,7 +524,7 @@ function JobManagementScreen() {
                   Job Management
                 </h2>
                 <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                  Manage, track, and approve recruitment vacancies across all departments.
+                  Manage, track, and review the recruitment vacancies you created.
                 </p>
               </div>
 

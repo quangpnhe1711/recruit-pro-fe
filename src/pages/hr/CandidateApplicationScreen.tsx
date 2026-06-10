@@ -1,8 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
+import { ROLE_NAMES } from "../../permissions/rolePermissions";
 import { hrService } from "../../services/hr/hrService";
 
 type ApplicationStatus = "New" | "Under Review" | "Interviewing" | "Rejected";
@@ -109,11 +111,13 @@ function departmentBadgeColors(dept: Department) {
 }
 
 function buildApplicationTableColumns(
+  onReviewApplication: (app: Application) => void,
   onViewCV: (app: Application) => void,
   onSendEmail: (app: Application, emailType: string) => void,
   options: {
     canSendEmail: boolean;
     canViewCv: boolean;
+    canReviewApplication: boolean;
   },
 ): TableColumn<Application>[] {
   return [
@@ -184,6 +188,15 @@ function buildApplicationTableColumns(
       headerClassName: "text-right",
       renderCell: (app) => (
         <div className="flex items-center justify-end gap-2">
+          {options.canReviewApplication ? (
+            <button
+              type="button"
+              className="rounded-lg border border-[#1a1c1c] bg-white px-4 py-2 text-sm font-bold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+              onClick={() => onReviewApplication(app)}
+            >
+              Review
+            </button>
+          ) : null}
           {options.canSendEmail ? (
             <div className="group relative">
               <button
@@ -255,9 +268,11 @@ function buildApplicationTableColumns(
 }
 
 function CandidateApplicationScreen() {
-  const { hasPermission } = usePermissions();
+  const navigate = useNavigate();
+  const { hasPermission, primaryRole } = usePermissions();
   const canSendEmail = hasPermission(PERMISSIONS.APPLICATION_SEND_EMAIL);
   const canViewCv = hasPermission(PERMISSIONS.APPLICATION_VIEW_CV);
+  const isManager = primaryRole === ROLE_NAMES.MANAGER;
 
   useEffect(() => {
     let mounted = true;
@@ -394,6 +409,14 @@ function CandidateApplicationScreen() {
       .catch(() => toast.error("Unable to load CV"));
   }
 
+  function reviewApplication(application: Application) {
+    navigate(
+      isManager
+        ? `/manager/applications/${application.id}`
+        : `/hr/applications/${application.id}`,
+    );
+  }
+
   function sendEmail(application: Application, emailType: string) {
     hrService
       .sendApplicationEmail(application.id, {
@@ -521,9 +544,10 @@ function CandidateApplicationScreen() {
 
       {/* Data Table with Pagination */}
       <CommonTable
-        columns={buildApplicationTableColumns(viewCV, sendEmail, {
+        columns={buildApplicationTableColumns(reviewApplication, viewCV, sendEmail, {
           canSendEmail,
           canViewCv,
+          canReviewApplication: true,
         })}
         data={pageSlice}
         keyExtractor={(item) => item.id}
