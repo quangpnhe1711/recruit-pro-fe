@@ -145,7 +145,7 @@ export const jobsService = {
       data: {
         employmentTypes: (response.data?.employmentTypes ?? []).map((value) => ({
           label: value,
-          value: value.toUpperCase().replace(/[\s-]+/g, "_"),
+          value,
         })),
         skills: (response.data?.skills ?? []).map((value) => ({
           label: value,

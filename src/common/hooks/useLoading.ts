@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { sleep } from "../utils/helpers";
 
 export function useLoading() {
   const [loading, setLoading] = useState(false);
@@ -7,8 +6,6 @@ export function useLoading() {
   async function withLoading<T>(callback: () => Promise<T>): Promise<T> {
     try {
       setLoading(true);
-
-      await sleep(100); // Simulate loading delay
       return await callback();
     } finally {
       setLoading(false);

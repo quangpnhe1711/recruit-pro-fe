@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
 import { setCredentials } from "../../store/slices/authSlice";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import { useLoading } from "../../common/hooks/useLoading";
 import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
@@ -258,9 +259,8 @@ function CandidateLoginScreen() {
                 className="h-14 w-full bg-[#b90014] text-[12px] font-bold uppercase tracking-[0.25em] text-white transition-colors hover:bg-[#93000d] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Signing In...
+                  <div className="flex items-center justify-center">
+                    <LoadingIndicator label="Signing In..." size="sm" tone="light" />
                   </div>
                 ) : (
                   "Sign In"

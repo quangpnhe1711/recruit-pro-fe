@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -603,40 +604,32 @@ function JobManagementScreen() {
                     <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
                       Filter by:
                     </span>
-                    <select
-                      className="border-none bg-transparent py-0 pl-0 pr-8 text-[12px] font-semibold tracking-[0.05em] focus:ring-0"
+                    <CommonSelect
+                      className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
+                      wrapperClassName="min-w-[190px]"
+                      options={departments.map((d) => ({ label: d, value: d }))}
                       value={departmentFilter}
                       onChange={(e) => {
                         setDepartmentFilter(e.target.value);
                         resetToFirstPage();
                       }}
-                    >
-                      {departments.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
                   <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
                     <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
                       Status:
                     </span>
-                    <select
-                      className="border-none bg-transparent py-0 pl-0 pr-8 text-[12px] font-semibold tracking-[0.05em] focus:ring-0"
+                    <CommonSelect
+                      className="h-9 min-w-[170px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
+                      wrapperClassName="min-w-[170px]"
+                      options={statusOptions.map((s) => ({ label: s, value: s }))}
                       value={statusFilter}
                       onChange={(e) => {
                         setStatusFilter(e.target.value);
                         resetToFirstPage();
                       }}
-                    >
-                      {statusOptions.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
 
@@ -794,27 +787,23 @@ function JobManagementScreen() {
                     <label className="block text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
                       Department
                     </label>
-                    <select
-                      className="h-12 w-full border border-[#e7bdb8] px-3 outline-none transition-colors focus:border-[#1a1c1c]"
+                    <CommonSelect
+                      className="h-12"
+                      options={departments
+                        .filter((d) => d !== "All Departments")
+                        .map((d) => ({ label: d, value: d }))}
                       value={draft.department}
                       onChange={(e) => setDraft((d) => ({ ...d, department: e.target.value }))}
-                    >
-                      {departments
-                        .filter((d) => d !== "All Departments")
-                        .map((d) => (
-                          <option key={d} value={d}>
-                            {d}
-                          </option>
-                        ))}
-                    </select>
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <label className="block text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
                       Approval Status
                     </label>
-                    <select
-                      className="h-12 w-full border border-[#e7bdb8] px-3 outline-none transition-colors focus:border-[#1a1c1c]"
+                    <CommonSelect
+                      className="h-12"
+                      options={["Draft", "Pending", "Approved", "Rejected"].map((s) => ({ label: s, value: s }))}
                       value={draft.approvalStatus}
                       onChange={(e) =>
                         setDraft((d) => ({
@@ -822,13 +811,7 @@ function JobManagementScreen() {
                           approvalStatus: e.target.value as ApprovalStatus,
                         }))
                       }
-                    >
-                      {["Draft", "Pending", "Approved", "Rejected"].map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
               </div>

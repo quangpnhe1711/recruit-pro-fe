@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import CommonPagination from "./CommonPagination";
+import LoadingIndicator from "./LoadingIndicator";
 
 export type TableColumn<T> = {
   key: string;
@@ -74,12 +75,7 @@ function CommonTable<T>({
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-10 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined animate-spin">
-                      progress_activity
-                    </span>
-                    <span className="text-[#5f5e5e]">Loading...</span>
-                  </div>
+                  <LoadingIndicator className="justify-center" label="Loading..." />
                 </td>
               </tr>
             ) : data.length === 0 ? (

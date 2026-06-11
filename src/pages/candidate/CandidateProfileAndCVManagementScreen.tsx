@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
+import SkillPicker from "../../common/components/SkillPicker";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
+import { jobsService } from "../../services/jobs/jobsService";
 import { PERMISSIONS } from "../../permissions/permissions";
 import {
   candidateService,
@@ -12,6 +15,7 @@ import type { RootState } from "../../store";
 import { updateUser } from "../../store/slices/authSlice";
 
 type SkillItem = {
+  id: string;
   label: string;
   active: boolean;
 };
@@ -80,18 +84,7 @@ const initialProfile: ProfileState = {
   linkedin: "linkedin.com/in/alexthompson",
 };
 
-const initialSkills: SkillItem[] = [
-  { label: ".NET Core", active: true },
-  { label: "React & Redux", active: true },
-  { label: "SQL Server", active: true },
-  { label: "Azure Cloud", active: true },
-  { label: "Docker", active: true },
-  { label: "CI/CD Pipelines", active: true },
-  { label: "TypeScript", active: true },
-  { label: "Node.js", active: false },
-  { label: "Kubernetes", active: false },
-  { label: "System Design", active: false },
-];
+const initialSkills: SkillItem[] = [];
 
 const initialExperience: ExperienceEntry[] = [
   {
@@ -195,10 +188,9 @@ function CandidateProfileAndCVManagementScreen() {
   const [profile, setProfile] = useState(initialProfile);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(authUser?.avatarUrl ?? null);
   const [skills, setSkills] = useState(initialSkills);
+  const [skillOptions, setSkillOptions] = useState<Array<{ label: string; value: string }>>([]);
   const [experienceEntries, setExperienceEntries] = useState(initialExperience);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [skillDraft, setSkillDraft] = useState("");
-  const [showSkillComposer, setShowSkillComposer] = useState(false);
   const [entryDraft, setEntryDraft] = useState<EntryDraft>(emptyEntryDraft);
   const [showEntryComposer, setShowEntryComposer] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -224,34 +216,42 @@ function CandidateProfileAndCVManagementScreen() {
   useEffect(() => {
     let mounted = true;
 
-    candidateService
-      .getProfile()
-      .then((res) => {
-        if (!mounted || !res.data) {
+    Promise.all([candidateService.getProfile(), jobsService.listSkills()])
+      .then(([profileResponse, skillsResponse]) => {
+        if (!mounted || !profileResponse.data) {
           return;
         }
 
         setProfile({
-          name: res.data.profile.name,
-          headline: res.data.profile.headline,
-          email: res.data.profile.email,
-          phone: res.data.profile.phone ?? "",
-          location: res.data.profile.location,
-          memberSince: res.data.profile.memberSince,
-          bio: res.data.profile.bio ?? "",
-          github: res.data.profile.github ?? "",
-          linkedin: res.data.profile.linkedin ?? "",
+          name: profileResponse.data.profile.name,
+          headline: profileResponse.data.profile.headline,
+          email: profileResponse.data.profile.email,
+          phone: profileResponse.data.profile.phone ?? "",
+          location: profileResponse.data.profile.location,
+          memberSince: profileResponse.data.profile.memberSince,
+          bio: profileResponse.data.profile.bio ?? "",
+          github: profileResponse.data.profile.github ?? "",
+          linkedin: profileResponse.data.profile.linkedin ?? "",
         });
-        setProfileAvatarUrl(res.data.profile.avatarUrl ?? null);
-        syncAuthUser(res.data.profile);
+        setProfileAvatarUrl(profileResponse.data.profile.avatarUrl ?? null);
+        syncAuthUser(profileResponse.data.profile);
+
+        const selectedSkillIds = new Set(profileResponse.data.skills.map((skill) => skill.id));
+        const allSkillOptions = (skillsResponse.data ?? []).map((skill) => ({
+          label: skill.name,
+          value: skill.id,
+        }));
+
+        setSkillOptions(allSkillOptions);
         setSkills(
-          res.data.skills.map((skill) => ({
+          allSkillOptions.map((skill) => ({
+            id: skill.value,
             label: skill.label,
-            active: skill.active,
+            active: selectedSkillIds.has(skill.value),
           })),
         );
-        setResumeMeta(res.data.resume ?? null);
-        setExperienceEntries(res.data.experienceEntries ?? []);
+        setResumeMeta(profileResponse.data.resume ?? null);
+        setExperienceEntries(profileResponse.data.experienceEntries ?? []);
       })
       .catch(() => {
         if (mounted) {
@@ -302,26 +302,19 @@ function CandidateProfileAndCVManagementScreen() {
         syncAuthUser(profileResult.data.profile);
       }
 
-      const latestProfile = await candidateService.getProfile();
-      const selectedSkillIds =
-        latestProfile.data?.skills
-          .filter((skill) =>
-            skills.some(
-              (item) => item.active && item.label.toLowerCase() === skill.label.toLowerCase(),
-            ),
-          )
-          .map((skill) => skill.id) ?? [];
+      const selectedSkillIds = skills
+        .filter((skill) => skill.active)
+        .map((skill) => skill.id);
 
-      if (latestProfile.data?.skills?.length) {
-        const updatedSkills = await candidateService.updateSkills(selectedSkillIds);
-        if (updatedSkills.data) {
-          setSkills(
-            updatedSkills.data.skills.map((skill) => ({
-              label: skill.label,
-              active: skill.active,
-            })),
-          );
-        }
+      const updatedSkills = await candidateService.updateSkills(selectedSkillIds);
+      if (updatedSkills.data) {
+        const activeIds = new Set(updatedSkills.data.skills.filter((skill) => skill.active).map((skill) => skill.id));
+        setSkills((prev) =>
+          prev.map((skill) => ({
+            ...skill,
+            active: activeIds.has(skill.id),
+          })),
+        );
       }
 
       if (resumeFile) {
@@ -356,17 +349,30 @@ function CandidateProfileAndCVManagementScreen() {
     toast.success("Resume file selected: " + file.name);
   }
 
-  function handleAddSkill() {
-    const value = skillDraft.trim();
-    if (!value) return;
-
-    setSkills((prev) => [...prev, { label: value, active: true }]);
-    setSkillDraft("");
-    setShowSkillComposer(false);
+  function handleAddSkill(skillId: string) {
+    setSkills((prev) =>
+      prev.map((skill) =>
+        skill.id === skillId
+          ? {
+              ...skill,
+              active: true,
+            }
+          : skill,
+      ),
+    );
   }
 
-  function handleRemoveSkill(label: string) {
-    setSkills((prev) => prev.filter((skill) => skill.label !== label));
+  function handleRemoveSkill(skillId: string) {
+    setSkills((prev) =>
+      prev.map((skill) =>
+        skill.id === skillId
+          ? {
+              ...skill,
+              active: false,
+            }
+          : skill,
+      ),
+    );
   }
 
   async function handleAddEntry() {
@@ -414,6 +420,18 @@ function CandidateProfileAndCVManagementScreen() {
     } catch {
       toast.error("Unable to save experience entry");
     }
+  }
+
+  if (loading) {
+    return (
+      <main className="py-6">
+        <div className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
+          <div className="rounded-xl border border-[#e2dfde] bg-white px-6 py-5">
+            <LoadingIndicator label="Loading candidate profile..." />
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -642,64 +660,33 @@ function CandidateProfileAndCVManagementScreen() {
                     <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
                       Skills
                     </h2>
-                    <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_SKILLS}>
-                      <button
-                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
-                        type="button"
-                        onClick={() => setShowSkillComposer((value) => !value)}
-                      >
-                        <span className="material-symbols-outlined text-[16px]">
-                          add_circle
+                  </div>
+
+                  {canManageSkills ? (
+                    <SkillPicker
+                      emptyLabel="Select skills from the database to add them to your profile."
+                      options={skillOptions}
+                      placeholder="Choose a skill from database"
+                      selectedLabelByValue={skills.reduce<Record<string, string>>((acc, skill) => {
+                        acc[skill.id] = skill.label;
+                        return acc;
+                      }, {})}
+                      selectedValues={skills.filter((skill) => skill.active).map((skill) => skill.id)}
+                      onAdd={handleAddSkill}
+                      onRemove={handleRemoveSkill}
+                    />
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {skills.filter((skill) => skill.active).map((skill) => (
+                        <span
+                          key={skill.id}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
+                        >
+                          {skill.label}
                         </span>
-                        Add Skill
-                      </button>
-                    </PermissionGuard>
-                  </div>
-
-                  {showSkillComposer && canManageSkills ? (
-                    <div className="mb-4 flex gap-2">
-                      <input
-                        className="flex-1 rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                        placeholder="Add a skill"
-                        value={skillDraft}
-                        onChange={(e) => setSkillDraft(e.target.value)}
-                      />
-                      <button
-                        className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
-                        type="button"
-                        onClick={handleAddSkill}
-                      >
-                        Add
-                      </button>
+                      ))}
                     </div>
-                  ) : null}
-
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((skill) => (
-                      <button
-                        key={skill.label}
-                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors ${
-                          skill.active
-                            ? "border-[#b90014]/20 bg-[#b90014]/10 text-[#b90014]"
-                            : "border-[#c8c6c5] bg-[#e2dfde] text-[#636262]"
-                        }`}
-                        type="button"
-                        onClick={() => {
-                          if (canManageSkills) {
-                            handleRemoveSkill(skill.label);
-                          }
-                        }}
-                        title={canManageSkills ? "Click to remove" : skill.label}
-                      >
-                        {skill.label}
-                        {canManageSkills ? (
-                          <span className="material-symbols-outlined text-[14px]">
-                            close
-                          </span>
-                        ) : null}
-                      </button>
-                    ))}
-                  </div>
+                  )}
                 </section>
               </div>
 

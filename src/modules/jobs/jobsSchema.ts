@@ -18,13 +18,12 @@ export type JobSkillDto = {
 };
 
 export type EmploymentType =
-  | "FULL_TIME"
-  | "PART_TIME"
-  | "INTERNSHIP"
-  | "CONTRACT"
-  | "FREELANCE";
+  | "Full-time"
+  | "Part-time"
+  | "Internship"
+  | "Contract";
 
-export type WorkMode = "ONSITE" | "HYBRID" | "REMOTE";
+export type WorkMode = "Onsite" | "Hybrid" | "Remote";
 
 export type JobStatus =
   | "DRAFT"
@@ -371,15 +370,14 @@ export const jobStatusLabels: Record<JobStatus, string> = {
 };
 
 export const employmentTypeLabels: Record<EmploymentType, string> = {
-  FULL_TIME: "Full-time",
-  PART_TIME: "Part-time",
-  INTERNSHIP: "Internship",
-  CONTRACT: "Contract",
-  FREELANCE: "Freelance",
+  "Full-time": "Full-time",
+  "Part-time": "Part-time",
+  Internship: "Internship",
+  Contract: "Contract",
 };
 
 export const workModeLabels: Record<WorkMode, string> = {
-  ONSITE: "On-site",
-  HYBRID: "Hybrid",
-  REMOTE: "Remote",
+  Onsite: "On-site",
+  Hybrid: "Hybrid",
+  Remote: "Remote",
 };

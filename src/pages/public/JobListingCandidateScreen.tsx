@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import CommonPagination from "../../common/components/CommonPagination";
+import CommonSelect from "../../common/components/CommonSelect";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
+import SkillPicker from "../../common/components/SkillPicker";
 import type { EmploymentType, JobListItemDto, JobSearchFilterOption, SkillDto } from "../../modules/jobs/jobsSchema";
 import { employmentTypeLabels } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -46,10 +49,6 @@ function resolveLevel(minExperienceYears: number) {
   if (minExperienceYears <= 4) return "Middle";
   if (minExperienceYears <= 7) return "Senior";
   return "Lead";
-}
-
-function normalizeEmploymentTypeValue(value: string): string {
-  return value.trim().toUpperCase().replace(/[\s-]+/g, "_");
 }
 
 function normalizeFilterOption(item: unknown): JobSearchFilterOption | null {
@@ -147,7 +146,6 @@ function JobListingCandidateScreen() {
   const [selectedSalaryRangeIds, setSelectedSalaryRangeIds] = useState<string[]>([]);
   const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState<EmploymentType[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [skillInput, setSkillInput] = useState("");
   const [employmentTypeOptions] = useState<JobSearchFilterOption[]>(employmentTypeOptionsFromEnum);
   const [skillOptions, setSkillOptions] = useState<JobSearchFilterOption[]>([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -156,15 +154,6 @@ function JobListingCandidateScreen() {
     () => salaryRanges.filter((range) => selectedSalaryRangeIds.includes(range.id)),
     [selectedSalaryRangeIds],
   );
-
-  const skillSuggestions = useMemo(() => {
-    const keyword = skillInput.trim().toLowerCase();
-
-    return skillOptions
-      .filter((option) => !selectedSkills.some((skill) => skill.toLowerCase() === option.label.toLowerCase()))
-      .filter((option) => !keyword || option.label.toLowerCase().includes(keyword))
-      .slice(0, 6);
-  }, [selectedSkills, skillInput, skillOptions]);
 
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const rangeStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -277,33 +266,28 @@ function JobListingCandidateScreen() {
   }
 
   function toggleEmploymentType(value: string) {
-    const normalizedValue = normalizeEmploymentTypeValue(value) as EmploymentType;
-
     setLoading(true);
     setSelectedEmploymentTypes((current) =>
-      current.includes(normalizedValue)
-        ? current.filter((item) => item !== normalizedValue)
-        : [...current, normalizedValue],
+      current.includes(value as EmploymentType)
+        ? current.filter((item) => item !== value)
+        : [...current, value as EmploymentType],
     );
     setPage(1);
   }
 
   function addSkill(skill: string) {
-    const trimmedSkill = skill.trim();
-
-    if (!trimmedSkill) {
+    if (!skill) {
       return;
     }
 
     setLoading(true);
     setSelectedSkills((current) => {
-      if (current.some((item) => item.toLowerCase() === trimmedSkill.toLowerCase())) {
+      if (current.includes(skill)) {
         return current;
       }
 
-      return [...current, trimmedSkill];
+      return [...current, skill];
     });
-    setSkillInput("");
     setPage(1);
   }
 
@@ -321,7 +305,6 @@ function JobListingCandidateScreen() {
     setSelectedSalaryRangeIds([]);
     setSelectedEmploymentTypes([]);
     setSelectedSkills([]);
-    setSkillInput("");
     setPage(1);
   }
 
@@ -390,9 +373,7 @@ function JobListingCandidateScreen() {
               </label>
               <div className="flex flex-wrap gap-2">
                 {employmentTypeOptions.map((option) => {
-                  const isActive = selectedEmploymentTypes.includes(
-                    normalizeEmploymentTypeValue(option.value) as EmploymentType,
-                  );
+                  const isActive = selectedEmploymentTypes.includes(option.value as EmploymentType);
 
                   return (
                     <button
@@ -416,61 +397,14 @@ function JobListingCandidateScreen() {
               <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
                 Required Skills
               </label>
-              <div className="border border-[#e7bdb8]">
-                <div className="flex items-center gap-2 px-3 py-3">
-                  <input
-                    className="flex-1 text-[14px] text-[#5f5e5e] outline-none"
-                    placeholder="Add skill..."
-                    type="text"
-                    value={skillInput}
-                    onChange={(event) => setSkillInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        event.preventDefault();
-                        addSkill(skillInput);
-                      }
-                    }}
-                  />
-                  <button
-                    className="text-[#5d3f3c] transition-colors hover:text-[#b90014]"
-                    type="button"
-                    onClick={() => addSkill(skillInput)}
-                  >
-                    <span className="material-symbols-outlined text-[22px]">add</span>
-                  </button>
-                </div>
-              </div>
-
-              {selectedSkills.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {selectedSkills.map((skill) => (
-                    <button
-                      key={skill}
-                      className="inline-flex items-center gap-1 bg-[#efedec] px-3 py-1 text-[12px] text-[#5f5e5e]"
-                      type="button"
-                      onClick={() => removeSkill(skill)}
-                    >
-                      <span>{skill}</span>
-                      <span className="text-[14px] leading-none">×</span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-
-              {skillSuggestions.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {skillSuggestions.map((option) => (
-                    <button
-                      key={`${option.value}-${option.label}`}
-                      className="rounded-full border border-[#e2dfde] px-3 py-1 text-[12px] text-[#5f5e5e] transition-colors hover:border-[#b90014] hover:text-[#b90014]"
-                      type="button"
-                      onClick={() => addSkill(option.label)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
+              <SkillPicker
+                emptyLabel="Select skills from the list to filter matching jobs."
+                options={skillOptions.map((option) => ({ label: option.label, value: option.label }))}
+                placeholder="Choose a required skill"
+                selectedValues={selectedSkills}
+                onAdd={addSkill}
+                onRemove={removeSkill}
+              />
             </div>
           </div>
         </div>
@@ -535,27 +469,28 @@ function JobListingCandidateScreen() {
                 Sort by:
               </span>
 
-              <select
-                className="border-b-2 border-[#e7bdb8] bg-transparent py-1 text-[12px] font-semibold outline-none focus:border-[#b90014]"
+              <CommonSelect
+                className="h-10 min-w-[180px] border-[#e7bdb8] bg-white text-[12px] font-semibold"
+                options={[
+                  { label: "Newest First", value: "newest" },
+                  { label: "Salary High-Low", value: "salaryDesc" },
+                  { label: "Most Relevant", value: "relevant" },
+                ]}
                 value={sortBy}
                 onChange={(event) => {
                   setLoading(true);
                   setSortBy(event.target.value);
                   setPage(1);
                 }}
-              >
-                <option value="newest">Newest First</option>
-                <option value="salaryDesc">Salary High-Low</option>
-                <option value="relevant">Most Relevant</option>
-              </select>
+              />
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
           {loading ? (
-            <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e]">
-              Loading jobs...
+            <div className="border border-[#e2dfde] bg-white p-6">
+              <LoadingIndicator label="Loading jobs..." />
             </div>
           ) : jobs.length === 0 ? (
             <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e]">

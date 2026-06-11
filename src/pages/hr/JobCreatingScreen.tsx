@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
+import SkillPicker from "../../common/components/SkillPicker";
 import { usePermissions } from "../../hooks/usePermissions";
+import { employmentTypeLabels, workModeLabels, type EmploymentType, type SkillDto, type WorkMode } from "../../modules/jobs/jobsSchema";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
-
-type EmploymentType = "Full-time" | "Contract";
-type WorkMode = "Remote" | "Hybrid";
 
 type DraftState = {
   step: number;
@@ -40,6 +41,8 @@ type CreatedJob = {
 
 const departments = ["Engineering", "Product", "Design", "Marketing", "Sales"];
 const currencies = ["USD", "EUR", "GBP", "JPY", "VND"];
+const employmentTypeOptions = Object.entries(employmentTypeLabels).map(([value, label]) => ({ value, label }));
+const workModeOptions = Object.entries(workModeLabels).map(([value, label]) => ({ value, label }));
 
 const draftStorageKey = "rp_internal_jobcreating_draft_v1";
 function safeJsonParse<T>(raw: string | null): T | null {
@@ -73,10 +76,10 @@ function loadDraft(): DraftState | null {
         : "Engineering",
     location: typeof parsed.location === "string" ? parsed.location : "",
     employmentType:
-      parsed.employmentType === "Full-time" || parsed.employmentType === "Contract"
+      parsed.employmentType === "Full-time" || parsed.employmentType === "Part-time" || parsed.employmentType === "Internship" || parsed.employmentType === "Contract"
         ? parsed.employmentType
         : "",
-    workMode: parsed.workMode === "Remote" || parsed.workMode === "Hybrid" ? parsed.workMode : "",
+    workMode: parsed.workMode === "Remote" || parsed.workMode === "Hybrid" || parsed.workMode === "Onsite" ? parsed.workMode : "",
     shortPitch: typeof parsed.shortPitch === "string" ? parsed.shortPitch : "",
 
     description: typeof parsed.description === "string" ? parsed.description : "",
@@ -122,10 +125,43 @@ function JobCreatingScreen() {
 
   // Step 3
   const [skills, setSkills] = useState<string[]>(() => initialDraft?.skills ?? []);
-  const [skillInput, setSkillInput] = useState<string>("");
+  const [skillOptions, setSkillOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [skillsLoading, setSkillsLoading] = useState(true);
   const [salaryMin, setSalaryMin] = useState<string>(() => initialDraft?.salaryMin ?? "");
   const [salaryMax, setSalaryMax] = useState<string>(() => initialDraft?.salaryMax ?? "");
   const [currency, setCurrency] = useState<string>(() => initialDraft?.currency ?? "USD");
+
+  useEffect(() => {
+    let mounted = true;
+
+    jobsService
+      .listSkills()
+      .then((response) => {
+        if (!mounted) {
+          return;
+        }
+
+        const data = response.data as SkillDto[] | null;
+        setSkillOptions((data ?? []).map((skill) => ({
+          label: skill.name,
+          value: skill.name,
+        })));
+      })
+      .catch(() => {
+        if (mounted) {
+          setSkillOptions([]);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setSkillsLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function persistDraft(nextStep = step) {
     const payload: DraftState = {
@@ -227,11 +263,6 @@ function JobCreatingScreen() {
 
   function removeListItem(index: number, setter: (updater: (prev: string[]) => string[]) => void) {
     setter((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function addSkill() {
-    addListItem(skillInput, setSkills);
-    setSkillInput("");
   }
 
   function continueNext() {
@@ -386,45 +417,23 @@ function JobCreatingScreen() {
                       <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                         Department
                       </label>
-                      <select
+                      <CommonSelect
+                        options={departments.map((d) => ({ label: d, value: d }))}
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                      >
-                        {departments.map((d) => (
-                          <option key={d} value={d}>
-                            {d}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                         Employment Type
                       </label>
-                      <div className="flex gap-4">
-                        {(["Full-time", "Contract"] as const).map((t) => {
-                          const selected = employmentType === t;
-                          return (
-                            <label
-                              key={t}
-                              className={`flex flex-1 cursor-pointer items-center gap-3 border p-3 transition-colors hover:bg-[#e2dfde]/10 ${
-                                selected ? "border-[#1a1c1c] bg-[#e2dfde]/10" : "border-[#e2dfde]"
-                              }`}
-                            >
-                              <input
-                                className="text-[#b90014] focus:ring-[#b90014]"
-                                type="radio"
-                                name="job-type"
-                                checked={selected}
-                                onChange={() => setEmploymentType(t)}
-                              />
-                              <span className="text-[14px]">{t}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
+                      <CommonSelect
+                        options={employmentTypeOptions}
+                        placeholder="Select employment type"
+                        value={employmentType}
+                        onChange={(e) => setEmploymentType(e.target.value as EmploymentType | "")}
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -444,28 +453,12 @@ function JobCreatingScreen() {
                       <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                         Work Mode
                       </label>
-                      <div className="flex gap-4">
-                        {(["Remote", "Hybrid"] as const).map((m) => {
-                          const selected = workMode === m;
-                          return (
-                            <label
-                              key={m}
-                              className={`flex flex-1 cursor-pointer items-center gap-3 border p-3 transition-colors hover:bg-[#e2dfde]/10 ${
-                                selected ? "border-[#1a1c1c] bg-[#e2dfde]/10" : "border-[#e2dfde]"
-                              }`}
-                            >
-                              <input
-                                className="text-[#b90014] focus:ring-[#b90014]"
-                                type="radio"
-                                name="work-mode"
-                                checked={selected}
-                                onChange={() => setWorkMode(m)}
-                              />
-                              <span className="text-[14px]">{m}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
+                      <CommonSelect
+                        options={workModeOptions}
+                        placeholder="Select work mode"
+                        value={workMode}
+                        onChange={(e) => setWorkMode(e.target.value as WorkMode | "")}
+                      />
                     </div>
                   </div>
 
@@ -644,42 +637,20 @@ function JobCreatingScreen() {
                     <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                       Skills
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        value={skillInput}
-                        onChange={(e) => setSkillInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addSkill();
-                          }
-                        }}
-                        className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                        placeholder="Type a skill and press Enter"
+                    {skillsLoading ? (
+                      <div className="rounded-xl border border-[#e2dfde] bg-white px-4 py-3">
+                        <LoadingIndicator label="Loading skills..." size="sm" />
+                      </div>
+                    ) : (
+                      <SkillPicker
+                        emptyLabel="Select required skills from the existing database."
+                        options={skillOptions}
+                        placeholder="Choose a required skill"
+                        selectedValues={skills}
+                        onAdd={(value) => setSkills((prev) => (prev.includes(value) ? prev : [...prev, value]))}
+                        onRemove={(value) => setSkills((prev) => prev.filter((item) => item !== value))}
                       />
-                      <button
-                        type="button"
-                        className="rounded-none bg-[#f3f3f3] px-4 py-3 text-[12px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#e8e8e8]"
-                        onClick={addSkill}
-                      >
-                        Add
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {skills.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          className="flex items-center gap-2 border border-[#e2dfde] bg-[#f9f9f9] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
-                          onClick={() => setSkills((prev) => prev.filter((p) => p !== s))}
-                          aria-label={`Remove ${s}`}
-                          title="Remove"
-                        >
-                          {s}
-                          <span className="material-symbols-outlined text-[16px] text-[#5f5e5e]">close</span>
-                        </button>
-                      ))}
-                    </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -713,17 +684,11 @@ function JobCreatingScreen() {
                       <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                         Currency
                       </label>
-                      <select
+                      <CommonSelect
+                        options={currencies.map((c) => ({ label: c, value: c }))}
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
-                        className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                      >
-                        {currencies.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
                   </div>
 
