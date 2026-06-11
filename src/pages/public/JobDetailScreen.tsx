@@ -1,5 +1,7 @@
-import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
+import type { JobDetailDto } from "../../modules/jobs/jobsSchema";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -21,7 +23,7 @@ type FunnelStage = {
   widthClassName: string;
 };
 
-type JobDetail = {
+type JobDetailViewModel = {
   id: string;
   title: string;
   location: string;
@@ -33,79 +35,8 @@ type JobDetail = {
   vacancyCount: number;
   description: string[];
   requirements: string[];
+  applicationCount: number;
 };
-
-type JobDetailApiDto = {
-  id: string;
-  title: string;
-  location: string;
-  postedAt?: string | null;
-  createdAt?: string | null;
-  status?: string | null;
-  salaryRange?: {
-    min?: number | null;
-    max?: number | null;
-    currency?: string | null;
-  } | null;
-  salaryMin?: number | null;
-  salaryMax?: number | null;
-  department?: {
-    name?: string | null;
-  } | string | null;
-  jobType?: string | null;
-  employmentType?: string | null;
-  vacancyCount?: number | null;
-  description?: string | string[] | null;
-  requirements?: string[] | null;
-};
-
-type JobStatisticsApiDto = {
-  applied?: number;
-  screening?: number;
-  interview?: number;
-  offer?: number;
-  hired?: number;
-};
-
-type RecentApplicationApiDto = {
-  id: string;
-  candidate?: {
-    fullName?: string | null;
-    avatarUrl?: string | null;
-  } | null;
-  candidateName?: string | null;
-  appliedAt?: string | null;
-  applied?: string | null;
-  status?: string | null;
-  score?: number | string | null;
-  avatarUrl?: string | null;
-};
-
-const jobDirectory: Record<string, JobDetail> = {
-  "JB-9402": {
-    id: "JB-9402",
-    title: "Senior Product Designer",
-    location: "San Francisco, CA (Hybrid)",
-    posted: "Posted 4 days ago",
-    status: "Live",
-    salaryRange: "$160,000 — $210,000 USD",
-    department: "Design & User Experience",
-    jobType: "Full-time, Permanent",
-    vacancyCount: 1,
-    description: [
-      "We are seeking a Senior Product Designer to lead the evolution of our enterprise recruitment platform. You will be responsible for translating complex hiring workflows into intuitive, high-performance user interfaces that serve thousands of internal recruiters.",
-      "This role requires a unique blend of strategic thinking, deep UX research capabilities, and pixel-perfect UI execution. You will partner closely with engineering and product management to define the future of RecruitPro.",
-    ],
-    requirements: [
-      "6+ years of experience in Product Design, preferably in B2B SaaS or enterprise tools.",
-      "Strong portfolio demonstrating high-fidelity UI design and systematic design thinking.",
-      "Expert proficiency in Figma and building scalable design systems.",
-      "Experience working directly with React/Tailwind developers and design-to-code handoffs.",
-    ],
-  },
-};
-
-const fallbackJob = jobDirectory["JB-9402"];
 
 function getStatusClassName(status: RecentApplication["status"]) {
   switch (status) {
@@ -124,14 +55,39 @@ function Icon({ name }: { name: string }) {
   return <span className="material-symbols-outlined">{name}</span>;
 }
 
-function resolveDepartmentName(
-  department: JobDetailApiDto["department"],
-) {
-  if (typeof department === "string") {
-    return department;
+function mapStatus(status: string): RecentApplication["status"] {
+  if (status === "REVIEWING" || status === "Reviewing") {
+    return "Reviewing";
   }
 
-  return department?.name ?? "";
+  if (status === "SCREENING" || status === "Screening") {
+    return "Screening";
+  }
+
+  return "Qualified";
+}
+
+function mapJobDetail(data: JobDetailDto): JobDetailViewModel {
+  return {
+    id: data.id,
+    title: data.title,
+    location: data.location,
+    posted: data.createdAt ? `Posted ${new Date(data.createdAt).toLocaleDateString()}` : "",
+    status: data.status === "CLOSED" ? "Closed" : "Live",
+    salaryRange:
+      data.salaryMin != null || data.salaryMax != null
+        ? `$${(data.salaryMin ?? data.salaryMax ?? 0).toLocaleString()} — $${(data.salaryMax ?? data.salaryMin ?? 0).toLocaleString()}`
+        : "Negotiable",
+    department: data.department?.name ?? "",
+    jobType: `${data.employmentType}${data.workMode ? `, ${data.workMode}` : ""}`,
+    vacancyCount: data.vacancyCount ?? 0,
+    description: data.description
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean),
+    requirements: data.requirements ?? [],
+    applicationCount: data.applicationCount ?? 0,
+  };
 }
 
 function AppSidebar() {
@@ -205,124 +161,102 @@ function JobDetailScreen() {
   const navigate = useNavigate();
   const { hasPermission, isAuthenticated, portalVariant } = usePermissions();
   const params = useParams();
-  const jobId = params.jobId ?? "JB-9402";
+  const jobId = params.jobId ?? "";
   const showInternalChrome = isAuthenticated && portalVariant === "internal";
   const canEditJob = hasPermission(PERMISSIONS.JOB_UPDATE);
   const canApproveJob = hasPermission(PERMISSIONS.JOB_APPROVE);
   const canViewApplications = hasPermission(PERMISSIONS.JOB_VIEW_APPLICATIONS);
-  const canViewRecentApplications = hasPermission(
-    PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS,
-  );
+  const canViewRecentApplications = hasPermission(PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS);
   const canViewStatistics = hasPermission(PERMISSIONS.JOB_VIEW_STATISTICS);
   const canShareJob = hasPermission(PERMISSIONS.JOB_SHARE);
-  const [job, setJob] = useState<JobDetail>(jobDirectory[jobId] ?? fallbackJob);
+
+  const [job, setJob] = useState<JobDetailViewModel | null>(null);
   const [recentApplications, setRecentApplications] = useState<RecentApplication[]>([]);
   const [hiringFunnel, setHiringFunnel] = useState<FunnelStage[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
+    setLoading(true);
     jobsService
       .getJobDetail(jobId)
       .then((res) => {
-        const data = res.data as JobDetailApiDto | null;
-        if (!mounted || !data) return;
+        if (!mounted || !res.data) {
+          return;
+        }
 
-        setJob({
-          id: data.id,
-          title: data.title,
-          location: data.location,
-          posted: data.postedAt || data.createdAt ? `Posted ${new Date(data.postedAt ?? data.createdAt).toLocaleDateString()}` : "",
-          status: data.status === "CLOSED" || data.status === "Closed" ? "Closed" : "Live",
-          salaryRange: data.salaryRange
-            ? `$${data.salaryRange.min?.toLocaleString()} — $${data.salaryRange.max?.toLocaleString()} ${data.salaryRange.currency ?? ""}`.trim()
-            : data.salaryMin != null || data.salaryMax != null
-              ? `$${(data.salaryMin ?? data.salaryMax ?? 0).toLocaleString()} — $${(data.salaryMax ?? data.salaryMin ?? 0).toLocaleString()}`
-              : "Negotiable",
-          department: resolveDepartmentName(data.department),
-          jobType: data.jobType ?? data.employmentType ?? "",
-          vacancyCount: data.vacancyCount ?? 0,
-          description: Array.isArray(data.description)
-            ? data.description
-            : typeof data.description === "string"
-              ? [data.description]
-              : [],
-          requirements: data.requirements ?? [],
-        });
+        setJob(mapJobDetail(res.data));
+        setHiringFunnel(
+          (res.data.hiringFunnel ?? []).map((item) => ({
+            label: item.label,
+            count: item.count,
+            widthClassName: "",
+          })),
+        );
+        setRecentApplications(
+          (res.data.recentApplications ?? []).slice(0, 5).map((item) => ({
+            id: item.id,
+            candidateName: item.candidate?.fullName ?? "Unknown candidate",
+            applied: item.appliedAt ? new Date(item.appliedAt).toLocaleDateString() : "",
+            status: mapStatus(item.status),
+            score: "0",
+            avatarUrl: item.candidate?.avatarUrl ?? undefined,
+            initials:
+              item.candidate?.fullName
+                ?.split(" ")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2) ?? undefined,
+          })),
+        );
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!mounted) {
+          return;
+        }
 
-    if (canViewStatistics) {
-      jobsService.getJobStatistics(jobId)
-        .then((res) => {
-          if (!mounted) return;
-          const data = res.data as JobStatisticsApiDto | null;
-          const funnel = [
-            { label: "Applied", count: data?.applied ?? 0 },
-            { label: "Screening", count: data?.screening ?? 0 },
-            { label: "Interview", count: data?.interview ?? 0 },
-            { label: "Offer", count: data?.offer ?? 0 },
-            { label: "Hired", count: data?.hired ?? 0 },
-          ];
-
-          setHiringFunnel(
-            funnel.map((item) => ({
-              label: item.label,
-              count: item.count,
-              widthClassName: "",
-            })),
-          );
-        })
-        .catch(() => undefined);
-    } else {
-      setHiringFunnel([]);
-    }
-
-    if (canViewRecentApplications) {
-      jobsService
-        .getRecentJobApplications(jobId)
-        .then((res) => {
-          if (!mounted) return;
-          const payload = res.data as RecentApplicationApiDto[] | null;
-          const items = Array.isArray(payload) ? payload : [];
-          setRecentApplications(
-            items.slice(0, 5).map((item) => ({
-              id: item.id,
-              candidateName: item.candidate?.fullName ?? item.candidateName,
-              applied: item.appliedAt ? new Date(item.appliedAt).toLocaleDateString() : item.applied ?? "",
-              status:
-                item.status === "REVIEWING" || item.status === "Reviewing"
-                  ? "Reviewing"
-                  : item.status === "SCREENING" || item.status === "Screening"
-                    ? "Screening"
-                    : "Qualified",
-              score: String(item.score ?? "0"),
-              avatarUrl: item.candidate?.avatarUrl ?? item.avatarUrl,
-              initials:
-                item.candidate?.fullName
-                  ?.split(" ")
-                  .map((part) => part[0])
-                  .join("")
-                  .slice(0, 2) ?? undefined,
-            })),
-          );
-        })
-        .catch(() => undefined);
-    } else {
-      setRecentApplications([]);
-    }
+        setJob(null);
+        setHiringFunnel([]);
+        setRecentApplications([]);
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
     return () => {
       mounted = false;
     };
-  }, [canViewRecentApplications, canViewStatistics, jobId]);
+  }, [jobId]);
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+        <LoadingIndicator label="Loading job details..." />
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+        <div className="border border-[#e2dfde] bg-white p-8 text-center">
+          <h2 className="text-[24px] font-semibold text-[#1a1c1c]">Job Details</h2>
+          <p className="mt-3 text-[14px] text-[#5f5e5e]">
+            Unable to load this job right now. Please refresh and try again.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
       {showInternalChrome ? <AppSidebar /> : null}
 
       <main className={`flex min-h-screen flex-col ${showInternalChrome ? "md:ml-64" : ""}`}>
-
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col px-6 py-6 md:px-10">
           <nav className="mb-6 flex items-center gap-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
             <button
@@ -401,9 +335,7 @@ function JobDetailScreen() {
             <div className="flex flex-col gap-6 lg:col-span-8">
               <section className="border border-[#e2dfde] bg-white p-8">
                 <h3 className="mb-6 flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                  <span className="material-symbols-outlined text-[#b90014]">
-                    description
-                  </span>
+                  <span className="material-symbols-outlined text-[#b90014]">description</span>
                   Job Description
                 </h3>
 
@@ -413,10 +345,8 @@ function JobDetailScreen() {
                   ))}
                 </div>
 
-                <h3 className="mt-10 mb-6 flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                  <span className="material-symbols-outlined text-[#b90014]">
-                    checklist
-                  </span>
+                <h3 className="mb-6 mt-10 flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                  <span className="material-symbols-outlined text-[#b90014]">checklist</span>
                   Requirements
                 </h3>
 
@@ -434,94 +364,85 @@ function JobDetailScreen() {
 
               <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS}>
                 <section className="overflow-hidden border border-[#e2dfde] bg-white">
-                <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
-                  <h3 className="flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                    <span className="material-symbols-outlined text-[#b90014]">
-                      group
-                    </span>
-                    Recent Applications
-                  </h3>
-                  <button
-                    type="button"
-                    className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
-                    disabled={!canViewApplications}
-                  >
-                    View All 42
-                  </button>
-                </div>
+                  <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
+                    <h3 className="flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                      <span className="material-symbols-outlined text-[#b90014]">group</span>
+                      Recent Applications
+                    </h3>
+                    <button
+                      type="button"
+                      className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
+                      disabled={!canViewApplications}
+                    >
+                      View All {job.applicationCount}
+                    </button>
+                  </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
-                    <thead className="bg-[#1A1A1A] text-white">
-                      <tr>
-                        <th className="px-6 py-4 text-[12px] font-semibold">Candidate</th>
-                        <th className="px-6 py-4 text-[12px] font-semibold">Applied</th>
-                        <th className="px-6 py-4 text-[12px] font-semibold">Status</th>
-                        <th className="px-6 py-4 text-[12px] font-semibold">Score</th>
-                        <th className="px-6 py-4 text-right text-[12px] font-semibold">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#e2dfde]">
-                      {recentApplications.map((item, index) => (
-                        <tr
-                          key={item.id}
-                          className={index % 2 === 1 ? "bg-[#f9f9f9] hover:bg-[#eeeeee]" : "hover:bg-[#f9f9f9]"}
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              {item.avatarUrl ? (
-                                <img
-                                  alt="Candidate"
-                                  className="h-8 w-8 rounded-full object-cover"
-                                  src={item.avatarUrl}
-                                />
-                              ) : (
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffdad6] text-[12px] font-bold text-[#b90014]">
-                                  {item.initials}
-                                </div>
-                              )}
-                              <div>
-                                <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                                  {item.candidateName}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-[14px] text-[#5d3f3c]">
-                            {item.applied}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getStatusClassName(
-                                item.status,
-                              )}`}
-                            >
-                              {item.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-1">
-                              <span className="text-[14px] font-bold text-[#1a1c1c]">
-                                {item.score}
-                              </span>
-                              <span className="text-[12px] text-[#5f5e5e]">/10</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              type="button"
-                              className="text-[#5f5e5e] hover:text-[#b90014]"
-                            >
-                              <Icon name="more_vert" />
-                            </button>
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left">
+                      <thead className="bg-[#1A1A1A] text-white">
+                        <tr>
+                          <th className="px-6 py-4 text-[12px] font-semibold">Candidate</th>
+                          <th className="px-6 py-4 text-[12px] font-semibold">Applied</th>
+                          <th className="px-6 py-4 text-[12px] font-semibold">Status</th>
+                          <th className="px-6 py-4 text-[12px] font-semibold">Score</th>
+                          <th className="px-6 py-4 text-right text-[12px] font-semibold">
+                            Actions
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-[#e2dfde]">
+                        {recentApplications.map((item, index) => (
+                          <tr
+                            key={item.id}
+                            className={index % 2 === 1 ? "bg-[#f9f9f9] hover:bg-[#eeeeee]" : "hover:bg-[#f9f9f9]"}
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                {item.avatarUrl ? (
+                                  <img
+                                    alt="Candidate"
+                                    className="h-8 w-8 rounded-full object-cover"
+                                    src={item.avatarUrl}
+                                  />
+                                ) : (
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffdad6] text-[12px] font-bold text-[#b90014]">
+                                    {item.initials}
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-[14px] font-semibold text-[#1a1c1c]">
+                                    {item.candidateName}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-[14px] text-[#5d3f3c]">{item.applied}</td>
+                            <td className="px-6 py-4">
+                              <span
+                                className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getStatusClassName(
+                                  item.status,
+                                )}`}
+                              >
+                                {item.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[14px] font-bold text-[#1a1c1c]">{item.score}</span>
+                                <span className="text-[12px] text-[#5f5e5e]">/10</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button type="button" className="text-[#5f5e5e] hover:text-[#b90014]">
+                                <Icon name="more_vert" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </section>
               </PermissionGuard>
             </div>
@@ -529,39 +450,35 @@ function JobDetailScreen() {
             <div className="flex flex-col gap-6 lg:col-span-4">
               <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_STATISTICS}>
                 <section className="border border-[#e2dfde] bg-white p-6">
-                <h3 className="mb-6 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                  Hiring Funnel
-                </h3>
+                  <h3 className="mb-6 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                    Hiring Funnel
+                  </h3>
 
-                <div className="space-y-6">
-                  {hiringFunnel.map((stage) => (
-                    <div key={stage.label}>
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                          {stage.label}
-                        </span>
-                        <span className="text-[14px] font-bold text-[#1a1c1c]">
-                          {stage.count}
-                        </span>
+                  <div className="space-y-6">
+                    {hiringFunnel.map((stage) => (
+                      <div key={stage.label}>
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+                            {stage.label}
+                          </span>
+                          <span className="text-[14px] font-bold text-[#1a1c1c]">{stage.count}</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden bg-[#eeeeee]">
+                          <div
+                            className="h-full bg-[#b90014]"
+                            style={{
+                              width: `${Math.max(
+                                5,
+                                Math.round(
+                                  (stage.count / Math.max(...hiringFunnel.map((item) => item.count), 1)) * 100,
+                                ),
+                              )}%`,
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 w-full overflow-hidden bg-[#eeeeee]">
-                        <div
-                          className="h-full bg-[#b90014]"
-                          style={{
-                            width: `${Math.max(
-                              5,
-                              Math.round(
-                                (stage.count /
-                                  Math.max(...hiringFunnel.map((item) => item.count), 1)) *
-                                  100,
-                              ),
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
                 </section>
               </PermissionGuard>
 
@@ -572,28 +489,16 @@ function JobDetailScreen() {
 
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Salary Range
-                    </p>
-                    <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                      {job.salaryRange}
-                    </p>
+                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">Salary Range</p>
+                    <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.salaryRange}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Department
-                    </p>
-                    <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                      {job.department}
-                    </p>
+                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">Department</p>
+                    <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.department}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Job Type
-                    </p>
-                    <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                      {job.jobType}
-                    </p>
+                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">Job Type</p>
+                    <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.jobType}</p>
                   </div>
                 </div>
 
@@ -616,30 +521,26 @@ function JobDetailScreen() {
 
       {showInternalChrome ? (
         <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-[#e2dfde] bg-white md:hidden">
-        {[
-          { icon: "dashboard", label: "Dashboard", active: false },
-          { icon: "work", label: "Jobs", active: true },
-          { icon: "description", label: "Apps", active: false },
-          { icon: "analytics", label: "Stats", active: false },
-        ].map((item) => (
-          <a
-            key={item.label}
-            href="#"
-            className={`flex flex-col items-center gap-1 ${
-              item.active ? "text-[#b90014]" : "text-[#5f5e5e]"
-            }`}
-          >
-            <span
-              className="material-symbols-outlined"
-              style={item.active ? { fontVariationSettings: "'FILL' 1" } : undefined}
+          {[
+            { icon: "dashboard", label: "Dashboard", active: false },
+            { icon: "work", label: "Jobs", active: true },
+            { icon: "description", label: "Apps", active: false },
+            { icon: "analytics", label: "Stats", active: false },
+          ].map((item) => (
+            <a
+              key={item.label}
+              href="#"
+              className={`flex flex-col items-center gap-1 ${item.active ? "text-[#b90014]" : "text-[#5f5e5e]"}`}
             >
-              {item.icon}
-            </span>
-            <span className={`text-[10px] ${item.active ? "font-bold" : ""}`}>
-              {item.label}
-            </span>
-          </a>
-        ))}
+              <span
+                className="material-symbols-outlined"
+                style={item.active ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                {item.icon}
+              </span>
+              <span className={`text-[10px] ${item.active ? "font-bold" : ""}`}>{item.label}</span>
+            </a>
+          ))}
         </nav>
       ) : null}
     </div>

@@ -136,6 +136,28 @@ function matchesSalaryFilters(job: JobListItemDto, selectedRanges: SalaryRangeOp
   });
 }
 
+function matchesSearchQuery(job: JobListItemDto, keyword: string) {
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  if (!normalizedKeyword) {
+    return true;
+  }
+
+  const searchableValues = [
+    job.title,
+    job.department?.name,
+    job.location,
+    job.workMode,
+    job.employmentType,
+    job.shortDescription,
+    job.summary,
+    ...extractJobTags(job),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.toLowerCase());
+
+  return searchableValues.some((value) => value.includes(normalizedKeyword));
+}
+
 function JobListingCandidateScreen() {
   const [page, setPage] = useState(1);
   const [jobs, setJobs] = useState<JobListItemDto[]>([]);
@@ -199,8 +221,10 @@ function JobListingCandidateScreen() {
     let mounted = true;
 
     const usesClientSalaryFiltering = selectedSalaryRangeIds.length > 0;
-    const requestPage = usesClientSalaryFiltering ? 1 : page;
-    const requestPageSize = usesClientSalaryFiltering ? 200 : pageSize;
+    const usesClientSearchFiltering = debouncedSearch.length > 0;
+    const usesClientFiltering = usesClientSalaryFiltering || usesClientSearchFiltering;
+    const requestPage = usesClientFiltering ? 1 : page;
+    const requestPageSize = usesClientFiltering ? 200 : pageSize;
 
     jobsService
       .listPublicJobs({
@@ -224,8 +248,10 @@ function JobListingCandidateScreen() {
             : [];
         const meta = res.meta ?? (payload as { totalItems?: number } | null) ?? null;
 
-        if (usesClientSalaryFiltering) {
-          const filteredItems = items.filter((job) => matchesSalaryFilters(job, selectedSalaryRanges));
+        if (usesClientFiltering) {
+          const filteredItems = items
+            .filter((job) => matchesSearchQuery(job, debouncedSearch))
+            .filter((job) => matchesSalaryFilters(job, selectedSalaryRanges));
           const pageSlice = filteredItems.slice((page - 1) * pageSize, page * pageSize);
 
           setJobs(pageSlice);
