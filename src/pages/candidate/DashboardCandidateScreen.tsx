@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import { candidateService, type CandidateDashboardDto } from "../../services/candidate/candidateService";
 
 type StatCard = {
@@ -13,37 +14,67 @@ type StatCard = {
 
 function DashboardCandidateScreen() {
   const [dashboard, setDashboard] = useState<CandidateDashboardDto | null>(null);
+  const [loading, setLoading] = useState(true);
   const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
     let mounted = true;
 
+    setLoading(true);
     candidateService
       .getDashboard()
       .then((res) => {
         if (mounted && res.data) setDashboard(res.data);
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (mounted) setDashboard(null);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     return () => {
       mounted = false;
     };
   }, []);
 
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+        <LoadingIndicator label="Loading candidate dashboard..." />
+      </div>
+    );
+  }
+
+  if (!dashboard) {
+    return (
+      <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+        <div className="border border-[#e2dfde] bg-white p-8 text-center">
+          <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
+            Candidate Dashboard
+          </h2>
+          <p className="mt-3 text-[14px] text-[#5f5e5e]">
+            Unable to load dashboard data right now. Please refresh and try again.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   const statCards = [
     {
       icon: "assignment",
       iconClassName: "text-[#b90014]",
       label: "Applied Jobs",
-      value: String(dashboard?.stats.appliedJobs ?? 4).padStart(2, "0"),
-      helper: "+1 since last week",
+      value: String(dashboard.stats.appliedJobs).padStart(2, "0"),
+      helper: dashboard.stats.appliedJobs > 0 ? "+1 since last week" : "No applications yet",
     },
     {
       icon: "event",
       iconClassName: "text-[#005f93]",
       label: "Interviews",
-      value: String(dashboard?.stats.interviews ?? 1).padStart(2, "0"),
-      helper: dashboard?.upcomingInterview
+      value: String(dashboard.stats.interviews).padStart(2, "0"),
+      helper: dashboard.upcomingInterview
         ? `Next scheduled at ${dashboard.upcomingInterview.time}`
         : "No interview scheduled",
     },
@@ -51,14 +82,17 @@ function DashboardCandidateScreen() {
       icon: "notifications_active",
       iconClassName: "text-[#1a1c1c]",
       label: "Unread",
-      value: String(dashboard?.stats.unreadNotifications ?? 2).padStart(2, "0"),
-      helper: "New updates available",
+      value: String(dashboard.stats.unreadNotifications).padStart(2, "0"),
+      helper:
+        dashboard.stats.unreadNotifications > 0
+          ? "New updates available"
+          : "No unread notifications",
     },
   ];
 
-  const recommendedJobs = dashboard?.recommendedJobs ?? [];
-  const upcomingInterview = dashboard?.upcomingInterview;
-  const stats = dashboard?.stats;
+  const recommendedJobs = dashboard.recommendedJobs ?? [];
+  const upcomingInterview = dashboard.upcomingInterview;
+  const stats = dashboard.stats;
 
   return (
     <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
