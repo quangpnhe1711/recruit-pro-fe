@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { candidateService } from "../../services/candidate/candidateService";
@@ -17,7 +18,7 @@ type ApplicationItem = {
   actionClass: string;
 };
 
-const summaryCards = [
+const emptySummaryCards = [
   { label: "Total", value: 0 },
   { label: "Active", value: 0 },
   { label: "Closed", value: 0 },
@@ -126,8 +127,9 @@ function MyApplicationScreen() {
   const canWithdrawApplications = hasPermission(PERMISSIONS.APPLICATION_WITHDRAW_OWN);
   const canAcceptOffer = hasPermission(PERMISSIONS.APPLICATION_ACCEPT_OFFER_OWN);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
-  const [summary, setSummary] = useState(summaryCards);
+  const [summary, setSummary] = useState(emptySummaryCards);
   const pageSize = 3;
   const totalItems = applications.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -135,7 +137,7 @@ function MyApplicationScreen() {
   const pageSlice = useMemo(() => {
     const start = (page - 1) * pageSize;
     return applications.slice(start, start + pageSize);
-  }, [page]);
+  }, [applications, page]);
 
   const rangeStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(page * pageSize, totalItems);
@@ -143,6 +145,7 @@ function MyApplicationScreen() {
   useEffect(() => {
     let mounted = true;
 
+    setLoading(true);
     candidateService
       .getApplications()
       .then((res) => {
@@ -177,7 +180,16 @@ function MyApplicationScreen() {
           ]);
         }
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!mounted) return;
+        setApplications([]);
+        setSummary(emptySummaryCards);
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
     return () => {
       mounted = false;
@@ -187,6 +199,14 @@ function MyApplicationScreen() {
   function goTo(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
     setPage(safe);
+  }
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+        <LoadingIndicator label="Loading applications..." />
+      </div>
+    );
   }
 
   return (
@@ -258,7 +278,7 @@ function MyApplicationScreen() {
           )}
           data={pageSlice}
           keyExtractor={(item) => item.title}
-          loading={false}
+          loading={loading}
           emptyMessage="No applications found."
           zebra
           hover
