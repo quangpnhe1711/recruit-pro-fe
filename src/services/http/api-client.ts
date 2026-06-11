@@ -14,6 +14,10 @@ const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
 });
 
+const refreshClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+});
+
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
 
@@ -52,7 +56,7 @@ apiClient.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refresh_token");
 
-        const response = await axios.post("/api/auth/refresh-token", {
+        const response = await refreshClient.post("/auth/refresh-token", {
           refreshToken,
         });
 
