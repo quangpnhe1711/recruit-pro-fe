@@ -10,7 +10,7 @@ Production API calls are configured through `VITE_API_BASE_URL`.
 Current production API target:
 
 ```env
-VITE_API_BASE_URL=https://recruit-pro-production.up.railway.app/api
+VITE_API_BASE_URL=/api
 ```
 
 ## Scripts
@@ -22,4 +22,4 @@ npm run build
 
 ## Deploy
 
-Deploy the frontend to Vercel. The committed `.env.production` file lets the production build call the Railway backend without extra code changes.
+Deploy the frontend to Vercel. The committed `.env.production` file makes the app call `/api`, and `vercel.json` proxies that path to the Railway backend.

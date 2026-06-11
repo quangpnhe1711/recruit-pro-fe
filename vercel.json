@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://recruit-pro-production.up.railway.app/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }
