@@ -72,4 +72,10 @@ export const endpoints = {
     funnel: (jobId: string) => `/hr/jobs/${jobId}/funnel`,
     pendingApproval: "/hr/jobs/pending-approval",
   },
+  copilot: {
+    jobs: "/copilot/jobs",
+    conversations: "/copilot/conversations",
+    candidates: (jobId: string) => `/copilot/jobs/${jobId}/candidates`,
+    rankings: (conversationId: string) => `/copilot/conversations/${conversationId}/rankings`,
+  },
 } as const;

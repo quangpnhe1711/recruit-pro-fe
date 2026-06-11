@@ -50,6 +50,11 @@ const hrItems: SideNavItem[] = [
     to: "/manager/applications",
   },
   {
+    icon: "smart_toy",
+    label: "AI Copilot",
+    to: "/hr/ai-copilot",
+  },
+  {
     icon: "schedule",
     label: "Interviews",
     to: "/hr/interviews",
@@ -76,6 +81,11 @@ const managerItems: SideNavItem[] = [
     icon: "description",
     label: "Applications",
     to: "/hr/applications",
+  },
+  {
+    icon: "smart_toy",
+    label: "AI Copilot",
+    to: "/hr/ai-copilot",
   },
   {
     icon: "schedule",

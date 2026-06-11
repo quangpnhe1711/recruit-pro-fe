@@ -16,6 +16,7 @@ import ManagerRecruitmentAnalyticsScreen from "../pages/manager/ManagerRecruitme
 import JobCreatingScreen from "../pages/hr/JobCreatingScreen";
 import JobInterviewListScreen from "../pages/hr/JobInterviewListScreen";
 import InterviewScheduleScreen from "../pages/hr/InterviewScheduleScreen";
+import AiCopilotScreen from "../pages/hr/AiCopilotScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
 import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
 
@@ -91,6 +92,10 @@ const hrRoutes = (
         <Route
           path="/manager/applications/:applicationId"
           element={<CandidateReviewDetailScreen />}
+        />
+        <Route
+          path="/hr/ai-copilot"
+          element={<AiCopilotScreen />}
         />
       </Route>
 
