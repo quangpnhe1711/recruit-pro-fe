@@ -400,6 +400,36 @@ function JobInterviewListScreen() {
     };
   }, [items, withinTimeframe]);
 
+  const columns = useMemo(
+    () =>
+      buildInterviewTableColumns(
+        statusChip,
+        openMenuForId,
+        setOpenMenuForId,
+        openDetails,
+        markCompleted,
+        reschedule,
+        cancelInterview,
+        menuRef,
+        {
+          canViewInterviews,
+          canUpdateInterviews,
+          canApproveInterviews,
+          canDeleteInterviews,
+        },
+      ),
+    [
+      openMenuForId,
+      markCompleted,
+      reschedule,
+      cancelInterview,
+      canViewInterviews,
+      canUpdateInterviews,
+      canApproveInterviews,
+      canDeleteInterviews,
+    ],
+  );
+
   function goTo(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
     setPage(safe);
@@ -675,38 +705,7 @@ function JobInterviewListScreen() {
         </div>
 
         <CommonTable
-          columns={useMemo(
-            () => {
-                return buildInterviewTableColumns(
-                  statusChip,
-                  openMenuForId,
-                  setOpenMenuForId,
-                  openDetails,
-                  markCompleted,
-                  reschedule,
-                  cancelInterview,
-                  menuRef,
-                  {
-                    canViewInterviews,
-                    canUpdateInterviews,
-                    canApproveInterviews,
-                    canDeleteInterviews,
-                  },
-                );
-              },
-              [
-                openDetails,
-                openMenuForId,
-                setOpenMenuForId,
-                markCompleted,
-                reschedule,
-                cancelInterview,
-                canViewInterviews,
-                canUpdateInterviews,
-                canApproveInterviews,
-                canDeleteInterviews,
-              ],
-            )}
+          columns={columns}
           data={pageSlice}
           keyExtractor={(item) => item.id}
           loading={false}

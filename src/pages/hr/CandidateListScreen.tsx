@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -450,78 +449,17 @@ function CandidateListScreen() {
         zebra
         hover
         tableWrapperClassName="border-x border-b border-[#e7bdb8] bg-white"
+        pagination={{
+          enabled: true,
+          currentPage,
+          totalPages,
+          totalItems,
+          rangeStart,
+          rangeEnd,
+          onPageChange: goToPage,
+        }}
+        showPagination
       />
-
-      {/* Pagination */}
-      <div className="flex flex-col gap-4 border-x border-b border-t border-[#e7bdb8] bg-[#f3f3f3] px-6 py-4 md:flex-row md:items-center md:justify-between">
-        <span className="text-xs font-medium text-[#5f5e5e]">
-          Showing <span className="font-bold text-[#1a1c1c]">{rangeStart}</span> to
-          <span className="font-bold text-[#1a1c1c]"> {rangeEnd}</span> of
-          <span className="font-bold text-[#1a1c1c]"> {totalItems}</span> entries
-        </span>
-
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center border border-[#e7bdb8] transition-colors hover:bg-[#f9f9f9] disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage <= 1}
-            aria-label="Previous page"
-          >
-            <span className="material-symbols-outlined text-lg">chevron_left</span>
-          </button>
-
-          {Array.from({ length: Math.min(3, totalPages) }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={`flex h-8 w-8 items-center justify-center border text-xs font-bold transition-colors ${
-                n === currentPage
-                  ? "border-[#1a1c1c] bg-[#b90014] text-white"
-                  : "border-[#e7bdb8] hover:bg-[#f9f9f9]"
-              }`}
-              onClick={() => goToPage(n)}
-            >
-              {n}
-            </button>
-          ))}
-
-          {totalPages > 4 ? (
-            <button
-              type="button"
-              className="flex h-8 w-8 items-center justify-center border border-[#e7bdb8] text-xs font-bold transition-colors hover:bg-[#f9f9f9]"
-              onClick={() => toast.info("Jump using pagination")}
-              aria-label="More pages"
-            >
-              ...
-            </button>
-          ) : null}
-
-          {totalPages > 3 ? (
-            <button
-              type="button"
-              className={`flex h-8 w-8 items-center justify-center border text-xs font-bold transition-colors ${
-                totalPages === currentPage
-                  ? "border-[#1a1c1c] bg-[#b90014] text-white"
-                  : "border-[#e7bdb8] hover:bg-[#f9f9f9]"
-              }`}
-              onClick={() => goToPage(totalPages)}
-            >
-              {totalPages}
-            </button>
-          ) : null}
-
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center border border-[#e7bdb8] transition-colors hover:bg-[#f9f9f9] disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            aria-label="Next page"
-          >
-            <span className="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

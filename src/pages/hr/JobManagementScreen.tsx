@@ -238,7 +238,6 @@ function JobManagementScreen() {
   const [departmentFilter, setDepartmentFilter] = useState<string>("All Departments");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
   const [page, setPage] = useState<number>(1);
-  const [pageInput, setPageInput] = useState<string>("1");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -325,7 +324,6 @@ function JobManagementScreen() {
 
   function resetToFirstPage() {
     setPage(1);
-    setPageInput("1");
   }
 
   function openNewJobModal() {
@@ -414,7 +412,6 @@ function JobManagementScreen() {
   function goToPage(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
     setPage(safe);
-    setPageInput(String(safe));
   }
 
   if (loading) {
@@ -566,98 +563,17 @@ function JobManagementScreen() {
                 zebra
                 hover
                 tableWrapperClassName="border border-[#e7bdb8] bg-white"
+                pagination={{
+                  enabled: true,
+                  currentPage,
+                  totalPages,
+                  totalItems,
+                  rangeStart,
+                  rangeEnd,
+                  onPageChange: goToPage,
+                }}
+                showPagination
               />
-
-              {/* Pagination */}
-              <div className="flex flex-col gap-4 border-t border-[#e7bdb8] bg-white px-6 py-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    className="flex h-8 w-8 items-center justify-center border border-[#e7bdb8] transition-colors hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={() => goToPage(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                    aria-label="Previous page"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      chevron_left
-                    </span>
-                  </button>
-
-                  {/* Render: 1 2 3 ... last */}
-                  {Array.from({ length: Math.min(3, totalPages) }, (_, i) => i + 1).map(
-                    (n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        className={`flex h-8 w-8 items-center justify-center border text-[12px] font-semibold tracking-[0.05em] transition-colors ${
-                          n === currentPage
-                            ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
-                            : "border-[#e7bdb8] hover:bg-[#f3f3f3]"
-                        }`}
-                        onClick={() => goToPage(n)}
-                      >
-                        {n}
-                      </button>
-                    )
-                  )}
-
-                  {totalPages > 4 ? (
-                    <button
-                      type="button"
-                      className="flex h-8 w-8 items-center justify-center border border-[#e7bdb8] text-[12px] font-semibold tracking-[0.05em] transition-colors hover:bg-[#f3f3f3]"
-                      onClick={() => toast.info("Jump using Go to page")}
-                      aria-label="More pages"
-                    >
-                      ...
-                    </button>
-                  ) : null}
-
-                  {totalPages > 3 ? (
-                    <button
-                      type="button"
-                      className={`flex h-8 w-8 items-center justify-center border text-[12px] font-semibold tracking-[0.05em] transition-colors ${
-                        totalPages === currentPage
-                          ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
-                          : "border-[#e7bdb8] hover:bg-[#f3f3f3]"
-                      }`}
-                      onClick={() => goToPage(totalPages)}
-                    >
-                      {totalPages}
-                    </button>
-                  ) : null}
-
-                  <button
-                    type="button"
-                    className="flex h-8 w-8 items-center justify-center border border-[#e7bdb8] transition-colors hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={() => goToPage(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                    aria-label="Next page"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      chevron_right
-                    </span>
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-4 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                  <span>Go to page:</span>
-                  <input
-                    className="h-8 w-12 border border-[#e7bdb8] text-center outline-none transition-colors focus:border-[#1a1c1c]"
-                    value={pageInput}
-                    onChange={(e) => setPageInput(e.target.value.replace(/[^0-9]/g, ""))}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const next = Number(pageInput);
-                        if (!next) {
-                          toast.error("Invalid page");
-                          return;
-                        }
-                        goToPage(next);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
             </section>
 
           {/* Modal */}
