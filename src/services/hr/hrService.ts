@@ -58,6 +58,16 @@ export type HrCandidateItemDto = {
   status: string;
 };
 
+export type HrPagedItemsResponseDto<T> = {
+  items: T[];
+  meta: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+};
+
 export type HrApplicationItemDto = {
   id: string;
   candidate: {
@@ -153,15 +163,12 @@ export const hrService = {
     return request.get<ApiResponse<HrDashboardDto>>(endpoints.hr.dashboard);
   },
 
-  getCandidates: async (params?: Record<string, unknown>): Promise<ApiResponse<HrCandidateItemDto[]>> => {
-    const response = await request.get<ApiResponse<{ items?: HrCandidateItemDto[] }>>(endpoints.hr.candidates, {
+  getCandidates: async (
+    params?: Record<string, unknown>,
+  ): Promise<ApiResponse<HrPagedItemsResponseDto<HrCandidateItemDto>>> => {
+    return request.get<ApiResponse<HrPagedItemsResponseDto<HrCandidateItemDto>>>(endpoints.hr.candidates, {
       params: buildParams(params),
     });
-
-    return {
-      ...response,
-      data: response.data?.items ?? [],
-    };
   },
 
   downloadCandidateImportTemplate: async (): Promise<Blob> => {
@@ -298,15 +305,12 @@ export const hrService = {
     );
   },
 
-  getInterviews: async (params?: Record<string, unknown>): Promise<ApiResponse<HrInterviewItemDto[]>> => {
-    const response = await request.get<ApiResponse<{ items?: HrInterviewItemDto[] }>>(endpoints.hr.interviews, {
+  getInterviews: async (
+    params?: Record<string, unknown>,
+  ): Promise<ApiResponse<HrPagedItemsResponseDto<HrInterviewItemDto>>> => {
+    return request.get<ApiResponse<HrPagedItemsResponseDto<HrInterviewItemDto>>>(endpoints.hr.interviews, {
       params: buildParams(params),
     });
-
-    return {
-      ...response,
-      data: response.data?.items ?? [],
-    };
   },
 
   updateInterviewStatus: async (

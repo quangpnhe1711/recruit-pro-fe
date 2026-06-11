@@ -19,6 +19,8 @@ type Job = {
   createdAt: number; // epoch ms for sorting
   approvalStatus: ApprovalStatus;
   applicationsCount: number;
+  createdByUserId: string;
+  createdByName: string;
 };
 
 type JobDraft = {
@@ -63,6 +65,8 @@ function readCreatedJobsFromStorage(): Job[] {
         createdAt,
         approvalStatus: "Pending" as ApprovalStatus,
         applicationsCount: 0,
+        createdByUserId: "",
+        createdByName: "",
       };
     })
     .filter(Boolean) as Job[];
@@ -72,15 +76,6 @@ function writeCreatedJobsToStorage(created: Job[]) {
   window.localStorage.setItem(createdJobsStorageKey, JSON.stringify(created));
 }
 
-const departments = [
-  "All Departments",
-  "Engineering",
-  "Product",
-  "Design",
-  "Marketing",
-  "Operations",
-];
-
 const statusOptions: ("All Statuses" | ApprovalStatus)[] = [
   "All Statuses",
   "Draft",
@@ -88,6 +83,8 @@ const statusOptions: ("All Statuses" | ApprovalStatus)[] = [
   "Approved",
   "Rejected",
 ];
+
+const creatorAllOption = "All Creators";
 
 function parseDateLabelToEpoch(label: string) {
   const parsed = Date.parse(label);
@@ -237,6 +234,7 @@ function JobManagementScreen() {
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState<string>("All Departments");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
+  const [creatorFilter, setCreatorFilter] = useState<string>(creatorAllOption);
   const [page, setPage] = useState<number>(1);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -251,7 +249,7 @@ function JobManagementScreen() {
     let mounted = true;
 
     jobsService
-      .listHrJobs()
+      .listHrJobs({ page: 1, pageSize: 1000 })
       .then((response) => {
         if (!mounted) return;
 
@@ -272,6 +270,8 @@ function JobManagementScreen() {
                     ? "Draft"
                     : "Pending",
             applicationsCount: item.applicationCount,
+            createdByUserId: item.createdBy.id,
+            createdByName: item.createdBy.fullName || "Unknown",
           })),
         );
         setStats(response.data?.stats ?? {
@@ -306,8 +306,39 @@ function JobManagementScreen() {
       .filter((j) =>
         statusFilter === "All Statuses" ? true : j.approvalStatus === statusFilter
       )
+      .filter((j) =>
+        creatorFilter === creatorAllOption ? true : j.createdByUserId === creatorFilter
+      )
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [jobs, departmentFilter, statusFilter]);
+  }, [jobs, departmentFilter, statusFilter, creatorFilter]);
+
+  const creatorOptions = useMemo(() => {
+    const options = jobs
+      .map((job) => ({
+        label: job.createdByName,
+        value: job.createdByUserId,
+      }))
+      .filter((option) => option.value)
+      .filter(
+        (option, index, array) =>
+          array.findIndex((candidate) => candidate.value === option.value) === index,
+      )
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    return [{ label: creatorAllOption, value: creatorAllOption }, ...options];
+  }, [jobs]);
+
+  const departmentOptions = useMemo(() => {
+    const options = jobs
+      .map((job) => job.department)
+      .filter(Boolean)
+      .filter(
+        (department, index, array) => array.findIndex((candidate) => candidate === department) === index,
+      )
+      .sort((a, b) => a.localeCompare(b));
+
+    return ["All Departments", ...options];
+  }, [jobs]);
 
   const pageSize = 10;
   const totalItems = filtered.length;
@@ -431,7 +462,7 @@ function JobManagementScreen() {
                   Job Management
                 </h2>
                 <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                  Manage, track, and review the recruitment vacancies you created.
+                  Manage, track, and review all recruitment vacancies across the whole system.
                 </p>
               </div>
 
@@ -513,10 +544,29 @@ function JobManagementScreen() {
                     <CommonSelect
                       className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
                       wrapperClassName="min-w-[190px]"
-                      options={departments.map((d) => ({ label: d, value: d }))}
+                      options={departmentOptions.map((department) => ({
+                        label: department,
+                        value: department,
+                      }))}
                       value={departmentFilter}
                       onChange={(e) => {
                         setDepartmentFilter(e.target.value);
+                        resetToFirstPage();
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
+                    <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+                      Creator:
+                    </span>
+                    <CommonSelect
+                      className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
+                      wrapperClassName="min-w-[190px]"
+                      options={creatorOptions}
+                      value={creatorFilter}
+                      onChange={(e) => {
+                        setCreatorFilter(e.target.value);
                         resetToFirstPage();
                       }}
                     />
@@ -614,7 +664,7 @@ function JobManagementScreen() {
                     </label>
                     <CommonSelect
                       className="h-12"
-                      options={departments
+                      options={departmentOptions
                         .filter((d) => d !== "All Departments")
                         .map((d) => ({ label: d, value: d }))}
                       value={draft.department}

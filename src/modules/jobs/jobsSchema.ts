@@ -320,6 +320,7 @@ export type JobStatisticsDto = {
 export type HrJobQueryParams = {
   departmentId?: string | null;
   status?: JobStatus | null;
+  createdByUserId?: string | null;
   page?: number;
   pageSize?: number;
 };

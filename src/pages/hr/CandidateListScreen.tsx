@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -42,6 +43,22 @@ const sourceOptions: ("All Sources" | CandidateSource)[] = [
 function parseDateLabelToEpoch(label: string) {
   const parsed = Date.parse(label);
   return Number.isNaN(parsed) ? Date.now() : parsed;
+}
+
+function normalizeCandidateStatus(status: string): CandidateStatus {
+  switch (status.trim().toLowerCase()) {
+    case "reviewing":
+    case "under review":
+    case "managerreview":
+      return "Under Review";
+    case "interviewing":
+    case "accepted":
+      return "Interviewed";
+    case "rejected":
+      return "Rejected";
+    default:
+      return "New";
+  }
 }
 
 function statusChip(status: CandidateStatus) {
@@ -197,11 +214,11 @@ function CandidateListScreen() {
     let mounted = true;
 
     hrService
-      .getCandidates()
+      .getCandidates({ page: 1, pageSize: 1000 })
       .then((res) => {
         if (!mounted) return;
 
-        const items = Array.isArray(res.data) ? res.data : [];
+        const items = Array.isArray(res.data?.items) ? res.data.items : [];
 
         setCandidates(
           items.map((item: any) => ({
@@ -213,7 +230,7 @@ function CandidateListScreen() {
             source: item.source === "BulkImport" ? "Bulk Import" : item.source,
             appliedDate: item.appliedDate ? new Date(item.appliedDate).toLocaleDateString() : "",
             appliedAt: item.appliedDate ? Date.parse(item.appliedDate) : Date.now(),
-            status: item.status,
+            status: normalizeCandidateStatus(item.status),
           })),
         );
       })
@@ -307,7 +324,7 @@ function CandidateListScreen() {
             Candidate Management
           </h2>
           <p className="mt-1 text-[14px] text-[#5f5e5e]">
-            Efficiently manage and track your internal recruitment pipeline.
+            Review and manage the full candidate pool across the whole recruitment system.
           </p>
         </div>
 

@@ -31,6 +31,18 @@ type Range = { start: string; end: string };
 
 const anchorNow = new Date();
 
+function normalizeInterviewStatus(status: string): InterviewStatus {
+  switch (status.trim().toLowerCase()) {
+    case "completed":
+      return "Completed";
+    case "canceled":
+    case "cancelled":
+      return "Rescheduled";
+    default:
+      return "Confirmed";
+  }
+}
+
 function parseDateAndTime(dateLabel: string, timeLabel: string) {
   // dateLabel is "Oct 24, 2024"; timeLabel is "10:30 AM - 11:30 AM"
   const [startTimeRaw, endTimeRaw] = timeLabel.split("-").map((s) => s.trim());
@@ -278,12 +290,12 @@ function JobInterviewListScreen() {
     let mounted = true;
 
     hrService
-      .getInterviews()
+      .getInterviews({ page: 1, pageSize: 1000 })
       .then((res) => {
         if (!mounted) return;
 
         setItems(
-          (res.data ?? []).map((item: any) => {
+          (res.data?.items ?? []).map((item: any) => {
             const parsed = parseDateAndTime(item.dateLabel, item.timeLabel);
             return {
               id: item.id,
@@ -296,7 +308,7 @@ function JobInterviewListScreen() {
               timeLabel: item.timeLabel,
               startAt: item.startAt ? Date.parse(item.startAt) : parsed.startAt,
               endAt: item.endAt ? Date.parse(item.endAt) : parsed.endAt,
-              status: item.status,
+              status: normalizeInterviewStatus(item.status),
             };
           }),
         );
@@ -387,7 +399,7 @@ function JobInterviewListScreen() {
   const stats = useMemo(() => {
     const base = items.filter(withinTimeframe);
     const total = base.length;
-    const actionNeeded = base.filter((x) => x.status === "Rescheduled").length;
+    const actionNeeded = base.filter((x) => x.status === "Confirmed").length;
     const completed = base.filter((x) => x.status === "Completed").length;
 
     const completionRate =
@@ -399,36 +411,6 @@ function JobInterviewListScreen() {
       completionRate,
     };
   }, [items, withinTimeframe]);
-
-  const columns = useMemo(
-    () =>
-      buildInterviewTableColumns(
-        statusChip,
-        openMenuForId,
-        setOpenMenuForId,
-        openDetails,
-        markCompleted,
-        reschedule,
-        cancelInterview,
-        menuRef,
-        {
-          canViewInterviews,
-          canUpdateInterviews,
-          canApproveInterviews,
-          canDeleteInterviews,
-        },
-      ),
-    [
-      openMenuForId,
-      markCompleted,
-      reschedule,
-      cancelInterview,
-      canViewInterviews,
-      canUpdateInterviews,
-      canApproveInterviews,
-      canDeleteInterviews,
-    ],
-  );
 
   function goTo(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
@@ -517,6 +499,36 @@ function JobInterviewListScreen() {
       })
       .catch(() => toast.error("Unable to cancel interview"));
   }, []);
+
+  const columns = useMemo(
+    () =>
+      buildInterviewTableColumns(
+        statusChip,
+        openMenuForId,
+        setOpenMenuForId,
+        openDetails,
+        markCompleted,
+        reschedule,
+        cancelInterview,
+        menuRef,
+        {
+          canViewInterviews,
+          canUpdateInterviews,
+          canApproveInterviews,
+          canDeleteInterviews,
+        },
+      ),
+    [
+      openMenuForId,
+      markCompleted,
+      reschedule,
+      cancelInterview,
+      canViewInterviews,
+      canUpdateInterviews,
+      canApproveInterviews,
+      canDeleteInterviews,
+    ],
+  );
 
   if (loading) {
     return (

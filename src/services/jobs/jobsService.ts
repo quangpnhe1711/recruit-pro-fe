@@ -83,10 +83,28 @@ function normalizeJobListItem(item: Partial<JobListItemDto> & { department?: unk
       description: null,
     },
     minExperienceYears: item.minExperienceYears ?? 0,
-    createdAt: item.createdAt ?? item.postedAt ?? new Date().toISOString(),
+    createdAt:
+      item.createdAt ??
+      (item as { createdDate?: string | null }).createdDate ??
+      item.postedAt ??
+      new Date().toISOString(),
     availableActions: item.availableActions ?? [],
-    applicationCount: item.applicationCount ?? 0,
-    createdBy: item.createdBy ?? { id: "", fullName: "", email: "", avatarUrl: null, phone: null, roles: [] },
+    applicationCount:
+      item.applicationCount ??
+      (item as { applicationsCount?: number }).applicationsCount ??
+      0,
+    createdBy:
+      item.createdBy ??
+      ((item as { createdBy?: { id?: string; fullName?: string; email?: string } }).createdBy
+        ? {
+            id: (item as { createdBy: { id?: string } }).createdBy.id ?? "",
+            fullName: (item as { createdBy: { fullName?: string } }).createdBy.fullName ?? "",
+            email: (item as { createdBy: { email?: string } }).createdBy.email ?? "",
+            avatarUrl: null,
+            phone: null,
+            roles: [],
+          }
+        : { id: "", fullName: "", email: "", avatarUrl: null, phone: null, roles: [] }),
     approvedBy: item.approvedBy ?? null,
     vacancyCount: item.vacancyCount ?? 0,
     deadline: item.deadline ?? null,
