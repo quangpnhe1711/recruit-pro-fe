@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonSelect from "../../common/components/CommonSelect";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -213,106 +214,6 @@ function buildJobTableColumns(
   ];
 }
 
-function buildSeedJobs(): Job[] {
-  const fixed: Job[] = [
-    {
-      id: "JB-9402",
-      title: "Senior Frontend Engineer",
-      department: "Engineering",
-      createdDate: "Oct 24, 2024",
-      createdAt: parseDateLabelToEpoch("Oct 24, 2024"),
-      approvalStatus: "Approved",
-      applicationsCount: 38,
-    },
-    {
-      id: "JB-9381",
-      title: "Lead UX Researcher",
-      department: "Design",
-      createdDate: "Oct 26, 2024",
-      createdAt: parseDateLabelToEpoch("Oct 26, 2024"),
-      approvalStatus: "Pending",
-      applicationsCount: 21,
-    },
-    {
-      id: "JB-9214",
-      title: "Content Marketing Manager",
-      department: "Marketing",
-      createdDate: "Oct 12, 2024",
-      createdAt: parseDateLabelToEpoch("Oct 12, 2024"),
-      approvalStatus: "Draft",
-      applicationsCount: 12,
-    },
-    {
-      id: "JB-9105",
-      title: "Data Scientist - AI Focus",
-      department: "Engineering",
-      createdDate: "Sep 28, 2024",
-      createdAt: parseDateLabelToEpoch("Sep 28, 2024"),
-      approvalStatus: "Rejected",
-      applicationsCount: 7,
-    },
-    {
-      id: "JB-8942",
-      title: "Customer Success Lead",
-      department: "Operations",
-      createdDate: "Sep 20, 2024",
-      createdAt: parseDateLabelToEpoch("Sep 20, 2024"),
-      approvalStatus: "Approved",
-      applicationsCount: 29,
-    },
-  ];
-
-  const fillers: Job[] = [];
-  const fillerTitles = [
-    "Platform Engineer",
-    "Product Manager",
-    "QA Automation Engineer",
-    "UX Designer",
-    "Recruiting Coordinator",
-    "Sales Ops Analyst",
-    "Data Engineer",
-    "DevOps Specialist",
-    "Technical Writer",
-    "Growth Marketer",
-  ];
-  const fillerDepartments = ["Engineering", "Product", "Design", "Marketing", "Operations"];
-  const fillerStatuses: ApprovalStatus[] = ["Approved", "Pending", "Draft", "Rejected"];
-
-  const idNum = 8900;
-  for (let i = 0; i < 37; i += 1) {
-    const dep = fillerDepartments[i % fillerDepartments.length];
-    const status = fillerStatuses[i % fillerStatuses.length];
-
-    // Deterministic rolling dates in Sep/Oct 2024.
-    const day = 1 + ((i * 3) % 28);
-    const month = i % 2 === 0 ? "Sep" : "Oct";
-    const label = `${month} ${day.toString().padStart(2, "0")}, 2024`;
-
-    fillers.push({
-      id: `JB-${idNum + i}`,
-      title: fillerTitles[i % fillerTitles.length],
-      department: dep,
-      createdDate: label,
-      createdAt: parseDateLabelToEpoch(label),
-      approvalStatus: status,
-      applicationsCount: 10 + ((i * 7) % 40),
-    });
-  }
-
-  const all = [...fixed, ...fillers];
-
-  // Make total applications match the design snapshot (847) deterministically.
-  const sum = all.reduce((acc, j) => acc + j.applicationsCount, 0);
-  const target = 847;
-  const delta = target - sum;
-  all[all.length - 1] = {
-    ...all[all.length - 1],
-    applicationsCount: Math.max(0, all[all.length - 1].applicationsCount + delta),
-  };
-
-  return all;
-}
-
 function JobManagementScreen() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
@@ -514,6 +415,14 @@ function JobManagementScreen() {
     const safe = Math.max(1, Math.min(totalPages, next));
     setPage(safe);
     setPageInput(String(safe));
+  }
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+        <LoadingIndicator label="Loading jobs..." />
+      </div>
+    );
   }
 
   return (

@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import type { ManagerReviewQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { hrService } from "../../services/hr/hrService";
 
@@ -213,6 +214,14 @@ function ManagerCandidateReviewListScreen() {
     () => buildColumns((item) => navigate(`/manager/applications/${item.applicationId}`)),
     [navigate],
   );
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+        <LoadingIndicator label="Loading manager review queue..." />
+      </div>
+    );
+  }
 
   function exportCurrentPage() {
     if (!items.length) {

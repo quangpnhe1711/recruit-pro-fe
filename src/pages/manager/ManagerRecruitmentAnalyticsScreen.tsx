@@ -125,6 +125,19 @@ function ManagerRecruitmentAnalyticsScreen() {
     );
   }
 
+  if (!analytics) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+        <div className="w-full max-w-xl border border-[#e2dfde] bg-white p-8 text-center">
+          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Recruitment Analytics</h1>
+          <p className="mt-3 text-[14px] text-[#5f5e5e]">
+            Unable to load analytics data right now. Please refresh and try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 pb-12 pt-10 md:px-10">
       <section className="flex flex-col justify-between gap-6 pb-10 lg:flex-row lg:items-end">
@@ -267,7 +280,7 @@ function ManagerRecruitmentAnalyticsScreen() {
           <div className="flex flex-1 items-center gap-12">
             <div className="relative flex h-48 w-48 items-center justify-center rounded-full border-[16px] border-[#b90014]">
               <div className="text-center">
-                <span className="text-[32px] font-bold leading-10 text-[#1a1c1c]">{analytics?.distribution.total ?? 0}</span>
+                <span className="text-[32px] font-bold leading-10 text-[#1a1c1c]">{analytics.distribution.total}</span>
                 <span className="block text-[12px] text-[#5f5e5e]">TOTAL ACTIVE</span>
               </div>
             </div>

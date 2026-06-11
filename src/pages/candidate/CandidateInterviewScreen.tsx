@@ -75,6 +75,14 @@ function CandidateInterviewScreen() {
     };
   }, [items]);
 
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+        <LoadingIndicator label="Loading interviews..." />
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
       <div className="mb-8">
@@ -111,11 +119,7 @@ function CandidateInterviewScreen() {
           <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Interview Timeline</h2>
         </div>
 
-        {loading ? (
-          <div className="px-6 py-10">
-            <LoadingIndicator label="Loading interviews..." />
-          </div>
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           <div className="px-6 py-10 text-[14px] text-[#5f5e5e]">No interviews have been scheduled yet.</div>
         ) : (
           <div className="divide-y divide-[#e2dfde]">

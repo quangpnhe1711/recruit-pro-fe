@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
@@ -28,7 +29,7 @@ type Timeframe = "Next 7 Days" | "Last 30 Days" | "Custom Range";
 
 type Range = { start: string; end: string };
 
-const anchorNow = new Date("2024-10-21T00:00:00.000Z");
+const anchorNow = new Date();
 
 function parseDateAndTime(dateLabel: string, timeLabel: string) {
   // dateLabel is "Oct 24, 2024"; timeLabel is "10:30 AM - 11:30 AM"
@@ -63,259 +64,6 @@ function statusChip(status: InterviewStatus) {
     default:
       return "bg-[#e2dfde] text-[#5f5e5e]";
   }
-}
-
-const interviewsStorageKey = "rp_internal_interviews_v1";
-
-function safeJsonParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-function loadStoredInterviews(): Interview[] {
-  const parsed = safeJsonParse<unknown>(
-    window.localStorage.getItem(interviewsStorageKey),
-  );
-  if (!Array.isArray(parsed)) return [];
-
-  return parsed
-    .map((it) => {
-      if (!it || typeof it !== "object") return null;
-      const obj = it as Record<string, unknown>;
-
-      const id = typeof obj.id === "string" ? obj.id : "";
-      const candidateName =
-        typeof obj.candidateName === "string" ? obj.candidateName : "";
-      const candidateEmail =
-        typeof obj.candidateEmail === "string" ? obj.candidateEmail : "";
-      const initials =
-        typeof obj.initials === "string"
-          ? obj.initials
-          : getInitials(candidateName);
-      const jobTitle = typeof obj.jobTitle === "string" ? obj.jobTitle : "";
-      const interviewer =
-        typeof obj.interviewer === "string" ? obj.interviewer : "";
-      const dateLabel = typeof obj.dateLabel === "string" ? obj.dateLabel : "";
-      const timeLabel = typeof obj.timeLabel === "string" ? obj.timeLabel : "";
-      const status =
-        obj.status === "Confirmed" ||
-        obj.status === "Completed" ||
-        obj.status === "Rescheduled"
-          ? (obj.status as InterviewStatus)
-          : ("Confirmed" as const);
-
-      if (
-        !id ||
-        !candidateName ||
-        !candidateEmail ||
-        !jobTitle ||
-        !interviewer ||
-        !dateLabel ||
-        !timeLabel
-      ) {
-        return null;
-      }
-
-      const { startAt, endAt } = parseDateAndTime(dateLabel, timeLabel);
-
-      return {
-        id,
-        candidateName,
-        candidateEmail,
-        initials,
-        jobTitle,
-        interviewer,
-        dateLabel,
-        timeLabel,
-        startAt: typeof obj.startAt === "number" ? obj.startAt : startAt,
-        endAt: typeof obj.endAt === "number" ? obj.endAt : endAt,
-        status,
-      } satisfies Interview;
-    })
-    .filter(Boolean) as Interview[];
-}
-
-function writeStoredInterviews(items: Interview[]) {
-  window.localStorage.setItem(interviewsStorageKey, JSON.stringify(items));
-}
-
-function buildSeedInterviews(): Interview[] {
-  const fixedRaw: Omit<Interview, "startAt" | "endAt">[] = [
-    {
-      id: "IV-1001",
-      candidateName: "Jane Doe",
-      candidateEmail: "jane.doe@example.com",
-      initials: "JD",
-      jobTitle: "Senior UX Designer",
-      interviewer: "Marcus Sterling",
-      dateLabel: "Oct 24, 2024",
-      timeLabel: "10:30 AM - 11:30 AM",
-      status: "Confirmed",
-    },
-    {
-      id: "IV-1002",
-      candidateName: "Robert King",
-      candidateEmail: "robert.k@startup.io",
-      initials: "RK",
-      jobTitle: "Lead Developer",
-      interviewer: "Sarah Jenkins",
-      dateLabel: "Oct 23, 2024",
-      timeLabel: "02:00 PM - 03:00 PM",
-      status: "Completed",
-    },
-    {
-      id: "IV-1003",
-      candidateName: "Alice Miller",
-      candidateEmail: "alice.m@web.com",
-      initials: "AM",
-      jobTitle: "Product Manager",
-      interviewer: "David Chen",
-      dateLabel: "Oct 25, 2024",
-      timeLabel: "11:00 AM - 12:00 PM",
-      status: "Rescheduled",
-    },
-    {
-      id: "IV-1004",
-      candidateName: "Samuel Wright",
-      candidateEmail: "s.wright@gmail.com",
-      initials: "SW",
-      jobTitle: "Marketing Specialist",
-      interviewer: "Elena Rossi",
-      dateLabel: "Oct 26, 2024",
-      timeLabel: "09:00 AM - 10:00 AM",
-      status: "Confirmed",
-    },
-    {
-      id: "IV-1005",
-      candidateName: "Peter Lawson",
-      candidateEmail: "p.lawson@talent.net",
-      initials: "PL",
-      jobTitle: "Backend Developer",
-      interviewer: "Marcus Sterling",
-      dateLabel: "Oct 22, 2024",
-      timeLabel: "03:30 PM - 04:30 PM",
-      status: "Completed",
-    },
-  ];
-
-  const names = [
-    "Hannah Lee",
-    "Noah Carter",
-    "Sophia Nguyen",
-    "Ethan Brooks",
-    "Mia Patel",
-    "Liam Turner",
-    "Olivia Chen",
-    "Ava Rodriguez",
-    "Lucas Martin",
-    "Isabella Clark",
-  ];
-
-  const jobs = [
-    "Senior Frontend Engineer",
-    "QA Automation Engineer",
-    "Data Scientist - AI Focus",
-    "Customer Success Lead",
-    "Technical Writer",
-    "Platform Engineer",
-    "Product Designer",
-    "DevOps Specialist",
-  ];
-
-  const interviewers = [
-    "Marcus Sterling",
-    "Sarah Jenkins",
-    "David Chen",
-    "Elena Rossi",
-    "Priya Singh",
-    "Omar Hassan",
-  ];
-
-  const statuses: InterviewStatus[] = ["Confirmed", "Completed", "Rescheduled"];
-
-  const fillers: Interview[] = [];
-
-  // Create up to 42 interviews total, distributed across the anchor week.
-  const seq = 1006;
-  for (let i = 0; i < 37; i += 1) {
-    const candidateName = names[i % names.length];
-    const jobTitle = jobs[i % jobs.length];
-    const interviewer = interviewers[(i * 3) % interviewers.length];
-    const status = statuses[i % statuses.length];
-
-    const dayOffset = i % 7; // within 7 days
-    const date = new Date(anchorNow);
-    date.setUTCDate(date.getUTCDate() + dayOffset);
-
-    const dateLabel = new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-      timeZone: "UTC",
-    }).format(date);
-
-    const startHour = 9 + ((i * 2) % 8); // 9..16
-    const startMin = i % 2 === 0 ? 0 : 30;
-    const endHour = startMin === 30 ? startHour + 1 : startHour + 1;
-
-    const startTime = new Date(
-      Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-        startHour,
-        startMin,
-      ),
-    );
-    const endTime = new Date(
-      Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-        endHour,
-        startMin,
-      ),
-    );
-
-    const fmt = (d: Date) =>
-      new Intl.DateTimeFormat("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-        timeZone: "UTC",
-      }).format(d);
-
-    const timeLabel = `${fmt(startTime)} - ${fmt(endTime)}`;
-
-    const { startAt, endAt } = parseDateAndTime(dateLabel, timeLabel);
-
-    const email = `${candidateName.toLowerCase().replace(/\s+/g, ".")}${i}@example.com`;
-
-    fillers.push({
-      id: `IV-${seq + i}`,
-      candidateName,
-      candidateEmail: email,
-      initials: getInitials(candidateName),
-      jobTitle,
-      interviewer,
-      dateLabel,
-      timeLabel,
-      startAt,
-      endAt,
-      status,
-    });
-  }
-
-  const fixed: Interview[] = fixedRaw.map((r) => {
-    const { startAt, endAt } = parseDateAndTime(r.dateLabel, r.timeLabel);
-    return { ...r, startAt, endAt };
-  });
-
-  return [...fixed, ...fillers];
 }
 
 function downloadTextFile(fileName: string, text: string, mime = "text/plain") {
@@ -505,12 +253,8 @@ function JobInterviewListScreen() {
   const canApproveInterviews = hasPermission(PERMISSIONS.INTERVIEW_APPROVE);
   const canDeleteInterviews = hasPermission(PERMISSIONS.INTERVIEW_DELETE);
 
-  const [items, setItems] = useState<Interview[]>(() => {
-    const stored = loadStoredInterviews();
-    const seed = buildSeedInterviews();
-    const storedIds = new Set(stored.map((s) => s.id));
-    return [...stored, ...seed.filter((s) => !storedIds.has(s.id))];
-  });
+  const [items, setItems] = useState<Interview[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [query, setQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
@@ -536,10 +280,10 @@ function JobInterviewListScreen() {
     hrService
       .getInterviews()
       .then((res) => {
-        if (!mounted || !res.data?.length) return;
+        if (!mounted) return;
 
         setItems(
-          res.data.map((item: any) => {
+          (res.data ?? []).map((item: any) => {
             const parsed = parseDateAndTime(item.dateLabel, item.timeLabel);
             return {
               id: item.id,
@@ -557,7 +301,16 @@ function JobInterviewListScreen() {
           }),
         );
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (!mounted) return;
+        setItems([]);
+        toast.error("Unable to load interviews");
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
     return () => {
       mounted = false;
@@ -729,21 +482,18 @@ function JobInterviewListScreen() {
       .deleteInterview(it.id)
       .then(() => {
         setItems((prev) => prev.filter((x) => x.id !== it.id));
-        const stored = loadStoredInterviews();
-        const remaining = stored.filter((x) => x.id !== it.id);
-        writeStoredInterviews(remaining);
         toast.info("Interview cancelled.");
         setOpenMenuForId(null);
       })
       .catch(() => toast.error("Unable to cancel interview"));
   }, []);
 
-  function saveLocalOverrides() {
-    // Store only interviews that differ from the deterministic seed by id.
-    // In practice: persist any interview currently visible in the list that is not a seed item.
-    // To keep UX simple, we store all current items.
-    writeStoredInterviews(items);
-    toast.success("Changes saved locally.");
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+        <LoadingIndicator label="Loading interviews..." />
+      </div>
+    );
   }
 
   return (
@@ -768,16 +518,7 @@ function JobInterviewListScreen() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="rounded border border-[#e2dfde] bg-white px-4 py-2 text-[12px] font-semibold text-[#5f5e5e] hover:bg-[#f3f3f3]"
-            onClick={saveLocalOverrides}
-            disabled={!canUpdateInterviews}
-          >
-            Save
-          </button>
-        </div>
+        <div className="flex items-center gap-2" />
       </div>
 
       {/* Filters & Stats */}

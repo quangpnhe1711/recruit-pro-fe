@@ -108,6 +108,19 @@ function ManagerDashboardScreen() {
     );
   }
 
+  if (!dashboard) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+        <div className="w-full max-w-xl border border-[#e2dfde] bg-white p-8 text-center">
+          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Manager Dashboard</h1>
+          <p className="mt-3 text-[14px] text-[#5f5e5e]">
+            Unable to load dashboard data right now. Please refresh and try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-10 md:px-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -179,7 +192,7 @@ function ManagerDashboardScreen() {
                   </tr>
                 </thead>
                 <tbody className="text-[14px]">
-                  {dashboard?.pendingApprovals.length ? (
+                  {dashboard.pendingApprovals.length ? (
                     dashboard.pendingApprovals.map((item, index) => (
                       <tr key={item.jobId} className={index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"}>
                         <td className="px-6 py-4 font-semibold">{item.meta.split(" • ")[0] || "General"}</td>
@@ -213,7 +226,7 @@ function ManagerDashboardScreen() {
               <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Final Decision Needed</h2>
             </div>
             <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
-              {dashboard?.finalDecisions.length ? (
+              {dashboard.finalDecisions.length ? (
                 dashboard.finalDecisions.map((item) => (
                   <article key={item.applicationId} className="flex gap-4 border border-[#e7bdb8] p-4 transition-colors hover:border-[#b90014]">
                     <div className="h-16 w-16 shrink-0 overflow-hidden bg-[#e2e2e2]">

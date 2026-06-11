@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import CommonTable, { type TableColumn } from "../../common/components/CommonTable";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 
@@ -183,6 +184,14 @@ function ManagerJobApprovalListScreen() {
     () => buildColumns((item) => navigate(`/manager/jobs/${item.jobId}/approval`)),
     [navigate],
   );
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-8 md:px-10">
+        <LoadingIndicator label="Loading job approval queue..." />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-10">
