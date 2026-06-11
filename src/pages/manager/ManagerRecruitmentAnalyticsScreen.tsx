@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 
 import {
   managerService,
@@ -119,9 +120,7 @@ function ManagerRecruitmentAnalyticsScreen() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
-        <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-          Loading recruitment analytics...
-        </div>
+        <LoadingIndicator label="Loading recruitment analytics..." />
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import { candidateService, type CandidateInterviewItemDto } from "../../services/candidate/candidateService";
 
 function normalizeStatus(status: string) {
@@ -111,7 +112,9 @@ function CandidateInterviewScreen() {
         </div>
 
         {loading ? (
-          <div className="px-6 py-10 text-[14px] text-[#5f5e5e]">Loading interviews...</div>
+          <div className="px-6 py-10">
+            <LoadingIndicator label="Loading interviews..." />
+          </div>
         ) : items.length === 0 ? (
           <div className="px-6 py-10 text-[14px] text-[#5f5e5e]">No interviews have been scheduled yet.</div>
         ) : (

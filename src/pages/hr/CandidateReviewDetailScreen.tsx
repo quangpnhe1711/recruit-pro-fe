@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -163,9 +164,7 @@ function CandidateReviewDetailScreen() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
-        <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-          Loading candidate review...
-        </div>
+        <LoadingIndicator label="Loading candidate review..." />
       </div>
     );
   }

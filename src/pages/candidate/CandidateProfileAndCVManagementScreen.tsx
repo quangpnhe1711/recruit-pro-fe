@@ -73,65 +73,20 @@ const monthOptions = [
 ];
 
 const initialProfile: ProfileState = {
-  name: "Alex Thompson",
-  headline: "Senior Candidate / Full-Stack Engineer",
-  email: "alex.thompson@recruitment.internal",
-  phone: "+1 (555) 0123 4567",
-  location: "Chicago, IL • Remote Friendly",
-  memberSince: "Member since Jan 2024",
-  bio: "Senior Full-Stack Engineer with 8+ years of experience building scalable web applications. Passionate about architecture, clean code, and mentoring junior developers.",
-  github: "github.com/athompson-dev",
-  linkedin: "linkedin.com/in/alexthompson",
+  name: "",
+  headline: "",
+  email: "",
+  phone: "",
+  location: "",
+  memberSince: "",
+  bio: "",
+  github: "",
+  linkedin: "",
 };
 
 const initialSkills: SkillItem[] = [];
 
-const initialExperience: ExperienceEntry[] = [
-  {
-    id: "senior",
-    title: "Senior Software Engineer",
-    period: {
-      startMonth: 1,
-      startYear: 2020,
-      isCurrent: true,
-    },
-    company: "TechFlow Solutions Inc.",
-    bullets: [
-      "Architected and led the migration of legacy monolith to microservices using .NET 8.",
-      "Improved system performance by 40% through SQL optimization and caching strategies.",
-      "Mentored a team of 5 junior and mid-level developers.",
-    ],
-  },
-  {
-    id: "developer",
-    title: "Software Developer",
-    period: {
-      startMonth: 1,
-      startYear: 2017,
-      endMonth: 12,
-      endYear: 2020,
-      isCurrent: false,
-    },
-    company: "Innovate Web Corp",
-    bullets: [
-      "Developed responsive user interfaces using React and Redux.",
-      "Collaborated with design teams to implement pixel-perfect enterprise dashboards.",
-    ],
-  },
-  {
-    id: "education",
-    title: "B.Sc. in Computer Science",
-    period: {
-      startMonth: 1,
-      startYear: 2013,
-      endMonth: 12,
-      endYear: 2017,
-      isCurrent: false,
-    },
-    company: "University of Illinois at Chicago",
-    bullets: ["Major in Software Engineering, Graduated with Honors."],
-  },
-];
+const initialExperience: ExperienceEntry[] = [];
 
 const emptyEntryDraft: EntryDraft = {
   title: "",

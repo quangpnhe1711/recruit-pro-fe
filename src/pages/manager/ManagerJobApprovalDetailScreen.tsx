@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 
 import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -113,9 +114,7 @@ function ManagerJobApprovalDetailScreen() {
   if (loading) {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-8 md:px-10">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-          Loading approval draft...
-        </div>
+        <LoadingIndicator label="Loading approval draft..." />
       </div>
     );
   }

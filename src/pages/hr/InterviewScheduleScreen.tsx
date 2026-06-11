@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../common/components/LoadingIndicator";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -317,7 +318,9 @@ function InterviewScheduleScreen() {
       <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
         <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
           <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Schedule Interview</h1>
-          <p className="mt-2 text-[14px] text-[#5f5e5e]">Loading schedule data...</p>
+          <div className="mt-3">
+            <LoadingIndicator label="Loading schedule data..." />
+          </div>
         </div>
       </div>
     );
