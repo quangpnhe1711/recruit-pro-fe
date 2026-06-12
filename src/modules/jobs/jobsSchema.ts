@@ -353,6 +353,55 @@ export type JobDetailDto = {
   availableActions: string[];
 };
 
+export type ApplyJobScreenDto = {
+  job: {
+    id: string;
+    title: string;
+    departmentName: string;
+    location: string;
+    workMode: WorkMode | string;
+    employmentType: EmploymentType | string;
+    salaryMin: number | null;
+    salaryMax: number | null;
+    salaryLabel: string;
+    vacancyCount: number;
+    status: string;
+    deadline: string | null;
+  };
+  candidateProfile: {
+    candidateId: string;
+    fullName: string;
+    email: string;
+    phone: string | null;
+    currentPosition: string | null;
+    experienceYears: number | null;
+    editProfilePath: string;
+  };
+  resume: {
+    resumeId: string;
+    fileName: string;
+    fileUrl: string;
+    uploadedAt: string;
+  } | null;
+  eligibility: {
+    canApply: boolean;
+    alreadyApplied: boolean;
+    existingApplicationId: string | null;
+    existingApplicationStatus: string | null;
+    blockers: string[];
+    guidanceMessage: string;
+  };
+};
+
+export type ApplyJobRequestDto = {
+  coverLetter?: string | null;
+};
+
+export type ApplyJobResponseDto = {
+  applicationId: string;
+  status: string;
+};
+
 export type PaginatedResponse<T> = {
   items: T[];
   page: number;

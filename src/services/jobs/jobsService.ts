@@ -3,6 +3,9 @@ import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
 import type {
   ApplicationListItemDto,
+  ApplyJobRequestDto,
+  ApplyJobResponseDto,
+  ApplyJobScreenDto,
   CreateJobRequest,
   DepartmentDto,
   HrJobQueryParams,
@@ -177,6 +180,10 @@ export const jobsService = {
     return request.get<ApiResponse<JobDetailDto>>(endpoints.jobs.detail(jobId));
   },
 
+  getApplyContext: async (jobId: string): Promise<ApiResponse<ApplyJobScreenDto>> => {
+    return request.get<ApiResponse<ApplyJobScreenDto>>(endpoints.jobs.applyContext(jobId));
+  },
+
   getJobApplications: async (
     jobId: string,
   ): Promise<ApiResponse<PaginatedResponse<ApplicationListItemDto>>> => {
@@ -205,9 +212,9 @@ export const jobsService = {
 
   applyToJob: async (
     jobId: string,
-    data?: { coverLetter?: string | null },
-  ): Promise<ApiResponse<null>> => {
-    return request.post<ApiResponse<null>, { coverLetter?: string | null }>(
+    data?: ApplyJobRequestDto,
+  ): Promise<ApiResponse<ApplyJobResponseDto>> => {
+    return request.post<ApiResponse<ApplyJobResponseDto>, ApplyJobRequestDto>(
       endpoints.jobs.apply(jobId),
       data,
     );

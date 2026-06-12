@@ -9,6 +9,7 @@ import MyApplicationScreen from "../pages/candidate/MyApplicationScreen";
 import CandidateProfileAndCVManagementScreen from "../pages/candidate/CandidateProfileAndCVManagementScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
 import CandidateInterviewScreen from "../pages/candidate/CandidateInterviewScreen";
+import ApplyJobScreen from "../pages/candidate/ApplyJobScreen";
 
 const candidateRoutes = (
   <Route element={<RequireAuth />}>
@@ -29,6 +30,11 @@ const candidateRoutes = (
           <RouteGuard permissions={PERMISSIONS.APPLICATION_VIEW_OWN} />
         }
       >
+        <Route
+          path="/jobs/:jobId/apply"
+          element={<ApplyJobScreen />}
+        />
+
         <Route
           path="/candidate/my-applications"
           element={<MyApplicationScreen />}

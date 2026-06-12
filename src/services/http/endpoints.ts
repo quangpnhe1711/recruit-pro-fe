@@ -14,6 +14,7 @@ export const endpoints = {
     list: "/jobs",
     filters: "/jobs/filters",
     detail: (jobId: string) => `/jobs/${jobId}`,
+    applyContext: (jobId: string) => `/jobs/${jobId}/apply-context`,
     applications: (jobId: string) => `/jobs/${jobId}/applications`,
     recentApplications: (jobId: string) => `/jobs/${jobId}/applications/recent`,
     statistics: (jobId: string) => `/jobs/${jobId}/statistics`,

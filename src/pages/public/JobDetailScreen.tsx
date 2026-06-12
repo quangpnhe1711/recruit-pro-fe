@@ -169,11 +169,32 @@ function JobDetailScreen() {
   const canViewRecentApplications = hasPermission(PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS);
   const canViewStatistics = hasPermission(PERMISSIONS.JOB_VIEW_STATISTICS);
   const canShareJob = hasPermission(PERMISSIONS.JOB_SHARE);
+  const canApplyJob = hasPermission(PERMISSIONS.JOB_APPLY);
+  const showCandidateActions = !showInternalChrome;
 
   const [job, setJob] = useState<JobDetailViewModel | null>(null);
   const [recentApplications, setRecentApplications] = useState<RecentApplication[]>([]);
   const [hiringFunnel, setHiringFunnel] = useState<FunnelStage[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function handleApplyClick() {
+    if (!jobId) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      navigate("/login", {
+        state: {
+          from: {
+            pathname: `/jobs/${jobId}/apply`,
+          },
+        },
+      });
+      return;
+    }
+
+    navigate(`/jobs/${jobId}/apply`);
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -298,6 +319,16 @@ function JobDetailScreen() {
             </div>
 
             <div className="flex flex-wrap gap-3">
+              {showCandidateActions ? (
+                <button
+                  type="button"
+                  className="bg-[#b90014] px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={isAuthenticated && !canApplyJob}
+                  onClick={handleApplyClick}
+                >
+                  Apply Now
+                </button>
+              ) : null}
               <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
                 <button
                   type="button"

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useDispatch } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
 import { setCredentials } from "../../store/slices/authSlice";
@@ -20,6 +20,7 @@ const SPLIT_IMAGE_URL =
 function CandidateLoginScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const schema = yup
     .object({
@@ -76,8 +77,10 @@ function CandidateLoginScreen() {
       }
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
+      const redirectTarget =
+        (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
-      navigate(getRoleHomePath(primaryRole) ?? "/candidate/dashboard", {
+      navigate(redirectTarget ?? getRoleHomePath(primaryRole) ?? "/candidate/dashboard", {
         replace: true,
       });
     } catch {
