@@ -9,6 +9,7 @@ import CandidateListScreen from "../pages/hr/CandidateListScreen";
 import CandidateImportScreen from "../pages/hr/CandidateImportScreen";
 import CandidateApplicationScreen from "../pages/hr/CandidateApplicationScreen";
 import CandidateReviewDetailScreen from "../pages/hr/CandidateReviewDetailScreen";
+import SendOfferScreen from "../pages/hr/SendOfferScreen";
 import ManagerCandidateReviewListScreen from "../pages/hr/ManagerCandidateReviewListScreen";
 import ManagerDashboardScreen from "../pages/manager/ManagerDashboardScreen";
 import ManagerJobApprovalDetailScreen from "../pages/manager/ManagerJobApprovalDetailScreen";
@@ -88,6 +89,10 @@ const hrRoutes = (
         <Route
           path="/hr/applications/:applicationId"
           element={<CandidateReviewDetailScreen />}
+        />
+        <Route
+          path="/hr/applications/:applicationId/send-offer"
+          element={<SendOfferScreen />}
         />
         <Route
           path="/manager/applications/:applicationId"

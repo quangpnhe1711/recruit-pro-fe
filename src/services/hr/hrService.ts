@@ -5,6 +5,8 @@ import type {
   ApplicationReviewDecision,
   ApplicationReviewDetailDto,
   ManagerReviewQueueResponseDto,
+  OfferEditorDto,
+  UpsertOfferRequest,
 } from "../../modules/jobs/jobsSchema";
 
 function buildParams<T extends Record<string, unknown>>(params?: T) {
@@ -281,6 +283,34 @@ export const hrService = {
     return request.patch<ApiResponse<ApplicationReviewDetailDto>, { decision: ApplicationReviewDecision }>(
       endpoints.hr.applicationDecision(applicationId),
       { decision },
+    );
+  },
+
+  getOfferEditor: async (
+    applicationId: string,
+  ): Promise<ApiResponse<OfferEditorDto>> => {
+    return request.get<ApiResponse<OfferEditorDto>>(
+      endpoints.hr.applicationOffer(applicationId),
+    );
+  },
+
+  saveOfferDraft: async (
+    applicationId: string,
+    data: UpsertOfferRequest,
+  ): Promise<ApiResponse<OfferEditorDto>> => {
+    return request.put<ApiResponse<OfferEditorDto>, UpsertOfferRequest>(
+      endpoints.hr.applicationOffer(applicationId),
+      data,
+    );
+  },
+
+  sendOffer: async (
+    applicationId: string,
+    data: UpsertOfferRequest,
+  ): Promise<ApiResponse<OfferEditorDto>> => {
+    return request.post<ApiResponse<OfferEditorDto>, UpsertOfferRequest>(
+      endpoints.hr.applicationOfferSend(applicationId),
+      data,
     );
   },
 

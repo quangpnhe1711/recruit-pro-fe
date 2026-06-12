@@ -91,6 +91,7 @@ function CandidateReviewDetailScreen() {
   const canApprove = hasPermission(PERMISSIONS.APPLICATION_APPROVE);
   const canReject = hasPermission(PERMISSIONS.APPLICATION_REJECT);
   const canViewCv = hasPermission(PERMISSIONS.APPLICATION_VIEW_CV);
+  const canSendOffer = primaryRole === ROLE_NAMES.HR && hasPermission(PERMISSIONS.APPLICATION_SEND_EMAIL);
   const reviewRoutePrefix =
     primaryRole === ROLE_NAMES.MANAGER ? "/manager/applications" : "/hr/applications";
 
@@ -225,6 +226,17 @@ function CandidateReviewDetailScreen() {
             <span className="material-symbols-outlined text-base">arrow_back</span>
             Back to Applications
           </button>
+          {canSendOffer && detail.status.toLowerCase() === "managerreview" ? (
+            <Link
+              className="inline-flex items-center gap-2 bg-[#b90014] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#93000d]"
+              to={`/hr/applications/${detail.applicationId}/send-offer`}
+            >
+              <span className="material-symbols-outlined text-base">
+                {detail.offerStatus?.toLowerCase() === "sent" ? "edit_document" : "send"}
+              </span>
+              {detail.offerStatus ? "Manage Offer" : "Create Offer"}
+            </Link>
+          ) : null}
           {resumeFile ? (
             <a
               className="inline-flex items-center gap-2 bg-[#e2e2e2] px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#dadada]"
@@ -461,6 +473,7 @@ function CandidateReviewDetailScreen() {
               <div className="mt-4 space-y-3 text-sm text-[#1a1c1c]">
                 <p><span className="font-semibold">Interview notes submitted:</span> {detail.insights.submittedInterviewNotes}/{detail.insights.totalInterviews}</p>
                 <p><span className="font-semibold">Reviewed by:</span> {detail.reviewedBy?.fullName || "Not assigned yet"}</p>
+                <p><span className="font-semibold">Offer state:</span> {detail.offerStatus || "Not created yet"}</p>
                 <p><span className="font-semibold">Workflow state:</span> {detail.nextStep}</p>
               </div>
             </div>

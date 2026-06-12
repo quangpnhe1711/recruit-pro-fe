@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import CommonSelect from "../../common/components/CommonSelect";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -403,7 +404,7 @@ function CandidateListScreen() {
 
       {/* Table Controls */}
       <div className="flex flex-col gap-4 border-x border-t border-[#e7bdb8] bg-[#f3f3f3] px-6 py-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:gap-4">
           <div className="relative w-full md:w-80">
             <input
               className="w-full border border-[#e7bdb8] bg-white px-4 py-2.5 text-sm focus:border-[#1a1c1c] focus:outline-none focus:ring-0"
@@ -419,35 +420,31 @@ function CandidateListScreen() {
               search
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <select
-              className="min-w-[140px] border border-[#e7bdb8] bg-white px-4 py-2.5 text-sm focus:border-[#1a1c1c] focus:outline-none focus:ring-0"
+          <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
+            <CommonSelect
+              className="h-[42px] min-w-[220px] text-sm"
+              options={statusOptions.map((status) => ({
+                label: status,
+                value: status,
+              }))}
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
                 resetToFirstPage();
               }}
-            >
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <select
-              className="min-w-[140px] border border-[#e7bdb8] bg-white px-4 py-2.5 text-sm focus:border-[#1a1c1c] focus:outline-none focus:ring-0"
+            />
+            <CommonSelect
+              className="h-[42px] min-w-[220px] text-sm"
+              options={sourceOptions.map((source) => ({
+                label: source,
+                value: source,
+              }))}
               value={sourceFilter}
-              onChange={(e) => {
-                setSourceFilter(e.target.value);
+              onChange={(event) => {
+                setSourceFilter(event.target.value);
                 resetToFirstPage();
               }}
-            >
-              {sourceOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            />
           </div>
         </div>
         <button className="flex items-center gap-2 text-sm font-semibold text-[#1a1c1c] transition-colors hover:underline">

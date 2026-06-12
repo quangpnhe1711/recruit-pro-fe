@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
@@ -240,24 +241,36 @@ function MyApplicationScreen() {
       </div>
 
       <div className="mb-8 flex flex-wrap items-center gap-4 bg-[#f3f3f3] p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-4 xl:flex-row xl:items-center">
+          <div className="flex items-center gap-2">
           <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c]">
             Filter By:
           </span>
-          <select className="border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]">
-            <option>All Statuses</option>
-            <option>Under Review</option>
-            <option>Interviewing</option>
-            <option>Offered</option>
-            <option>Rejected</option>
-          </select>
-        </div>
-        <div className="flex items-center gap-2">
-          <select className="border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]">
-            <option>Sort by: Applied Date</option>
-            <option>Sort by: Job Title</option>
-            <option>Sort by: Company</option>
-          </select>
+          </div>
+          <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
+            <CommonSelect
+              className="h-11 min-w-[220px]"
+              options={[
+                { label: "All Statuses", value: "all" },
+                { label: "Under Review", value: "under-review" },
+                { label: "Interviewing", value: "interviewing" },
+                { label: "Offered", value: "offered" },
+                { label: "Rejected", value: "rejected" },
+              ]}
+              value="all"
+              onChange={() => undefined}
+            />
+            <CommonSelect
+              className="h-11 min-w-[220px]"
+              options={[
+                { label: "Sort by: Applied Date", value: "applied-date" },
+                { label: "Sort by: Job Title", value: "job-title" },
+                { label: "Sort by: Company", value: "company" },
+              ]}
+              value="applied-date"
+              onChange={() => undefined}
+            />
+          </div>
         </div>
         <div className="flex-1" />
         <div className="relative w-full md:w-72">

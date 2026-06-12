@@ -49,6 +49,8 @@ export const endpoints = {
     applicationDetail: (applicationId: string) => `/hr/applications/${applicationId}`,
     applicationDecision: (applicationId: string) => `/hr/applications/${applicationId}/decision`,
     applicationCv: (applicationId: string) => `/hr/applications/${applicationId}/cv`,
+    applicationOffer: (applicationId: string) => `/hr/applications/${applicationId}/offer`,
+    applicationOfferSend: (applicationId: string) => `/hr/applications/${applicationId}/offer/send`,
     applicationSendEmail: (applicationId: string) =>
       `/hr/applications/${applicationId}/send-email`,
     interviews: "/hr/interviews",

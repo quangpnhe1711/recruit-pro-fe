@@ -100,6 +100,7 @@ export type ApplicationReviewDetailDto = {
   referenceCode: string;
   stageLabel: string;
   status: string;
+  offerStatus: string | null;
   appliedAt: string | null;
   nextStep: string;
   candidate: {
@@ -138,6 +139,75 @@ export type ApplicationReviewDetailDto = {
     notes: string | null;
   }>;
   reviewedBy: UserDto | null;
+};
+
+export type OfferEditorDto = {
+  application: {
+    applicationId: string;
+    referenceCode: string;
+    stageLabel: string;
+    candidateName: string;
+    candidateEmail: string;
+    candidateAvatarUrl: string | null;
+    jobTitle: string;
+    departmentName: string;
+  };
+  offer: {
+    offerId: string | null;
+    status: string;
+    offerTemplateId: string | null;
+    baseSalary: number;
+    currencyCode: string;
+    bonusDescription: string | null;
+    equityNotes: string | null;
+    employmentType: string;
+    proposedStartDate: string | null;
+    probationPeriod: string | null;
+    reportingManagerId: string | null;
+    reportingManagerName: string | null;
+    personalMessage: string | null;
+    benefitIds: string[];
+    sentAt: string | null;
+    updatedAt: string | null;
+  };
+  masterData: {
+    templates: Array<{
+      id: string;
+      name: string;
+      description: string | null;
+    }>;
+    benefits: Array<{
+      id: string;
+      name: string;
+      description: string | null;
+    }>;
+    currencies: Array<{
+      code: string;
+      name: string;
+      symbol: string;
+    }>;
+    employmentTypes: string[];
+    reportingManagers: Array<{
+      id: string;
+      fullName: string;
+      email: string;
+      title: string;
+    }>;
+  };
+};
+
+export type UpsertOfferRequest = {
+  offerTemplateId?: string | null;
+  baseSalary: number;
+  currencyCode: string;
+  bonusDescription?: string | null;
+  equityNotes?: string | null;
+  employmentType: string;
+  proposedStartDate?: string | null;
+  probationPeriod?: string | null;
+  reportingManagerId?: string | null;
+  personalMessage?: string | null;
+  benefitIds: string[];
 };
 
 export type ManagerReviewQueueItemDto = {

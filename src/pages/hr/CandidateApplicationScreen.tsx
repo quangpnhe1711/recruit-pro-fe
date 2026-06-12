@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -17,10 +18,13 @@ type DateRange =
 type Department =
   | "All Departments"
   | "Engineering"
+  | "Data & Analytics"
   | "Marketing"
   | "Sales"
-  | "HR"
-  | "Design";
+  | "Human Resources"
+  | "Finance"
+  | "Operations"
+  | "Product";
 
 type Application = {
   id: string;
@@ -43,10 +47,13 @@ const applicationStatuses: ApplicationStatus[] = [
 ];
 const departments: Department[] = [
   "Engineering",
+  "Data & Analytics",
   "Marketing",
   "Sales",
-  "HR",
-  "Design",
+  "Human Resources",
+  "Finance",
+  "Operations",
+  "Product",
 ];
 const dateRanges: DateRange[] = [
   "Anytime",
@@ -67,10 +74,13 @@ const statusOptions: ("All Statuses" | ApplicationStatus)[] = [
 const departmentOptions: Department[] = [
   "All Departments",
   "Engineering",
+  "Data & Analytics",
   "Marketing",
   "Sales",
-  "HR",
-  "Design",
+  "Human Resources",
+  "Finance",
+  "Operations",
+  "Product",
 ];
 
 function parseDateLabelToEpoch(label: string) {
@@ -476,60 +486,54 @@ function CandidateApplicationScreen() {
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
               Department
             </label>
-            <select
-              className="w-full appearance-none rounded-lg border border-[#e7bdb8] bg-white px-4 py-3 text-body-md outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
+            <CommonSelect
+              className="h-[52px] text-body-md"
+              options={departmentOptions.map((department) => ({
+                label: department,
+                value: department,
+              }))}
               value={departmentFilter}
-              onChange={(e) => {
-                setDepartmentFilter(e.target.value as Department);
+              onChange={(event) => {
+                setDepartmentFilter(event.target.value as Department);
                 resetToFirstPage();
               }}
-            >
-              {departmentOptions.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="w-full space-y-2 xl:w-64">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
               Status
             </label>
-            <select
-              className="w-full appearance-none rounded-lg border border-[#e7bdb8] bg-white px-4 py-3 text-body-md outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
+            <CommonSelect
+              className="h-[52px] text-body-md"
+              options={statusOptions.map((status) => ({
+                label: status,
+                value: status,
+              }))}
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
                 resetToFirstPage();
               }}
-            >
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="w-full space-y-2 xl:w-64">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
               Date Range
             </label>
-            <select
-              className="w-full appearance-none rounded-lg border border-[#e7bdb8] bg-white px-4 py-3 text-body-md outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
+            <CommonSelect
+              className="h-[52px] text-body-md"
+              options={dateRanges.map((range) => ({
+                label: range,
+                value: range,
+              }))}
               value={dateRangeFilter}
-              onChange={(e) => {
-                setDateRangeFilter(e.target.value as DateRange);
+              onChange={(event) => {
+                setDateRangeFilter(event.target.value as DateRange);
                 resetToFirstPage();
               }}
-            >
-              {dateRanges.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <button
