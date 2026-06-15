@@ -11,7 +11,7 @@ const sizeClasses = {
 } as const;
 
 function LoadingIndicator({
-  label = "Loading...",
+  label = "Đang tải...",
   className = "",
   size = "md",
   tone = "brand",

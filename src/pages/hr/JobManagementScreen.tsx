@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
@@ -41,22 +42,22 @@ function parseDateLabelToEpoch(label: string) {
 
 function approvalChip(status: ApprovalStatus) {
   switch (status) {
-    case "Approved":
+    case "Đã duyệt":
       return {
         wrapper: "bg-[#005f93]/10 text-[#005f93]",
         dot: "bg-[#005f93]",
       };
-    case "Pending":
+    case "Chờ duyệt":
       return {
         wrapper: "bg-[#926e6b]/10 text-[#926e6b]",
         dot: "bg-[#926e6b]",
       };
-    case "Draft":
+    case "Nháp":
       return {
         wrapper: "bg-[#5f5e5e]/10 text-[#5f5e5e]",
         dot: "bg-[#5f5e5e]",
       };
-    case "Rejected":
+    case "Từ chối":
       return {
         wrapper: "bg-[#ba1a1a]/10 text-[#ba1a1a]",
         dot: "bg-[#ba1a1a]",
@@ -150,14 +151,16 @@ function buildJobTableColumns(
             </button>
           ) : null}
           {options.canDeleteJobs ? (
-            <button
+            <AsyncActionButton
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
               title="Xóa"
+              loadingText=""
               onClick={() => onDeleteJob(job)}
+              spinnerTone="brand"
             >
               <span className="material-symbols-outlined">delete</span>
-            </button>
+            </AsyncActionButton>
           ) : null}
         </div>
       ),
@@ -346,7 +349,7 @@ function JobManagementScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Loading jobs..." />
+        <LoadingIndicator label="Đang tải danh sách job..." />
       </div>
     );
   }
@@ -357,7 +360,7 @@ function JobManagementScreen() {
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-            Job Management
+            Quản lý job
           </h2>
         </div>
 
@@ -368,7 +371,7 @@ function JobManagementScreen() {
           disabled={!canCreateJobs}
         >
           <span className="material-symbols-outlined">add</span>
-          Post New Job
+          Đăng job mới
         </button>
       </div>
 
@@ -376,7 +379,7 @@ function JobManagementScreen() {
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Active Jobs
+            Job đang mở
           </p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
@@ -386,40 +389,40 @@ function JobManagementScreen() {
         </div>
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Pending Approval
+            Chờ duyệt
           </p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
               {stats.pendingApproval}
             </span>
             <span className="text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">
-              Review needed
+              Cần xử lý
             </span>
           </div>
         </div>
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Total Applications
+            Tổng hồ sơ ứng tuyển
           </p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
               {stats.totalApplications}
             </span>
             <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-              Across all roles
+              Toàn bộ vị trí
             </span>
           </div>
         </div>
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Time to Hire
+            Thời gian tuyển
           </p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
               {stats.timeToHireDays}d
             </span>
             <span className="text-[12px] font-semibold tracking-[0.05em] text-[#004b74]">
-              Avg. Efficiency
+              Trung bình
             </span>
           </div>
         </div>
@@ -431,7 +434,7 @@ function JobManagementScreen() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
               <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                Filter by:
+                Lọc theo:
               </span>
               <CommonSelect
                 className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
@@ -450,7 +453,7 @@ function JobManagementScreen() {
 
             <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
               <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                Creator:
+                Người tạo:
               </span>
               <CommonSelect
                 className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
@@ -466,7 +469,7 @@ function JobManagementScreen() {
 
             <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
               <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                Status:
+                Trạng thái:
               </span>
               <CommonSelect
                 className="h-9 min-w-[170px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
@@ -482,11 +485,11 @@ function JobManagementScreen() {
           </div>
 
           <div className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-            Showing{" "}
+            Hiển thị{" "}
             <span className="font-bold text-[#1a1c1c]">
               {rangeStart}-{rangeEnd}
             </span>{" "}
-            of <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
+            trên tổng <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
           </div>
         </div>
 
@@ -499,7 +502,7 @@ function JobManagementScreen() {
           data={pageSlice}
           keyExtractor={(item) => item.id}
           loading={loading}
-          emptyMessage="No jobs found for current filters."
+          emptyMessage="Không tìm thấy job phù hợp bộ lọc hiện tại."
           zebra
           hover
           tableWrapperClassName="border border-[#e7bdb8] bg-white"

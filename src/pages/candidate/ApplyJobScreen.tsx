@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import type { ApplyJobResponseDto, ApplyJobScreenDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -338,14 +339,16 @@ function ApplyJobScreen() {
                   </div>
                 </div>
 
-                <button
+                <AsyncActionButton
                   type="button"
                   disabled={!eligibility.canApply || submitting}
                   className="mt-8 w-full bg-[#b90014] px-4 py-4 text-[16px] font-bold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={handleSubmit}
+                  loading={submitting}
+                  loadingText="Đang nộp..."
                 >
-                  {submitting ? "Đang nộp..." : "Nộp đơn ứng tuyển"}
-                </button>
+                  Nộp đơn ứng tuyển
+                </AsyncActionButton>
                 <button
                   type="button"
                   className="mt-4 w-full text-center text-[14px] font-semibold text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"

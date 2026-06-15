@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
@@ -237,28 +238,32 @@ function buildInterviewTableColumns(
                   </button>
                 ) : null}
                 {actions.canApproveInterviews ? (
-                  <button
+                  <AsyncActionButton
                     type="button"
                     className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
                     onClick={() => onMarkCompleted(item)}
+                    loadingText=""
+                    spinnerTone="brand"
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       check_circle
                     </span>
                     Mark completed
-                  </button>
+                  </AsyncActionButton>
                 ) : null}
                 {actions.canDeleteInterviews ? (
-                  <button
+                  <AsyncActionButton
                     type="button"
                     className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold text-[#ba1a1a] hover:bg-[#ffdad6]"
                     onClick={() => onCancel(item)}
+                    loadingText=""
+                    spinnerTone="brand"
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       close
                     </span>
                     Cancel
-                  </button>
+                  </AsyncActionButton>
                 ) : null}
               </div>
             ) : null}
@@ -469,22 +474,22 @@ function JobInterviewListScreen() {
     );
   }
 
-  const markCompleted = useCallback((it: Interview) => {
+  const markCompleted = useCallback(async (it: Interview) => {
     if (it.status === "Completed") {
       toast.info("Already completed.");
       return;
     }
 
-    hrService
-      .updateInterviewStatus(it.id, "Completed")
-      .then(() => {
-        setItems((prev) =>
-          prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
-        );
-        toast.success("Marked as completed.");
-        setOpenMenuForId(null);
-      })
-      .catch(() => toast.error("Unable to update interview"));
+    try {
+      await hrService.updateInterviewStatus(it.id, "Completed");
+      setItems((prev) =>
+        prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
+      );
+      toast.success("Marked as completed.");
+      setOpenMenuForId(null);
+    } catch {
+      toast.error("Unable to update interview");
+    }
   }, []);
 
   const reschedule = useCallback((it: Interview) => {
@@ -500,18 +505,18 @@ function JobInterviewListScreen() {
     });
   }, [navigate]);
 
-  const cancelInterview = useCallback((it: Interview) => {
+  const cancelInterview = useCallback(async (it: Interview) => {
     const ok = window.confirm(`Cancel interview for ${it.candidateName}?`);
     if (!ok) return;
 
-    hrService
-      .deleteInterview(it.id)
-      .then(() => {
-        setItems((prev) => prev.filter((x) => x.id !== it.id));
-        toast.info("Interview cancelled.");
-        setOpenMenuForId(null);
-      })
-      .catch(() => toast.error("Unable to cancel interview"));
+    try {
+      await hrService.deleteInterview(it.id);
+      setItems((prev) => prev.filter((x) => x.id !== it.id));
+      toast.info("Interview cancelled.");
+      setOpenMenuForId(null);
+    } catch {
+      toast.error("Unable to cancel interview");
+    }
   }, []);
 
   const columns = useMemo(
@@ -547,7 +552,7 @@ function JobInterviewListScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Loading interviews..." />
+        <LoadingIndicator label="Đang tải lịch phỏng vấn..." />
       </div>
     );
   }
@@ -558,7 +563,7 @@ function JobInterviewListScreen() {
       <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-6">
           <h2 className="text-[20px] font-bold leading-7 text-[#b90014]">
-            Interviews
+            Phỏng vấn
           </h2>
           <div className="relative transition-transform focus-within:scale-[1.02]">
             <span className="material-symbols-outlined absolute inset-y-0 left-3 flex items-center text-[#5f5e5e]">
@@ -567,7 +572,7 @@ function JobInterviewListScreen() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search candidate or job..."
+              placeholder="Tìm ứng viên hoặc job..."
               className="w-64 rounded-lg bg-[#f3f3f3] py-2 pl-10 pr-4 text-[14px] outline-none transition-all focus:ring-2 focus:ring-[#b90014]"
               type="text"
             />
@@ -583,7 +588,7 @@ function JobInterviewListScreen() {
         <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
             <span className="text-[12px] font-semibold text-[#5f5e5e]">
-              Total This Week
+              Tổng trong kỳ
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
@@ -595,28 +600,28 @@ function JobInterviewListScreen() {
 
           <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
             <span className="text-[12px] font-semibold text-[#5f5e5e]">
-              Awaiting Confirmation
+              Chờ xác nhận
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#b90014]">
                 {stats.actionNeeded.toString().padStart(2, "0")}
               </span>
               <span className="text-[12px] font-bold text-[#5f5e5e]">
-                Action Needed
+                Cần xử lý
               </span>
             </div>
           </div>
 
           <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
             <span className="text-[12px] font-semibold text-[#5f5e5e]">
-              Completion Rate
+              Tỷ lệ hoàn tất
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
                 {stats.completionRate}%
               </span>
               <span className="text-[12px] font-bold text-[#005f93]">
-                Excellent
+                Tốt
               </span>
             </div>
           </div>
@@ -625,13 +630,13 @@ function JobInterviewListScreen() {
         {/* Quick filters */}
         <div className="w-full space-y-4 rounded-lg border border-[#e2dfde] bg-white p-6 md:w-80">
           <h3 className="border-b border-[#e2dfde] pb-2 text-[16px] font-bold">
-            Quick Filters
+            Bộ lọc nhanh
           </h3>
 
           <div className="space-y-3">
             <div>
               <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                Status
+                Trạng thái
               </label>
               <CommonSelect
                 value={statusFilter}
@@ -644,7 +649,7 @@ function JobInterviewListScreen() {
 
             <div>
               <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                Timeframe
+                Thời gian
               </label>
               <CommonSelect
                 value={timeframe}
@@ -659,7 +664,7 @@ function JobInterviewListScreen() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                    Start
+                    Từ ngày
                   </label>
                   <input
                     type="date"
@@ -675,7 +680,7 @@ function JobInterviewListScreen() {
                 </div>
                 <div>
                   <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                    End
+                    Đến ngày
                   </label>
                   <input
                     type="date"
@@ -699,7 +704,7 @@ function JobInterviewListScreen() {
       <div className="mb-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-[20px] font-bold text-[#1a1c1c]">
-            Interview Schedule
+            Lịch phỏng vấn
           </h3>
           <div className="flex items-center gap-3">
             {canCreateInterviews ? (
@@ -711,7 +716,7 @@ function JobInterviewListScreen() {
                   navigate("/hr/interviews/schedule");
                 }}
               >
-                Schedule Interview
+                Tạo lịch phỏng vấn
               </button>
             ) : null}
             <button
@@ -720,7 +725,7 @@ function JobInterviewListScreen() {
               onClick={exportCsv}
               disabled={!canExportInterviews}
             >
-              Export CSV
+              Xuất CSV
             </button>
           </div>
         </div>
@@ -730,7 +735,7 @@ function JobInterviewListScreen() {
           data={pageSlice}
           keyExtractor={(item) => item.id}
           loading={false}
-          emptyMessage="No interviews found."
+          emptyMessage="Không có lịch phỏng vấn phù hợp."
           zebra
           hover
           onRowClick={openDetails}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import type {
@@ -530,25 +531,24 @@ function JobDetailScreen() {
               </PermissionGuard>
               {isInternalPortal ? (
                 <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
-                  <button
+                  <AsyncActionButton
                     type="button"
                     className="flex items-center gap-2 border border-[#5f5e5e] bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a] transition-colors hover:bg-[#ba1a1a]/5 disabled:opacity-60"
                     disabled={closing}
-                    onClick={() =>
-                      void (detail.status === "CLOSED"
-                        ? handleReopenPosting()
-                        : handleClosePosting())
+                    loading={closing}
+                    loadingText={
+                      detail.status === "CLOSED" ? "Đang mở lại..." : "Đang đóng..."
                     }
+                    onClick={() =>
+                      detail.status === "CLOSED"
+                        ? handleReopenPosting()
+                        : handleClosePosting()
+                    }
+                    spinnerTone="brand"
                   >
                     <Icon name={detail.status === "CLOSED" ? "refresh" : "close"} />
-                    {closing
-                      ? detail.status === "CLOSED"
-                        ? "Đang mở lại..."
-                        : "Đang đóng..."
-                      : detail.status === "CLOSED"
-                        ? "Mở lại tin"
-                        : "Đóng tin"}
-                  </button>
+                    {detail.status === "CLOSED" ? "Mở lại tin" : "Đóng tin"}
+                  </AsyncActionButton>
                 </PermissionGuard>
               ) : null}
             </div>
@@ -578,14 +578,16 @@ function JobDetailScreen() {
                   >
                     Hủy
                   </button>
-                  <button
+                  <AsyncActionButton
                     type="button"
                     className="bg-[#b90014] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-white transition-colors hover:brightness-110 disabled:opacity-60"
                     disabled={saving}
-                    onClick={() => void handleSaveJob()}
+                    loading={saving}
+                    loadingText="Đang lưu..."
+                    onClick={handleSaveJob}
                   >
-                    {saving ? "Đang lưu..." : "Lưu thay đổi"}
-                  </button>
+                    Lưu thay đổi
+                  </AsyncActionButton>
                 </div>
               </div>
 
@@ -821,7 +823,7 @@ function JobDetailScreen() {
                   <span className="material-symbols-outlined text-[#b90014]">
                     description
                   </span>
-                  Job Description
+                  Mô tả công việc
                 </h3>
 
                 <div className="space-y-4 text-[14px] leading-6 text-[#5d3f3c]">
@@ -832,7 +834,7 @@ function JobDetailScreen() {
                   <span className="material-symbols-outlined text-[#b90014]">
                     checklist
                   </span>
-                  Requirements
+                  Yêu cầu
                 </h3>
 
                 <ul className="space-y-3 text-[14px] leading-6 text-[#5d3f3c]">
@@ -852,7 +854,7 @@ function JobDetailScreen() {
                       <span className="material-symbols-outlined text-[#b90014]">
                         redeem
                       </span>
-                      Benefits
+                      Quyền lợi
                     </h3>
 
                     <div className="flex flex-wrap gap-2">
@@ -878,7 +880,7 @@ function JobDetailScreen() {
                       <span className="material-symbols-outlined text-[#b90014]">
                         group
                       </span>
-                      Recent Applications
+                      Hồ sơ gần đây
                     </h3>
                     <button
                       type="button"
@@ -890,7 +892,7 @@ function JobDetailScreen() {
                         )
                       }
                     >
-                      View All {totalApplications}
+                      Xem tất cả {totalApplications}
                     </button>
                   </div>
 
@@ -899,7 +901,7 @@ function JobDetailScreen() {
                       <thead className="bg-[#1A1A1A] text-white">
                         <tr>
                           <th className="px-6 py-4 text-[12px] font-semibold">
-                            Candidate
+                            Ứng viên
                           </th>
                           <th className="px-6 py-4 text-[12px] font-semibold">
                             Applied
@@ -1015,13 +1017,13 @@ function JobDetailScreen() {
 
               <section className="border border-[#e2dfde] bg-[#f3f3f3] p-6">
                 <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Posting Details
+                  Thông tin đăng tuyển
                 </h3>
 
                 <div className="space-y-4">
                   <div>
                     <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Salary Range
+                      Mức lương
                     </p>
                     <p className="text-[14px] font-semibold text-[#1a1c1c]">
                       {jobSummary.salaryRange}
@@ -1037,7 +1039,7 @@ function JobDetailScreen() {
                   </div>
                   <div>
                     <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Job Type
+                      Loại hình
                     </p>
                     <p className="text-[14px] font-semibold text-[#1a1c1c]">
                       {jobSummary.jobType}
@@ -1045,7 +1047,7 @@ function JobDetailScreen() {
                   </div>
                   <div>
                     <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Skills
+                      Kỹ năng
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {(detail.skills ?? []).map((skill) => (

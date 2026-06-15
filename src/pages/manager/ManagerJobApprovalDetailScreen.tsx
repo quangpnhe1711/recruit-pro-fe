@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 
 import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/jobsSchema";
@@ -293,42 +294,49 @@ function ManagerJobApprovalDetailScreen() {
             </p>
 
             <div className="mt-6 space-y-3">
-              <button
+              <AsyncActionButton
                 type="button"
                 className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("approve")}`}
                 disabled={submitting !== null}
-                onClick={() => void submitDecision("APPROVED", "Job đã được duyệt và sẵn sàng cho bước đăng tuyển.")}
+                loading={submitting === "APPROVED"}
+                loadingText="Đang duyệt job..."
+                onClick={() => submitDecision("APPROVED", "Job đã được duyệt và sẵn sàng cho bước đăng tuyển.")}
               >
                 <span className="flex items-center gap-3">
                   <span className="material-symbols-outlined">check_circle</span>
                   Duyệt job
                 </span>
-                <span>{submitting === "APPROVED" ? "Đang lưu..." : "Sang bước đăng tuyển"}</span>
-              </button>
-              <button
+                <span>Sang bước đăng tuyển</span>
+              </AsyncActionButton>
+              <AsyncActionButton
                 type="button"
                 className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("changes")}`}
                 disabled={submitting !== null}
-                onClick={() => void submitDecision("DRAFT", "Job đã được trả về bản nháp để HR chỉnh sửa.")}
+                loading={submitting === "DRAFT"}
+                loadingText="Đang trả về nháp..."
+                onClick={() => submitDecision("DRAFT", "Job đã được trả về bản nháp để HR chỉnh sửa.")}
+                spinnerTone="brand"
               >
                 <span className="flex items-center gap-3">
                   <span className="material-symbols-outlined">edit_note</span>
                   Yêu cầu chỉnh sửa
                 </span>
-                <span>{submitting === "DRAFT" ? "Đang lưu..." : "Trả về nháp"}</span>
-              </button>
-              <button
+                <span>Trả về nháp</span>
+              </AsyncActionButton>
+              <AsyncActionButton
                 type="button"
                 className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("reject")}`}
                 disabled={submitting !== null}
-                onClick={() => void submitDecision("REJECTED", "Job đã bị từ chối trong luồng phê duyệt.")}
+                loading={submitting === "REJECTED"}
+                loadingText="Đang từ chối..."
+                onClick={() => submitDecision("REJECTED", "Job đã bị từ chối trong luồng phê duyệt.")}
               >
                 <span className="flex items-center gap-3">
                   <span className="material-symbols-outlined">cancel</span>
                   Từ chối job
                 </span>
-                <span>{submitting === "REJECTED" ? "Đang lưu..." : "Kết thúc duyệt"}</span>
-              </button>
+                <span>Kết thúc duyệt</span>
+              </AsyncActionButton>
             </div>
 
             <div className="mt-6 border-t border-[#e7bdb8] pt-6">

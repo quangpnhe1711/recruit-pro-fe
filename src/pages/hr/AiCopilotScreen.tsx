@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import {
@@ -132,30 +133,32 @@ function buildPresetSuggestion(
 
 function buildCandidateAnalysisLine(result: CopilotRankingResultDto) {
   if (result.summary?.trim()) {
-    return `${result.fullName}: ${result.summary.trim()}`;
+    return `- **${result.fullName}**: ${result.summary.trim()}`;
   }
 
   const strengths = result.strengths.slice(0, 2).join(", ");
   const weaknesses = result.weaknesses.slice(0, 2).join(", ");
 
   if (result.isAutoRejected) {
-    return `${result.fullName}: rejected because ${result.rejectReason || weaknesses || "the candidate did not meet the active criteria"}.`;
+    return `- **${result.fullName}**: ${result.rejectReason || weaknesses || "không đạt tiêu chí hiện tại"}.`;
   }
 
   const parts = [
-    strengths ? `matched ${strengths}` : "",
-    weaknesses ? `watch-outs: ${weaknesses}` : "",
+    strengths ? `phù hợp ở ${strengths}` : "",
+    weaknesses ? `lưu ý ${weaknesses}` : "",
   ].filter(Boolean);
 
-  return `${result.fullName}: ${parts.join("; ") || "candidate analyzed against the active criteria."}`;
+  return `- **${result.fullName}**: ${parts.join("; ") || "đã được AI phân tích."}`;
 }
 
 function buildAssistantSummaryFromResults(results: CopilotRankingResultDto[]) {
   const shortlisted = results.filter((item) => !item.isAutoRejected).slice(0, 3);
   const rejected = results.filter((item) => item.isAutoRejected).slice(0, 2);
   const lines = [
-    ...shortlisted.map((item, index) => `${index + 1}. ${buildCandidateAnalysisLine(item)}`),
-    ...rejected.map((item) => `Rejected: ${buildCandidateAnalysisLine(item)}`),
+    ...shortlisted.length > 0 ? ["Ứng viên nổi bật:"] : [],
+    ...shortlisted.map((item) => buildCandidateAnalysisLine(item)),
+    ...rejected.length > 0 ? ["", "Ứng viên cần lưu ý:"] : [],
+    ...rejected.map((item) => buildCandidateAnalysisLine(item)),
   ];
 
   return lines.join("\n");
@@ -171,7 +174,72 @@ function buildDefaultAssistantContext(pool: CopilotCandidatePoolDto | null) {
     ? `Ky nang chinh: ${requiredSkills}.`
     : "JD hien chua co ky nang bat buoc duoc cau hinh.";
 
-  return `Toi da nap context mac dinh cho job "${pool.job.title}" voi ${pool.candidates.length} ho so. ${skillsLine} Ban co the hoi cach loc, sap xep, so sanh ung vien, hoac bat Ranking mode khi can cham diem va xep hang.`;
+  return `Start chat with AI Copilot to review candidates for the job "${pool.job.title}". ${skillsLine} You can ask me to analyze specific candidates, or provide general instructions on how to review the candidate pool.`;
+}
+
+function renderInlineRichText(text: string) {
+  const normalized = text.replace(/\*\*(.+?)\*\*/g, "%%B%%$1%%/B%%");
+  const segments = normalized.split(/(%%B%%.*?%%\/B%%)/g).filter(Boolean);
+
+  return segments.map((segment, index) => {
+    const boldMatch = segment.match(/^%%B%%(.*?)%%\/B%%$/);
+    if (boldMatch) {
+      return (
+        <strong key={`bold-${index.toString()}`} className="font-semibold text-[#111827]">
+          {boldMatch[1]}
+        </strong>
+      );
+    }
+
+    return <Fragment key={`text-${index.toString()}`}>{segment}</Fragment>;
+  });
+}
+
+function renderAssistantContent(content: string): ReactNode {
+  const paragraphs = content
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-4">
+      {paragraphs.map((paragraph, index) => {
+        const lines = paragraph
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        const isBulletList = lines.every((line) => /^[-*]\s+/.test(line));
+        const isNumberList = lines.every((line) => /^\d+\.\s+/.test(line));
+
+        if (isBulletList || isNumberList) {
+          return (
+            <ul
+              key={`list-${index.toString()}`}
+              className="space-y-2 pl-5 text-[14px] leading-7 text-[#1f2937]"
+            >
+              {lines.map((line, lineIndex) => (
+                <li
+                  key={`line-${lineIndex.toString()}`}
+                  className="marker:text-[#b90014]"
+                >
+                  {renderInlineRichText(line.replace(/^([-*]|\d+\.)\s+/, ""))}
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        return (
+          <p
+            key={`paragraph-${index.toString()}`}
+            className="text-[14px] leading-7 text-[#1f2937]"
+          >
+            {renderInlineRichText(paragraph)}
+          </p>
+        );
+      })}
+    </div>
+  );
 }
 
 function sleep(ms: number) {
@@ -522,33 +590,28 @@ function AiCopilotScreen() {
   if (loadingJobs) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Loading AI Copilot..." />
+        <LoadingIndicator label="Đang tải AI Copilot..." />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-88px)] w-full gap-0 overflow-hidden border border-[#e2dfde] bg-white">
-      <section className="flex min-w-0 flex-1 flex-col bg-[#f9f9f9]">
+    <div className="flex h-[calc(100vh-88px)] w-full max-w-[100vw] flex-col overflow-hidden border border-[#e2dfde] bg-white xl:flex-row">
+      <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f9f9f9]">
         <header className="border-b border-[#e2dfde] bg-white px-6 py-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+          <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0">
               <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#b90014]">
                 AI Recruitment Copilot
               </p>
               <h1 className="mt-2 text-[32px] font-semibold leading-10 text-[#1a1c1c]">
-                {pool?.job.title ?? "Select a job"}
+                {pool?.job.title ?? "Chọn một job"}
               </h1>
-              <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                {pool
-                  ? `${pool.candidates.length} applications loaded from backend`
-                  : "Choose an active job to load candidates"}
-              </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <CommonSelect
-                className="min-w-[280px] border-[#e7bdb8] bg-white"
+                className="w-full min-w-0 border-[#e7bdb8] bg-white sm:min-w-[280px]"
                 options={jobs.map((job) => ({
                   label: `${job.title} (${job.applicationCount})`,
                   value: job.jobId,
@@ -563,7 +626,7 @@ function AiCopilotScreen() {
                 <span className="material-symbols-outlined text-[18px]">
                   download
                 </span>
-                Export CSV
+                Xuất CSV
               </button>
             </div>
           </div>
@@ -572,10 +635,11 @@ function AiCopilotScreen() {
         <div className="min-h-0 flex-1 overflow-auto">
           {loadingPool ? (
             <div className="flex min-h-[420px] items-center justify-center">
-              <LoadingIndicator label="Loading candidates..." />
+              <LoadingIndicator label="Đang tải ứng viên..." />
             </div>
           ) : (
-            <table className="w-full border-collapse text-left">
+            <div className="overflow-x-auto scrollbar-hide">
+              <table className="min-w-[1100px] w-full border-collapse text-left">
               <thead className="sticky top-0 z-10 bg-[#1a1c1c] text-white">
                 <tr>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
@@ -685,12 +749,13 @@ function AiCopilotScreen() {
                   );
                 })}
               </tbody>
-            </table>
+              </table>
+            </div>
           )}
         </div>
       </section>
 
-      <aside className="flex w-full max-w-[440px] flex-col border-l border-[#e2dfde] bg-white">
+      <aside className="flex w-full min-w-0 flex-col border-t border-[#e2dfde] bg-white xl:w-[440px] xl:max-w-[440px] xl:border-l xl:border-t-0">
         <div className="flex items-center justify-between border-b border-[#e2dfde] px-6 py-5">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -705,7 +770,7 @@ function AiCopilotScreen() {
 
         <div className="min-h-0 flex-1 space-y-5 overflow-auto p-6">
           {chat.length === 0 ? (
-            <div className="border border-dashed border-[#e2dfde] bg-[#f9f9f9] p-4 text-[14px] text-[#5f5e5e]">
+            <div className="rounded-2xl border border-dashed border-[#e2dfde] bg-[#f9f9f9] p-4 text-[14px] text-[#5f5e5e]">
               Start chat or apply structured criteria to rank candidates.
             </div>
           ) : null}
@@ -720,10 +785,20 @@ function AiCopilotScreen() {
               }
             >
               <div
-                className={`${message.role === "user" ? "bg-[#f3f3f3]" : "border border-[#ffdad6] bg-[#b90014]/5"} max-w-[88%] p-4 text-[14px] leading-5 text-[#1a1c1c]`}
+                className={`max-w-[92%] ${
+                  message.role === "user"
+                    ? "rounded-2xl bg-[#1a1c1c] px-4 py-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                    : "rounded-3xl border border-[#ffdad6] bg-[#fffaf9] px-4 py-4 text-[#1a1c1c] shadow-[0_10px_24px_rgba(185,0,20,0.05)]"
+                }`}
               >
                 {message.content ? (
-                  message.content
+                  message.role === "assistant" ? (
+                    renderAssistantContent(message.content)
+                  ) : (
+                    <div className="max-w-[70ch] whitespace-pre-wrap text-[14px] leading-6">
+                      {message.content}
+                    </div>
+                  )
                 ) : (
                   <div className="flex items-center gap-2 text-[#5f5e5e]">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-[#b90014]" />
@@ -735,7 +810,7 @@ function AiCopilotScreen() {
           ))}
 
           {ranking ? (
-            <div className="bg-[#1a1c1c] p-4 text-white">
+            <div className="rounded-3xl bg-[#1a1c1c] p-4 text-white shadow-[0_16px_32px_rgba(0,0,0,0.22)]">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
                 Filtering Impact
               </p>
@@ -770,8 +845,8 @@ function AiCopilotScreen() {
         </div>
 
         <div className="border-t border-[#e2dfde] p-4">
-          <div className="relative">
-            {hasStructuredCriteria ? (
+            <div className="relative">
+              {hasStructuredCriteria ? (
               <div className="mb-3 flex flex-wrap gap-2">
                 {priorityCriteria.map((criterion, index) => (
                   <button
@@ -867,7 +942,7 @@ function AiCopilotScreen() {
                 <span className="text-right text-[11px] text-[#5f5e5e]">
                   {rankingEnabled
                     ? "Optional"
-                    : "Chat mode uses JD and application context only"}
+                    : ""}
                 </span>
               )}
             </div>
@@ -880,7 +955,7 @@ function AiCopilotScreen() {
             ) : null}
 
             <textarea
-              className="h-24 w-full resize-none border border-[#e2dfde] bg-[#f3f3f3] p-3 pr-12 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="h-24 w-full resize-none rounded-2xl border border-[#e2dfde] bg-[#f3f3f3] p-4 pr-12 text-[14px] outline-none focus:border-[#1a1c1c]"
               placeholder={
                 rankingEnabled
                   ? "Ask for ranking, or leave blank and rank with active criteria..."
@@ -891,7 +966,7 @@ function AiCopilotScreen() {
             />
             <button
               type="button"
-              className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center bg-[#b90014] text-white disabled:opacity-50"
+              className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#b90014] text-white shadow-[0_8px_20px_rgba(185,0,20,0.24)] disabled:opacity-50"
               disabled={
                 rankingLoading ||
                 !conversation ||
@@ -913,7 +988,7 @@ function AiCopilotScreen() {
 
       {showCriteriaBuilder ? (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#1a1c1c]/35 px-4 backdrop-blur-sm">
-          <div className="max-h-[85vh] w-full max-w-[720px] overflow-auto border border-[#e2dfde] bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)]">
+          <div className="max-h-[85vh] w-full max-w-[760px] overflow-auto rounded-[28px] border border-[#e2dfde] bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)]">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
@@ -939,14 +1014,17 @@ function AiCopilotScreen() {
                 </p>
                 <div className="flex items-center gap-3">
                   {hasStructuredCriteria ? (
-                    <button
+                    <AsyncActionButton
                       type="button"
                       className="text-[11px] font-semibold text-[#005f93] disabled:opacity-50"
                       disabled={savingRule}
-                      onClick={() => void saveCurrentRule()}
+                      loading={savingRule}
+                      loadingText="Đang lưu..."
+                      onClick={saveCurrentRule}
+                      spinnerTone="brand"
                     >
-                      {savingRule ? "Saving..." : "Save preset"}
-                    </button>
+                      Lưu preset
+                    </AsyncActionButton>
                   ) : null}
                   {hasStructuredCriteria ? (
                     <button
@@ -1173,11 +1251,11 @@ function AiCopilotScreen() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8a2d1d]">
                   Saved Presets
                 </p>
-                <span className="text-[11px] text-[#5f5e5e]">Apply or delete</span>
+                <span className="text-[11px] text-[#5f5e5e]">Áp dụng hoặc xóa</span>
               </div>
               {savedRules.length === 0 ? (
                 <p className="mt-3 text-[12px] text-[#5f5e5e]">
-                  No presets saved.
+                  Chưa có preset nào được lưu.
                 </p>
               ) : (
                 <div className="mt-3 space-y-2">
@@ -1196,25 +1274,30 @@ function AiCopilotScreen() {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <button
+                        <AsyncActionButton
                           type="button"
                           className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
                             rule.isActive
                               ? "bg-slate-100 text-slate-500"
                               : "bg-emerald-100 text-emerald-800"
                           }`}
-                          onClick={() => void toggleSavedRule(rule)}
+                          loadingText=""
+                          onClick={() => toggleSavedRule(rule)}
+                          spinnerTone="brand"
                         >
-                          {rule.isActive ? "Not apply" : "Apply"}
-                        </button>
-                        <button
+                          {rule.isActive ? "Ngừng áp dụng" : "Áp dụng"}
+                        </AsyncActionButton>
+                        <AsyncActionButton
                           type="button"
                           className="rounded-full bg-rose-100 px-3 py-1 text-[11px] font-semibold text-rose-700 disabled:opacity-50"
                           disabled={deletingRuleId === rule.ruleId}
-                          onClick={() => void deleteSavedRule(rule.ruleId)}
+                          loading={deletingRuleId === rule.ruleId}
+                          loadingText="Đang xóa..."
+                          onClick={() => deleteSavedRule(rule.ruleId)}
+                          spinnerTone="brand"
                         >
-                          {deletingRuleId === rule.ruleId ? "Deleting" : "Delete"}
-                        </button>
+                          Xóa
+                        </AsyncActionButton>
                       </div>
                     </div>
                   ))}

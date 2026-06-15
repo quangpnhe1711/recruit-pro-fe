@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import PermissionGuard from "../../guards/PermissionGuard";
@@ -324,9 +325,9 @@ function InterviewScheduleScreen() {
     return (
       <div className="w-full px-4 py-6 md:px-10">
         <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
-          <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Schedule Interview</h1>
+          <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Lên lịch phỏng vấn</h1>
           <div className="mt-3">
-            <LoadingIndicator label="Loading schedule data..." />
+            <LoadingIndicator label="Đang tải dữ liệu lịch phỏng vấn..." />
           </div>
         </div>
       </div>
@@ -337,16 +338,16 @@ function InterviewScheduleScreen() {
     return (
       <div className="w-full px-4 py-6 md:px-10">
         <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
-          <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Schedule Interview</h1>
+          <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Lên lịch phỏng vấn</h1>
           <p className="mt-2 text-[14px] text-[#5f5e5e]">
-            No scheduling context is available right now.
+            Hiện chưa có dữ liệu để lên lịch phỏng vấn.
           </p>
           <button
             type="button"
             className="mt-6 rounded border border-[#1a1c1c] px-4 py-2 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#eeeeee]"
             onClick={() => navigate("/hr/interviews")}
           >
-            Back to Interviews
+            Quay lại danh sách phỏng vấn
           </button>
         </div>
       </div>
@@ -365,7 +366,7 @@ function InterviewScheduleScreen() {
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">
-          Schedule Interview
+          Lên lịch phỏng vấn
         </h1>
       </div>
 
@@ -665,7 +666,7 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-3">
-              <button
+              <AsyncActionButton
                 type="button"
                 className="w-full bg-[#b90014] py-4 text-[20px] font-bold text-white shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={saveSchedule}
@@ -676,9 +677,11 @@ function InterviewScheduleScreen() {
                   || selectedSlot === null
                   || isSubmitting
                 }
+                loading={isSubmitting}
+                loadingText="Đang lưu lịch..."
               >
-                {isSubmitting ? "Scheduling..." : "Confirm Schedule"}
-              </button>
+                Xác nhận lịch phỏng vấn
+              </AsyncActionButton>
 
               <PermissionGuard permissions={PERMISSIONS.INTERVIEW_UPDATE}>
                 <button

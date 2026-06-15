@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -634,13 +635,13 @@ function CandidateApplicationScreen() {
       <div className="mb-12">
         <h1 className="mb-2 text-[40px] font-bold leading-tight text-[#1a1c1c]">
           {filteredJobTitle
-            ? `${filteredJobTitle} Applications`
-            : "Job Applications"}
+            ? `Hồ sơ ứng tuyển - ${filteredJobTitle}`
+            : "Danh sách hồ sơ ứng tuyển"}
         </h1>
         <p className="text-xl text-[#5f5e5e]">
           {filteredJobTitle
-            ? "Review applications submitted for this specific job."
-            : "Review and manage candidate applications across all departments."}
+            ? "Theo dõi các hồ sơ ứng tuyển cho job đang chọn."
+            : "Theo dõi và xử lý hồ sơ ứng tuyển trên toàn bộ phòng ban."}
         </p>
       </div>
 
@@ -649,7 +650,7 @@ function CandidateApplicationScreen() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end">
           <div className="w-full space-y-2 xl:flex-1">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Search
+              Tìm kiếm
             </label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f5e5e]">
@@ -657,7 +658,7 @@ function CandidateApplicationScreen() {
               </span>
               <input
                 className="w-full rounded-lg border border-[#e7bdb8] py-3 pl-10 pr-4 text-body-md outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
-                placeholder="Search candidate, job title, job ID, or recruiter..."
+                placeholder="Tìm ứng viên, tiêu đề job, mã job hoặc recruiter..."
                 type="text"
                 value={searchTerm}
                 onChange={(e) => {
@@ -685,7 +686,7 @@ function CandidateApplicationScreen() {
 
           <div className="w-full space-y-2 xl:w-64">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Department
+              Phòng ban
             </label>
             <CommonSelect
               className="h-[52px] text-body-md"
@@ -703,7 +704,7 @@ function CandidateApplicationScreen() {
 
           <div className="w-full space-y-2 xl:w-64">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Status
+              Trạng thái
             </label>
             <CommonSelect
               className="h-[52px] text-body-md"
@@ -721,7 +722,7 @@ function CandidateApplicationScreen() {
 
           <div className="w-full space-y-2 xl:w-64">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Date Range
+              Khoảng thời gian
             </label>
             <CommonSelect
               className="h-[52px] text-body-md"
@@ -777,7 +778,7 @@ function CandidateApplicationScreen() {
             <div className="flex items-start justify-between gap-4 border-b border-[#e7bdb8] px-6 py-5">
               <div>
                 <h2 className="text-[24px] font-bold text-[#1a1c1c]">
-                  Custom Email
+                  Soạn email
                 </h2>
                 <p className="mt-1 text-sm text-[#5f5e5e]">
                   {emailComposer.application.candidateFirstName}{" "}
@@ -799,7 +800,7 @@ function CandidateApplicationScreen() {
               <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
                 <div>
                   <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                    Email Type
+                    Loại email
                   </label>
                   <CommonSelect
                     className="h-12 text-sm"
@@ -814,7 +815,7 @@ function CandidateApplicationScreen() {
                 </div>
                 <div>
                   <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                    Subject
+                    Tiêu đề
                   </label>
                   <input
                     className="h-12 w-full rounded-lg border border-[#e7bdb8] px-4 text-sm outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
@@ -822,14 +823,14 @@ function CandidateApplicationScreen() {
                     onChange={(event) =>
                       updateEmailComposer({ subject: event.target.value })
                     }
-                    placeholder="Email subject"
+                    placeholder="Nhập tiêu đề email"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                  To
+                  Người nhận
                 </label>
                 <div className="rounded-lg border border-[#e7bdb8] bg-[#f9f9f9] px-4 py-3 text-sm text-[#1a1c1c]">
                   {emailComposer.application.candidateEmail}
@@ -838,7 +839,7 @@ function CandidateApplicationScreen() {
 
               <div>
                 <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                  Body
+                  Nội dung
                 </label>
                 <textarea
                   className="min-h-[260px] w-full rounded-lg border border-[#e7bdb8] px-4 py-3 text-sm leading-6 outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
@@ -846,7 +847,7 @@ function CandidateApplicationScreen() {
                   onChange={(event) =>
                     updateEmailComposer({ body: event.target.value })
                   }
-                  placeholder="Write your message..."
+                  placeholder="Nhập nội dung email..."
                 />
               </div>
             </div>
@@ -858,20 +859,22 @@ function CandidateApplicationScreen() {
                 onClick={closeEmailComposer}
                 disabled={sendingEmail}
               >
-                Cancel
+                Hủy
               </button>
-              <button
+              <AsyncActionButton
                 type="button"
                 className="rounded-lg bg-[#b90014] px-5 py-3 text-sm font-semibold text-white hover:bg-[#93000d] disabled:opacity-60"
-                onClick={() => void submitEmailComposer()}
+                onClick={submitEmailComposer}
                 disabled={
                   sendingEmail ||
                   !emailComposer.subject.trim() ||
                   !emailComposer.body.trim()
                 }
+                loading={sendingEmail}
+                loadingText="Đang gửi email..."
               >
-                {sendingEmail ? "Sending..." : "Send Email"}
-              </button>
+                Gửi email
+              </AsyncActionButton>
             </div>
           </div>
         </div>

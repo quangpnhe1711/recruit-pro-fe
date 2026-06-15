@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 
 import PermissionGuard from "../../guards/PermissionGuard";
@@ -65,11 +66,11 @@ function decisionButtonClassName(decision: ApplicationReviewDecision) {
 function decisionLabel(decision: ApplicationReviewDecision) {
   switch (decision) {
     case "hire":
-      return "Hire Candidate";
+      return "Đề xuất tuyển";
     case "hold":
-      return "Place On Hold";
+      return "Giữ lại xem xét";
     case "reject":
-      return "Reject Application";
+      return "Từ chối hồ sơ";
   }
 }
 
@@ -430,12 +431,15 @@ function CandidateReviewDetailScreen() {
             <PermissionGuard permissions={PERMISSIONS.APPLICATION_APPROVE}>
               <div className="mt-6 space-y-3">
                 {(["hire", "hold"] as ApplicationReviewDecision[]).map((decision) => (
-                  <button
+                  <AsyncActionButton
                     key={decision}
                     type="button"
                     className={`flex w-full items-center justify-between border px-5 py-4 text-left transition-colors ${decisionButtonClassName(decision)} disabled:cursor-not-allowed disabled:opacity-60`}
                     disabled={!canReview || submittingDecision !== null}
-                    onClick={() => void handleDecision(decision)}
+                    loading={submittingDecision === decision}
+                    loadingText="Đang cập nhật..."
+                    onClick={() => handleDecision(decision)}
+                    spinnerTone="brand"
                   >
                     <div className="flex items-center gap-3">
                       <span className="material-symbols-outlined">{decisionIcon(decision)}</span>
@@ -443,22 +447,21 @@ function CandidateReviewDetailScreen() {
                         {decisionLabel(decision)}
                       </span>
                     </div>
-                    {submittingDecision === decision ? (
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em]">Saving...</span>
-                    ) : (
-                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                    )}
-                  </button>
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </AsyncActionButton>
                 ))}
               </div>
             </PermissionGuard>
 
             <PermissionGuard permissions={PERMISSIONS.APPLICATION_REJECT}>
-              <button
+              <AsyncActionButton
                 type="button"
                 className={`mt-3 flex w-full items-center justify-between border px-5 py-4 text-left transition-colors ${decisionButtonClassName("reject")} disabled:cursor-not-allowed disabled:opacity-60`}
                 disabled={!canReject || submittingDecision !== null}
-                onClick={() => void handleDecision("reject")}
+                loading={submittingDecision === "reject"}
+                loadingText="Đang cập nhật..."
+                onClick={() => handleDecision("reject")}
+                spinnerTone="brand"
               >
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined">{decisionIcon("reject")}</span>
@@ -466,12 +469,8 @@ function CandidateReviewDetailScreen() {
                     {decisionLabel("reject")}
                   </span>
                 </div>
-                {submittingDecision === "reject" ? (
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em]">Saving...</span>
-                ) : (
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                )}
-              </button>
+                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+              </AsyncActionButton>
             </PermissionGuard>
 
             <div className="mt-6 border-t border-[#e7bdb8] pt-6">

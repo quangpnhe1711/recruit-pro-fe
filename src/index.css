@@ -8,6 +8,12 @@
   body {
     @apply bg-[#f9f9f9] text-[#1a1c1c];
   }
+
+  button:not(:disabled),
+  a[href],
+  [role="button"] {
+    cursor: pointer;
+  }
 }
 
 .material-symbols-outlined {

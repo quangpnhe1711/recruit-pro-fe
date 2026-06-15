@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import SkillPicker from "../../common/components/SkillPicker";
@@ -175,6 +176,7 @@ function JobCreatingScreen() {
   const [currency, setCurrency] = useState<string>(
     () => initialDraft?.currency ?? "USD",
   );
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -399,6 +401,7 @@ function JobCreatingScreen() {
       )
       .map((skill) => skill.id);
 
+    setPublishing(true);
     try {
       await jobsService.createJob({
         title: title.trim(),
@@ -427,6 +430,8 @@ function JobCreatingScreen() {
       navigate("/jobs");
     } catch {
       toast.error("Unable to submit job");
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -579,7 +584,7 @@ function JobCreatingScreen() {
                 onClick={() => persistDraft(1)}
                 disabled={!canCreateJob}
               >
-                Save Draft
+                Lưu nháp
               </button>
 
               <button
@@ -588,7 +593,7 @@ function JobCreatingScreen() {
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
-                Continue to Description
+                Tiếp tục tới phần mô tả
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -717,7 +722,7 @@ function JobCreatingScreen() {
                   onClick={() => persistDraft(2)}
                   disabled={!canCreateJob}
                 >
-                  Save Draft
+                  Lưu nháp
                 </button>
               </div>
 
@@ -727,7 +732,7 @@ function JobCreatingScreen() {
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
-                Continue to Skills & Pay
+                Tiếp tục tới kỹ năng và lương
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -818,7 +823,7 @@ function JobCreatingScreen() {
                   onClick={() => persistDraft(3)}
                   disabled={!canCreateJob}
                 >
-                  Save Draft
+                  Lưu nháp
                 </button>
               </div>
 
@@ -828,7 +833,7 @@ function JobCreatingScreen() {
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
-                Continue to Review
+                Tiếp tục tới bước rà soát
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -935,21 +940,23 @@ function JobCreatingScreen() {
                   onClick={() => persistDraft(4)}
                   disabled={!canCreateJob}
                 >
-                  Save Draft
+                  Lưu nháp
                 </button>
               </div>
 
-              <button
+              <AsyncActionButton
                 type="button"
                 className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
                 onClick={publishJob}
-                disabled={!canCreateJob}
+                disabled={!canCreateJob || publishing}
+                loading={publishing}
+                loadingText="Đang gửi phê duyệt..."
               >
-                Publish Job
+                Gửi job chờ duyệt
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
-              </button>
+              </AsyncActionButton>
             </div>
           </div>
         ) : null}

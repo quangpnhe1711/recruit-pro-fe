@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import type { CandidateImportPreviewRowDto } from "../../services/hr/hrService";
 import { hrService } from "../../services/hr/hrService";
 
@@ -152,15 +152,17 @@ function CandidateImportScreen() {
             <span className="material-symbols-outlined text-[20px]">upload_file</span>
             {previewLoading ? "Parsing..." : "Upload & Preview"}
           </button>
-          <button
+          <AsyncActionButton
             type="button"
             className="flex items-center gap-2 bg-[#e31b23] px-6 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-[#b90014] disabled:opacity-60"
             onClick={handleImportSelected}
             disabled={importLoading || !selectedValidRows.length}
+            loading={importLoading}
+            loadingText="Đang import..."
           >
             <span className="material-symbols-outlined text-[20px]">check_circle</span>
-            {importLoading ? "Importing..." : "Confirm Import"}
-          </button>
+            Xác nhận import
+          </AsyncActionButton>
         </div>
       </div>
 

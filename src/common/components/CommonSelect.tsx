@@ -199,7 +199,7 @@ function CommonSelect({
         onKeyDown={handleKeyDown}
       >
         <span className="min-w-0 flex-1 truncate font-medium">
-          {selectedOption?.label ?? placeholder ?? "Select"}
+          {selectedOption?.label ?? placeholder ?? "Chọn"}
         </span>
         <span className="pointer-events-none absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-[#fff1ef] text-[#b90014] transition-transform duration-200 group-hover:bg-[#ffe4e0]">
           <span

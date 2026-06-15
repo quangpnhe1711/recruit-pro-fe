@@ -8,8 +8,8 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 
-type CandidateStatus = "New" | "Under Review" | "Interviewed" | "Rejected";
-type CandidateSource = "Portal" | "LinkedIn" | "Bulk Import";
+type CandidateStatus = "Mới" | "Đang xem xét" | "Đã phỏng vấn" | "Từ chối";
+type CandidateSource = "Portal" | "LinkedIn" | "Import hàng loạt";
 
 type Candidate = {
   id: string;
@@ -24,26 +24,26 @@ type Candidate = {
 };
 
 const statuses: CandidateStatus[] = [
-  "New",
-  "Under Review",
-  "Interviewed",
-  "Rejected",
+  "Mới",
+  "Đang xem xét",
+  "Đã phỏng vấn",
+  "Từ chối",
 ];
-const sources: CandidateSource[] = ["Portal", "LinkedIn", "Bulk Import"];
+const sources: CandidateSource[] = ["Portal", "LinkedIn", "Import hàng loạt"];
 
-const statusOptions: ("All Statuses" | CandidateStatus)[] = [
-  "All Statuses",
-  "New",
-  "Under Review",
-  "Interviewed",
-  "Rejected",
+const statusOptions: ("Tất cả trạng thái" | CandidateStatus)[] = [
+  "Tất cả trạng thái",
+  "Mới",
+  "Đang xem xét",
+  "Đã phỏng vấn",
+  "Từ chối",
 ];
 
-const sourceOptions: ("All Sources" | CandidateSource)[] = [
-  "All Sources",
+const sourceOptions: ("Tất cả nguồn" | CandidateSource)[] = [
+  "Tất cả nguồn",
   "Portal",
   "LinkedIn",
-  "Bulk Import",
+  "Import hàng loạt",
 ];
 
 function parseDateLabelToEpoch(label: string) {
@@ -56,35 +56,35 @@ function normalizeCandidateStatus(status: string): CandidateStatus {
     case "reviewing":
     case "under review":
     case "managerreview":
-      return "Under Review";
+      return "Đang xem xét";
     case "interviewing":
     case "accepted":
-      return "Interviewed";
+      return "Đã phỏng vấn";
     case "rejected":
-      return "Rejected";
+      return "Từ chối";
     default:
-      return "New";
+      return "Mới";
   }
 }
 
 function statusChip(status: CandidateStatus) {
   switch (status) {
-    case "Interviewed":
+    case "Đã phỏng vấn":
       return {
         wrapper: "bg-green-100 text-green-800",
         icon: "check_circle",
       };
-    case "Under Review":
+    case "Đang xem xét":
       return {
         wrapper: "bg-blue-100 text-blue-800",
         icon: "schedule",
       };
-    case "New":
+    case "Mới":
       return {
         wrapper: "bg-amber-100 text-amber-800",
         icon: "new_releases",
       };
-    case "Rejected":
+    case "Từ chối":
       return {
         wrapper: "bg-red-100 text-red-800",
         icon: "cancel",
@@ -106,7 +106,7 @@ function sourceChip(source: CandidateSource) {
         wrapper: "bg-indigo-50 text-indigo-700",
         icon: "hub",
       };
-    case "Bulk Import":
+    case "Import hàng loạt":
       return {
         wrapper: "bg-amber-50 text-amber-700",
         icon: "data_usage",
@@ -124,7 +124,7 @@ function buildCandidateTableColumns(
   return [
     {
       key: "name",
-      header: "Full Name",
+      header: "Họ và tên",
       renderCell: (candidate) => (
         <div className="flex items-center gap-3">
           <div>
@@ -138,7 +138,7 @@ function buildCandidateTableColumns(
     },
     {
       key: "source",
-      header: "Source",
+      header: "Nguồn",
       renderCell: (candidate) => {
         const chip = sourceChip(candidate.source);
         return (
@@ -155,14 +155,14 @@ function buildCandidateTableColumns(
     },
     {
       key: "appliedDate",
-      header: "Applied Date",
+      header: "Ngày ứng tuyển",
       renderCell: (candidate) => (
         <p className="text-sm text-[#5f5e5e]">{candidate.appliedDate}</p>
       ),
     },
     {
       key: "status",
-      header: "Status",
+      header: "Trạng thái",
       renderCell: (candidate) => {
         const chip = statusChip(candidate.status);
         return (
@@ -176,7 +176,7 @@ function buildCandidateTableColumns(
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (candidate) => (
@@ -187,14 +187,14 @@ function buildCandidateTableColumns(
               className="text-sm font-bold text-[#b90014] transition-colors hover:underline"
               onClick={() => onViewProfile(candidate)}
             >
-              View Profile
+              Xem hồ sơ
             </button>
           </PermissionGuard>
           {canEditCandidate ? (
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-              title="Edit"
+              title="Chỉnh sửa"
               onClick={() => onEditProfile(candidate)}
             >
               <span className="material-symbols-outlined">edit</span>
@@ -230,7 +230,7 @@ function CandidateListScreen() {
             lastName: item.lastName,
             email: item.email,
             avatar: item.avatarUrl,
-            source: item.source === "BulkImport" ? "Bulk Import" : item.source,
+            source: item.source === "BulkImport" ? "Import hàng loạt" : item.source,
             appliedDate: item.appliedDate
               ? new Date(item.appliedDate).toLocaleDateString()
               : "",
@@ -252,8 +252,8 @@ function CandidateListScreen() {
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
-  const [sourceFilter, setSourceFilter] = useState<string>("All Sources");
+  const [statusFilter, setStatusFilter] = useState<string>("Tất cả trạng thái");
+  const [sourceFilter, setSourceFilter] = useState<string>("Tất cả nguồn");
   const [page, setPage] = useState<number>(1);
 
   const filtered = useMemo(() => {
@@ -267,10 +267,10 @@ function CandidateListScreen() {
             c.email.toLowerCase().includes(searchTerm.toLowerCase()),
       )
       .filter((c) =>
-        statusFilter === "All Statuses" ? true : c.status === statusFilter,
+        statusFilter === "Tất cả trạng thái" ? true : c.status === statusFilter,
       )
       .filter((c) =>
-        sourceFilter === "All Sources" ? true : c.source === sourceFilter,
+        sourceFilter === "Tất cả nguồn" ? true : c.source === sourceFilter,
       )
       .sort((a, b) => b.appliedAt - a.appliedAt);
   }, [candidates, searchTerm, statusFilter, sourceFilter]);
@@ -295,7 +295,7 @@ function CandidateListScreen() {
       return daysOld <= 7;
     }).length;
     const pendingReviews = candidates.filter(
-      (c) => c.status === "Under Review",
+      (c) => c.status === "Đang xem xét",
     ).length;
 
     return {
@@ -336,11 +336,10 @@ function CandidateListScreen() {
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Candidate Management
+            Quản lý ứng viên
           </h2>
           <p className="mt-1 text-[14px] text-[#5f5e5e]">
-            Review and manage the full candidate pool across the whole
-            recruitment system.
+            Theo dõi và quản lý toàn bộ nguồn ứng viên trong hệ thống tuyển dụng.
           </p>
         </div>
 
@@ -354,7 +353,7 @@ function CandidateListScreen() {
               <span className="material-symbols-outlined text-xl">
                 upload_file
               </span>
-              <span>Import Candidates</span>
+              <span>Import ứng viên</span>
             </button>
           </PermissionGuard>
           <PermissionGuard permissions={PERMISSIONS.CANDIDATE_CREATE}>
@@ -366,7 +365,7 @@ function CandidateListScreen() {
               <span className="material-symbols-outlined text-xl">
                 person_add
               </span>
-              <span>Add Candidate</span>
+              <span>Thêm ứng viên</span>
             </button>
           </PermissionGuard>
         </div>
@@ -381,7 +380,7 @@ function CandidateListScreen() {
             </div>
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Total Candidates
+                Tổng ứng viên
               </p>
               <h3 className="mt-2 text-3xl font-bold leading-10 tracking-[-0.01em]">
                 {stats.totalCandidates.toLocaleString()}
@@ -398,7 +397,7 @@ function CandidateListScreen() {
             </div>
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Recently Added
+                Mới thêm gần đây
               </p>
               <h3 className="mt-2 text-3xl font-bold leading-10 tracking-[-0.01em]">
                 {stats.recentlyAdded}
@@ -415,7 +414,7 @@ function CandidateListScreen() {
             </div>
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Pending Reviews
+                Chờ xem xét
               </p>
               <h3 className="mt-2 text-3xl font-bold leading-10 tracking-[-0.01em]">
                 {stats.pendingReviews}
@@ -431,7 +430,7 @@ function CandidateListScreen() {
           <div className="relative w-full md:w-80">
             <input
               className="w-full border border-[#e7bdb8] bg-white px-4 py-2.5 text-sm focus:border-[#1a1c1c] focus:outline-none focus:ring-0"
-              placeholder="Search by name or email..."
+              placeholder="Tìm theo tên hoặc email..."
               type="text"
               value={searchTerm}
               onChange={(e) => {
@@ -472,7 +471,7 @@ function CandidateListScreen() {
         </div>
         <button className="flex items-center gap-2 text-sm font-semibold text-[#1a1c1c] transition-colors hover:underline">
           <span className="material-symbols-outlined text-lg">filter_list</span>
-          Advanced Filters
+          Bộ lọc nâng cao
         </button>
       </div>
 

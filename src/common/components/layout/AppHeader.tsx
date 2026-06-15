@@ -82,7 +82,7 @@ function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
         ]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white">
+    <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white overflow-x-hidden">
       <div className="mx-auto flex h-16  items-center justify-between gap-4 px-4 md:px-10">
         <div className="flex flex-1 items-center" />
 

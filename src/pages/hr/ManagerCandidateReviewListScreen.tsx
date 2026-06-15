@@ -218,7 +218,7 @@ function ManagerCandidateReviewListScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Loading manager review queue..." />
+        <LoadingIndicator label="Đang tải hàng chờ review..." />
       </div>
     );
   }
@@ -256,10 +256,10 @@ function ManagerCandidateReviewListScreen() {
       <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Final Review Queue
+            Hàng chờ review cuối
           </h1>
           <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Candidates with completed interview context ready for manager review and final hiring decision.
+            Các ứng viên đã đủ ngữ cảnh phỏng vấn và sẵn sàng cho bước review cuối của quản lý.
           </p>
         </div>
 
@@ -270,7 +270,7 @@ function ManagerCandidateReviewListScreen() {
             </span>
             <input
               className="w-full min-w-[280px] rounded-lg border border-[#e2dfde] bg-white py-3 pl-10 pr-4 text-sm outline-none transition-colors focus:border-[#1a1c1c]"
-              placeholder="Search candidate or job title..."
+              placeholder="Tìm theo ứng viên hoặc tiêu đề job..."
               type="text"
               value={keyword}
               onChange={(event) => {
@@ -285,7 +285,7 @@ function ManagerCandidateReviewListScreen() {
             onClick={exportCurrentPage}
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
-            Export CSV
+            Xuất CSV
           </button>
         </div>
       </div>
@@ -294,13 +294,13 @@ function ManagerCandidateReviewListScreen() {
         <div className="flex items-center justify-between rounded-xl border border-[#e2dfde] bg-white p-6">
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-              Decision Status
+              Trạng thái xử lý
             </p>
             <p className="mt-3 text-[48px] font-bold leading-[56px] tracking-[-0.02em] text-[#b90014]">
               {summary.pendingFinalApprovals}
             </p>
             <p className="mt-2 text-sm text-[#5d3f3c]">
-              Pending final approvals in the current manager review queue.
+              Số hồ sơ đang chờ quyết định cuối trong hàng chờ hiện tại.
             </p>
           </div>
 
@@ -308,13 +308,13 @@ function ManagerCandidateReviewListScreen() {
             <div className="text-center">
               <p className="text-[20px] font-semibold text-[#005f93]">{summary.recommendedCount}</p>
               <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
-                Recommended
+                Đề xuất
               </p>
             </div>
             <div className="text-center">
               <p className="text-[20px] font-semibold text-[#ba1a1a]">{summary.flaggedCount}</p>
               <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
-                Flagged
+                Cần lưu ý
               </p>
             </div>
           </div>
@@ -323,7 +323,7 @@ function ManagerCandidateReviewListScreen() {
         <div className="rounded-xl bg-[#1a1a1a] p-6 text-white">
           <div className="flex items-start justify-between">
             <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">
-              Average Score
+              Điểm trung bình
             </p>
             <span className="material-symbols-outlined text-[#b90014]">trending_up</span>
           </div>
@@ -331,7 +331,7 @@ function ManagerCandidateReviewListScreen() {
             {summary.averageScore.toFixed(1)} / 5.0
           </p>
           <p className="mt-2 text-sm text-white/70">
-            Derived from skill fit, completed interviews, and note coverage.
+            Tính từ mức độ phù hợp kỹ năng, số vòng đã hoàn tất và độ đầy đủ ghi chú.
           </p>
         </div>
       </div>
@@ -341,7 +341,7 @@ function ManagerCandidateReviewListScreen() {
         data={items}
         keyExtractor={(item) => item.applicationId}
         loading={loading}
-        emptyMessage="No candidates are waiting for manager review."
+        emptyMessage="Hiện chưa có ứng viên chờ quản lý review."
         zebra
         hover
         onRowClick={(item) => navigate(`/manager/applications/${item.applicationId}`)}

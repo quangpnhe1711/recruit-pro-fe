@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import type { OfferEditorDto, UpsertOfferRequest } from "../../modules/jobs/jobsSchema";
@@ -281,23 +282,28 @@ function SendOfferScreen() {
               <span className="material-symbols-outlined text-base">arrow_back</span>
               Back to Review
             </button>
-            <button
+            <AsyncActionButton
               type="button"
               className="border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] disabled:opacity-60"
               disabled={saving || sending}
-              onClick={() => void handleSaveDraft()}
+              loading={saving}
+              loadingText="Đang lưu nháp..."
+              onClick={handleSaveDraft}
+              spinnerTone="brand"
             >
-              {saving ? "Saving..." : "Save Draft"}
-            </button>
-            <button
+              Lưu nháp
+            </AsyncActionButton>
+            <AsyncActionButton
               type="button"
               className="inline-flex items-center gap-2 bg-[#b90014] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#93000d] disabled:opacity-60"
               disabled={sending || saving}
-              onClick={() => void handleSendOffer()}
+              loading={sending}
+              loadingText="Đang gửi offer..."
+              onClick={handleSendOffer}
             >
               <span className="material-symbols-outlined text-base">send</span>
-              {sending ? "Sending..." : "Send Offer via Email"}
-            </button>
+              Gửi offer qua email
+            </AsyncActionButton>
           </div>
         </div>
       </div>

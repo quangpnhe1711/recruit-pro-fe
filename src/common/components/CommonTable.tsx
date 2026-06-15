@@ -40,7 +40,7 @@ function CommonTable<T>({
   data,
   keyExtractor,
   loading = false,
-  emptyMessage = "No data available",
+  emptyMessage = "Không có dữ liệu",
   headerClassName = "bg-[#1A1A1A] text-white",
   zebra = true,
   hover = true,
@@ -54,7 +54,7 @@ function CommonTable<T>({
 
   return (
     <section className={tableWrapperClassName}>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scrollbar-hide">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className={`${headerClassName} ${tableHeaderBg}`}>
@@ -75,7 +75,7 @@ function CommonTable<T>({
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-10 text-center">
-                  <LoadingIndicator className="justify-center" label="Loading..." />
+                  <LoadingIndicator className="justify-center" label="Đang tải..." />
                 </td>
               </tr>
             ) : data.length === 0 ? (
