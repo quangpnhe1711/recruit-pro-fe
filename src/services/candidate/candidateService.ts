@@ -413,6 +413,7 @@ export const candidateService = {
       endpoints.candidate.profileResumeParse,
       formData,
       {
+        timeout: 190000,
         headers: {
           "Content-Type": "multipart/form-data",
         },

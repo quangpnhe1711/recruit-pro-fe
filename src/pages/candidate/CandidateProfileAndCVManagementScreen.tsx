@@ -52,6 +52,41 @@ type EntryDraft = {
   isCurrent: boolean;
 };
 
+type ProjectDraft = {
+  name: string;
+  role: string;
+  description: string;
+  technologies: string;
+  startMonth: number;
+  startYear: number;
+  endMonth: number;
+  endYear: number;
+  isCurrent: boolean;
+};
+
+type EducationDraft = {
+  school: string;
+  degree: string;
+  fieldOfStudy: string;
+  startYear: string;
+  endYear: string;
+  description: string;
+};
+
+type CertificationDraft = {
+  name: string;
+  issuer: string;
+  issuedOn: string;
+  expiresOn: string;
+  credentialId: string;
+  credentialUrl: string;
+};
+
+type LanguageDraft = {
+  name: string;
+  proficiency: string;
+};
+
 const monthOptions = [
   "Jan",
   "Feb",
@@ -98,6 +133,41 @@ const emptyEntryDraft: EntryDraft = {
   isCurrent: false,
 };
 
+const emptyProjectDraft: ProjectDraft = {
+  name: "",
+  role: "",
+  description: "",
+  technologies: "",
+  startMonth: new Date().getMonth() + 1,
+  startYear: new Date().getFullYear(),
+  endMonth: new Date().getMonth() + 1,
+  endYear: new Date().getFullYear(),
+  isCurrent: false,
+};
+
+const emptyEducationDraft: EducationDraft = {
+  school: "",
+  degree: "",
+  fieldOfStudy: "",
+  startYear: "",
+  endYear: "",
+  description: "",
+};
+
+const emptyCertificationDraft: CertificationDraft = {
+  name: "",
+  issuer: "",
+  issuedOn: "",
+  expiresOn: "",
+  credentialId: "",
+  credentialUrl: "",
+};
+
+const emptyLanguageDraft: LanguageDraft = {
+  name: "",
+  proficiency: "",
+};
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -120,15 +190,117 @@ function formatPeriod(period: ExperienceEntry["period"]) {
   return startLabel;
 }
 
-function compareStartDate(
-  left: ExperienceEntry["period"],
-  right: ExperienceEntry["period"],
-) {
-  if (left.startYear !== right.startYear) {
-    return left.startYear - right.startYear;
+function formatMonthYear(month?: number | null, year?: number | null) {
+  if (!year) {
+    return "Chưa rõ";
   }
 
-  return left.startMonth - right.startMonth;
+  if (!month) {
+    return String(year);
+  }
+
+  return `${monthOptions[month - 1]} ${year}`;
+}
+
+function formatDateRange(
+  period: {
+    startMonth: number;
+    startYear: number;
+    endMonth: number | null;
+    endYear: number | null;
+    isCurrent: boolean;
+  },
+) {
+  const startLabel = formatMonthYear(period.startMonth, period.startYear);
+
+  if (period.isCurrent) {
+    return `${startLabel} - Hiện tại`;
+  }
+
+  return `${startLabel} - ${formatMonthYear(period.endMonth, period.endYear)}`;
+}
+
+function formatSimpleDate(value: string | null | undefined) {
+  if (!value) {
+    return "Chưa rõ";
+  }
+
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+
+  return parsedDate.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function getCountLabel(count: number, label: string) {
+  return `${count} ${label}`;
+}
+
+function renderHighlightedLine(line: string) {
+  const trimmedLine = line.trim();
+  if (!trimmedLine) {
+    return null;
+  }
+
+  const colonMatch = trimmedLine.match(/^([A-Za-zÀ-ỹ0-9\s.+#&()/-]{2,40}:)\s*(.*)$/u);
+  if (colonMatch) {
+    return (
+      <>
+        <strong>{colonMatch[1]}</strong>{colonMatch[2] ? ` ${colonMatch[2]}` : ""}
+      </>
+    );
+  }
+
+  const emphasisTerms = ["GPA", "Honor", "Honors", "Award", "Awards", "Scholarship", "Dean", "Achievement"];
+  const matchedTerm = emphasisTerms.find((term) =>
+    trimmedLine.toLowerCase().includes(term.toLowerCase()),
+  );
+
+  if (!matchedTerm) {
+    return trimmedLine;
+  }
+
+  const startIndex = trimmedLine.toLowerCase().indexOf(matchedTerm.toLowerCase());
+  const endIndex = startIndex + matchedTerm.length;
+
+  return (
+    <>
+      {trimmedLine.slice(0, startIndex)}
+      <strong>{trimmedLine.slice(startIndex, endIndex)}</strong>
+      {trimmedLine.slice(endIndex)}
+    </>
+  );
+}
+
+function renderRichBulletText(text: string | null | undefined) {
+  if (!text?.trim()) {
+    return null;
+  }
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[\s•\-*]+/u, "").trim())
+    .filter(Boolean);
+
+  if (!lines.length) {
+    return null;
+  }
+
+  return (
+    <ul className="mt-3 space-y-2 text-[14px] leading-7 text-[#314956]">
+      {lines.map((line, index) => (
+        <li key={`${line}-${index}`} className="flex gap-3">
+          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b90014]" />
+          <span>{renderHighlightedLine(line)}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function CandidateProfileAndCVManagementScreen() {
@@ -151,6 +323,14 @@ function CandidateProfileAndCVManagementScreen() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [entryDraft, setEntryDraft] = useState<EntryDraft>(emptyEntryDraft);
   const [showEntryComposer, setShowEntryComposer] = useState(false);
+  const [showProjectComposer, setShowProjectComposer] = useState(false);
+  const [showEducationComposer, setShowEducationComposer] = useState(false);
+  const [showCertificationComposer, setShowCertificationComposer] = useState(false);
+  const [showLanguageComposer, setShowLanguageComposer] = useState(false);
+  const [projectDraft, setProjectDraft] = useState<ProjectDraft>(emptyProjectDraft);
+  const [educationDraft, setEducationDraft] = useState<EducationDraft>(emptyEducationDraft);
+  const [certificationDraft, setCertificationDraft] = useState<CertificationDraft>(emptyCertificationDraft);
+  const [languageDraft, setLanguageDraft] = useState<LanguageDraft>(emptyLanguageDraft);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [parsedResumePreview, setParsedResumePreview] = useState<CandidateResumeParseResponseDto | null>(null);
   const [isParsingResume, setIsParsingResume] = useState(false);
@@ -197,7 +377,9 @@ function CandidateProfileAndCVManagementScreen() {
           linkedin: profileResponse.data.profile.linkedin ?? "",
         });
         setProfileAvatarUrl(profileResponse.data.profile.avatarUrl ?? null);
-        syncAuthUser(profileResponse.data.profile);
+        if (mounted) {
+          syncAuthUser(profileResponse.data.profile);
+        }
         setCompletionScore(profileResponse.data.profile.completionScore ?? 0);
 
         const selectedSkillIds = new Set(profileResponse.data.skills.map((skill) => skill.id));
@@ -238,6 +420,8 @@ function CandidateProfileAndCVManagementScreen() {
     return () => {
       mounted = false;
     };
+    // Intentionally run once on mount to avoid refetch loops after auth store updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleProfileChange(field: keyof ProfileState, value: string) {
@@ -421,6 +605,7 @@ function CandidateProfileAndCVManagementScreen() {
         await candidateService.uploadResume(resumeFile);
         const refreshedProfile = await candidateService.getProfile();
         if (refreshedProfile.data) {
+          syncAuthUser(refreshedProfile.data.profile);
           setResumeMeta(refreshedProfile.data.resume ?? null);
           setResumeHistory(refreshedProfile.data.resumeHistory ?? []);
           setCompletionScore(refreshedProfile.data.profile.completionScore ?? 0);
@@ -556,6 +741,108 @@ function CandidateProfileAndCVManagementScreen() {
     }
   }
 
+  function handleAddProject() {
+    const name = projectDraft.name.trim();
+    if (!name) {
+      toast.error("Hãy nhập tên dự án.");
+      return;
+    }
+
+    setProjects((prev) => [
+      {
+        id: `project-${Date.now()}`,
+        name,
+        role: projectDraft.role.trim() || null,
+        description: projectDraft.description.trim() || null,
+        technologies: projectDraft.technologies
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        period: {
+          startMonth: projectDraft.startMonth,
+          startYear: projectDraft.startYear,
+          endMonth: projectDraft.isCurrent ? null : projectDraft.endMonth,
+          endYear: projectDraft.isCurrent ? null : projectDraft.endYear,
+          isCurrent: projectDraft.isCurrent,
+        },
+      },
+      ...prev,
+    ]);
+    setProjectDraft(emptyProjectDraft);
+    setShowProjectComposer(false);
+    setIsEditingProfile(true);
+  }
+
+  function handleAddEducation() {
+    const school = educationDraft.school.trim();
+    const degree = educationDraft.degree.trim();
+    if (!school || !degree) {
+      toast.error("Hãy nhập trường học và bằng cấp.");
+      return;
+    }
+
+    setEducations((prev) => [
+      {
+        id: `education-${Date.now()}`,
+        school,
+        degree,
+        fieldOfStudy: educationDraft.fieldOfStudy.trim() || null,
+        startYear: educationDraft.startYear ? Number(educationDraft.startYear) : null,
+        endYear: educationDraft.endYear ? Number(educationDraft.endYear) : null,
+        description: educationDraft.description.trim() || null,
+      },
+      ...prev,
+    ]);
+    setEducationDraft(emptyEducationDraft);
+    setShowEducationComposer(false);
+    setIsEditingProfile(true);
+  }
+
+  function handleAddCertification() {
+    const name = certificationDraft.name.trim();
+    if (!name) {
+      toast.error("Hãy nhập tên chứng chỉ.");
+      return;
+    }
+
+    setCertifications((prev) => [
+      {
+        id: `certification-${Date.now()}`,
+        name,
+        issuer: certificationDraft.issuer.trim() || null,
+        issuedOn: certificationDraft.issuedOn || null,
+        expiresOn: certificationDraft.expiresOn || null,
+        credentialId: certificationDraft.credentialId.trim() || null,
+        credentialUrl: certificationDraft.credentialUrl.trim() || null,
+      },
+      ...prev,
+    ]);
+    setCertificationDraft(emptyCertificationDraft);
+    setShowCertificationComposer(false);
+    setIsEditingProfile(true);
+  }
+
+  function handleAddLanguage() {
+    const name = languageDraft.name.trim();
+    const proficiency = languageDraft.proficiency.trim();
+    if (!name || !proficiency) {
+      toast.error("Hãy nhập ngôn ngữ và trình độ.");
+      return;
+    }
+
+    setLanguages((prev) => [
+      {
+        id: `language-${Date.now()}`,
+        name,
+        proficiency,
+      },
+      ...prev,
+    ]);
+    setLanguageDraft(emptyLanguageDraft);
+    setShowLanguageComposer(false);
+    setIsEditingProfile(true);
+  }
+
   if (loading) {
     return (
       <main className="py-6">
@@ -635,7 +922,7 @@ function CandidateProfileAndCVManagementScreen() {
                         {profile.name}
                       </h1>
                     )}
-                    <div className="mt-2 inline-flex rounded-full bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                    <div className="mt-2 inline-flex rounded-full bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]">
                       Hoàn thiện hồ sơ {completionScore}%
                     </div>
                     {isEditingProfile && canEditProfile ? (
@@ -856,38 +1143,59 @@ function CandidateProfileAndCVManagementScreen() {
 
               <div className="space-y-6 lg:col-span-8">
                 <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
-                  <div className="flex items-center justify-between gap-3 mb-6">
-                    <h2 className="mb-6 border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-                      Resume Management
+                  <div className="mb-6 flex items-center justify-between gap-3">
+                    <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
+                      CV &amp; Phân tích hồ sơ
                     </h2>
-                    <div
-                      className={`${resumeFile ? "text-white py-1 px-4 bg-[#b90014] cursor-pointer" : "hidden"} text-[12px] font-semibold `}
-                      onClick={() => setResumeFile(null)}
-                    >
-                      Clear
-                    </div>
+                    {resumeFile ? (
+                      <button
+                        className="rounded-full border border-[#b90014]/20 bg-[#fff4f6] px-4 py-2 text-[12px] font-semibold text-[#b90014] transition-colors hover:bg-[#ffe7ec]"
+                        type="button"
+                        onClick={() => setResumeFile(null)}
+                      >
+                        Bỏ file đã chọn
+                      </button>
+                    ) : null}
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div className="flex items-center gap-4 rounded border border-[#e2dfde] bg-[#f3f3f3] p-4 transition-colors hover:border-[#b90014]">
-                      <div className="flex h-12 w-12 items-center justify-center rounded bg-[#b90014]/10">
+                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                    <div className="rounded-[24px] border border-[#e2dfde] bg-[linear-gradient(135deg,#fffdfd_0%,#fff5f6_52%,#fdfdfd_100%)] p-5 shadow-[0_20px_45px_rgba(185,0,20,0.06)]">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#b90014]/10">
                         <span className="material-symbols-outlined text-[32px] text-[#b90014]">
                           picture_as_pdf
                         </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-[18px] font-semibold text-[#1a1c1c]">
+                              {resumeMeta?.fileName ?? "Chưa có CV chính thức"}
+                            </p>
+                            {resumeMeta?.isCurrent ? (
+                              <span className="rounded-full bg-[#b90014] px-3 py-1 text-[11px] font-semibold text-white">
+                                CV đang dùng
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-1 text-[13px] leading-6 text-[#5f5e5e]">
+                            {resumeMeta?.uploadedAt
+                              ? `Cập nhật lần cuối ngày ${formatSimpleDate(resumeMeta.uploadedAt)}. Đây là bản CV hệ thống sẽ ưu tiên khi bạn ứng tuyển.`
+                              : "Tải CV mới nhất để hệ thống nhận diện đúng kinh nghiệm, kỹ năng và hỗ trợ điền hồ sơ nhanh hơn."}
+                          </p>
+                          <div className="mt-4 flex flex-wrap gap-2 text-[12px] font-semibold">
+                            <span className="rounded-full border border-[#e8d7da] bg-white px-3 py-1 text-[#7b2130]">
+                              {resumeMeta ? `Phiên bản v${resumeMeta.version}` : "PDF, DOC, DOCX"}
+                            </span>
+                            <span className="rounded-full border border-[#e8d7da] bg-white px-3 py-1 text-[#7b2130]">
+                              Parse sang hồ sơ cấu trúc
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[16px] font-semibold">
-                          {resumeMeta?.fileName ?? "No resume uploaded"}
-                        </p>
-                        <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                          {resumeMeta?.uploadedAt
-                            ? `Uploaded on ${new Date(resumeMeta.uploadedAt).toLocaleDateString()}`
-                            : "Upload your latest resume"}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
+
+                      <div className="mt-5 flex flex-wrap gap-2">
                         <button
-                          className="p-2 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                          className="inline-flex items-center gap-2 rounded-full border border-[#e2dfde] bg-white px-4 py-2 text-[13px] font-semibold text-[#1a1c1c] transition-colors hover:border-[#b90014] hover:text-[#b90014] disabled:cursor-not-allowed disabled:opacity-60"
                           type="button"
                           disabled={!resumeMeta?.fileUrl}
                           onClick={() => {
@@ -896,13 +1204,14 @@ function CandidateProfileAndCVManagementScreen() {
                             }
                           }}
                         >
-                          <span className="material-symbols-outlined text-[20px]">
+                          <span className="material-symbols-outlined text-[18px]">
                             visibility
                           </span>
+                          Xem CV
                         </button>
                         <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPLOAD_OWN_RESUME}>
                           <button
-                            className="p-2 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                            className="inline-flex items-center gap-2 rounded-full border border-[#e2dfde] bg-white px-4 py-2 text-[13px] font-semibold text-[#1a1c1c] transition-colors hover:border-[#b90014] hover:text-[#b90014] disabled:cursor-not-allowed disabled:opacity-60"
                             type="button"
                             disabled={!resumeMeta?.fileUrl}
                             onClick={() => {
@@ -911,9 +1220,10 @@ function CandidateProfileAndCVManagementScreen() {
                               }
                             }}
                           >
-                            <span className="material-symbols-outlined text-[20px]">
+                            <span className="material-symbols-outlined text-[18px]">
                               download
                             </span>
+                            Tải xuống
                           </button>
                         </PermissionGuard>
                       </div>
@@ -929,132 +1239,440 @@ function CandidateProfileAndCVManagementScreen() {
                       />
 
                       <button
-                        className="flex min-h-[104px] w-full flex-col items-center justify-center rounded border-2 border-dashed border-[#e2dfde] bg-[#f3f3f3]"
+                        className="flex min-h-[188px] w-full flex-col items-center justify-center rounded-[24px] border-2 border-dashed border-[#d9d6d5] bg-[#faf7f7] px-6 text-center transition-colors hover:border-[#b90014] hover:bg-[#fff7f8]"
                         type="button"
                       >
-                        <span className="material-symbols-outlined mb-2">
+                        <span className="material-symbols-outlined mb-3 text-[36px] text-[#b90014]">
                           cloud_upload
                         </span>
-
-                        <span className="text-[12px] font-semibold uppercase">
+                        <span className="text-[15px] font-semibold text-[#1a1c1c]">
+                          {resumeFile ? "Đã chọn CV mới" : "Kéo thả hoặc bấm để tải CV"}
+                        </span>
+                        <span className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">
                           {resumeFile
                             ? resumeFile.name
-                            : "Click or Drag to Replace CV"}
+                            : "Ưu tiên CV định dạng như ứng viên gửi thực tế để kết quả parse sát hơn."}
+                        </span>
+                        <span className="mt-4 rounded-full bg-white px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#7b2130]">
+                          PDF, DOC, DOCX
                         </span>
                       </button>
                     </div>
                   </div>
 
                   {resumeFile ? (
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                      <button
-                        className="inline-flex items-center justify-center gap-2 rounded bg-[#005f93] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                        type="button"
-                        disabled={isParsingResume}
-                        onClick={handleParseResume}
-                      >
-                        <span className="material-symbols-outlined text-[18px]">
-                          psychiatry
-                        </span>
-                        {isParsingResume ? "Đang phân tích CV..." : "Phân tích CV"}
-                      </button>
-                      <p className="text-[12px] text-[#5f5e5e]">
-                        Phân tích CV trước để xem dữ liệu gợi ý, sau đó xác nhận rồi mới lưu hồ sơ chính thức.
-                      </p>
+                    <div className="mt-5 rounded-[20px] border border-[#f1d7db] bg-[#fff8f8] p-4">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p className="text-[15px] font-semibold text-[#b90014]">
+                            Xem trước dữ liệu CV trước khi ghi vào hồ sơ
+                          </p>
+                          <p className="mt-1 text-[13px] leading-6 text-[#7a4b53]">
+                            Hệ thống sẽ trích xuất nội dung theo cấu trúc CV thực tế để bạn rà soát, đối chiếu và chỉ áp dụng khi thấy hợp lý.
+                          </p>
+                        </div>
+                        <button
+                          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b90014] px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                          type="button"
+                          disabled={isParsingResume}
+                          onClick={handleParseResume}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">
+                            psychiatry
+                          </span>
+                          {isParsingResume ? "Đang phân tích CV..." : "Phân tích CV"}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
 
                   {parsedResumePreview ? (
-                    <div className="mt-6 rounded-[20px] border border-[#cde5ff] bg-[linear-gradient(180deg,#f7fbff_0%,#ffffff_100%)] p-5 shadow-[0_18px_50px_rgba(0,95,147,0.08)]">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <div className="mb-3 flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-1 rounded-full border border-[#cde5ff] bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#005f93]">
-                              <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
-                            {parsedResumePreview.usedAi ? "AI Parsing" : parsedResumePreview.parsingMode}
-                          </span>
-                          {parsedResumePreview.modelName ? (
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[11px] font-semibold text-[#47657a]">
-                              {parsedResumePreview.modelName}
-                            </span>
-                          ) : null}
+                    <div className="mt-6 rounded-[28px] border border-[#f1d7db] bg-[linear-gradient(180deg,#fff7f8_0%,#ffffff_100%)] p-4 shadow-[0_24px_60px_rgba(185,0,20,0.10)] md:p-6">
+                      <div className="rounded-[24px] border border-[#f3e4e7] bg-white p-5 md:p-7">
+                        <div className="flex flex-col gap-5 border-b border-[#f0e4e6] pb-6 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0">
+                            <div className="mb-3 flex flex-wrap items-center gap-2">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-[#f1d7db] bg-[#fff7f8] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#b90014]">
+                                <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                                {parsedResumePreview.usedAi ? "AI Parsing" : parsedResumePreview.parsingMode}
+                              </span>
+                              {parsedResumePreview.modelName ? (
+                                <span className="rounded-full bg-[#fff0f2] px-3 py-1 text-[11px] font-semibold text-[#7a4b53]">
+                                  {parsedResumePreview.modelName}
+                                </span>
+                              ) : null}
+                              <span className="rounded-full bg-[#ffe8ec] px-3 py-1 text-[11px] font-semibold text-[#8a1020]">
+                                Bản nháp từ CV
+                              </span>
+                            </div>
+
+                            <h3 className="text-[28px] font-semibold leading-9 tracking-[-0.02em] text-[#301419]">
+                              {parsedResumePreview.profile.name || "Ứng viên chưa rõ tên"}
+                            </h3>
+                            <p className="mt-2 text-[17px] font-medium text-[#b90014]">
+                              {parsedResumePreview.profile.headline || "Chưa nhận diện được headline nghề nghiệp"}
+                            </p>
+
+                            <div className="mt-4 flex flex-wrap gap-2 text-[12px] text-[#7a4b53]">
+                              {parsedResumePreview.profile.email ? (
+                                <span className="rounded-full border border-[#f0e4e6] bg-[#fff9fa] px-3 py-1">
+                                  {parsedResumePreview.profile.email}
+                                </span>
+                              ) : null}
+                              {parsedResumePreview.profile.phone ? (
+                                <span className="rounded-full border border-[#f0e4e6] bg-[#fff9fa] px-3 py-1">
+                                  {parsedResumePreview.profile.phone}
+                                </span>
+                              ) : null}
+                              {parsedResumePreview.profile.location ? (
+                                <span className="rounded-full border border-[#f0e4e6] bg-[#fff9fa] px-3 py-1">
+                                  {parsedResumePreview.profile.location}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          <div className="w-full max-w-[320px] rounded-[20px] border border-[#f1d7db] bg-[#fff8f8] p-4">
+                            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a4b53]">
+                              Tình trạng parse
+                            </p>
+                            {!parsedResumePreview.usedAi && parsedResumePreview.aiFallbackReason ? (
+                              <div className="mt-3 rounded-xl border border-[#ffd7dc] bg-[#fff4f6] px-4 py-3 text-[13px] leading-6 text-[#8a1020]">
+                                AI chưa được áp dụng ở lượt này: {parsedResumePreview.aiFallbackReason}
+                              </div>
+                            ) : (
+                              <p className="mt-3 text-[13px] leading-6 text-[#7a4b53]">
+                                Dữ liệu đã được tách thành các khối giống CV tiêu chuẩn để bạn kiểm tra nhanh trước khi cập nhật hồ sơ chính thức.
+                              </p>
+                            )}
+
+                            <div className="mt-4 space-y-2">
+                              <button
+                                className="w-full rounded-full bg-[#b90014] px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:brightness-110"
+                                type="button"
+                                onClick={() => applyParsedResumeToForm(parsedResumePreview)}
+                              >
+                                Áp dụng vào biểu mẫu
+                              </button>
+                              <button
+                                className="w-full rounded-full border border-[#e7c8cd] bg-white px-5 py-2.5 text-[12px] font-semibold text-[#8a1020] transition-colors hover:bg-[#fff4f6]"
+                                type="button"
+                                onClick={() => setParsedResumePreview(null)}
+                              >
+                                Đóng bản parse
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        {!parsedResumePreview.usedAi && parsedResumePreview.aiFallbackReason ? (
-                          <div className="rounded-xl border border-[#ffd7dc] bg-[#fff4f6] px-4 py-3 text-[13px] leading-6 text-[#8a1020]">
-                            AI chưa được áp dụng ở lượt phân tích này: {parsedResumePreview.aiFallbackReason}
+
+                        {parsedResumePreview.notes.length ? (
+                          <div className="mt-5 flex flex-wrap gap-2">
+                            {parsedResumePreview.notes.map((note) => (
+                              <span
+                                key={note}
+                                className="inline-flex rounded-full border border-[#f1d7db] bg-[#fff7f8] px-3 py-1 text-[12px] font-medium text-[#b90014]"
+                              >
+                                {note}
+                              </span>
+                            ))}
                           </div>
                         ) : null}
-                        <h3 className="text-[20px] font-semibold text-[#005f93]">
-                          Bản nháp hồ sơ từ CV
-                        </h3>
-                          <p className="mt-1 text-[13px] leading-6 text-[#47657a]">
-                            CV đã được phân tích thành dữ liệu có cấu trúc. Rà soát nhanh rồi áp dụng vào biểu mẫu để chỉnh tay trước khi lưu chính thức.
-                          </p>
-                        </div>
 
-                        <button
-                          className="rounded-full bg-[#005f93] px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:brightness-110"
-                          type="button"
-                          onClick={() => applyParsedResumeToForm(parsedResumePreview)}
-                        >
-                          Áp dụng vào biểu mẫu
-                        </button>
-                      </div>
-
-                      {parsedResumePreview.notes.length ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {parsedResumePreview.notes.map((note) => (
-                            <span
-                              key={note}
-                              className="inline-flex rounded-full border border-[#cde5ff] bg-white px-3 py-1 text-[12px] font-medium text-[#005f93]"
-                            >
-                              {note}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        <div className="rounded-2xl border border-[#d7e8f7] bg-white p-4">
-                          <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                            Thông tin cá nhân
-                          </p>
-                          <div className="mt-3 space-y-2 text-[14px] text-[#1a1c1c]">
-                            <p><strong>Họ tên:</strong> {parsedResumePreview.profile.name || "Chưa rõ"}</p>
-                            <p><strong>Headline:</strong> {parsedResumePreview.profile.headline || "Chưa rõ"}</p>
-                            <p><strong>Email:</strong> {parsedResumePreview.profile.email || "Chưa rõ"}</p>
-                            <p><strong>Điện thoại:</strong> {parsedResumePreview.profile.phone || "Chưa rõ"}</p>
-                            <p><strong>Địa điểm:</strong> {parsedResumePreview.profile.location || "Chưa rõ"}</p>
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                          <div className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4">
+                            <p className="text-[12px] uppercase tracking-[0.08em] text-[#6c8191]">Kỹ năng</p>
+                            <p className="mt-2 text-[24px] font-semibold text-[#18364a]">
+                              {parsedResumePreview.skills.length}
+                            </p>
+                            <p className="mt-1 text-[12px] text-[#5f7280]">
+                              {getCountLabel(parsedResumePreview.skills.length, "mục được nhận diện")}
+                            </p>
+                          </div>
+                          <div className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4">
+                            <p className="text-[12px] uppercase tracking-[0.08em] text-[#6c8191]">Kinh nghiệm</p>
+                            <p className="mt-2 text-[24px] font-semibold text-[#18364a]">
+                              {parsedResumePreview.experienceEntries.length}
+                            </p>
+                            <p className="mt-1 text-[12px] text-[#5f7280]">
+                              {getCountLabel(parsedResumePreview.experienceEntries.length, "vai trò công việc")}
+                            </p>
+                          </div>
+                          <div className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4">
+                            <p className="text-[12px] uppercase tracking-[0.08em] text-[#6c8191]">Dự án</p>
+                            <p className="mt-2 text-[24px] font-semibold text-[#18364a]">
+                              {parsedResumePreview.projects.length}
+                            </p>
+                            <p className="mt-1 text-[12px] text-[#5f7280]">
+                              {getCountLabel(parsedResumePreview.projects.length, "dự án liên quan")}
+                            </p>
+                          </div>
+                          <div className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4">
+                            <p className="text-[12px] uppercase tracking-[0.08em] text-[#6c8191]">Học vấn</p>
+                            <p className="mt-2 text-[24px] font-semibold text-[#18364a]">
+                              {parsedResumePreview.educations.length}
+                            </p>
+                            <p className="mt-1 text-[12px] text-[#5f7280]">
+                              {getCountLabel(parsedResumePreview.educations.length, "chương trình đào tạo")}
+                            </p>
                           </div>
                         </div>
 
-                        <div className="rounded-2xl border border-[#d7e8f7] bg-white p-4">
-                          <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                            Dữ liệu phát hiện
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                              {parsedResumePreview.skills.length} ky nang
-                            </span>
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                              {parsedResumePreview.experienceEntries.length} kinh nghiem
-                            </span>
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                              {parsedResumePreview.projects.length} du an
-                            </span>
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                              {parsedResumePreview.educations.length} hoc van
-                            </span>
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                              {parsedResumePreview.certifications.length} chung chi
-                            </span>
-                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                              {parsedResumePreview.languages.length} ngon ngu
-                            </span>
+                        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(280px,0.95fr)]">
+                          <div className="space-y-7">
+                            <section>
+                              <div className="flex items-center gap-3">
+                                <div className="h-[2px] flex-1 bg-[#dbe8f2]" />
+                                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6c8191]">
+                                  Tóm tắt nghề nghiệp
+                                </p>
+                              </div>
+                              <p className="mt-4 text-[14px] leading-7 text-[#314956]">
+                                {parsedResumePreview.profile.bio ||
+                                  "Chưa trích xuất được phần giới thiệu rõ ràng từ CV này. Bạn có thể áp dụng bản nháp rồi bổ sung thêm trong biểu mẫu."}
+                              </p>
+                            </section>
+
+                            <section>
+                              <div className="flex items-center gap-3">
+                                <div className="h-[2px] flex-1 bg-[#dbe8f2]" />
+                                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6c8191]">
+                                  Kinh nghiệm làm việc
+                                </p>
+                              </div>
+                              <div className="mt-5 space-y-5">
+                                {parsedResumePreview.experienceEntries.length ? (
+                                  parsedResumePreview.experienceEntries.map((entry) => (
+                                    <article
+                                      key={entry.id}
+                                      className="relative border-l-2 border-[#f1d7db] pl-5"
+                                    >
+                                      <span className="absolute -left-[7px] top-1 h-3 w-3 rounded-full bg-[#b90014]" />
+                                      <div className="flex flex-col gap-1 md:flex-row md:items-start md:justify-between">
+                                        <div>
+                                          <h4 className="text-[17px] font-semibold text-[#18364a]">
+                                            {entry.title}
+                                          </h4>
+                                          <p className="text-[14px] font-medium text-[#b90014]">
+                                            {entry.company}
+                                          </p>
+                                        </div>
+                                        <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#6c8191]">
+                                          {formatDateRange(entry.period)}
+                                        </p>
+                                      </div>
+                                      <div className="mt-3 space-y-2">
+                                        {entry.bullets.map((bullet, index) => (
+                                          <p
+                                            key={`${entry.id}-${index}`}
+                                            className="text-[14px] leading-7 text-[#314956]"
+                                          >
+                                            {bullet}
+                                          </p>
+                                        ))}
+                                      </div>
+                                    </article>
+                                  ))
+                                ) : (
+                                  <p className="text-[14px] leading-6 text-[#6c8191]">
+                                    Chưa nhận diện được kinh nghiệm làm việc từ CV này.
+                                  </p>
+                                )}
+                              </div>
+                            </section>
+
+                            <section>
+                              <div className="flex items-center gap-3">
+                                <div className="h-[2px] flex-1 bg-[#dbe8f2]" />
+                                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6c8191]">
+                                  Dự án nổi bật
+                                </p>
+                              </div>
+                              <div className="mt-5 grid gap-4">
+                                {parsedResumePreview.projects.length ? (
+                                  parsedResumePreview.projects.map((project) => (
+                                    <article
+                                      key={project.id}
+                                      className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4"
+                                    >
+                                      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                        <div>
+                                          <h4 className="text-[16px] font-semibold text-[#18364a]">
+                                            {project.name}
+                                          </h4>
+                                          <p className="text-[13px] font-medium text-[#b90014]">
+                                            {project.role || "Vai trò chưa rõ"}
+                                          </p>
+                                        </div>
+                                        <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[#6c8191]">
+                                          {formatDateRange(project.period)}
+                                        </p>
+                                      </div>
+                                      {project.description ? (
+                                        renderRichBulletText(project.description)
+                                      ) : (
+                                        <p className="mt-3 text-[14px] leading-7 text-[#314956]">
+                                          Chưa có mô tả chi tiết dự án.
+                                        </p>
+                                      )}
+                                      {project.technologies.length ? (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                          {project.technologies.map((technology) => (
+                                            <span
+                                              key={`${project.id}-${technology}`}
+                                              className="rounded-full border border-[#dce9f2] bg-white px-3 py-1 text-[12px] font-medium text-[#47657a]"
+                                            >
+                                              {technology}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      ) : null}
+                                    </article>
+                                  ))
+                                ) : (
+                                  <p className="text-[14px] leading-6 text-[#6c8191]">
+                                    Chưa có dự án nào được nhận diện từ CV.
+                                  </p>
+                                )}
+                              </div>
+                            </section>
+
+                            <section>
+                              <div className="flex items-center gap-3">
+                                <div className="h-[2px] flex-1 bg-[#dbe8f2]" />
+                                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6c8191]">
+                                  Học vấn &amp; chứng chỉ
+                                </p>
+                              </div>
+                              <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                                <div className="space-y-4">
+                                  {parsedResumePreview.educations.length ? (
+                                    parsedResumePreview.educations.map((education) => (
+                                      <article
+                                        key={education.id}
+                                        className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4"
+                                      >
+                                        <p className="text-[16px] font-semibold text-[#18364a]">
+                                          {education.school}
+                                        </p>
+                                        <p className="mt-1 text-[14px] font-medium text-[#b90014]">
+                                          {education.degree}
+                                          {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
+                                        </p>
+                                        <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#6c8191]">
+                                          {formatMonthYear(null, education.startYear)} - {education.endYear ? formatMonthYear(null, education.endYear) : "Hiện tại"}
+                                        </p>
+                                        {renderRichBulletText(education.description)}
+                                      </article>
+                                    ))
+                                  ) : (
+                                    <p className="text-[14px] leading-6 text-[#6c8191]">
+                                      Chưa trích xuất được phần học vấn.
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div className="space-y-4">
+                                  {parsedResumePreview.certifications.length ? (
+                                    parsedResumePreview.certifications.map((certification) => (
+                                      <article
+                                        key={certification.id}
+                                        className="rounded-2xl border border-[#e5edf3] bg-[#fbfdff] p-4"
+                                      >
+                                        <p className="text-[16px] font-semibold text-[#18364a]">
+                                          {certification.name}
+                                        </p>
+                                        <p className="mt-1 text-[14px] font-medium text-[#b90014]">
+                                          {certification.issuer || "Đơn vị cấp chưa rõ"}
+                                        </p>
+                                        <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.06em] text-[#6c8191]">
+                                          Cấp ngày {formatSimpleDate(certification.issuedOn)}
+                                          {certification.expiresOn ? ` • Hết hạn ${formatSimpleDate(certification.expiresOn)}` : ""}
+                                        </p>
+                                        {certification.credentialId ? (
+                                          <p className="mt-3 text-[13px] text-[#47657a]">
+                                            Credential ID: {certification.credentialId}
+                                          </p>
+                                        ) : null}
+                                      </article>
+                                    ))
+                                  ) : (
+                                    <p className="text-[14px] leading-6 text-[#6c8191]">
+                                      Chưa thấy chứng chỉ nào trong bản parse này.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </section>
                           </div>
-                          <pre className="mt-4 max-h-48 overflow-auto whitespace-pre-wrap rounded border border-[#e2dfde] bg-[#f9f9f9] p-3 text-[12px] leading-5 text-[#4e5f6a]">
-                            {parsedResumePreview.extractedTextPreview}
-                          </pre>
+
+                          <aside className="space-y-5">
+                            <section className="rounded-[22px] border border-[#e5edf3] bg-[#fbfdff] p-5">
+                              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6c8191]">
+                                Kỹ năng chính
+                              </p>
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                {parsedResumePreview.skills.length ? (
+                                  parsedResumePreview.skills.map((skill) => (
+                                    <span
+                                      key={skill.id}
+                                      className="rounded-full border border-[#dce9f2] bg-white px-3 py-1.5 text-[12px] font-medium text-[#18364a]"
+                                    >
+                                      {skill.label}
+                                      {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <p className="text-[14px] leading-6 text-[#6c8191]">
+                                    Chưa có kỹ năng nào được nhận diện.
+                                  </p>
+                                )}
+                              </div>
+                            </section>
+
+                            <section className="rounded-[22px] border border-[#e5edf3] bg-[#fbfdff] p-5">
+                              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6c8191]">
+                                Ngoại ngữ
+                              </p>
+                              <div className="mt-4 space-y-3">
+                                {parsedResumePreview.languages.length ? (
+                                  parsedResumePreview.languages.map((language) => (
+                                    <div
+                                      key={language.id}
+                                      className="rounded-2xl border border-[#dce9f2] bg-white px-4 py-3"
+                                    >
+                                      <p className="text-[14px] font-semibold text-[#18364a]">
+                                        {language.name}
+                                      </p>
+                                      <p className="mt-1 text-[12px] font-medium uppercase tracking-[0.06em] text-[#47657a]">
+                                        {language.proficiency}
+                                      </p>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-[14px] leading-6 text-[#6c8191]">
+                                    Chưa trích xuất được mục ngoại ngữ.
+                                  </p>
+                                )}
+                              </div>
+                            </section>
+
+                            <section className="rounded-[22px] border border-[#e5edf3] bg-[#fbfdff] p-5">
+                              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6c8191]">
+                                Liên kết &amp; nguồn trích xuất
+                              </p>
+                              <div className="mt-4 space-y-3 text-[13px] leading-6 text-[#314956]">
+                                <div className="rounded-2xl border border-[#dce9f2] bg-white px-4 py-3">
+                                  <p className="font-semibold text-[#18364a]">GitHub</p>
+                                  <p>{parsedResumePreview.profile.github || "Chưa nhận diện"}</p>
+                                </div>
+                                <div className="rounded-2xl border border-[#dce9f2] bg-white px-4 py-3">
+                                  <p className="font-semibold text-[#18364a]">LinkedIn</p>
+                                  <p>{parsedResumePreview.profile.linkedin || "Chưa nhận diện"}</p>
+                                </div>
+                              </div>
+                            </section>
+
+                          </aside>
                         </div>
                       </div>
                     </div>
@@ -1093,7 +1711,7 @@ function CandidateProfileAndCVManagementScreen() {
                 <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
                   <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
                     <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-                      Experience &amp; Education
+                      Work Experience
                     </h2>
                     <PermissionGuard permissions={PERMISSIONS.CANDIDATE_CREATE_OWN_EXPERIENCE}>
                       <button
@@ -1279,14 +1897,110 @@ function CandidateProfileAndCVManagementScreen() {
                 <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
-                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
-                        Projects
-                      </h2>
+                      <div className="flex items-center justify-between gap-3">
+                        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
+                          Projects
+                        </h2>
+                        {canEditProfile ? (
+                          <button
+                            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                            type="button"
+                            onClick={() => setShowProjectComposer((value) => !value)}
+                          >
+                            {showProjectComposer ? "Đóng" : "Add Entry"}
+                          </button>
+                        ) : null}
+                      </div>
+                      {showProjectComposer && canEditProfile ? (
+                        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Tên dự án"
+                            value={projectDraft.name}
+                            onChange={(e) => setProjectDraft((prev) => ({ ...prev, name: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Vai trò"
+                            value={projectDraft.role}
+                            onChange={(e) => setProjectDraft((prev) => ({ ...prev, role: e.target.value }))}
+                          />
+                          <textarea
+                            className="min-h-[90px] w-full rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Mô tả dự án"
+                            value={projectDraft.description}
+                            onChange={(e) => setProjectDraft((prev) => ({ ...prev, description: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Technologies, phân tách bằng dấu phẩy"
+                            value={projectDraft.technologies}
+                            onChange={(e) => setProjectDraft((prev) => ({ ...prev, technologies: e.target.value }))}
+                          />
+                          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                            <CommonSelect
+                              value={String(projectDraft.startMonth)}
+                              options={monthOptions.map((month, index) => ({ label: month, value: String(index + 1) }))}
+                              onValueChange={(value) => setProjectDraft((prev) => ({ ...prev, startMonth: Number(value) }))}
+                              className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
+                              menuClassName="border-[#e2dfde]"
+                            />
+                            <input
+                              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                              type="number"
+                              value={projectDraft.startYear}
+                              onChange={(e) => setProjectDraft((prev) => ({ ...prev, startYear: Number(e.target.value) }))}
+                            />
+                            <label className="col-span-2 flex items-center gap-2 rounded border border-[#e2dfde] bg-white px-3 py-2 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
+                              <input
+                                checked={projectDraft.isCurrent}
+                                className="h-4 w-4 accent-[#b90014]"
+                                type="checkbox"
+                                onChange={(e) => setProjectDraft((prev) => ({ ...prev, isCurrent: e.target.checked }))}
+                              />
+                              Current
+                            </label>
+                            {projectDraft.isCurrent ? null : (
+                              <>
+                                <CommonSelect
+                                  value={String(projectDraft.endMonth)}
+                                  options={monthOptions.map((month, index) => ({ label: month, value: String(index + 1) }))}
+                                  onValueChange={(value) => setProjectDraft((prev) => ({ ...prev, endMonth: Number(value) }))}
+                                  className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
+                                  menuClassName="border-[#e2dfde]"
+                                />
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  type="number"
+                                  value={projectDraft.endYear}
+                                  onChange={(e) => setProjectDraft((prev) => ({ ...prev, endYear: Number(e.target.value) }))}
+                                />
+                              </>
+                            )}
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                              type="button"
+                              onClick={() => setShowProjectComposer(false)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                              type="button"
+                              onClick={handleAddProject}
+                            >
+                              Add Entry
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="mt-4 space-y-3">
                         {projects.length ? projects.map((project) => (
                           <div key={project.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
                             <p className="text-[15px] font-semibold text-[#1a1c1c]">{project.name}</p>
-                            <p className="mt-1 text-[13px] font-medium text-[#005f93]">{project.role || "Project"}</p>
+                            <p className="mt-1 text-[13px] font-medium text-[#b90014]">{project.role || "Project"}</p>
                             {project.description ? (
                               <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">{project.description}</p>
                             ) : null}
@@ -1307,22 +2021,91 @@ function CandidateProfileAndCVManagementScreen() {
                     </div>
 
                     <div>
-                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
-                        Education
-                      </h2>
+                      <div className="flex items-center justify-between gap-3">
+                        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
+                          Education
+                        </h2>
+                        {canEditProfile ? (
+                          <button
+                            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                            type="button"
+                            onClick={() => setShowEducationComposer((value) => !value)}
+                          >
+                            {showEducationComposer ? "Đóng" : "Add Entry"}
+                          </button>
+                        ) : null}
+                      </div>
+                      {showEducationComposer && canEditProfile ? (
+                        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Trường học"
+                            value={educationDraft.school}
+                            onChange={(e) => setEducationDraft((prev) => ({ ...prev, school: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Bằng cấp"
+                            value={educationDraft.degree}
+                            onChange={(e) => setEducationDraft((prev) => ({ ...prev, degree: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Chuyên ngành"
+                            value={educationDraft.fieldOfStudy}
+                            onChange={(e) => setEducationDraft((prev) => ({ ...prev, fieldOfStudy: e.target.value }))}
+                          />
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                              placeholder="Năm bắt đầu"
+                              value={educationDraft.startYear}
+                              onChange={(e) => setEducationDraft((prev) => ({ ...prev, startYear: e.target.value }))}
+                            />
+                            <input
+                              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                              placeholder="Năm kết thúc"
+                              value={educationDraft.endYear}
+                              onChange={(e) => setEducationDraft((prev) => ({ ...prev, endYear: e.target.value }))}
+                            />
+                          </div>
+                          <textarea
+                            className="min-h-[90px] w-full rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Mô tả thêm"
+                            value={educationDraft.description}
+                            onChange={(e) => setEducationDraft((prev) => ({ ...prev, description: e.target.value }))}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                              type="button"
+                              onClick={() => setShowEducationComposer(false)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                              type="button"
+                              onClick={handleAddEducation}
+                            >
+                              Add Entry
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="mt-4 space-y-3">
                         {educations.length ? educations.map((education) => (
-                          <div key={education.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
+                          <div key={education.id} className="rounded  p-4">
                             <p className="text-[15px] font-semibold text-[#1a1c1c]">{education.school}</p>
-                            <p className="mt-1 text-[13px] font-medium text-[#005f93]">
+                            <p className="mt-1 text-[13px] font-medium text-[#b90014]">
                               {education.degree}
                               {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
                             </p>
-                            <p className="mt-2 text-[12px] text-[#5f5e5e]">
+                            <p className=" text-[14px] text-[#5f5e5e]">
                               {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "Chưa rõ mốc thời gian"}
                             </p>
                             {education.description ? (
-                              <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">{education.description}</p>
+                              <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">{education.description}</p>
                             ) : null}
                           </div>
                         )) : (
@@ -1334,9 +2117,78 @@ function CandidateProfileAndCVManagementScreen() {
 
                   <div className="mt-8 grid gap-6 md:grid-cols-2">
                     <div>
-                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
-                        Certifications
-                      </h2>
+                      <div className="flex items-center justify-between gap-3">
+                        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
+                          Certifications
+                        </h2>
+                        {canEditProfile ? (
+                          <button
+                            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                            type="button"
+                            onClick={() => setShowCertificationComposer((value) => !value)}
+                          >
+                            {showCertificationComposer ? "Đóng" : "Add Entry"}
+                          </button>
+                        ) : null}
+                      </div>
+                      {showCertificationComposer && canEditProfile ? (
+                        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Tên chứng chỉ"
+                            value={certificationDraft.name}
+                            onChange={(e) => setCertificationDraft((prev) => ({ ...prev, name: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Đơn vị cấp"
+                            value={certificationDraft.issuer}
+                            onChange={(e) => setCertificationDraft((prev) => ({ ...prev, issuer: e.target.value }))}
+                          />
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                              type="date"
+                              value={certificationDraft.issuedOn}
+                              onChange={(e) => setCertificationDraft((prev) => ({ ...prev, issuedOn: e.target.value }))}
+                            />
+                            <input
+                              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                              type="date"
+                              value={certificationDraft.expiresOn}
+                              onChange={(e) => setCertificationDraft((prev) => ({ ...prev, expiresOn: e.target.value }))}
+                            />
+                          </div>
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Credential ID"
+                            value={certificationDraft.credentialId}
+                            onChange={(e) => setCertificationDraft((prev) => ({ ...prev, credentialId: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Credential URL"
+                            value={certificationDraft.credentialUrl}
+                            onChange={(e) => setCertificationDraft((prev) => ({ ...prev, credentialUrl: e.target.value }))}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                              type="button"
+                              onClick={() => setShowCertificationComposer(false)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                              type="button"
+                              onClick={handleAddCertification}
+                            >
+                              Add Entry
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="mt-4 space-y-3">
                         {certifications.length ? certifications.map((certification) => (
                           <div key={certification.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
@@ -1350,14 +2202,57 @@ function CandidateProfileAndCVManagementScreen() {
                     </div>
 
                     <div>
-                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
-                        Languages
-                      </h2>
+                      <div className="flex items-center justify-between gap-3">
+                        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
+                          Languages
+                        </h2>
+                        {canEditProfile ? (
+                          <button
+                            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                            type="button"
+                            onClick={() => setShowLanguageComposer((value) => !value)}
+                          >
+                            {showLanguageComposer ? "Đóng" : "Add Entry"}
+                          </button>
+                        ) : null}
+                      </div>
+                      {showLanguageComposer && canEditProfile ? (
+                        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Ngôn ngữ"
+                            value={languageDraft.name}
+                            onChange={(e) => setLanguageDraft((prev) => ({ ...prev, name: e.target.value }))}
+                          />
+                          <input
+                            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                            placeholder="Trình độ"
+                            value={languageDraft.proficiency}
+                            onChange={(e) => setLanguageDraft((prev) => ({ ...prev, proficiency: e.target.value }))}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                              type="button"
+                              onClick={() => setShowLanguageComposer(false)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                              type="button"
+                              onClick={handleAddLanguage}
+                            >
+                              Add Entry
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                       <div className="mt-4 flex flex-wrap gap-2">
                         {languages.length ? languages.map((language) => (
                           <span
                             key={language.id}
-                            className="rounded-full border border-[#005f93]/20 bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]"
+                            className="rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
                           >
                             {language.name} • {language.proficiency}
                           </span>

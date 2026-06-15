@@ -184,6 +184,9 @@ export const copilotService = {
     return request.post<ApiResponse<CopilotPromptResponseDto>, typeof payload>(
       endpoints.copilot.rankings(conversationId),
       requestPayload,
+      {
+        timeout: 190000,
+      },
     );
   },
 
