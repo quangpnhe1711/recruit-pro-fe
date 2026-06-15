@@ -94,6 +94,8 @@ function CandidateReviewDetailScreen() {
   const canSendOffer = primaryRole === ROLE_NAMES.HR && hasPermission(PERMISSIONS.APPLICATION_SEND_EMAIL);
   const reviewRoutePrefix =
     primaryRole === ROLE_NAMES.MANAGER ? "/manager/applications" : "/hr/applications";
+  const candidateRoutePrefix =
+    primaryRole === ROLE_NAMES.MANAGER ? "/manager/candidates" : "/hr/candidates";
 
   const [detail, setDetail] = useState<ApplicationReviewDetailDto | null>(null);
   const [resumeFile, setResumeFile] = useState<{ fileName: string; fileUrl: string } | null>(null);
@@ -164,7 +166,7 @@ function CandidateReviewDetailScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <LoadingIndicator label="Loading candidate review..." />
       </div>
     );
@@ -172,7 +174,7 @@ function CandidateReviewDetailScreen() {
 
   if (!detail) {
     return (
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+      <div className="w-full px-4 py-10 md:px-10">
         <div className="border border-[#e7bdb8] bg-white p-8">
           <h1 className="text-[32px] font-semibold text-[#1a1c1c]">Candidate review not found</h1>
           <p className="mt-2 text-sm text-[#5f5e5e]">
@@ -194,7 +196,7 @@ function CandidateReviewDetailScreen() {
   const interviewNotes = detail.interviews.filter((item) => item.notes);
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-10">
+    <div className="w-full px-4 py-8 md:px-10">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -207,10 +209,16 @@ function CandidateReviewDetailScreen() {
             </span>
           </div>
           <h1 className="text-[40px] font-bold leading-tight text-[#1a1c1c]">
-            {detail.candidate.fullName}
+            <Link className="hover:text-[#b90014]" to={`${candidateRoutePrefix}/${detail.candidate.id}`}>
+              {detail.candidate.fullName}
+            </Link>
           </h1>
           <p className="mt-2 text-lg text-[#5f5e5e]">
-            Applying for {detail.job.title} - {detail.job.departmentName}
+            Applying for{" "}
+            <Link className="font-semibold text-[#b90014] hover:underline" to={`/jobs/${detail.job.id}`}>
+              {detail.job.title}
+            </Link>{" "}
+            - {detail.job.departmentName}
           </p>
           <p className="mt-3 text-sm text-[#5f5e5e]">
             Applied {formatDateLabel(detail.appliedAt)}. Next step: {detail.nextStep}.

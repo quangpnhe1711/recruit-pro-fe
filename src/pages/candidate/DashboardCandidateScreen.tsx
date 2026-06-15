@@ -40,7 +40,7 @@ function DashboardCandidateScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <LoadingIndicator label="Loading candidate dashboard..." />
       </div>
     );
@@ -48,7 +48,7 @@ function DashboardCandidateScreen() {
 
   if (!dashboard) {
     return (
-      <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+      <section className="w-full px-4 py-10 md:px-10">
         <div className="border border-[#e2dfde] bg-white p-8 text-center">
           <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
             Candidate Dashboard
@@ -95,7 +95,7 @@ function DashboardCandidateScreen() {
   const stats = dashboard.stats;
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+    <section className="w-full px-4 py-10 md:px-10">
             <div className="mb-10">
               <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
                 Welcome back, {dashboard?.greetingName ?? user?.fullName ?? "Candidate"}

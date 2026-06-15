@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -25,6 +26,12 @@ type DraftInterviewSchedule = {
   interviewerId: string | null;
   savedAt: string;
 };
+
+const durationOptions = [
+  { label: "30 Minutes", value: "30" },
+  { label: "60 Minutes", value: "60" },
+  { label: "90 Minutes", value: "90" },
+];
 
 const draftStorageKey = "rp_hr_interview_schedule_draft_v1";
 
@@ -315,7 +322,7 @@ function InterviewScheduleScreen() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
+      <div className="w-full px-4 py-6 md:px-10">
         <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
           <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Schedule Interview</h1>
           <div className="mt-3">
@@ -328,7 +335,7 @@ function InterviewScheduleScreen() {
 
   if (!scheduleData || !currentInterviewer) {
     return (
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
+      <div className="w-full px-4 py-6 md:px-10">
         <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
           <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Schedule Interview</h1>
           <p className="mt-2 text-[14px] text-[#5f5e5e]">
@@ -347,7 +354,7 @@ function InterviewScheduleScreen() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
+    <div className="w-full space-y-6 px-4 py-6 md:px-10">
       <div className="flex items-center gap-4">
         <button
           type="button"
@@ -544,15 +551,13 @@ function InterviewScheduleScreen() {
                 <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
                   Duration
                 </label>
-                <select
-                  className="w-full border-2 border-[#e2e2e2] p-3 text-[14px] font-semibold outline-none focus:border-[#1a1c1c]"
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                >
-                  <option value={30}>30 Minutes</option>
-                  <option value={60}>60 Minutes</option>
-                  <option value={90}>90 Minutes</option>
-                </select>
+                <CommonSelect
+                  value={String(durationMinutes)}
+                  options={durationOptions}
+                  onValueChange={(value) => setDurationMinutes(Number(value))}
+                  className="h-12 border-2 border-[#e2e2e2] bg-white text-[14px] font-semibold shadow-none focus:border-[#1a1c1c]"
+                  menuClassName="border-[#e2e2e2]"
+                />
               </div>
             </div>
 

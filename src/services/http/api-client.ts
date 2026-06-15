@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logout } from "../../store/slices/authSlice";
 
 const authFreeEndpoints = [
   "/auth/login",
@@ -23,6 +24,8 @@ apiClient.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    logout();
   }
 
   return config;

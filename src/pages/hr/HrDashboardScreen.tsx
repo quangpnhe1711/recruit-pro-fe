@@ -104,7 +104,7 @@ function HrDashboardScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
         <LoadingIndicator label="Loading HR dashboard..." />
       </div>
     );
@@ -112,7 +112,7 @@ function HrDashboardScreen() {
 
   if (!dashboard) {
     return (
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
+      <div className="w-full px-4 py-6 md:px-10">
         <div className="border border-[#e2dfde] bg-white p-8 text-center">
           <h2 className="text-[24px] font-semibold text-[#1a1c1c]">Recruitment Overview</h2>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
@@ -169,7 +169,7 @@ function HrDashboardScreen() {
     })) ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-6 md:px-10">
+    <div className="w-full space-y-6 px-4 py-6 md:px-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">

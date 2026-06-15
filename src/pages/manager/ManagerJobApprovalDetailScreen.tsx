@@ -113,7 +113,7 @@ function ManagerJobApprovalDetailScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-8 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-8 md:px-10">
         <LoadingIndicator label="Loading approval draft..." />
       </div>
     );
@@ -121,7 +121,7 @@ function ManagerJobApprovalDetailScreen() {
 
   if (!detail) {
     return (
-      <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-10">
+      <div className="w-full px-4 py-8 md:px-10">
         <div className="border border-[#e7bdb8] bg-white p-8">
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
             Approval draft not found
@@ -143,7 +143,7 @@ function ManagerJobApprovalDetailScreen() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-10">
+    <div className="w-full px-4 py-8 md:px-10">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-3">

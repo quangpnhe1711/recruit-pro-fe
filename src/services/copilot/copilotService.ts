@@ -16,6 +16,19 @@ export type CopilotConversationDto = {
   latestRankingSessionId: string | null;
 };
 
+export type CopilotMessageDto = {
+  messageId: string;
+  role: "User" | "Assistant" | "System";
+  content: string;
+  metadataJson: string | null;
+  sequenceNo: number;
+  createdAt: string | null;
+};
+
+export type CopilotConversationDetailDto = CopilotConversationDto & {
+  messages: CopilotMessageDto[];
+};
+
 export type CopilotCandidateDto = {
   candidateUserId: string;
   applicationId: string;
@@ -54,15 +67,20 @@ export type CopilotRankingResultDto = {
   strengths: string[];
   weaknesses: string[];
   summary: string;
+  isAiGenerated: boolean;
 };
 
 export type CopilotPromptResponseDto = {
   conversationId: string;
-  rankingSessionId: string;
+  rankingSessionId: string | null;
+  didRank: boolean;
+  assistantMessage: string;
   normalizedRules: {
     requiredSkills: string[];
     preferredSkills: string[];
     minExperienceYears: number | null;
+    priorityCriteria: CopilotRuleCriterionDto[];
+    negativeCriteria: CopilotRuleCriterionDto[];
     autoRejectRules: Array<{
       field: string;
       operator: string;
@@ -72,6 +90,39 @@ export type CopilotPromptResponseDto = {
     minTotalScore: number | null;
   };
   results: CopilotRankingResultDto[];
+};
+
+export type CopilotRuleCriterionDto = {
+  label: string;
+  field: string;
+  operator: string;
+  value: string;
+  weight: string;
+  autoReject: boolean;
+};
+
+export type CopilotRankingSessionDetailDto = {
+  rankingSessionId: string;
+  conversationId: string;
+  jobId: string;
+  userPrompt: string;
+  modelName: string | null;
+  totalCandidates: number;
+  promptTokens: number | null;
+  completionTokens: number | null;
+  createdAt: string | null;
+  normalizedRules: CopilotPromptResponseDto["normalizedRules"];
+  results: CopilotRankingResultDto[];
+};
+
+export type CopilotSavedRuleDto = {
+  ruleId: string;
+  jobId: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+  rule: CopilotPromptResponseDto["normalizedRules"];
 };
 
 export const copilotService = {
@@ -88,6 +139,14 @@ export const copilotService = {
     );
   },
 
+  getConversation: async (
+    conversationId: string,
+  ): Promise<ApiResponse<CopilotConversationDetailDto>> => {
+    return request.get<ApiResponse<CopilotConversationDetailDto>>(
+      endpoints.copilot.conversationDetail(conversationId),
+    );
+  },
+
   getCandidatePool: async (
     jobId: string,
   ): Promise<ApiResponse<CopilotCandidatePoolDto>> => {
@@ -98,14 +157,85 @@ export const copilotService = {
 
   createRanking: async (
     conversationId: string,
-    payload: { jobId: string; prompt: string; useLatestRankingContext?: boolean },
+    payload: {
+      jobId: string;
+      prompt: string;
+      forceRanking?: boolean;
+      useLatestRankingContext?: boolean;
+      priorityCriteria?: CopilotRuleCriterionDto[];
+      negativeCriteria?: CopilotRuleCriterionDto[];
+    },
   ): Promise<ApiResponse<CopilotPromptResponseDto>> => {
+    const requestPayload: typeof payload = {
+      jobId: payload.jobId,
+      prompt: payload.prompt,
+      forceRanking: payload.forceRanking ?? false,
+      useLatestRankingContext: payload.useLatestRankingContext ?? true,
+    };
+
+    if (payload.priorityCriteria?.length) {
+      requestPayload.priorityCriteria = payload.priorityCriteria;
+    }
+
+    if (payload.negativeCriteria?.length) {
+      requestPayload.negativeCriteria = payload.negativeCriteria;
+    }
+
     return request.post<ApiResponse<CopilotPromptResponseDto>, typeof payload>(
       endpoints.copilot.rankings(conversationId),
+      requestPayload,
+    );
+  },
+
+  getRankingSession: async (
+    rankingSessionId: string,
+  ): Promise<ApiResponse<CopilotRankingSessionDetailDto>> => {
+    return request.get<ApiResponse<CopilotRankingSessionDetailDto>>(
+      endpoints.copilot.rankingSession(rankingSessionId),
+    );
+  },
+
+  getSavedRules: async (
+    jobId: string,
+  ): Promise<ApiResponse<CopilotSavedRuleDto[]>> => {
+    return request.get<ApiResponse<CopilotSavedRuleDto[]>>(
+      endpoints.copilot.rules(jobId),
+    );
+  },
+
+  createSavedRule: async (
+    jobId: string,
+    payload: {
+      name: string;
+      priorityCriteria: CopilotRuleCriterionDto[];
+      negativeCriteria: CopilotRuleCriterionDto[];
+      isActive?: boolean;
+    },
+  ): Promise<ApiResponse<CopilotSavedRuleDto>> => {
+    return request.post<ApiResponse<CopilotSavedRuleDto>, typeof payload>(
+      endpoints.copilot.rules(jobId),
       {
         ...payload,
-        useLatestRankingContext: payload.useLatestRankingContext ?? true,
+        isActive: payload.isActive ?? true,
       },
+    );
+  },
+
+  updateSavedRuleStatus: async (
+    ruleId: string,
+    isActive: boolean,
+  ): Promise<ApiResponse<CopilotSavedRuleDto>> => {
+    return request.patch<ApiResponse<CopilotSavedRuleDto>, { isActive: boolean }>(
+      endpoints.copilot.ruleDetail(ruleId),
+      { isActive },
+    );
+  },
+
+  deleteSavedRule: async (
+    ruleId: string,
+  ): Promise<ApiResponse<{ ruleId: string }>> => {
+    return request.delete<ApiResponse<{ ruleId: string }>>(
+      endpoints.copilot.ruleDetail(ruleId),
     );
   },
 };

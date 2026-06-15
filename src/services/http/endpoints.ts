@@ -46,16 +46,23 @@ export const endpoints = {
   hr: {
     dashboard: "/hr/dashboard",
     candidates: "/hr/candidates",
+    candidateDetail: (candidateId: string) => `/hr/candidates/${candidateId}`,
     applications: "/hr/applications",
-    applicationDetail: (applicationId: string) => `/hr/applications/${applicationId}`,
-    applicationDecision: (applicationId: string) => `/hr/applications/${applicationId}/decision`,
-    applicationCv: (applicationId: string) => `/hr/applications/${applicationId}/cv`,
-    applicationOffer: (applicationId: string) => `/hr/applications/${applicationId}/offer`,
-    applicationOfferSend: (applicationId: string) => `/hr/applications/${applicationId}/offer/send`,
+    applicationDetail: (applicationId: string) =>
+      `/hr/applications/${applicationId}`,
+    applicationDecision: (applicationId: string) =>
+      `/hr/applications/${applicationId}/decision`,
+    applicationCv: (applicationId: string) =>
+      `/hr/applications/${applicationId}/cv`,
+    applicationOffer: (applicationId: string) =>
+      `/hr/applications/${applicationId}/offer`,
+    applicationOfferSend: (applicationId: string) =>
+      `/hr/applications/${applicationId}/offer/send`,
     applicationSendEmail: (applicationId: string) =>
       `/hr/applications/${applicationId}/send-email`,
     interviews: "/hr/interviews",
-    interviewStatus: (interviewId: string) => `/hr/interviews/${interviewId}/status`,
+    interviewStatus: (interviewId: string) =>
+      `/hr/interviews/${interviewId}/status`,
     interviewDetail: (interviewId: string) => `/hr/interviews/${interviewId}`,
     interviewScheduleData: "/hr/interviews/schedule-data",
     createInterview: "/hr/interviews",
@@ -64,7 +71,8 @@ export const endpoints = {
     dashboard: "/manager/dashboard",
     reviewQueue: "/manager/applications/review-queue",
     jobApprovalQueue: "/manager/jobs/approval-queue",
-    jobApprovalDetail: (jobId: string) => `/manager/jobs/${jobId}/approval-detail`,
+    jobApprovalDetail: (jobId: string) =>
+      `/manager/jobs/${jobId}/approval-detail`,
     recruitmentAnalytics: "/manager/reports/recruitment-analytics",
   },
   hrJobs: {
@@ -78,7 +86,14 @@ export const endpoints = {
   copilot: {
     jobs: "/copilot/jobs",
     conversations: "/copilot/conversations",
+    conversationDetail: (conversationId: string) =>
+      `/copilot/conversations/${conversationId}`,
     candidates: (jobId: string) => `/copilot/jobs/${jobId}/candidates`,
-    rankings: (conversationId: string) => `/copilot/conversations/${conversationId}/rankings`,
+    rankings: (conversationId: string) =>
+      `/copilot/conversations/${conversationId}/rankings`,
+    rankingSession: (rankingSessionId: string) =>
+      `/copilot/ranking-sessions/${rankingSessionId}`,
+    rules: (jobId: string) => `/copilot/jobs/${jobId}/rules`,
+    ruleDetail: (ruleId: string) => `/copilot/rules/${ruleId}`,
   },
 } as const;

@@ -77,14 +77,14 @@ function CandidateInterviewScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
         <LoadingIndicator label="Loading interviews..." />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
+    <div className="w-full px-4 py-6 md:px-10">
       <div className="mb-8">
         <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
           My Interviews

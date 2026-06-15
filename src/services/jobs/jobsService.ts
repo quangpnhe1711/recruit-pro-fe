@@ -70,7 +70,30 @@ function toPaginatedResponse<T>(
   };
 }
 
-function normalizeJobListItem(item: Partial<JobListItemDto> & { department?: unknown; postedAt?: string | null }) {
+function normalizeJobStatus(value?: string | null): JobListItemDto["status"] {
+  switch (value?.trim().toUpperCase()) {
+    case "DRAFT":
+      return "DRAFT";
+    case "PENDING_APPROVAL":
+    case "PENDINGAPPROVAL":
+    case "PENDING":
+      return "PENDING_APPROVAL";
+    case "REJECTED":
+      return "REJECTED";
+    case "APPROVED":
+      return "APPROVED";
+    default:
+      return "PENDING_APPROVAL";
+  }
+}
+
+function normalizeJobListItem(
+  item: Partial<JobListItemDto> & {
+    department?: unknown;
+    postedAt?: string | null;
+    approvalStatus?: string | null;
+  },
+) {
   const departmentName =
     typeof item.department === "string"
       ? item.department
@@ -111,8 +134,202 @@ function normalizeJobListItem(item: Partial<JobListItemDto> & { department?: unk
     approvedBy: item.approvedBy ?? null,
     vacancyCount: item.vacancyCount ?? 0,
     deadline: item.deadline ?? null,
-    status: item.status ?? "APPROVED",
+    status: normalizeJobStatus(item.status ?? item.approvalStatus),
   } as JobListItemDto;
+}
+
+type RawPublicJobDetail = {
+  id?: string;
+  title?: string;
+  location?: string;
+  postedAt?: string | null;
+  status?: string;
+  salaryRange?: {
+    min?: number | null;
+    max?: number | null;
+    label?: string | null;
+  } | null;
+  department?: string;
+  jobType?: string;
+  vacancyCount?: number | null;
+  description?: string[] | string | null;
+  requirements?: string[] | null;
+  skills?: Array<{
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    isRequired?: boolean;
+  }> | null;
+  applicationSummary?: {
+    totalApplications?: number;
+    funnel?: Array<{
+      label?: string;
+      count?: number;
+      color?: string | null;
+    }> | null;
+  } | null;
+};
+
+type RawHrJobDetail = {
+  id?: string;
+  title?: string;
+  department?: string;
+  location?: string;
+  workMode?: string;
+  requirements?: string[] | null;
+  skills?: Array<{
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    isRequired?: boolean;
+  }> | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  deadline?: string | null;
+  jobType?: string;
+  posted?: string | null;
+  vacancyCount?: number | null;
+  status?: string;
+  description?: string[] | string | null;
+};
+
+function normalizeEmploymentType(value?: string | null): JobDetailDto["employmentType"] {
+  switch (value?.trim().toLowerCase()) {
+    case "part-time":
+    case "part time":
+    case "parttime":
+      return "Part-time";
+    case "internship":
+      return "Internship";
+    case "contract":
+      return "Contract";
+    default:
+      return "Full-time";
+  }
+}
+
+function normalizeWorkMode(value?: string | null): JobDetailDto["workMode"] {
+  switch (value?.trim().toLowerCase()) {
+    case "onsite":
+    case "on-site":
+      return "Onsite";
+    case "hybrid":
+      return "Hybrid";
+    default:
+      return "Remote";
+  }
+}
+
+function normalizeJobDetailStatus(value?: string | null): JobDetailDto["status"] {
+  switch (value?.trim().toUpperCase()) {
+    case "DRAFT":
+      return "DRAFT";
+    case "PENDING_APPROVAL":
+    case "PENDING":
+      return "PENDING_APPROVAL";
+    case "CLOSED":
+      return "CLOSED";
+    case "REJECTED":
+      return "REJECTED";
+    default:
+      return "APPROVED";
+  }
+}
+
+function toDescriptionText(value?: string[] | string | null) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).join("\n\n");
+  }
+
+  return value ?? "";
+}
+
+function normalizePublicJobDetail(item: RawPublicJobDetail | null | undefined): JobDetailDto {
+  const employmentTypeLabel = item?.jobType?.split(",")[0]?.trim();
+  const workModeLabel = item?.location?.match(/\(([^)]+)\)\s*$/)?.[1] ?? item?.jobType?.split(",")[1]?.trim();
+  const cleanLocation = item?.location?.replace(/\s*\([^)]+\)\s*$/, "") ?? "";
+
+  return {
+    id: item?.id ?? "",
+    title: item?.title ?? "",
+    department: {
+      id: item?.department ?? "",
+      name: item?.department ?? "",
+      description: null,
+    },
+    location: cleanLocation,
+    workMode: normalizeWorkMode(workModeLabel),
+    employmentType: normalizeEmploymentType(employmentTypeLabel),
+    minExperienceYears: 0,
+    vacancyCount: item?.vacancyCount ?? 0,
+    salaryMin: item?.salaryRange?.min ?? null,
+    salaryMax: item?.salaryRange?.max ?? null,
+    deadline: null,
+    status: normalizeJobDetailStatus(item?.status),
+    createdAt: item?.postedAt ?? new Date().toISOString(),
+    description: toDescriptionText(item?.description),
+    requirements: item?.requirements ?? [],
+    benefits: [],
+    skills: (item?.skills ?? []).map((skill) => ({
+      skill: {
+        id: skill.id ?? "",
+        name: skill.name ?? "",
+      },
+      minYearsExperience: skill.minYearsExperience ?? null,
+      isRequired: skill.isRequired ?? false,
+    })),
+    summary: "",
+    hiringManager: null,
+    applicationCount: item?.applicationSummary?.totalApplications ?? 0,
+    recentApplications: [],
+    hiringFunnel: (item?.applicationSummary?.funnel ?? []).map((stage) => ({
+      label: stage.label ?? "",
+      count: stage.count ?? 0,
+      color: stage.color ?? "#b90014",
+    })),
+    availableActions: [],
+  };
+}
+
+function normalizeHrJobDetail(item: RawHrJobDetail | null | undefined): JobDetailDto {
+  const employmentTypeLabel = item?.jobType?.split("/")[0]?.trim();
+
+  return {
+    id: item?.id ?? "",
+    title: item?.title ?? "",
+    department: {
+      id: item?.department ?? "",
+      name: item?.department ?? "",
+      description: null,
+    },
+    location: item?.location ?? "",
+    workMode: normalizeWorkMode(item?.workMode),
+    employmentType: normalizeEmploymentType(employmentTypeLabel),
+    minExperienceYears: 0,
+    vacancyCount: item?.vacancyCount ?? 0,
+    salaryMin: item?.salaryMin ?? null,
+    salaryMax: item?.salaryMax ?? null,
+    deadline: item?.deadline ?? null,
+    status: normalizeJobDetailStatus(item?.status),
+    createdAt: item?.posted ? new Date(item.posted).toISOString() : new Date().toISOString(),
+    description: toDescriptionText(item?.description),
+    requirements: item?.requirements ?? [],
+    benefits: [],
+    skills: (item?.skills ?? []).map((skill) => ({
+      skill: {
+        id: skill.id ?? "",
+        name: skill.name ?? "",
+      },
+      minYearsExperience: skill.minYearsExperience ?? null,
+      isRequired: skill.isRequired ?? false,
+    })),
+    summary: "",
+    hiringManager: null,
+    applicationCount: 0,
+    recentApplications: [],
+    hiringFunnel: [],
+    availableActions: [],
+  };
 }
 
 export const jobsService = {
@@ -177,7 +394,21 @@ export const jobsService = {
   },
 
   getJobDetail: async (jobId: string): Promise<ApiResponse<JobDetailDto>> => {
-    return request.get<ApiResponse<JobDetailDto>>(endpoints.jobs.detail(jobId));
+    const response = await request.get<ApiResponse<RawPublicJobDetail>>(endpoints.jobs.detail(jobId));
+
+    return {
+      ...response,
+      data: normalizePublicJobDetail(response.data),
+    };
+  },
+
+  getHrJobDetail: async (jobId: string): Promise<ApiResponse<JobDetailDto>> => {
+    const response = await request.get<ApiResponse<RawHrJobDetail>>(endpoints.hrJobs.detail(jobId));
+
+    return {
+      ...response,
+      data: normalizeHrJobDetail(response.data),
+    };
   },
 
   getApplyContext: async (jobId: string): Promise<ApiResponse<ApplyJobScreenDto>> => {
@@ -193,21 +424,87 @@ export const jobsService = {
   },
 
   getJobFunnel: async (jobId: string): Promise<ApiResponse<JobFunnelStageDto[]>> => {
-    const response = await request.get<ApiResponse<JobStatisticsDto>>(endpoints.jobs.statistics(jobId));
+    const response = await request.get<ApiResponse<{
+      applied?: number;
+      screening?: number;
+      interview?: number;
+      offer?: number;
+      hired?: number;
+    }>>(endpoints.jobs.statistics(jobId));
     return {
       ...response,
-      data: response.data?.hiringFunnel ?? [],
+      data: [
+        { label: "Applied", count: response.data?.applied ?? 0, color: "#b90014" },
+        { label: "Screening", count: response.data?.screening ?? 0, color: "#d97706" },
+        { label: "Interview", count: response.data?.interview ?? 0, color: "#005f93" },
+        { label: "Offer", count: response.data?.offer ?? 0, color: "#6d28d9" },
+        { label: "Hired", count: response.data?.hired ?? 0, color: "#15803d" },
+      ],
     };
   },
 
   getJobStatistics: async (jobId: string): Promise<ApiResponse<JobStatisticsDto>> => {
-    return request.get<ApiResponse<JobStatisticsDto>>(endpoints.jobs.statistics(jobId));
+    const response = await request.get<ApiResponse<{
+      applied?: number;
+      screening?: number;
+      interview?: number;
+      offer?: number;
+      hired?: number;
+    }>>(endpoints.jobs.statistics(jobId));
+
+    return {
+      ...response,
+      data: {
+        hiringFunnel: [
+          { label: "Applied", count: response.data?.applied ?? 0, color: "#b90014" },
+          { label: "Screening", count: response.data?.screening ?? 0, color: "#d97706" },
+          { label: "Interview", count: response.data?.interview ?? 0, color: "#005f93" },
+          { label: "Offer", count: response.data?.offer ?? 0, color: "#6d28d9" },
+          { label: "Hired", count: response.data?.hired ?? 0, color: "#15803d" },
+        ],
+      },
+    };
   },
 
   getRecentJobApplications: async (
     jobId: string,
   ): Promise<ApiResponse<ApplicationListItemDto[]>> => {
-    return request.get<ApiResponse<ApplicationListItemDto[]>>(endpoints.jobs.recentApplications(jobId));
+    const response = await request.get<ApiResponse<Array<{
+      id: string;
+      candidateId: string;
+      candidateName: string;
+      avatarUrl?: string | null;
+      appliedAt?: string | null;
+      status: string;
+      score?: number | null;
+    }>>>(endpoints.jobs.recentApplications(jobId));
+
+    return {
+      ...response,
+      data: (response.data ?? []).map((item) => ({
+        id: item.id,
+        candidate: {
+          id: item.candidateId,
+          fullName: item.candidateName,
+          email: "",
+          avatarUrl: item.avatarUrl ?? null,
+          currentPosition: null,
+        },
+        job: {
+          id: jobId,
+          title: "",
+          department: {
+            id: "",
+            name: "",
+            description: null,
+          },
+        },
+        status: item.status as ApplicationListItemDto["status"],
+        appliedAt: item.appliedAt ?? new Date().toISOString(),
+        reviewedBy: null,
+        nextStep: item.score != null ? String(item.score) : null,
+      })),
+    };
   },
 
   applyToJob: async (

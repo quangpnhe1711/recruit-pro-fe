@@ -47,7 +47,7 @@ const hrItems: SideNavItem[] = [
   {
     icon: "description",
     label: "Applications",
-    to: "/manager/applications",
+    to: "/hr/applications",
   },
   {
     icon: "smart_toy",
@@ -80,7 +80,7 @@ const managerItems: SideNavItem[] = [
   {
     icon: "description",
     label: "Applications",
-    to: "/hr/applications",
+    to: "/manager/applications",
   },
   {
     icon: "smart_toy",

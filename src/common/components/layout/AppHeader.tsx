@@ -30,7 +30,10 @@ const defaultMenuItems: AppHeaderMenuItem[] = [
   { label: "Profile", to: "/candidate/profile" },
 ];
 
-function formatRoleLabel(role: string | null | undefined, portalVariant: "candidate" | "internal") {
+function formatRoleLabel(
+  role: string | null | undefined,
+  portalVariant: "candidate" | "internal",
+) {
   if (portalVariant === "candidate") {
     return "Candidate";
   }
@@ -47,19 +50,21 @@ function formatRoleLabel(role: string | null | undefined, portalVariant: "candid
   }
 }
 
-function AppHeader({
-  showNotifications = true,
-  menuItems,
-}: AppHeaderProps) {
+function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
   const authUser = useSelector((state: RootState) => state.auth.user);
-  const { defaultPath, hasPermission, portalVariant, primaryRole } = usePermissions();
+  const { defaultPath, hasPermission, portalVariant, primaryRole } =
+    usePermissions();
 
   const userName = authUser?.fullName ?? "No user";
   const userRole = formatRoleLabel(primaryRole, portalVariant);
   const avatarSrc = authUser?.avatarUrl ?? undefined;
   const resolvedInitials = getInitials(userName);
-  const canViewOwnProfile = hasPermission(PERMISSIONS.CANDIDATE_VIEW_OWN_PROFILE);
-  const canViewInternalProfile = hasPermission(PERMISSIONS.PROFILE_VIEW_INTERNAL);
+  const canViewOwnProfile = hasPermission(
+    PERMISSIONS.CANDIDATE_VIEW_OWN_PROFILE,
+  );
+  const canViewInternalProfile = hasPermission(
+    PERMISSIONS.PROFILE_VIEW_INTERNAL,
+  );
   const resolvedMenuItems =
     menuItems ??
     (portalVariant === "candidate"
@@ -69,7 +74,7 @@ function AppHeader({
             ? [{ label: "Profile", to: "/internal/profile" }]
             : canViewOwnProfile
               ? [{ label: "Profile", to: "/candidate/profile" }]
-            : []),
+              : []),
           ...(primaryRole === ROLE_NAMES.SYSTEM_ADMIN
             ? [{ label: "Admin Dashboard", to: "/system-admin/dashboard" }]
             : []),
@@ -78,7 +83,7 @@ function AppHeader({
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 md:px-10">
+      <div className="mx-auto flex h-16  items-center justify-between gap-4 px-4 md:px-10">
         <div className="flex flex-1 items-center" />
 
         <div className="flex items-center gap-4 md:gap-6">

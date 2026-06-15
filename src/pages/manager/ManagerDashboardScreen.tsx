@@ -102,7 +102,7 @@ function ManagerDashboardScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <LoadingIndicator label="Loading manager dashboard..." />
       </div>
     );
@@ -110,7 +110,7 @@ function ManagerDashboardScreen() {
 
   if (!dashboard) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <div className="w-full max-w-xl border border-[#e2dfde] bg-white p-8 text-center">
           <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Manager Dashboard</h1>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
@@ -122,7 +122,7 @@ function ManagerDashboardScreen() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 py-10 md:px-10">
+    <div className="w-full space-y-6 px-4 py-10 md:px-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">

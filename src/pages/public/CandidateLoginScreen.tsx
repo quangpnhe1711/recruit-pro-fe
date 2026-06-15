@@ -8,7 +8,7 @@ import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
 import { setCredentials } from "../../store/slices/authSlice";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
-import { useLoading } from "../../common/hooks/useLoading";
+import { useLoading } from "../../hooks/useLoading";
 import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
 
@@ -280,7 +280,7 @@ function CandidateLoginScreen() {
                 <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
                   New to the platform?
                   <Link
-                    to="/candidate/register"
+                    to="/register"
                     className="ml-1 font-bold text-[#b90014] hover:underline"
                   >
                     Create an account

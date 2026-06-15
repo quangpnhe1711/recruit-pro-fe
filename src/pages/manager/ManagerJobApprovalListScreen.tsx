@@ -187,14 +187,14 @@ function ManagerJobApprovalListScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-8 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-8 md:px-10">
         <LoadingIndicator label="Loading job approval queue..." />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-10">
+    <div className="w-full px-4 py-8 md:px-10">
       <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">

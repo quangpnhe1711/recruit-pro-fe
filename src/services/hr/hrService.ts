@@ -60,6 +60,65 @@ export type HrCandidateItemDto = {
   status: string;
 };
 
+export type HrCandidateDetailDto = {
+  profile: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    headline: string;
+    email: string;
+    phone: string | null;
+    location: string;
+    memberSince: string;
+    bio: string | null;
+    github: string | null;
+    linkedin: string | null;
+  };
+  skills: Array<{
+    id: string;
+    label: string;
+    active: boolean;
+  }>;
+  experienceEntries: Array<{
+    id: string;
+    title: string;
+    company: string;
+    period: {
+      startMonth: number;
+      startYear: number;
+      endMonth: number | null;
+      endYear: number | null;
+      isCurrent: boolean;
+    };
+    bullets: string[];
+  }>;
+  resume: {
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    uploadedAt: string;
+  } | null;
+  applicationHistory: Array<{
+    applicationId: string;
+    jobId: string;
+    jobTitle: string;
+    departmentName: string;
+    status: string;
+    appliedAt: string | null;
+    interviewCount: number;
+  }>;
+  interviewHistory: Array<{
+    interviewId: string;
+    applicationId: string;
+    jobId: string;
+    jobTitle: string;
+    departmentName: string;
+    interviewDate: string;
+    status: string;
+    notes: string | null;
+  }>;
+};
+
 export type HrPagedItemsResponseDto<T> = {
   items: T[];
   meta: {
@@ -86,6 +145,8 @@ export type HrApplicationItemDto = {
   };
   appliedDate: string;
   status: string;
+  recruiter: string;
+  score: number | null;
 };
 
 export type HrInterviewItemDto = {
@@ -173,6 +234,14 @@ export const hrService = {
     });
   },
 
+  getCandidateDetail: async (
+    candidateId: string,
+  ): Promise<ApiResponse<HrCandidateDetailDto>> => {
+    return request.get<ApiResponse<HrCandidateDetailDto>>(
+      endpoints.hr.candidateDetail(candidateId),
+    );
+  },
+
   downloadCandidateImportTemplate: async (): Promise<Blob> => {
     return request.get<Blob>(endpoints.candidates.importTemplate, {
       responseType: "blob",
@@ -231,6 +300,10 @@ export const hrService = {
       };
       appliedAt: string;
       status: string;
+      score?: number | null;
+      reviewedBy?: {
+        fullName?: string;
+      } | null;
     }> }>>(endpoints.hr.applications, {
       params: buildParams(params),
     });
@@ -255,6 +328,8 @@ export const hrService = {
           },
           appliedDate: item.appliedAt,
           status: item.status,
+          recruiter: item.reviewedBy?.fullName ?? "Unassigned",
+          score: item.score ?? null,
         };
       }),
     };

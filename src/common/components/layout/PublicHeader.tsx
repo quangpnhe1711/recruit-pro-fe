@@ -38,7 +38,7 @@ function PublicHeader() {
             Log in
           </Link>
           <Link
-            to="/candidate/register"
+            to="/register"
             className="px-6 py-2 bg-[white] text-[#b90014] border-2 font-semibold text-[12px] border-[#b90014] hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
           >
             Sign up

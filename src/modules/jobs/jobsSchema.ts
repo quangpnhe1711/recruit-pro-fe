@@ -90,6 +90,7 @@ export type ApplicationListItemDto = {
     | "REJECTED";
   appliedAt: string;
   reviewedBy: UserDto | null;
+  score?: number | null;
   nextStep: string | null;
 };
 

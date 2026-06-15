@@ -118,7 +118,7 @@ function CandidateImportScreen() {
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-[1440px] flex-grow bg-white px-4 py-10 md:px-10">
+    <div className="relative w-full flex-grow bg-white px-4 py-10 md:px-10">
       <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <nav className="mb-2 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">

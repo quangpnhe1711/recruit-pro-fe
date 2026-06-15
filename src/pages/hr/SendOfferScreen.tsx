@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import type { OfferEditorDto, UpsertOfferRequest } from "../../modules/jobs/jobsSchema";
 import { hrService } from "../../services/hr/hrService";
@@ -49,6 +50,42 @@ function normalizeEmploymentLabel(value: string) {
       return value;
   }
 }
+
+const emptyOption = [{ label: "Select", value: "" }];
+
+const currencyOptions = (currencies: OfferEditorDto["masterData"]["currencies"]) => [
+  ...emptyOption,
+  ...currencies.map((currency) => ({
+    label: `${currency.code} - ${currency.name}`,
+    value: currency.code,
+  })),
+];
+
+const employmentTypeOptions = (types: OfferEditorDto["masterData"]["employmentTypes"]) => [
+  ...emptyOption,
+  ...types.map((type) => ({
+    label: normalizeEmploymentLabel(type),
+    value: normalizeEmploymentLabel(type),
+  })),
+];
+
+const reportingManagerOptions = (
+  managers: OfferEditorDto["masterData"]["reportingManagers"],
+) => [
+  ...emptyOption,
+  ...managers.map((manager) => ({
+    label: `${manager.fullName} (${manager.title})`,
+    value: manager.id,
+  })),
+];
+
+const templateOptions = (templates: OfferEditorDto["masterData"]["templates"]) => [
+  ...emptyOption,
+  ...templates.map((template) => ({
+    label: template.name,
+    value: template.id,
+  })),
+];
 
 function mapEditorToForm(editor: OfferEditorDto): OfferFormState {
   return {
@@ -193,7 +230,7 @@ function SendOfferScreen() {
 
   if (loading || !editor || !form) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <LoadingIndicator label="Loading offer editor..." />
       </div>
     );
@@ -205,7 +242,7 @@ function SendOfferScreen() {
       : "bg-[#ffdad6] text-[#93000d]";
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-8 md:px-10">
+    <div className="w-full px-4 py-8 md:px-10">
       <div className="mb-8">
         <nav className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
           <Link className="hover:text-[#b90014]" to="/hr/applications">
@@ -319,17 +356,13 @@ function SendOfferScreen() {
 
                 <label className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Currency</span>
-                  <select
-                    className="w-full border border-[#e7bdb8] bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                  <CommonSelect
                     value={form.currencyCode}
-                    onChange={(event) => updateForm("currencyCode", event.target.value)}
-                  >
-                    {editor.masterData.currencies.map((currency) => (
-                      <option key={currency.code} value={currency.code}>
-                        {currency.code} - {currency.name}
-                      </option>
-                    ))}
-                  </select>
+                    options={currencyOptions(editor.masterData.currencies)}
+                    onValueChange={(value) => updateForm("currencyCode", value)}
+                    className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
+                    menuClassName="border-[#e7bdb8]"
+                  />
                 </label>
 
                 <label className="space-y-2">
@@ -361,17 +394,13 @@ function SendOfferScreen() {
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Employment Type</span>
-                  <select
-                    className="w-full border border-[#e7bdb8] bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                  <CommonSelect
                     value={form.employmentType}
-                    onChange={(event) => updateForm("employmentType", event.target.value)}
-                  >
-                    {editor.masterData.employmentTypes.map((type) => (
-                      <option key={type} value={normalizeEmploymentLabel(type)}>
-                        {normalizeEmploymentLabel(type)}
-                      </option>
-                    ))}
-                  </select>
+                    options={employmentTypeOptions(editor.masterData.employmentTypes)}
+                    onValueChange={(value) => updateForm("employmentType", value)}
+                    className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
+                    menuClassName="border-[#e7bdb8]"
+                  />
                 </label>
 
                 <label className="space-y-2">
@@ -396,17 +425,13 @@ function SendOfferScreen() {
 
                 <label className="space-y-2">
                   <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Reporting Manager</span>
-                  <select
-                    className="w-full border border-[#e7bdb8] bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                  <CommonSelect
                     value={form.reportingManagerId}
-                    onChange={(event) => updateForm("reportingManagerId", event.target.value)}
-                  >
-                    {editor.masterData.reportingManagers.map((manager) => (
-                      <option key={manager.id} value={manager.id}>
-                        {manager.fullName} ({manager.title})
-                      </option>
-                    ))}
-                  </select>
+                    options={reportingManagerOptions(editor.masterData.reportingManagers)}
+                    onValueChange={(value) => updateForm("reportingManagerId", value)}
+                    className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
+                    menuClassName="border-[#e7bdb8]"
+                  />
                 </label>
               </div>
             </div>
@@ -447,17 +472,13 @@ function SendOfferScreen() {
           <section className="border border-[#e7bdb8] bg-white p-6 xl:sticky xl:top-24">
             <label className="mb-5 block space-y-2">
               <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Select Template</span>
-              <select
-                className="w-full border border-[#e7bdb8] bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+              <CommonSelect
                 value={form.offerTemplateId}
-                onChange={(event) => updateForm("offerTemplateId", event.target.value)}
-              >
-                {editor.masterData.templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
+                options={templateOptions(editor.masterData.templates)}
+                onValueChange={(value) => updateForm("offerTemplateId", value)}
+                className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
+                menuClassName="border-[#e7bdb8]"
+              />
               {selectedTemplate?.description ? (
                 <span className="block text-xs text-[#5f5e5e]">{selectedTemplate.description}</span>
               ) : null}

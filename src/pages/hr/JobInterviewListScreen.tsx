@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -28,6 +29,19 @@ type Interview = {
 type Timeframe = "Next 7 Days" | "Last 30 Days" | "Custom Range";
 
 type Range = { start: string; end: string };
+
+const interviewStatusOptions = [
+  { label: "All Statuses", value: "All Statuses" },
+  { label: "Confirmed", value: "Confirmed" },
+  { label: "Completed", value: "Completed" },
+  { label: "Rescheduled", value: "Rescheduled" },
+];
+
+const timeframeOptions = [
+  { label: "Next 7 Days", value: "Next 7 Days" },
+  { label: "Last 30 Days", value: "Last 30 Days" },
+  { label: "Custom Range", value: "Custom Range" },
+];
 
 const anchorNow = new Date();
 
@@ -532,14 +546,14 @@ function JobInterviewListScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
         <LoadingIndicator label="Loading interviews..." />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-6 md:px-10">
+    <div className="w-full px-4 py-6 md:px-10">
       {/* Page header (title + local search) */}
       <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-6">
@@ -619,31 +633,26 @@ function JobInterviewListScreen() {
               <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
                 Status
               </label>
-              <select
+              <CommonSelect
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded border border-[#e7bdb8] bg-[#f3f3f3] p-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-              >
-                <option>All Statuses</option>
-                <option>Confirmed</option>
-                <option>Completed</option>
-                <option>Rescheduled</option>
-              </select>
+                options={interviewStatusOptions}
+                onValueChange={setStatusFilter}
+                className="h-10 rounded border border-[#e7bdb8] bg-[#f3f3f3] text-[14px] shadow-none focus:border-[#1a1c1c] focus:ring-0"
+                menuClassName="border-[#e7bdb8]"
+              />
             </div>
 
             <div>
               <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
                 Timeframe
               </label>
-              <select
+              <CommonSelect
                 value={timeframe}
-                onChange={(e) => setTimeframe(e.target.value as Timeframe)}
-                className="w-full rounded border border-[#e7bdb8] bg-[#f3f3f3] p-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-              >
-                <option>Next 7 Days</option>
-                <option>Last 30 Days</option>
-                <option>Custom Range</option>
-              </select>
+                options={timeframeOptions}
+                onValueChange={(value) => setTimeframe(value as Timeframe)}
+                className="h-10 rounded border border-[#e7bdb8] bg-[#f3f3f3] text-[14px] shadow-none focus:border-[#1a1c1c] focus:ring-0"
+                menuClassName="border-[#e7bdb8]"
+              />
             </div>
 
             {timeframe === "Custom Range" ? (

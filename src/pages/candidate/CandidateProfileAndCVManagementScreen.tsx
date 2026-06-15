@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import SkillPicker from "../../common/components/SkillPicker";
 import PermissionGuard from "../../guards/PermissionGuard";
@@ -380,7 +381,7 @@ function CandidateProfileAndCVManagementScreen() {
   if (loading) {
     return (
       <main className="py-6">
-        <div className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
+        <div className="w-full px-4 md:px-10">
           <div className="rounded-xl border border-[#e2dfde] bg-white px-6 py-5">
             <LoadingIndicator label="Loading candidate profile..." />
           </div>
@@ -391,7 +392,7 @@ function CandidateProfileAndCVManagementScreen() {
 
   return (
     <main className="py-6">
-      <div className="mx-auto w-full max-w-[1440px] px-4 md:px-10">
+      <div className="w-full px-4 md:px-10">
             <nav className="mb-6 flex items-center gap-2">
               <span className="text-[32px] font-bold text-[#1a1c1c]">
                 My Profile
@@ -794,22 +795,21 @@ function CandidateProfileAndCVManagementScreen() {
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        <select
-                          className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                          value={entryDraft.startMonth}
-                          onChange={(e) =>
+                        <CommonSelect
+                          value={String(entryDraft.startMonth)}
+                          options={monthOptions.map((month, index) => ({
+                            label: month,
+                            value: String(index + 1),
+                          }))}
+                          onValueChange={(value) =>
                             setEntryDraft((prev) => ({
                               ...prev,
-                              startMonth: Number(e.target.value),
+                              startMonth: Number(value),
                             }))
                           }
-                        >
-                          {monthOptions.map((month, index) => (
-                            <option key={month} value={index + 1}>
-                              {month}
-                            </option>
-                          ))}
-                        </select>
+                          className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
+                          menuClassName="border-[#e2dfde]"
+                        />
                         <input
                           className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
                           min={2000}
@@ -840,22 +840,21 @@ function CandidateProfileAndCVManagementScreen() {
                         </label>
                         {entryDraft.isCurrent ? null : (
                           <>
-                            <select
-                              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                              value={entryDraft.endMonth}
-                              onChange={(e) =>
+                            <CommonSelect
+                              value={String(entryDraft.endMonth)}
+                              options={monthOptions.map((month, index) => ({
+                                label: month,
+                                value: String(index + 1),
+                              }))}
+                              onValueChange={(value) =>
                                 setEntryDraft((prev) => ({
                                   ...prev,
-                                  endMonth: Number(e.target.value),
+                                  endMonth: Number(value),
                                 }))
                               }
-                            >
-                              {monthOptions.map((month, index) => (
-                                <option key={month} value={index + 1}>
-                                  {month}
-                                </option>
-                              ))}
-                            </select>
+                              className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
+                              menuClassName="border-[#e2dfde]"
+                            />
                             <input
                               className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
                               min={2000}

@@ -217,7 +217,7 @@ function ManagerCandidateReviewListScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <LoadingIndicator label="Loading manager review queue..." />
       </div>
     );
@@ -252,7 +252,7 @@ function ManagerCandidateReviewListScreen() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-10 md:px-10">
+    <div className="w-full px-4 py-10 md:px-10">
       <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">

@@ -100,7 +100,7 @@ function ApplyJobScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-[1200px] items-center justify-center px-4 py-10 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <LoadingIndicator label="Loading application form..." />
       </div>
     );
@@ -108,7 +108,7 @@ function ApplyJobScreen() {
 
   if (!screenData) {
     return (
-      <section className="mx-auto max-w-[1200px] px-4 py-10 md:px-10">
+      <section className="w-full px-4 py-10 md:px-10">
         <div className="border border-[#e2dfde] bg-white p-8 text-center">
           <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Application Unavailable</h1>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
@@ -130,7 +130,7 @@ function ApplyJobScreen() {
 
   return (
     <>
-      <section className="mx-auto max-w-[1200px] px-4 py-8 md:px-10">
+      <section className="w-full px-4 py-8 md:px-10">
         <button
           type="button"
           className="mb-6 inline-flex items-center gap-2 text-[14px] text-[#5d3f3c] transition-colors hover:text-[#b90014]"

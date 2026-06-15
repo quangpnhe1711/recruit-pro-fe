@@ -9,7 +9,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
 
-type ApprovalStatus = "Approved" | "Pending" | "Draft" | "Rejected";
+type ApprovalStatus = "Approved" | "Pending" | "Draft" | "Rejected" | "Closed";
 
 type Job = {
   id: string;
@@ -23,64 +23,12 @@ type Job = {
   createdByName: string;
 };
 
-type JobDraft = {
-  title: string;
-  department: string;
-  approvalStatus: ApprovalStatus;
-};
-
-const createdJobsStorageKey = "rp_internal_created_jobs_v1";
-
-function safeJsonParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-function readCreatedJobsFromStorage(): Job[] {
-  const parsed = safeJsonParse<unknown>(window.localStorage.getItem(createdJobsStorageKey));
-  if (!Array.isArray(parsed)) return [];
-
-  return parsed
-    .map((j) => {
-      if (!j || typeof j !== "object") return null;
-      const obj = j as Record<string, unknown>;
-
-      const id = typeof obj.id === "string" ? obj.id : "";
-      const title = typeof obj.title === "string" ? obj.title : "";
-      const department = typeof obj.department === "string" ? obj.department : "";
-      const createdDate = typeof obj.createdDate === "string" ? obj.createdDate : "";
-      const createdAt = typeof obj.createdAt === "number" ? obj.createdAt : Date.now();
-
-      if (!id || !title || !department || !createdDate) return null;
-
-      return {
-        id,
-        title,
-        department,
-        createdDate,
-        createdAt,
-        approvalStatus: "Pending" as ApprovalStatus,
-        applicationsCount: 0,
-        createdByUserId: "",
-        createdByName: "",
-      };
-    })
-    .filter(Boolean) as Job[];
-}
-
-function writeCreatedJobsToStorage(created: Job[]) {
-  window.localStorage.setItem(createdJobsStorageKey, JSON.stringify(created));
-}
-
 const statusOptions: ("All Statuses" | ApprovalStatus)[] = [
   "All Statuses",
   "Draft",
   "Pending",
   "Approved",
+  "Closed",
   "Rejected",
 ];
 
@@ -119,7 +67,7 @@ function approvalChip(status: ApprovalStatus) {
 }
 
 function buildJobTableColumns(
-  onViewApplications: (job: Job) => void,
+  onOpenJobDetail: (job: Job) => void,
   onOpenEdit: (job: Job) => void,
   onDeleteJob: (job: Job) => void,
   options: {
@@ -134,7 +82,13 @@ function buildJobTableColumns(
       header: "Job Title",
       renderCell: (job) => (
         <div>
-          <p className="text-[14px] font-bold text-[#1a1c1c]">{job.title}</p>
+          <button
+            type="button"
+            className="text-left text-[14px] font-bold text-[#1a1c1c] transition-colors hover:text-[#b90014]"
+            onClick={() => onOpenJobDetail(job)}
+          >
+            {job.title}
+          </button>
           <p className="font-mono text-[12px] text-[#5f5e5e]">ID: {job.id}</p>
         </div>
       ),
@@ -179,17 +133,17 @@ function buildJobTableColumns(
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-              title="View Applications"
-              onClick={() => onViewApplications(job)}
+              title="Open Job Detail"
+              onClick={() => onOpenJobDetail(job)}
             >
-              <span className="material-symbols-outlined">group</span>
+              <span className="material-symbols-outlined">visibility</span>
             </button>
           ) : null}
           {options.canEditJobs ? (
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-              title="Edit"
+              title="Edit in Job Detail"
               onClick={() => onOpenEdit(job)}
             >
               <span className="material-symbols-outlined">edit</span>
@@ -219,11 +173,6 @@ function JobManagementScreen() {
   const canDeleteJobs = hasPermission(PERMISSIONS.JOB_DELETE);
   const canViewApplications = hasPermission(PERMISSIONS.JOB_VIEW_APPLICATIONS);
 
-  const [createdJobIds, setCreatedJobIds] = useState<Set<string>>(() => {
-    const created = readCreatedJobsFromStorage();
-    return new Set(created.map((j) => j.id));
-  });
-
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState({
     activeJobs: 0,
@@ -232,18 +181,11 @@ function JobManagementScreen() {
     timeToHireDays: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [departmentFilter, setDepartmentFilter] = useState<string>("All Departments");
+  const [departmentFilter, setDepartmentFilter] =
+    useState<string>("All Departments");
   const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
   const [creatorFilter, setCreatorFilter] = useState<string>(creatorAllOption);
   const [page, setPage] = useState<number>(1);
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<JobDraft>({
-    title: "",
-    department: "Engineering",
-    approvalStatus: "Draft",
-  });
 
   useEffect(() => {
     let mounted = true;
@@ -259,11 +201,15 @@ function JobManagementScreen() {
             id: item.id,
             title: item.title,
             department: item.department.name,
-            createdDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "",
+            createdDate: item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString()
+              : "",
             createdAt: item.createdAt ? Date.parse(item.createdAt) : Date.now(),
             approvalStatus:
               item.status === "APPROVED"
                 ? "Approved"
+                : item.status === "CLOSED"
+                  ? "Closed"
                 : item.status === "REJECTED"
                   ? "Rejected"
                   : item.status === "DRAFT"
@@ -274,12 +220,14 @@ function JobManagementScreen() {
             createdByName: item.createdBy.fullName || "Unknown",
           })),
         );
-        setStats(response.data?.stats ?? {
-          activeJobs: 0,
-          pendingApproval: 0,
-          totalApplications: 0,
-          timeToHireDays: 0,
-        });
+        setStats(
+          response.data?.stats ?? {
+            activeJobs: 0,
+            pendingApproval: 0,
+            totalApplications: 0,
+            timeToHireDays: 0,
+          },
+        );
       })
       .catch(() => {
         if (mounted) {
@@ -301,13 +249,19 @@ function JobManagementScreen() {
   const filtered = useMemo(() => {
     return jobs
       .filter((j) =>
-        departmentFilter === "All Departments" ? true : j.department === departmentFilter
+        departmentFilter === "All Departments"
+          ? true
+          : j.department === departmentFilter,
       )
       .filter((j) =>
-        statusFilter === "All Statuses" ? true : j.approvalStatus === statusFilter
+        statusFilter === "All Statuses"
+          ? true
+          : j.approvalStatus === statusFilter,
       )
       .filter((j) =>
-        creatorFilter === creatorAllOption ? true : j.createdByUserId === creatorFilter
+        creatorFilter === creatorAllOption
+          ? true
+          : j.createdByUserId === creatorFilter,
       )
       .sort((a, b) => b.createdAt - a.createdAt);
   }, [jobs, departmentFilter, statusFilter, creatorFilter]);
@@ -321,7 +275,8 @@ function JobManagementScreen() {
       .filter((option) => option.value)
       .filter(
         (option, index, array) =>
-          array.findIndex((candidate) => candidate.value === option.value) === index,
+          array.findIndex((candidate) => candidate.value === option.value) ===
+          index,
       )
       .sort((a, b) => a.label.localeCompare(b.label));
 
@@ -333,7 +288,8 @@ function JobManagementScreen() {
       .map((job) => job.department)
       .filter(Boolean)
       .filter(
-        (department, index, array) => array.findIndex((candidate) => candidate === department) === index,
+        (department, index, array) =>
+          array.findIndex((candidate) => candidate === department) === index,
       )
       .sort((a, b) => a.localeCompare(b));
 
@@ -362,65 +318,7 @@ function JobManagementScreen() {
   }
 
   function openEdit(job: Job) {
-    setEditingId(job.id);
-    setDraft({
-      title: job.title,
-      department: job.department,
-      approvalStatus: job.approvalStatus,
-    });
-    setModalOpen(true);
-  }
-
-  async function saveModal() {
-    if (!draft.title.trim()) {
-      toast.error("Job title is required.");
-      return;
-    }
-
-    if (editingId) {
-      const nextTitle = draft.title.trim();
-      const nextDepartment = draft.department;
-      const nextStatus = draft.approvalStatus;
-
-      try {
-        await jobsService.updateJob(editingId, {
-          title: nextTitle,
-          department: nextDepartment,
-          status:
-            nextStatus === "Approved"
-              ? "APPROVED"
-              : nextStatus === "Rejected"
-                ? "REJECTED"
-                : nextStatus === "Draft"
-                  ? "DRAFT"
-                  : "PENDING_APPROVAL",
-        });
-
-        setJobs((prev) =>
-          prev.map((j) =>
-            j.id === editingId
-              ? {
-                  ...j,
-                  title: nextTitle,
-                  department: nextDepartment,
-                  approvalStatus: nextStatus,
-                }
-              : j,
-          ),
-        );
-
-        toast.success("Job updated.");
-      } catch {
-        toast.error("Unable to update job.");
-        return;
-      }
-    } else {
-      // Creating new jobs is handled via /hr/jobs/create.
-      openNewJobModal();
-      return;
-    }
-
-    setModalOpen(false);
+    navigate(`/jobs/${job.id}?mode=edit`);
   }
 
   async function deleteJob(job: Job) {
@@ -436,7 +334,7 @@ function JobManagementScreen() {
     }
   }
 
-  function viewApplications(job: Job) {
+  function openJobDetail(job: Job) {
     navigate(`/jobs/${job.id}`);
   }
 
@@ -447,269 +345,176 @@ function JobManagementScreen() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-[1440px] items-center justify-center px-4 py-6 md:px-10">
+      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
         <LoadingIndicator label="Loading jobs..." />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] flex-grow px-4 py-6 md:px-10">
-            {/* Header section */}
-            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                  Job Management
-                </h2>
-                <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                  Manage, track, and review all recruitment vacancies across the whole system.
-                </p>
-              </div>
+    <div className="w-full flex-grow px-4 py-6 md:px-10">
+      {/* Header section */}
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+            Job Management
+          </h2>
+        </div>
 
-              <button
-                type="button"
-                className="flex items-center gap-2 bg-[#b90014] px-6 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
-                onClick={openNewJobModal}
-                disabled={!canCreateJobs}
-              >
-                <span className="material-symbols-outlined">add</span>
-                Post New Job
-              </button>
-            </div>
+        <button
+          type="button"
+          className="flex items-center gap-2 bg-[#b90014] px-6 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
+          onClick={openNewJobModal}
+          disabled={!canCreateJobs}
+        >
+          <span className="material-symbols-outlined">add</span>
+          Post New Job
+        </button>
+      </div>
 
-            {/* Stats summary */}
-            <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-              <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Active Jobs
-                </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                    {stats.activeJobs}
-                  </span>
-                  <span className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014]">
-                    +3 this week
-                  </span>
-                </div>
-              </div>
-              <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Pending Approval
-                </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                    {stats.pendingApproval}
-                  </span>
-                  <span className="text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">
-                    Review needed
-                  </span>
-                </div>
-              </div>
-              <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Total Applications
-                </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                    {stats.totalApplications}
-                  </span>
-                  <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                    Across all roles
-                  </span>
-                </div>
-              </div>
-              <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Time to Hire
-                </p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                    {stats.timeToHireDays}d
-                  </span>
-                  <span className="text-[12px] font-semibold tracking-[0.05em] text-[#004b74]">
-                    Avg. Efficiency
-                  </span>
-                </div>
-              </div>
-            </div>
+      {/* Stats summary */}
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+            Active Jobs
+          </p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+              {stats.activeJobs}
+            </span>
+          </div>
+        </div>
+        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+            Pending Approval
+          </p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+              {stats.pendingApproval}
+            </span>
+            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">
+              Review needed
+            </span>
+          </div>
+        </div>
+        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+            Total Applications
+          </p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+              {stats.totalApplications}
+            </span>
+            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+              Across all roles
+            </span>
+          </div>
+        </div>
+        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+            Time to Hire
+          </p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+              {stats.timeToHireDays}d
+            </span>
+            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#004b74]">
+              Avg. Efficiency
+            </span>
+          </div>
+        </div>
+      </div>
 
-            {/* Table container */}
-            <section className="overflow-hidden border border-[#e7bdb8] bg-[#f9f9f9]">
-              <div className="flex flex-col gap-4 border-b border-[#e7bdb8] bg-white px-6 py-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
-                    <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                      Filter by:
-                    </span>
-                    <CommonSelect
-                      className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
-                      wrapperClassName="min-w-[190px]"
-                      options={departmentOptions.map((department) => ({
-                        label: department,
-                        value: department,
-                      }))}
-                      value={departmentFilter}
-                      onChange={(e) => {
-                        setDepartmentFilter(e.target.value);
-                        resetToFirstPage();
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
-                    <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                      Creator:
-                    </span>
-                    <CommonSelect
-                      className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
-                      wrapperClassName="min-w-[190px]"
-                      options={creatorOptions}
-                      value={creatorFilter}
-                      onChange={(e) => {
-                        setCreatorFilter(e.target.value);
-                        resetToFirstPage();
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
-                    <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                      Status:
-                    </span>
-                    <CommonSelect
-                      className="h-9 min-w-[170px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
-                      wrapperClassName="min-w-[170px]"
-                      options={statusOptions.map((s) => ({ label: s, value: s }))}
-                      value={statusFilter}
-                      onChange={(e) => {
-                        setStatusFilter(e.target.value);
-                        resetToFirstPage();
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                  Showing <span className="font-bold text-[#1a1c1c]">{rangeStart}-{rangeEnd}</span> of{" "}
-                  <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
-                </div>
-              </div>
-
-              <CommonTable
-                columns={buildJobTableColumns(
-                  viewApplications,
-                  openEdit,
-                  deleteJob,
-                  {
-                    canDeleteJobs,
-                    canEditJobs,
-                    canViewApplications,
-                  },
-                )}
-                data={pageSlice}
-                keyExtractor={(item) => item.id}
-                loading={loading}
-                emptyMessage="No jobs found for current filters."
-                zebra
-                hover
-                tableWrapperClassName="border border-[#e7bdb8] bg-white"
-                pagination={{
-                  enabled: true,
-                  currentPage,
-                  totalPages,
-                  totalItems,
-                  rangeStart,
-                  rangeEnd,
-                  onPageChange: goToPage,
+      {/* Table container */}
+      <section className="overflow-hidden border border-[#e7bdb8] bg-[#f9f9f9]">
+        <div className="flex flex-col gap-4 border-b border-[#e7bdb8] bg-white px-6 py-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
+              <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+                Filter by:
+              </span>
+              <CommonSelect
+                className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
+                wrapperClassName="min-w-[190px]"
+                options={departmentOptions.map((department) => ({
+                  label: department,
+                  value: department,
+                }))}
+                value={departmentFilter}
+                onChange={(e) => {
+                  setDepartmentFilter(e.target.value);
+                  resetToFirstPage();
                 }}
-                showPagination
               />
-            </section>
+            </div>
 
-          {/* Modal */}
-        {modalOpen && canEditJobs ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-xl border border-[#e7bdb8] bg-white">
-              <div className="flex items-center justify-between border-b border-[#e7bdb8] px-6 py-4">
-                <h3 className="text-[20px] font-semibold text-[#1a1c1c]">
-                  {editingId ? "Edit Job" : "Post New Job"}
-                </h3>
-                <button
-                  type="button"
-                  className="text-[#5f5e5e] hover:text-[#1a1c1c]"
-                  onClick={() => setModalOpen(false)}
-                  aria-label="Close"
-                >
-                  <span className="material-symbols-outlined">close</span>
-                </button>
-              </div>
+            <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
+              <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+                Creator:
+              </span>
+              <CommonSelect
+                className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
+                wrapperClassName="min-w-[190px]"
+                options={creatorOptions}
+                value={creatorFilter}
+                onChange={(e) => {
+                  setCreatorFilter(e.target.value);
+                  resetToFirstPage();
+                }}
+              />
+            </div>
 
-              <div className="space-y-6 px-6 py-6">
-                <div className="space-y-2">
-                  <label className="block text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                    Job Title
-                  </label>
-                  <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 outline-none transition-colors focus:border-[#1a1c1c]"
-                    value={draft.title}
-                    onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                    placeholder="e.g. Senior Backend Engineer"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="block text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                      Department
-                    </label>
-                    <CommonSelect
-                      className="h-12"
-                      options={departmentOptions
-                        .filter((d) => d !== "All Departments")
-                        .map((d) => ({ label: d, value: d }))}
-                      value={draft.department}
-                      onChange={(e) => setDraft((d) => ({ ...d, department: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                      Approval Status
-                    </label>
-                    <CommonSelect
-                      className="h-12"
-                      options={["Draft", "Pending", "Approved", "Rejected"].map((s) => ({ label: s, value: s }))}
-                      value={draft.approvalStatus}
-                      onChange={(e) =>
-                        setDraft((d) => ({
-                          ...d,
-                          approvalStatus: e.target.value as ApprovalStatus,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 border-t border-[#e7bdb8] bg-[#f3f3f3] px-6 py-4">
-                <button
-                  type="button"
-                  className="border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                  onClick={() => setModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="bg-[#b90014] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-white transition-colors hover:brightness-110 active:scale-[0.98]"
-                  onClick={saveModal}
-                >
-                  Save
-                </button>
-              </div>
+            <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
+              <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+                Status:
+              </span>
+              <CommonSelect
+                className="h-9 min-w-[170px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
+                wrapperClassName="min-w-[170px]"
+                options={statusOptions.map((s) => ({ label: s, value: s }))}
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  resetToFirstPage();
+                }}
+              />
             </div>
           </div>
-        ) : null}
+
+          <div className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+            Showing{" "}
+            <span className="font-bold text-[#1a1c1c]">
+              {rangeStart}-{rangeEnd}
+            </span>{" "}
+            of <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
+          </div>
+        </div>
+
+        <CommonTable
+          columns={buildJobTableColumns(openJobDetail, openEdit, deleteJob, {
+            canDeleteJobs,
+            canEditJobs,
+            canViewApplications,
+          })}
+          data={pageSlice}
+          keyExtractor={(item) => item.id}
+          loading={loading}
+          emptyMessage="No jobs found for current filters."
+          zebra
+          hover
+          tableWrapperClassName="border border-[#e7bdb8] bg-white"
+          pagination={{
+            enabled: true,
+            currentPage,
+            totalPages,
+            totalItems,
+            rangeStart,
+            rangeEnd,
+            onPageChange: goToPage,
+          }}
+          showPagination
+        />
+      </section>
     </div>
   );
 }

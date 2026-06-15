@@ -23,7 +23,12 @@ type Candidate = {
   status: CandidateStatus;
 };
 
-const statuses: CandidateStatus[] = ["New", "Under Review", "Interviewed", "Rejected"];
+const statuses: CandidateStatus[] = [
+  "New",
+  "Under Review",
+  "Interviewed",
+  "Rejected",
+];
 const sources: CandidateSource[] = ["Portal", "LinkedIn", "Bulk Import"];
 
 const statusOptions: ("All Statuses" | CandidateStatus)[] = [
@@ -122,11 +127,6 @@ function buildCandidateTableColumns(
       header: "Full Name",
       renderCell: (candidate) => (
         <div className="flex items-center gap-3">
-          <img
-            alt={`${candidate.firstName} ${candidate.lastName}`}
-            className="h-10 w-10 rounded-full border border-[#e7bdb8] object-cover"
-            src={candidate.avatar}
-          />
           <div>
             <p className="text-sm font-semibold text-[#1a1c1c]">
               {candidate.firstName} {candidate.lastName}
@@ -145,7 +145,9 @@ function buildCandidateTableColumns(
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${chip.wrapper}`}
           >
-            <span className="material-symbols-outlined text-sm">{chip.icon}</span>
+            <span className="material-symbols-outlined text-sm">
+              {chip.icon}
+            </span>
             {candidate.source}
           </span>
         );
@@ -229,8 +231,12 @@ function CandidateListScreen() {
             email: item.email,
             avatar: item.avatarUrl,
             source: item.source === "BulkImport" ? "Bulk Import" : item.source,
-            appliedDate: item.appliedDate ? new Date(item.appliedDate).toLocaleDateString() : "",
-            appliedAt: item.appliedDate ? Date.parse(item.appliedDate) : Date.now(),
+            appliedDate: item.appliedDate
+              ? new Date(item.appliedDate).toLocaleDateString()
+              : "",
+            appliedAt: item.appliedDate
+              ? Date.parse(item.appliedDate)
+              : Date.now(),
             status: normalizeCandidateStatus(item.status),
           })),
         );
@@ -255,11 +261,17 @@ function CandidateListScreen() {
       .filter((c) =>
         searchTerm === ""
           ? true
-          : `${c.firstName} ${c.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.email.toLowerCase().includes(searchTerm.toLowerCase())
+          : `${c.firstName} ${c.lastName}`
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            c.email.toLowerCase().includes(searchTerm.toLowerCase()),
       )
-      .filter((c) => (statusFilter === "All Statuses" ? true : c.status === statusFilter))
-      .filter((c) => (sourceFilter === "All Sources" ? true : c.source === sourceFilter))
+      .filter((c) =>
+        statusFilter === "All Statuses" ? true : c.status === statusFilter,
+      )
+      .filter((c) =>
+        sourceFilter === "All Sources" ? true : c.source === sourceFilter,
+      )
       .sort((a, b) => b.appliedAt - a.appliedAt);
   }, [candidates, searchTerm, statusFilter, sourceFilter]);
 
@@ -282,7 +294,9 @@ function CandidateListScreen() {
       const daysOld = (Date.now() - c.appliedAt) / (1000 * 60 * 60 * 24);
       return daysOld <= 7;
     }).length;
-    const pendingReviews = candidates.filter((c) => c.status === "Under Review").length;
+    const pendingReviews = candidates.filter(
+      (c) => c.status === "Under Review",
+    ).length;
 
     return {
       totalCandidates,
@@ -296,11 +310,11 @@ function CandidateListScreen() {
   }
 
   function viewProfile(candidate: Candidate) {
-    toast.info(`Viewing profile for ${candidate.firstName} ${candidate.lastName}`);
+    navigate(`/hr/candidates/${candidate.id}`);
   }
 
   function editProfile(candidate: Candidate) {
-    toast.info(`Editing ${candidate.firstName} ${candidate.lastName}`);
+    navigate(`/hr/candidates/${candidate.id}`);
   }
 
   function goToPage(next: number) {
@@ -317,7 +331,7 @@ function CandidateListScreen() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] flex-grow px-4 py-6 md:px-10">
+    <div className="w-full flex-grow px-4 py-6 md:px-10">
       {/* Header section */}
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <div>
@@ -325,7 +339,8 @@ function CandidateListScreen() {
             Candidate Management
           </h2>
           <p className="mt-1 text-[14px] text-[#5f5e5e]">
-            Review and manage the full candidate pool across the whole recruitment system.
+            Review and manage the full candidate pool across the whole
+            recruitment system.
           </p>
         </div>
 
@@ -336,7 +351,9 @@ function CandidateListScreen() {
               className="flex items-center gap-2 border border-[#1a1c1c] bg-white px-6 py-3 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
               onClick={handleImport}
             >
-              <span className="material-symbols-outlined text-xl">upload_file</span>
+              <span className="material-symbols-outlined text-xl">
+                upload_file
+              </span>
               <span>Import Candidates</span>
             </button>
           </PermissionGuard>
@@ -346,7 +363,9 @@ function CandidateListScreen() {
               className="flex items-center gap-2 bg-[#e31b23] px-6 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90"
               onClick={handleAddCandidate}
             >
-              <span className="material-symbols-outlined text-xl">person_add</span>
+              <span className="material-symbols-outlined text-xl">
+                person_add
+              </span>
               <span>Add Candidate</span>
             </button>
           </PermissionGuard>
@@ -373,7 +392,9 @@ function CandidateListScreen() {
         <div className="border border-[#e7bdb8] bg-white p-6">
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#005f93]/5 text-[#005f93]">
-              <span className="material-symbols-outlined text-3xl">recent_actors</span>
+              <span className="material-symbols-outlined text-3xl">
+                recent_actors
+              </span>
             </div>
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
@@ -388,7 +409,9 @@ function CandidateListScreen() {
         <div className="border border-[#e7bdb8] bg-white p-6">
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-orange-500/5 text-orange-500">
-              <span className="material-symbols-outlined text-3xl">pending_actions</span>
+              <span className="material-symbols-outlined text-3xl">
+                pending_actions
+              </span>
             </div>
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
@@ -455,7 +478,11 @@ function CandidateListScreen() {
 
       {/* Candidate Table */}
       <CommonTable
-        columns={buildCandidateTableColumns(viewProfile, editProfile, canEditCandidates)}
+        columns={buildCandidateTableColumns(
+          viewProfile,
+          editProfile,
+          canEditCandidates,
+        )}
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}

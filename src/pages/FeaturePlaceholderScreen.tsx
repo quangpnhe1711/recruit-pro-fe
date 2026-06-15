@@ -8,7 +8,7 @@ function FeaturePlaceholderScreen({
   description,
 }: FeaturePlaceholderScreenProps) {
   return (
-    <div className="mx-auto w-full max-w-[1080px] px-4 py-10 md:px-10">
+    <div className="w-full px-4 py-10 md:px-10">
       <section className="rounded-xl border border-[#e2dfde] bg-white p-8 shadow-sm">
         <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#b90014]">
           Workflow Alignment

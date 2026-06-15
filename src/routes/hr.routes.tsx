@@ -7,6 +7,7 @@ import { PERMISSIONS } from "../permissions/permissions";
 import HrDashboardScreen from "../pages/hr/HrDashboardScreen";
 import CandidateListScreen from "../pages/hr/CandidateListScreen";
 import CandidateImportScreen from "../pages/hr/CandidateImportScreen";
+import CandidateProfileScreen from "../pages/hr/CandidateProfileScreen";
 import CandidateApplicationScreen from "../pages/hr/CandidateApplicationScreen";
 import CandidateReviewDetailScreen from "../pages/hr/CandidateReviewDetailScreen";
 import SendOfferScreen from "../pages/hr/SendOfferScreen";
@@ -72,6 +73,19 @@ const hrRoutes = (
         <Route
           path="/hr/candidates/import"
           element={<CandidateImportScreen />}
+        />
+      </Route>
+
+      <Route
+        element={<RouteGuard permissions={PERMISSIONS.CANDIDATE_VIEW_DETAIL} />}
+      >
+        <Route
+          path="/hr/candidates/:candidateId"
+          element={<CandidateProfileScreen />}
+        />
+        <Route
+          path="/manager/candidates/:candidateId"
+          element={<CandidateProfileScreen />}
         />
       </Route>
 
