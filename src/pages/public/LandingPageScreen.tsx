@@ -29,11 +29,11 @@ function LandingPageScreen() {
           featuredJobs: res.data.items.slice(0, 3).map((job, index) => ({
             id: job.id,
             title: job.title,
-            department: typeof job.department === "string" ? job.department : job.department?.name ?? "General",
+            department: typeof job.department === "string" ? job.department : job.department?.name ?? "Phòng ban chung",
             location: job.location,
             workMode: job.workMode,
             employmentType: job.employmentType,
-            tag: index === 0 ? "New" : "Open",
+            tag: index === 0 ? "Mới" : "Đang tuyển",
           })),
         });
       })
@@ -59,7 +59,7 @@ function LandingPageScreen() {
           <div className="absolute inset-0 z-0">
             <img
               className="w-full h-full object-cover"
-              alt="Modern office building at night"
+              alt="Tòa nhà văn phòng hiện đại về đêm"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4mMkFjad2Mv7czUqOat_Dv9dxd07AIa5nlU9O8qjVhsZskDtxGEiVUuIsyQeIXb9rmgrPvoZl1PR5eH32Wt83SHmosxD8SR7kug1zG2joNkBtYT8pLZG9uvajZmTqKlhnHgP7VJXas5pg-4VnnP9FJrUYmZ_F9RGfU62Wf0rMh0d6QG-u1eu6XMlZuiuYO6gszzoYJvEzx2PqhMCb1glEzYhBWWW8DQz_4mWQnX2N01BZYBqH4denQbSWkt7NRtz5b_nyCA-9vQ"
             />
             <div className="absolute inset-0 bg-gradient-to-br from-black/95 to-[#b90014]/70 opacity-90" />
@@ -68,35 +68,35 @@ function LandingPageScreen() {
           <div className="relative z-10 w-full px-4 md:px-[40px]  ">
             <div className="max-w-3xl">
               <span className="inline-block px-4 py-1 bg-[#b90014] text-white text-[12px] font-semibold tracking-[0.05em] mb-6">
-                INTERNAL PORTAL
+                CỔNG NỘI BỘ
               </span>
               <h1 className="text-white text-[44px] md:text-[64px] leading-[1.1] font-extrabold tracking-tight mb-8">
                 {hero?.title ? (
                   hero.title
                 ) : (
                   <>
-                    Empowering Your <br />
-                    Career Growth Within{" "}
+                    Mở rộng <br />
+                    cơ hội phát triển sự nghiệp tại{" "}
                     <span className="text-[#ffdad6]">RecruitPro</span>
                   </>
                 )}
               </h1>
               <p className="text-[#eeeeee] text-[16px] leading-6 mb-10 max-w-xl">
                 {hero?.subtitle ??
-                  "Explore exclusive internal opportunities and take the next step in your professional journey with the team you already know and trust."}
+                  "Khám phá các cơ hội nội bộ nổi bật và tiến thêm một bước trong hành trình nghề nghiệp cùng đội ngũ bạn đã hiểu và tin tưởng."}
               </p>
               <div className="flex gap-4">
                 <Link
                   to="/candidate/jobs"
                   className="px-8 py-4 bg-[#b90014] text-white font-bold text-[12px] tracking-[0.05em] hover:scale-[1.02] transition-transform active:scale-95"
                 >
-                  Browse Openings
+                  Xem vị trí đang tuyển
                 </Link>
                 <Link
                   to="/internal/login"
                   className="px-8 py-4 bg-white text-[#1A1A1A] font-bold text-[12px] tracking-[0.05em] border border-[#1A1A1A] hover:bg-gray-100 transition-colors"
                 >
-                  Internal Portal
+                  Cổng nội bộ
                 </Link>
               </div>
             </div>
@@ -112,7 +112,7 @@ function LandingPageScreen() {
                   {stats ? `${stats.internalHires}+` : "500+"}
                 </h2>
                 <p className="text-[#e5e2e1] text-[12px] font-semibold tracking-[0.18em]">
-                  INTERNAL HIRES
+                  TUYỂN DỤNG NỘI BỘ
                 </p>
               </div>
               <div className="p-8 md:border-r md:border-white/10 md:last:border-r-0">
@@ -120,7 +120,7 @@ function LandingPageScreen() {
                   {stats?.departments ?? 15}
                 </h2>
                 <p className="text-[#e5e2e1] text-[12px] font-semibold tracking-[0.18em]">
-                  DEPARTMENTS
+                  PHÒNG BAN
                 </p>
               </div>
               <div className="p-8">
@@ -128,7 +128,7 @@ function LandingPageScreen() {
                   {stats?.avgEmployeeRating ?? 4.8}
                 </h2>
                 <p className="text-[#e5e2e1] text-[12px] font-semibold tracking-[0.18em]">
-                  AVG EMPLOYEE RATING
+                  ĐIỂM ĐÁNH GIÁ TB
                 </p>
               </div>
             </div>
@@ -141,18 +141,18 @@ function LandingPageScreen() {
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
               <div>
                 <h2 className="text-[32px] leading-10 tracking-[-0.01em] font-semibold text-[#1a1c1c] mb-4">
-                  Featured Internal Openings
+                  Vị trí nội bộ nổi bật
                 </h2>
                 <p className="text-[#5f5e5e] text-[16px] leading-6 max-w-xl">
-                  Priority access for our internal family. Elevate your career
-                  without leaving the community you love.
+                  Ưu tiên dành cho nhân sự nội bộ. Phát triển sự nghiệp mà vẫn
+                  gắn bó với môi trường bạn đã quen thuộc.
                 </p>
               </div>
               <Link
                 className="text-[#b90014] font-bold flex items-center gap-2 hover:underline"
                 to="/jobs"
               >
-                View All Jobs{" "}
+                Xem tất cả việc làm{" "}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
             </div>
@@ -171,7 +171,7 @@ function LandingPageScreen() {
                     </div>
                     <span
                       className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                        job.tag === "New" ? "bg-[#b90014]/10 text-[#b90014]" : "bg-[#eeeeee] text-[#5f5e5e]"
+                        job.tag === "Mới" ? "bg-[#b90014]/10 text-[#b90014]" : "bg-[#eeeeee] text-[#5f5e5e]"
                       }`}
                     >
                       {job.tag}
@@ -197,7 +197,7 @@ function LandingPageScreen() {
                     type="button"
                     className="w-full py-3 border border-[#1A1A1A] font-bold text-[12px] cursor-pointer tracking-[0.05em] hover:bg-[#1A1A1A] hover:text-white transition-all"
                   >
-                    Apply Now
+                    Ứng tuyển ngay
                   </button>
                 </div>
               ))}
@@ -213,18 +213,18 @@ function LandingPageScreen() {
           </div>
           <div className="relative z-10 px-4 md:px-[40px] text-center">
             <h2 className="text-white text-[40px] leading-tight font-semibold mb-6">
-              Ready to script your next chapter?
+              Sẵn sàng cho chặng đường tiếp theo?
             </h2>
             <p className="text-white/80 text-[16px] leading-6 mb-12 max-w-2xl mx-auto">
-              Our internal mobility program is designed to support your
-              ambitions. Talk to your HR partner today about available paths.
+              Chương trình luân chuyển nội bộ được thiết kế để hỗ trợ mục tiêu
+              phát triển của bạn. Hãy trao đổi với HR về các hướng đi phù hợp.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button className="px-10 py-4 bg-white text-[#b90014] font-extrabold text-[12px] uppercase tracking-[0.18em] hover:bg-[#eeeeee] transition-colors">
-                Get Started
+                Bắt đầu ngay
               </button>
               <button className="px-10 py-4 border-2 border-white text-white font-extrabold text-[12px] uppercase tracking-[0.18em] hover:bg-white/10 transition-colors">
-                View Resources
+                Xem tài nguyên
               </button>
             </div>
           </div>

@@ -24,11 +24,11 @@ function CandidateLoginScreen() {
 
   const schema = yup
     .object({
-      email: yup.string().email("Invalid email").required("Email is required"),
+      email: yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
       password: yup
         .string()
-        .required("Password is required")
-        .min(6, "Minimum 6 characters"),
+        .required("Vui lòng nhập mật khẩu")
+        .min(6, "Tối thiểu 6 ký tự"),
       remember: yup.boolean(),
     })
     .required();
@@ -65,7 +65,7 @@ function CandidateLoginScreen() {
       );
 
       if (!res.data) {
-        throw new Error("Missing login payload");
+        throw new Error("Thiếu dữ liệu đăng nhập");
       }
 
       dispatch(setCredentials(res.data));
@@ -93,7 +93,7 @@ function CandidateLoginScreen() {
 
   async function handleForgotPassword(identifier: string) {
     const response = await authService.candidateForgotPassword({ identifier });
-    toast.success(response.message || "Temporary password has been issued if the account exists.");
+    toast.success(response.message || "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.");
   }
 
   type LoginForm = yup.InferType<typeof schema>;
@@ -129,20 +129,19 @@ function CandidateLoginScreen() {
 
             <div className="max-w-xl">
               <h1 className="mb-6 text-[48px] font-black leading-[56px] tracking-[-0.02em] text-white">
-                Build the future of recruitment
+                Đồng hành cùng tương lai tuyển dụng
               </h1>
               <p className="text-[16px] leading-[24px] text-[#c8c6c5]">
-                Join the enterprise network powering high-velocity global
-                hiring. Our platform connects top-tier candidates with
-                world-changing opportunities through precision-engineered
-                workflows.
+                Tham gia nền tảng kết nối ứng viên chất lượng với các cơ hội
+                nghề nghiệp phù hợp thông qua quy trình tuyển dụng rõ ràng và
+                hiệu quả.
               </p>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="h-1 w-24 bg-[#b90014]" />
               <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#e5e2e1]">
-                Enterprise Internal Portal
+                Cổng tuyển dụng doanh nghiệp
               </span>
             </div>
           </div>
@@ -161,10 +160,10 @@ function CandidateLoginScreen() {
             <div className="mb-10 flex items-start justify-between gap-4">
               <div>
                 <h2 className="mb-2 text-[32px] font-semibold leading-[40px] tracking-[-0.01em] text-[#1a1c1c]">
-                  Welcome Back
+                  Chào mừng bạn quay lại
                 </h2>
                 <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
-                  Enter your credentials to access your candidate portal.
+                  Nhập thông tin đăng nhập để vào cổng ứng viên.
                 </p>
               </div>
             </div>
@@ -176,7 +175,7 @@ function CandidateLoginScreen() {
                   className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                   htmlFor="email"
                 >
-                  Email Address
+                  Email
                 </label>
                 <input
                   id="email"
@@ -200,14 +199,14 @@ function CandidateLoginScreen() {
                     className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                     htmlFor="password"
                   >
-                    Password
+                    Mật khẩu
                   </label>
                   <button
                     type="button"
                     className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] transition-colors hover:underline"
                     onClick={() => setForgotPasswordOpen(true)}
                   >
-                    Forgot Password?
+                    Quên mật khẩu?
                   </button>
                 </div>
                 <div className="relative">
@@ -229,7 +228,7 @@ function CandidateLoginScreen() {
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1c1c]"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
                     }
                   >
                     <span className="material-symbols-outlined text-[20px]">
@@ -251,7 +250,7 @@ function CandidateLoginScreen() {
                   htmlFor="remember"
                   className="ml-3 select-none text-[14px] leading-[20px] text-[#5d3f3c]"
                 >
-                  Remember me for 30 days
+                  Ghi nhớ đăng nhập trong 30 ngày
                 </label>
               </div>
 
@@ -263,10 +262,10 @@ function CandidateLoginScreen() {
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
-                    <LoadingIndicator label="Signing In..." size="sm" tone="light" />
+                    <LoadingIndicator label="Đang đăng nhập..." size="sm" tone="light" />
                   </div>
                 ) : (
-                  "Sign In"
+                  "Đăng nhập"
                 )}
               </button>
               {loginError && (
@@ -278,12 +277,12 @@ function CandidateLoginScreen() {
               {/* Create account */}
               <div className="border-t border-[#e7bdb8] pt-6 text-center">
                 <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
-                  New to the platform?
+                  Chưa có tài khoản?
                   <Link
                     to="/register"
                     className="ml-1 font-bold text-[#b90014] hover:underline"
                   >
-                    Create an account
+                    Tạo tài khoản
                   </Link>
                 </p>
               </div>
@@ -294,15 +293,15 @@ function CandidateLoginScreen() {
                 className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
                 to="/home"
               >
-                Back to Home page
+                Quay lại trang chủ
               </Link>
             </div>
           </div>
         </section>
       </main>
       <ForgotPasswordDialog
-        title="Candidate Password Reset"
-        label="Candidate Email"
+        title="Khôi phục mật khẩu ứng viên"
+        label="Email ứng viên"
         placeholder="name@company.com"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}

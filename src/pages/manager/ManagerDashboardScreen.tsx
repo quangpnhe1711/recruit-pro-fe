@@ -51,34 +51,34 @@ function ManagerDashboardScreen() {
   const summaryCards = useMemo(() => {
     if (!dashboard) {
       return [
-        { label: "Pending Approvals", value: "0", helper: "No approval items loaded" },
-        { label: "Active Applications", value: "0", helper: "Across 0 departments" },
-        { label: "Avg. Review Cycle", value: "0d", helper: "Not enough completed interviews" },
-        { label: "Application Acceptance", value: "0%", helper: "No offer-stage applications yet" },
+        { label: "Chờ phê duyệt", value: "0", helper: "Chưa có mục cần duyệt" },
+        { label: "Hồ sơ đang xử lý", value: "0", helper: "Trên 0 phòng ban" },
+        { label: "Chu kỳ duyệt TB", value: "0d", helper: "Chưa đủ dữ liệu phỏng vấn hoàn tất" },
+        { label: "Tỷ lệ chấp nhận", value: "0%", helper: "Chưa có hồ sơ ở giai đoạn offer" },
       ];
     }
 
     return [
       {
-        label: "Pending Approvals",
+        label: "Chờ phê duyệt",
         value: String(dashboard.summary.pendingApprovals),
         helper:
           dashboard.summary.pendingApprovals > 0
-            ? "Manager action required"
-            : "No pending job approvals",
+            ? "Cần quản lý xử lý"
+            : "Không có job chờ duyệt",
       },
       {
-        label: "Active Applications",
+        label: "Hồ sơ đang xử lý",
         value: String(dashboard.summary.activeApplications),
-        helper: `Across ${dashboard.summary.departmentCount} departments`,
+        helper: `Trên ${dashboard.summary.departmentCount} phòng ban`,
       },
       {
-        label: "Avg. Review Cycle",
+        label: "Chu kỳ duyệt TB",
         value: `${dashboard.summary.averageReviewCycleDays}d`,
         helper: dashboard.summary.averageReviewCycleLabel,
       },
       {
-        label: "Application Acceptance",
+        label: "Tỷ lệ chấp nhận",
         value: `${dashboard.summary.acceptanceRate}%`,
         helper: dashboard.summary.acceptanceRateLabel,
       },
@@ -103,7 +103,7 @@ function ManagerDashboardScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Loading manager dashboard..." />
+        <LoadingIndicator label="Đang tải bảng điều khiển quản lý..." />
       </div>
     );
   }
@@ -112,9 +112,9 @@ function ManagerDashboardScreen() {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <div className="w-full max-w-xl border border-[#e2dfde] bg-white p-8 text-center">
-          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Manager Dashboard</h1>
+          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Bảng điều khiển quản lý</h1>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Unable to load dashboard data right now. Please refresh and try again.
+            Hiện chưa thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.
           </p>
         </div>
       </div>
@@ -126,10 +126,10 @@ function ManagerDashboardScreen() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Manager Dashboard
+            Bảng điều khiển quản lý
           </h1>
           <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Decision-focused visibility for job approvals, candidate reviews, and pipeline health.
+            Theo dõi tập trung vào quyết định duyệt job, review ứng viên và sức khỏe pipeline tuyển dụng.
           </p>
         </div>
 
@@ -140,7 +140,7 @@ function ManagerDashboardScreen() {
             onClick={() => navigate("/manager/applications")}
           >
             <span className="material-symbols-outlined text-[18px]">description</span>
-            Open Review Queue
+            Mở hàng chờ review
           </button>
           <button
             type="button"
@@ -148,7 +148,7 @@ function ManagerDashboardScreen() {
             onClick={() => navigate("/jobs")}
           >
             <span className="material-symbols-outlined text-[18px]">approval</span>
-            Review Jobs
+            Duyệt job
           </button>
         </div>
       </div>
@@ -176,26 +176,26 @@ function ManagerDashboardScreen() {
         <div className="space-y-6 lg:col-span-2">
           <section className="overflow-hidden border border-[#e2dfde] bg-white">
             <div className="flex items-center justify-between border-b border-[#e2dfde] px-6 py-4">
-              <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Pending Job Approvals</h2>
+              <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Job chờ phê duyệt</h2>
               <span className="rounded-full bg-[#b90014]/10 px-2 py-1 text-[12px] font-semibold text-[#b90014]">
-                Action Required
+                Cần xử lý
               </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-[#1a1c1c] text-white">
                   <tr>
-                    <th className="px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.05em]">Department</th>
-                    <th className="px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.05em]">Job Title</th>
-                    <th className="px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.05em]">Compensation / Meta</th>
-                    <th className="px-6 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Action</th>
+                    <th className="px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.05em]">Phòng ban</th>
+                    <th className="px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.05em]">Tiêu đề job</th>
+                    <th className="px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.05em]">Đãi ngộ / thông tin</th>
+                    <th className="px-6 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="text-[14px]">
                   {dashboard.pendingApprovals.length ? (
                     dashboard.pendingApprovals.map((item, index) => (
                       <tr key={item.jobId} className={index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"}>
-                        <td className="px-6 py-4 font-semibold">{item.meta.split(" • ")[0] || "General"}</td>
+                        <td className="px-6 py-4 font-semibold">{item.meta.split(" • ")[0] || "Chung"}</td>
                         <td className="px-6 py-4">{item.title}</td>
                         <td className="px-6 py-4">{item.meta.split(" • ").slice(1).join(" • ") || item.meta}</td>
                         <td className="px-6 py-4 text-right">
@@ -204,7 +204,7 @@ function ManagerDashboardScreen() {
                             className="bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#e31b23]"
                             onClick={() => navigate("/jobs")}
                           >
-                            Review & Approve
+                            Xem và duyệt
                           </button>
                         </td>
                       </tr>
@@ -212,7 +212,7 @@ function ManagerDashboardScreen() {
                   ) : (
                     <tr>
                       <td colSpan={4} className="px-6 py-8 text-center text-[#5f5e5e]">
-                        No pending job approvals.
+                        Không có job nào đang chờ phê duyệt.
                       </td>
                     </tr>
                   )}
@@ -223,7 +223,7 @@ function ManagerDashboardScreen() {
 
           <section className="border border-[#e2dfde] bg-white">
             <div className="border-b border-[#e2dfde] px-6 py-4">
-              <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Final Decision Needed</h2>
+              <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Cần quyết định cuối</h2>
             </div>
             <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
               {dashboard.finalDecisions.length ? (
@@ -250,7 +250,7 @@ function ManagerDashboardScreen() {
                           className="flex-1 bg-[#1a1c1c] py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#5f5e5e]"
                           onClick={() => navigate(`/manager/applications/${item.applicationId}`)}
                         >
-                          Open Review
+                          Mở review
                         </button>
                         <span className={`inline-flex items-center px-3 text-[11px] font-bold uppercase tracking-[0.08em] ${statusChipTone(item.status)}`}>
                           {item.status}
@@ -261,7 +261,7 @@ function ManagerDashboardScreen() {
                 ))
               ) : (
                 <div className="col-span-full border border-dashed border-[#e2dfde] p-6 text-sm text-[#5f5e5e]">
-                  No candidates currently require a final manager decision.
+                  Hiện chưa có ứng viên nào cần quản lý quyết định cuối.
                 </div>
               )}
             </div>
@@ -271,7 +271,7 @@ function ManagerDashboardScreen() {
         <div className="space-y-6">
           <section className="border border-[#e2dfde] bg-white p-6">
             <h2 className="mb-6 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-              Review Cycle by Department (Days)
+              Chu kỳ duyệt theo phòng ban (ngày)
             </h2>
             <div className="space-y-4">
               {dashboard?.departmentHiringSpeed.length ? (
@@ -290,14 +290,14 @@ function ManagerDashboardScreen() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-[#5f5e5e]">No completed interview cycles available yet.</p>
+                <p className="text-sm text-[#5f5e5e]">Chưa có chu kỳ phỏng vấn hoàn tất để thống kê.</p>
               )}
             </div>
           </section>
 
           <section className="border border-[#e2dfde] bg-white p-6">
             <h2 className="mb-6 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-              Recruitment Funnel
+              Phễu tuyển dụng
             </h2>
             <div className="flex flex-col gap-2">
               {(dashboard?.recruitmentFunnel ?? []).map((item, index) => (
@@ -313,13 +313,13 @@ function ManagerDashboardScreen() {
               ))}
             </div>
             <p className="mt-6 text-center text-[12px] text-[#5f5e5e]">
-              Offered conversion rate: <span className="font-bold text-[#1a1c1c]">{funnelConversionRate}%</span>
+              Tỷ lệ chuyển đổi tới offer: <span className="font-bold text-[#1a1c1c]">{funnelConversionRate}%</span>
             </p>
           </section>
 
           <section className="bg-[#1a1c1c] p-6 text-white">
             <h2 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.05em] opacity-70">
-              Quick Actions
+              Thao tác nhanh
             </h2>
             <ul className="space-y-3">
               <li>
@@ -329,7 +329,7 @@ function ManagerDashboardScreen() {
                   onClick={() => navigate("/manager/applications")}
                 >
                   <span className="h-2 w-2 rounded-full bg-[#b90014]" />
-                  Review final candidate decisions
+                  Xem quyết định cuối của ứng viên
                 </button>
               </li>
               <li>
@@ -339,7 +339,7 @@ function ManagerDashboardScreen() {
                   onClick={() => navigate("/jobs")}
                 >
                   <span className="h-2 w-2 rounded-full bg-[#b90014]" />
-                  Approve pending job requests
+                  Duyệt các yêu cầu tuyển dụng đang chờ
                 </button>
               </li>
               <li>
@@ -349,7 +349,7 @@ function ManagerDashboardScreen() {
                   onClick={() => navigate("/manager/reports")}
                 >
                   <span className="h-2 w-2 rounded-full bg-[#5f5e5e]" />
-                  Open recruitment reports
+                  Mở báo cáo tuyển dụng
                 </button>
               </li>
             </ul>

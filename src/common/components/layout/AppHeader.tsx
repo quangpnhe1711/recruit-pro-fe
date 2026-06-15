@@ -27,7 +27,7 @@ function getInitials(name: string) {
 }
 
 const defaultMenuItems: AppHeaderMenuItem[] = [
-  { label: "Profile", to: "/candidate/profile" },
+  { label: "Hồ sơ", to: "/candidate/profile" },
 ];
 
 function formatRoleLabel(
@@ -35,18 +35,18 @@ function formatRoleLabel(
   portalVariant: "candidate" | "internal",
 ) {
   if (portalVariant === "candidate") {
-    return "Candidate";
+    return "Ứng viên";
   }
 
   switch (role) {
     case ROLE_NAMES.HR:
       return "HR";
     case ROLE_NAMES.MANAGER:
-      return "Manager";
+      return "Quản lý";
     case ROLE_NAMES.SYSTEM_ADMIN:
-      return "System Admin";
+      return "Quản trị hệ thống";
     default:
-      return "Internal User";
+      return "Người dùng nội bộ";
   }
 }
 
@@ -55,7 +55,7 @@ function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
   const { defaultPath, hasPermission, portalVariant, primaryRole } =
     usePermissions();
 
-  const userName = authUser?.fullName ?? "No user";
+  const userName = authUser?.fullName ?? "Chưa có người dùng";
   const userRole = formatRoleLabel(primaryRole, portalVariant);
   const avatarSrc = authUser?.avatarUrl ?? undefined;
   const resolvedInitials = getInitials(userName);
@@ -71,14 +71,14 @@ function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
       ? defaultMenuItems
       : [
           ...(canViewInternalProfile
-            ? [{ label: "Profile", to: "/internal/profile" }]
+            ? [{ label: "Hồ sơ", to: "/internal/profile" }]
             : canViewOwnProfile
-              ? [{ label: "Profile", to: "/candidate/profile" }]
+              ? [{ label: "Hồ sơ", to: "/candidate/profile" }]
               : []),
           ...(primaryRole === ROLE_NAMES.SYSTEM_ADMIN
-            ? [{ label: "Admin Dashboard", to: "/system-admin/dashboard" }]
+            ? [{ label: "Bảng điều khiển Admin", to: "/system-admin/dashboard" }]
             : []),
-          { label: "Dashboard", to: defaultPath },
+          { label: "Tổng quan", to: defaultPath },
         ]);
 
   return (

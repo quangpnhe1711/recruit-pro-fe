@@ -53,14 +53,14 @@ function ForgotPasswordDialog({
           <div>
             <h3 className="text-[20px] font-semibold text-[#1a1c1c]">{title}</h3>
             <p className="mt-1 text-[14px] text-[#5f5e5e]">
-              We will issue a temporary password for the matching account.
+              Hệ thống sẽ cấp mật khẩu tạm cho tài khoản khớp thông tin.
             </p>
           </div>
           <button
             type="button"
             className="text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
             onClick={onClose}
-            aria-label="Close dialog"
+            aria-label="Đóng hộp thoại"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -85,7 +85,7 @@ function ForgotPasswordDialog({
             className="border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
             onClick={onClose}
           >
-            Cancel
+            Hủy
           </button>
           <button
             type="button"
@@ -93,7 +93,7 @@ function ForgotPasswordDialog({
             onClick={handleSubmit}
             disabled={submitting || !identifier.trim()}
           >
-            {submitting ? "Sending..." : "Reset Password"}
+            {submitting ? "Đang gửi..." : "Đặt lại mật khẩu"}
           </button>
         </div>
       </div>

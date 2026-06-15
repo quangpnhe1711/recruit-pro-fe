@@ -13,19 +13,19 @@ function PublicHeader() {
               className="text-[#b90014] font-bold border-b-2 border-[#b90014] pb-1 text-[12px] tracking-[0.05em]"
               href="#home"
             >
-              Home
+              Trang chủ
             </a>
             <a
               className="text-[#5f5e5e] font-medium hover:text-[#b90014] transition-colors duration-200 text-[12px] tracking-[0.05em]"
               href="#careers"
             >
-              Careers
+              Cơ hội nghề nghiệp
             </a>
             <a
               className="text-[#5f5e5e] font-medium hover:text-[#b90014] transition-colors duration-200 text-[12px] tracking-[0.05em]"
               href="#about"
             >
-              About Us
+              Về chúng tôi
             </a>
           </div>
         </div>
@@ -35,13 +35,13 @@ function PublicHeader() {
             to="/login"
             className="px-6 py-2 bg-[#1A1A1A] text-white font-semibold text-[12px] border-2 border-transparent hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
           >
-            Log in
+            Đăng nhập
           </Link>
           <Link
             to="/register"
             className="px-6 py-2 bg-[white] text-[#b90014] border-2 font-semibold text-[12px] border-[#b90014] hover:bg-transparent hover:text-[#1A1A1A] hover:border-[#1A1A1A] transition-all duration-300"
           >
-            Sign up
+            Đăng ký
           </Link>
         </div>
       </nav>

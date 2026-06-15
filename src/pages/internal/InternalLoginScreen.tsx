@@ -28,8 +28,8 @@ function InternalLoginScreen() {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
   const schema = yup.object({
-    employeeId: yup.string().required('Employee ID or email is required'),
-    password: yup.string().required('Password is required'),
+    employeeId: yup.string().required('Vui lòng nhập mã nhân viên hoặc email'),
+    password: yup.string().required('Vui lòng nhập mật khẩu'),
   }).required();
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<InternalLoginForm>({
@@ -44,7 +44,7 @@ function InternalLoginScreen() {
   const employeeId = watch('employeeId')
 
   const employeeIdPlaceholder = useMemo(
-    () => 'e.g. RP-8829 or name@recruitpro.com',
+    () => 'VD: RP-8829 hoặc name@recruitpro.com',
     [],
   )
 
@@ -58,7 +58,7 @@ function InternalLoginScreen() {
       })
 
       if (!res.data) {
-        throw new Error('Missing login payload')
+        throw new Error('Thiếu dữ liệu đăng nhập')
       }
 
       dispatch(setCredentials(res.data))
@@ -72,14 +72,14 @@ function InternalLoginScreen() {
       const primaryRole = getPrimaryRole(res.data.user.roles ?? [])
       navigate(getRoleHomePath(primaryRole) ?? '/hr/dashboard', { replace: true })
     } catch {
-      toast.error('Employee ID/email hoặc mật khẩu không chính xác')
+      toast.error('Mã nhân viên/email hoặc mật khẩu không chính xác')
       setSubmitted(false)
     }
   }
 
   async function handleForgotPassword(identifier: string) {
     const response = await authService.internalForgotPassword({ identifier })
-    toast.success(response.message || "Temporary password has been issued if the account exists.")
+    toast.success(response.message || "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.")
   }
 
   return (
@@ -100,7 +100,7 @@ function InternalLoginScreen() {
               </h1>
             </div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.25em] text-[#5d3f3c]">
-              Enterprise Staff Portal
+              Cổng nội bộ doanh nghiệp
             </p>
           </div>
 
@@ -108,15 +108,15 @@ function InternalLoginScreen() {
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.25em] text-[#5d3f3c]">
-                  Secure Access
+                  Truy cập bảo mật
                 </p>
                 <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
-                  Staff Portal Login
+                  Đăng nhập cổng nội bộ
                 </h2>
               </div>
               <MockJsonButton
                 className="shrink-0"
-                label="Test Mock JSON"
+                label="JSON mô phỏng"
                 payload={{
                   screen: 'InternalLoginScreen',
                   employeeId,
@@ -132,7 +132,7 @@ function InternalLoginScreen() {
                   className="mb-2 block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                   htmlFor="employee-id"
                 >
-                  Employee ID or Corporate Email
+                  Mã nhân viên hoặc email công ty
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-[#5d3f3c]">
@@ -155,14 +155,14 @@ function InternalLoginScreen() {
                     className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                     htmlFor="password"
                   >
-                    Password
+                    Mật khẩu
                   </label>
                   <button
                     type="button"
                     className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] transition-all hover:underline"
                     onClick={() => setForgotPasswordOpen(true)}
                   >
-                    Forgot Password?
+                    Quên mật khẩu?
                   </button>
                 </div>
                 <div className="relative">
@@ -181,7 +181,7 @@ function InternalLoginScreen() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1a1a]"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                   >
                     <span className="material-symbols-outlined text-xl">
                       {showPassword ? 'visibility_off' : 'visibility'}
@@ -200,14 +200,14 @@ function InternalLoginScreen() {
                   htmlFor="remember"
                   className="ml-3 select-none text-[14px] leading-[20px] text-[#5d3f3c]"
                 >
-                  Remember this account
+                  Ghi nhớ tài khoản này
                 </label>
               </div>
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-2 bg-[#b90014] py-4 text-[16px] font-semibold text-white transition-colors active:scale-[0.98] hover:bg-[#e31b23]"
               >
-                <span>Secure Access</span>
+                <span>Đăng nhập an toàn</span>
                 <span className="material-symbols-outlined text-xl">login</span>
               </button>
             </form>
@@ -217,10 +217,10 @@ function InternalLoginScreen() {
                 warning
               </span>
               <p className="text-[14px] leading-tight text-[#93000a]">
-                <span className="font-bold">Authorized Personnel Only.</span>
+                <span className="font-bold">Chỉ dành cho nhân sự được cấp quyền.</span>
                 <br />
-                This is a restricted enterprise system. All access attempts and
-                activities are logged and monitored.
+                Đây là hệ thống nội bộ có kiểm soát. Mọi lần truy cập và hoạt
+                động đều được ghi nhận và giám sát.
               </p>
             </div>
             <div className="mt-4 flex justify-center">
@@ -228,15 +228,15 @@ function InternalLoginScreen() {
                 className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
                 to="/jobs"
               >
-                Preview Internal Jobs
+                Xem trước tin tuyển dụng nội bộ
               </Link>
             </div>
           </div>
         </div>
       </main>
       <ForgotPasswordDialog
-        title="Internal Password Reset"
-        label="Corporate Email"
+        title="Khôi phục mật khẩu nội bộ"
+        label="Email công ty"
         placeholder="name@recruitpro.com"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}

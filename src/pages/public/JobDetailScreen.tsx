@@ -261,22 +261,22 @@ function JobDetailScreen() {
       title: detail.title,
       location: detail.location,
       posted: detail.createdAt
-        ? `Posted ${new Date(detail.createdAt).toLocaleDateString()}`
+        ? `Đăng ngày ${new Date(detail.createdAt).toLocaleDateString()}`
         : "",
       statusLabel:
         detail.status === "CLOSED"
-          ? "Closed"
+          ? "Đã đóng"
           : detail.status === "PENDING_APPROVAL"
-            ? "Pending Approval"
+            ? "Chờ duyệt"
             : detail.status === "DRAFT"
-              ? "Draft"
+              ? "Nháp"
               : detail.status === "REJECTED"
-                ? "Rejected"
-                : "Live",
+                ? "Từ chối"
+                : "Đang tuyển",
       salaryRange:
         detail.salaryMin != null || detail.salaryMax != null
           ? `${formatCurrency(detail.salaryMin ?? detail.salaryMax) ?? "$0"} — ${formatCurrency(detail.salaryMax ?? detail.salaryMin) ?? "$0"}`
-          : "Negotiable",
+          : "Thỏa thuận",
       department: detail.department?.name ?? "",
       jobType: `${detail.employmentType}${detail.workMode ? `, ${detail.workMode}` : ""}`,
       vacancyCount: detail.vacancyCount ?? 0,
@@ -324,7 +324,7 @@ function JobDetailScreen() {
     if (!detail || !editForm) return;
 
     if (!editForm.title.trim()) {
-      toast.error("Job title is required.");
+      toast.error("Vui lòng nhập tiêu đề công việc.");
       return;
     }
 
@@ -354,12 +354,12 @@ function JobDetailScreen() {
         skills: toList(editForm.skills),
       });
 
-      toast.success("Job updated successfully.");
+      toast.success("Cập nhật tin tuyển dụng thành công.");
       setEditing(false);
       navigate(`/jobs/${detail.id}`, { replace: true });
       await loadDetail();
     } catch {
-      toast.error("Unable to update this job right now.");
+      toast.error("Hiện chưa thể cập nhật tin tuyển dụng này.");
     } finally {
       setSaving(false);
     }
@@ -368,7 +368,7 @@ function JobDetailScreen() {
   async function handleClosePosting() {
     if (!detail) return;
 
-    const confirmed = window.confirm(`Close posting for ${detail.title}?`);
+    const confirmed = window.confirm(`Đóng tin tuyển dụng ${detail.title}?`);
     if (!confirmed) return;
 
     setClosing(true);
@@ -376,10 +376,10 @@ function JobDetailScreen() {
       await jobsService.updateJobStatus(detail.id, {
         status: "CLOSED" as JobStatus,
       });
-      toast.success("Job posting closed.");
+      toast.success("Đã đóng tin tuyển dụng.");
       await loadDetail();
     } catch {
-      toast.error("Unable to close this posting.");
+      toast.error("Không thể đóng tin tuyển dụng.");
     } finally {
       setClosing(false);
     }
@@ -388,7 +388,7 @@ function JobDetailScreen() {
   async function handleReopenPosting() {
     if (!detail) return;
 
-    const confirmed = window.confirm(`Reopen posting for ${detail.title}?`);
+    const confirmed = window.confirm(`Mở lại tin tuyển dụng ${detail.title}?`);
     if (!confirmed) return;
 
     setClosing(true);
@@ -396,10 +396,10 @@ function JobDetailScreen() {
       await jobsService.updateJobStatus(detail.id, {
         status: "APPROVED" as JobStatus,
       });
-      toast.success("Job posting reopened.");
+      toast.success("Đã mở lại tin tuyển dụng.");
       await loadDetail();
     } catch {
-      toast.error("Unable to reopen this posting.");
+      toast.error("Không thể mở lại tin tuyển dụng.");
     } finally {
       setClosing(false);
     }
@@ -408,9 +408,9 @@ function JobDetailScreen() {
   async function handleCopyShareLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success("Shareable link copied.");
+      toast.success("Đã sao chép liên kết chia sẻ.");
     } catch {
-      toast.error("Unable to copy shareable link.");
+      toast.error("Không thể sao chép liên kết chia sẻ.");
     }
   }
 
@@ -419,7 +419,7 @@ function JobDetailScreen() {
       <div
         className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} flex min-h-[60vh] items-center justify-center px-4 py-10 md:px-10`}
       >
-        <LoadingIndicator label="Loading job details..." />
+        <LoadingIndicator label="Đang tải chi tiết công việc..." />
       </div>
     );
   }
@@ -431,10 +431,10 @@ function JobDetailScreen() {
       >
         <div className="border border-[#e2dfde] bg-white p-8 text-center">
           <h2 className="text-[24px] font-semibold text-[#1a1c1c]">
-            Job Details
+            Chi tiết công việc
           </h2>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Unable to load this job right now. Please refresh and try again.
+            Hiện chưa thể tải công việc này. Vui lòng thử lại sau.
           </p>
         </div>
       </section>
@@ -453,7 +453,7 @@ function JobDetailScreen() {
               className="hover:text-[#b90014]"
               onClick={() => navigate("/jobs")}
             >
-              Jobs
+              Việc làm
             </button>
             <span className="material-symbols-outlined text-[16px]">
               chevron_right
@@ -483,7 +483,7 @@ function JobDetailScreen() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Icon name="group" />
-                  <span>Vacancy: {jobSummary.vacancyCount}</span>
+                  <span>Số lượng tuyển: {jobSummary.vacancyCount}</span>
                 </div>
               </div>
             </div>
@@ -496,7 +496,7 @@ function JobDetailScreen() {
                   disabled={isAuthenticated && !canApplyJob}
                   onClick={handleApplyClick}
                 >
-                  Apply Now
+                  Ứng tuyển ngay
                 </button>
               ) : null}
               <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
@@ -510,7 +510,7 @@ function JobDetailScreen() {
                   }}
                 >
                   <Icon name="edit" />
-                  Edit Job
+                  Chỉnh sửa
                 </button>
               </PermissionGuard>
               <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_APPLICATIONS}>
@@ -525,7 +525,7 @@ function JobDetailScreen() {
                   }
                 >
                   <Icon name="visibility" />
-                  View Applications
+                  Xem hồ sơ ứng tuyển
                 </button>
               </PermissionGuard>
               {isInternalPortal ? (
@@ -543,11 +543,11 @@ function JobDetailScreen() {
                     <Icon name={detail.status === "CLOSED" ? "refresh" : "close"} />
                     {closing
                       ? detail.status === "CLOSED"
-                        ? "Reopening..."
-                        : "Closing..."
+                        ? "Đang mở lại..."
+                        : "Đang đóng..."
                       : detail.status === "CLOSED"
-                        ? "Reopen Posting"
-                        : "Close Posting"}
+                        ? "Mở lại tin"
+                        : "Đóng tin"}
                   </button>
                 </PermissionGuard>
               ) : null}
@@ -559,11 +559,11 @@ function JobDetailScreen() {
               <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <h3 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
-                    Edit Job Detail
+                    Chỉnh sửa chi tiết công việc
                   </h3>
                   <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                    HR edits now happen directly in the job detail screen
-                    instead of a popup.
+                    HR hiện chỉnh sửa trực tiếp trên màn hình chi tiết công việc
+                    thay vì qua popup.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -576,7 +576,7 @@ function JobDetailScreen() {
                       navigate(`/jobs/${detail.id}`, { replace: true });
                     }}
                   >
-                    Cancel
+                    Hủy
                   </button>
                   <button
                     type="button"
@@ -584,7 +584,7 @@ function JobDetailScreen() {
                     disabled={saving}
                     onClick={() => void handleSaveJob()}
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? "Đang lưu..." : "Lưu thay đổi"}
                   </button>
                 </div>
               </div>
@@ -592,7 +592,7 @@ function JobDetailScreen() {
               <div className="grid gap-6 lg:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Job Title
+                    Tiêu đề công việc
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -605,7 +605,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Department
+                    Phòng ban
                   </span>
                   <CommonSelect
                     className="h-12"
@@ -622,7 +622,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Location
+                    Địa điểm
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -635,7 +635,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Employment Type
+                    Loại hình làm việc
                   </span>
                   <CommonSelect
                     className="h-12"
@@ -657,7 +657,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Work Mode
+                    Hình thức làm việc
                   </span>
                   <CommonSelect
                     className="h-12"
@@ -676,7 +676,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Deadline
+                    Hạn nộp
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -690,7 +690,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Vacancy Count
+                    Số lượng tuyển
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -705,7 +705,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Minimum Experience
+                    Kinh nghiệm tối thiểu
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -720,7 +720,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Salary Min
+                    Lương tối thiểu
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -735,7 +735,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Salary Max
+                    Lương tối đa
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -752,7 +752,7 @@ function JobDetailScreen() {
               <div className="mt-6 grid gap-6">
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Description
+                    Mô tả
                   </span>
                   <textarea
                     className="min-h-36 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -764,7 +764,7 @@ function JobDetailScreen() {
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Requirements
+                    Yêu cầu
                   </span>
                   <textarea
                     className="min-h-28 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -772,12 +772,12 @@ function JobDetailScreen() {
                     onChange={(event) =>
                       updateEditForm("requirements", event.target.value)
                     }
-                    placeholder="One requirement per line"
+                    placeholder="Mỗi dòng một yêu cầu"
                   />
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Benefits
+                    Quyền lợi
                   </span>
                   <textarea
                     className="min-h-28 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -785,12 +785,12 @@ function JobDetailScreen() {
                     onChange={(event) =>
                       updateEditForm("benefits", event.target.value)
                     }
-                    placeholder="One benefit per line"
+                    placeholder="Mỗi dòng một quyền lợi"
                   />
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Skills
+                    Kỹ năng
                   </span>
                   <textarea
                     className="min-h-24 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"

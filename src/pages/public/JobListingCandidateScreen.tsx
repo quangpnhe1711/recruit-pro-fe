@@ -21,7 +21,7 @@ const salaryRanges: SalaryRangeOption[] = [
   { id: "50-80", label: "$50k - $80k", min: 50_000, max: 80_000 },
   { id: "80-120", label: "$80k - $120k", min: 80_000, max: 120_000 },
   { id: "120-180", label: "$120k - $180k", min: 120_000, max: 180_000 },
-  { id: "180+", label: "$180k+", min: 180_000, max: null },
+  { id: "180+", label: "Trên $180k", min: 180_000, max: null },
 ];
 
 const employmentTypeOptionsFromEnum = (
@@ -44,7 +44,7 @@ function formatEmploymentType(value: string) {
 }
 
 function resolveLevel(minExperienceYears: number) {
-  if (minExperienceYears <= 0) return "Intern";
+  if (minExperienceYears <= 0) return "Thực tập";
   if (minExperienceYears <= 2) return "Junior";
   if (minExperienceYears <= 4) return "Middle";
   if (minExperienceYears <= 7) return "Senior";
@@ -346,21 +346,21 @@ function JobListingCandidateScreen() {
         <div className="border border-[#e2dfde] bg-white p-6">
           <div className="mb-6 flex items-center justify-between">
             <h3 className="text-[20px] font-semibold text-[#1a1c1c]">
-              Filters
+              Bộ lọc
             </h3>
             <button
               className="text-[12px] font-semibold text-[#b90014] hover:underline"
               type="button"
               onClick={clearAllFilters}
             >
-              Clear All
+              Xóa tất cả
             </button>
           </div>
 
           <div className="space-y-8">
             <div>
               <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                Salary Range
+                Mức lương
               </label>
               <div className="space-y-3">
                 {salaryRanges.map((range) => {
@@ -395,7 +395,7 @@ function JobListingCandidateScreen() {
 
             <div>
               <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                Employment Type
+                Loại hình làm việc
               </label>
               <div className="flex flex-wrap gap-2">
                 {employmentTypeOptions.map((option) => {
@@ -421,12 +421,12 @@ function JobListingCandidateScreen() {
 
             <div>
               <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                Required Skills
+                Kỹ năng yêu cầu
               </label>
               <SkillPicker
-                emptyLabel="Select skills from the list to filter matching jobs."
+                emptyLabel="Chọn kỹ năng từ danh sách để lọc việc làm phù hợp."
                 options={skillOptions.map((option) => ({ label: option.label, value: option.label }))}
-                placeholder="Choose a required skill"
+                placeholder="Chọn kỹ năng yêu cầu"
                 selectedValues={selectedSkills}
                 onAdd={addSkill}
                 onRemove={removeSkill}
@@ -441,15 +441,15 @@ function JobListingCandidateScreen() {
               rocket_launch
             </span>
           </div>
-          <h4 className="mb-2 text-[20px] font-semibold">Job Alerts</h4>
+          <h4 className="mb-2 text-[20px] font-semibold">Thông báo việc làm</h4>
           <p className="mb-4 text-[14px] leading-5 text-white/90">
-            Get notified immediately when high-matching roles are posted.
+            Nhận thông báo ngay khi có vị trí phù hợp cao được đăng.
           </p>
           <button
             className="w-full rounded-none bg-white py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-[#b90014] transition-transform active:scale-[0.98]"
             type="button"
           >
-            Enable Notifications
+            Bật thông báo
           </button>
         </div>
       </aside>
@@ -458,16 +458,16 @@ function JobListingCandidateScreen() {
         <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h2 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] md:text-[32px] md:leading-10">
-              Your Opportunities
+              Cơ hội dành cho bạn
             </h2>
             <p className="text-[14px] text-[#5f5e5e]">
-              Found {totalItems} relevant positions for your profile
+              Tìm thấy {totalItems} vị trí phù hợp với hồ sơ của bạn
             </p>
             <Link
               className="mt-2 inline-flex text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
               to="/internal/candidate-profile"
             >
-              Open Candidate Profile
+              Mở hồ sơ ứng viên
             </Link>
           </div>
 
@@ -475,7 +475,7 @@ function JobListingCandidateScreen() {
             <div className="relative">
               <input
                 className="w-[280px] border border-[#e2dfde] bg-white py-2 pl-10 pr-4 text-[14px] outline-none transition-colors focus:border-[#b90014]"
-                placeholder="Search jobs..."
+                placeholder="Tìm kiếm việc làm..."
                 type="text"
                 value={search}
                 onChange={(event) => {
@@ -492,15 +492,15 @@ function JobListingCandidateScreen() {
 
             <div className="flex items-center gap-4">
               <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                Sort by:
+                Sắp xếp theo:
               </span>
 
               <CommonSelect
                 className="h-10 min-w-[180px] border-[#e7bdb8] bg-white text-[12px] font-semibold"
                 options={[
-                  { label: "Newest First", value: "newest" },
-                  { label: "Salary High-Low", value: "salaryDesc" },
-                  { label: "Most Relevant", value: "relevant" },
+                  { label: "Mới nhất", value: "newest" },
+                  { label: "Lương cao đến thấp", value: "salaryDesc" },
+                  { label: "Phù hợp nhất", value: "relevant" },
                 ]}
                 value={sortBy}
                 onChange={(event) => {
@@ -516,11 +516,11 @@ function JobListingCandidateScreen() {
         <div className="space-y-4">
           {loading ? (
             <div className="border border-[#e2dfde] bg-white p-6">
-              <LoadingIndicator label="Loading jobs..." />
+              <LoadingIndicator label="Đang tải danh sách việc làm..." />
             </div>
           ) : jobs.length === 0 ? (
             <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e]">
-              No matching jobs found.
+              Không tìm thấy việc làm phù hợp.
             </div>
           ) : jobs.map((job) => (
             <article

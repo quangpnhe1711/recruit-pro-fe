@@ -372,9 +372,9 @@ function CandidateProfileAndCVManagementScreen() {
       setExperienceEntries(response.data?.experienceEntries ?? []);
       setEntryDraft(emptyEntryDraft);
       setShowEntryComposer(false);
-      toast.success("Experience entry added");
+      toast.success("Đã thêm kinh nghiệm làm việc");
     } catch {
-      toast.error("Unable to save experience entry");
+      toast.error("Không thể lưu kinh nghiệm làm việc");
     }
   }
 
@@ -383,7 +383,7 @@ function CandidateProfileAndCVManagementScreen() {
       <main className="py-6">
         <div className="w-full px-4 md:px-10">
           <div className="rounded-xl border border-[#e2dfde] bg-white px-6 py-5">
-            <LoadingIndicator label="Loading candidate profile..." />
+            <LoadingIndicator label="Đang tải hồ sơ ứng viên..." />
           </div>
         </div>
       </main>
@@ -395,7 +395,7 @@ function CandidateProfileAndCVManagementScreen() {
       <div className="w-full px-4 md:px-10">
             <nav className="mb-6 flex items-center gap-2">
               <span className="text-[32px] font-bold text-[#1a1c1c]">
-                My Profile
+                Hồ sơ của tôi
               </span>
             </nav>
             <section
@@ -412,7 +412,7 @@ function CandidateProfileAndCVManagementScreen() {
                     <span className="material-symbols-outlined text-[18px]">
                       save
                     </span>
-                    Save Changes
+                    Lưu thay đổi
                   </button>
                 </PermissionGuard>
                 <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE}>
@@ -421,7 +421,7 @@ function CandidateProfileAndCVManagementScreen() {
                     type="button"
                     onClick={() => setIsEditingProfile((value) => !value)}
                   >
-                    {isEditingProfile ? "Done Editing" : "Edit Profile"}
+                    {isEditingProfile ? "Xong" : "Chỉnh sửa hồ sơ"}
                   </button>
                 </PermissionGuard>
               </div>
@@ -440,7 +440,7 @@ function CandidateProfileAndCVManagementScreen() {
                     </div>
                   )}
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-[#e2dfde] bg-white px-3 py-1 text-[11px] font-semibold text-[#5f5e5e] shadow-sm whitespace-nowrap">
-                    Avatar sync from account
+                    Ảnh đại diện đồng bộ từ tài khoản
                   </div>
                 </div>
 
@@ -550,13 +550,13 @@ function CandidateProfileAndCVManagementScreen() {
                   className="rounded-lg border border-[#e2dfde] bg-white p-6"
                 >
                   <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-                    Personal Information
+                    Thông tin cá nhân
                   </h2>
 
                   <div className="mt-6 space-y-4">
                     <div>
                       <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                        Bio
+                        Giới thiệu
                       </label>
                       {isEditingProfile && canEditProfile ? (
                         <textarea
@@ -575,7 +575,7 @@ function CandidateProfileAndCVManagementScreen() {
 
                     <div>
                       <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                        Links
+                        Liên kết
                       </label>
                       <div className="space-y-3">
                         <div className="flex items-center gap-3 rounded border border-[#e2dfde] bg-white px-3 py-2">
@@ -620,9 +620,9 @@ function CandidateProfileAndCVManagementScreen() {
 
                   {canManageSkills ? (
                     <SkillPicker
-                      emptyLabel="Select skills from the database to add them to your profile."
+                      emptyLabel="Chọn kỹ năng từ hệ thống để thêm vào hồ sơ."
                       options={skillOptions}
-                      placeholder="Choose a skill from database"
+                      placeholder="Chọn kỹ năng từ danh sách"
                       selectedLabelByValue={skills.reduce<Record<string, string>>((acc, skill) => {
                         acc[skill.id] = skill.label;
                         return acc;
@@ -759,7 +759,7 @@ function CandidateProfileAndCVManagementScreen() {
 
                   {showEntryComposer && canManageExperience ? (
                     <div className="mb-8 space-y-3 rounded border border-[#e2dfde] bg-[#f3f3f3] p-4">
-                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <input
                           className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
                           placeholder="Title"
@@ -768,17 +768,6 @@ function CandidateProfileAndCVManagementScreen() {
                             setEntryDraft((prev) => ({
                               ...prev,
                               title: e.target.value,
-                            }))
-                          }
-                        />
-                        <input
-                          className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                          placeholder="Period"
-                          value={entryDraft.period}
-                          onChange={(e) =>
-                            setEntryDraft((prev) => ({
-                              ...prev,
-                              period: e.target.value,
                             }))
                           }
                         />

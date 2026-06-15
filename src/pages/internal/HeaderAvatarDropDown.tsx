@@ -108,7 +108,7 @@ function HeaderAvatarDropDown({
               className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
               onClick={handleLogout}
             >
-              Logout
+              Đăng xuất
             </button>
           </div>
         </div>

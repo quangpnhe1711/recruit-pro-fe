@@ -11,9 +11,9 @@ type TopAppBarProps = {
 };
 
 const defaultNavItems: TopNavItem[] = [
-  { label: "Home", href: "/", active: true },
-  { label: "Jobs", href: "#jobs" },
-  { label: "About Us", href: "#about" },
+  { label: "Trang chủ", href: "/", active: true },
+  { label: "Việc làm", href: "#jobs" },
+  { label: "Về chúng tôi", href: "#about" },
 ];
 
 function TopAppBar({ navItems = defaultNavItems }: TopAppBarProps) {
@@ -64,7 +64,7 @@ function TopAppBar({ navItems = defaultNavItems }: TopAppBarProps) {
             className="rounded-none border-2 border-[#b90014] px-4 py-2 text-[12px] font-semibold text-[#b90014] transition-colors hover:bg-[#b90014] hover:text-white"
             to="/login"
           >
-            Log in
+            Đăng nhập
           </Link>
         </div>
       </div>

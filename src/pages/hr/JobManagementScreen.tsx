@@ -9,7 +9,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
 
-type ApprovalStatus = "Approved" | "Pending" | "Draft" | "Rejected" | "Closed";
+type ApprovalStatus = "Đã duyệt" | "Chờ duyệt" | "Nháp" | "Từ chối" | "Đã đóng";
 
 type Job = {
   id: string;
@@ -23,16 +23,16 @@ type Job = {
   createdByName: string;
 };
 
-const statusOptions: ("All Statuses" | ApprovalStatus)[] = [
-  "All Statuses",
-  "Draft",
-  "Pending",
-  "Approved",
-  "Closed",
-  "Rejected",
+const statusOptions: ("Tất cả trạng thái" | ApprovalStatus)[] = [
+  "Tất cả trạng thái",
+  "Nháp",
+  "Chờ duyệt",
+  "Đã duyệt",
+  "Đã đóng",
+  "Từ chối",
 ];
 
-const creatorAllOption = "All Creators";
+const creatorAllOption = "Tất cả người tạo";
 
 function parseDateLabelToEpoch(label: string) {
   const parsed = Date.parse(label);
@@ -79,7 +79,7 @@ function buildJobTableColumns(
   return [
     {
       key: "title",
-      header: "Job Title",
+      header: "Tiêu đề công việc",
       renderCell: (job) => (
         <div>
           <button
@@ -89,27 +89,27 @@ function buildJobTableColumns(
           >
             {job.title}
           </button>
-          <p className="font-mono text-[12px] text-[#5f5e5e]">ID: {job.id}</p>
+          <p className="font-mono text-[12px] text-[#5f5e5e]">Mã: {job.id}</p>
         </div>
       ),
     },
     {
       key: "department",
-      header: "Department",
+      header: "Phòng ban",
       renderCell: (job) => (
         <p className="text-[14px] text-[#5f5e5e]">{job.department}</p>
       ),
     },
     {
       key: "createdDate",
-      header: "Created Date",
+      header: "Ngày tạo",
       renderCell: (job) => (
         <p className="text-[14px] text-[#5f5e5e]">{job.createdDate}</p>
       ),
     },
     {
       key: "approvalStatus",
-      header: "Approval Status",
+      header: "Trạng thái duyệt",
       renderCell: (job) => {
         const chip = approvalChip(job.approvalStatus);
         return (
@@ -124,7 +124,7 @@ function buildJobTableColumns(
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (job) => (
@@ -133,7 +133,7 @@ function buildJobTableColumns(
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-              title="Open Job Detail"
+              title="Mở chi tiết công việc"
               onClick={() => onOpenJobDetail(job)}
             >
               <span className="material-symbols-outlined">visibility</span>
@@ -143,7 +143,7 @@ function buildJobTableColumns(
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-              title="Edit in Job Detail"
+              title="Chỉnh sửa trong chi tiết công việc"
               onClick={() => onOpenEdit(job)}
             >
               <span className="material-symbols-outlined">edit</span>
@@ -153,7 +153,7 @@ function buildJobTableColumns(
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
-              title="Delete"
+              title="Xóa"
               onClick={() => onDeleteJob(job)}
             >
               <span className="material-symbols-outlined">delete</span>
@@ -182,8 +182,8 @@ function JobManagementScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] =
-    useState<string>("All Departments");
-  const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
+    useState<string>("Tất cả phòng ban");
+  const [statusFilter, setStatusFilter] = useState<string>("Tất cả trạng thái");
   const [creatorFilter, setCreatorFilter] = useState<string>(creatorAllOption);
   const [page, setPage] = useState<number>(1);
 
@@ -207,17 +207,17 @@ function JobManagementScreen() {
             createdAt: item.createdAt ? Date.parse(item.createdAt) : Date.now(),
             approvalStatus:
               item.status === "APPROVED"
-                ? "Approved"
+                ? "Đã duyệt"
                 : item.status === "CLOSED"
-                  ? "Closed"
+                  ? "Đã đóng"
                 : item.status === "REJECTED"
-                  ? "Rejected"
+                  ? "Từ chối"
                   : item.status === "DRAFT"
-                    ? "Draft"
-                    : "Pending",
+                    ? "Nháp"
+                    : "Chờ duyệt",
             applicationsCount: item.applicationCount,
             createdByUserId: item.createdBy.id,
-            createdByName: item.createdBy.fullName || "Unknown",
+            createdByName: item.createdBy.fullName || "Không rõ",
           })),
         );
         setStats(
@@ -232,7 +232,7 @@ function JobManagementScreen() {
       .catch(() => {
         if (mounted) {
           setJobs([]);
-          toast.error("Unable to load jobs");
+          toast.error("Không thể tải danh sách job");
         }
       })
       .finally(() => {
@@ -249,12 +249,12 @@ function JobManagementScreen() {
   const filtered = useMemo(() => {
     return jobs
       .filter((j) =>
-        departmentFilter === "All Departments"
+        departmentFilter === "Tất cả phòng ban"
           ? true
           : j.department === departmentFilter,
       )
       .filter((j) =>
-        statusFilter === "All Statuses"
+        statusFilter === "Tất cả trạng thái"
           ? true
           : j.approvalStatus === statusFilter,
       )
@@ -293,7 +293,7 @@ function JobManagementScreen() {
       )
       .sort((a, b) => a.localeCompare(b));
 
-    return ["All Departments", ...options];
+    return ["Tất cả phòng ban", ...options];
   }, [jobs]);
 
   const pageSize = 10;
@@ -322,15 +322,15 @@ function JobManagementScreen() {
   }
 
   async function deleteJob(job: Job) {
-    const ok = window.confirm(`Delete ${job.title} (${job.id})?`);
+    const ok = window.confirm(`Xóa job ${job.title} (${job.id})?`);
     if (!ok) return;
 
     try {
       await jobsService.deleteJob(job.id);
       setJobs((prev) => prev.filter((j) => j.id !== job.id));
-      toast.info("Job deleted.");
+      toast.info("Đã xóa job.");
     } catch {
-      toast.error("Unable to delete job.");
+      toast.error("Không thể xóa job.");
     }
   }
 

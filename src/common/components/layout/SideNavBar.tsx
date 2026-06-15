@@ -31,22 +31,22 @@ type SideNavBarProps = {
 const hrItems: SideNavItem[] = [
   {
     icon: "dashboard",
-    label: "Dashboard",
+    label: "Tổng quan",
     to: "/hr/dashboard",
   },
   {
     icon: "work",
-    label: "Jobs",
+    label: "Tin tuyển dụng",
     to: "/jobs",
   },
   {
     icon: "group",
-    label: "Candidates",
+    label: "Ứng viên",
     to: "/hr/candidates",
   },
   {
     icon: "description",
-    label: "Applications",
+    label: "Hồ sơ ứng tuyển",
     to: "/hr/applications",
   },
   {
@@ -56,12 +56,12 @@ const hrItems: SideNavItem[] = [
   },
   {
     icon: "schedule",
-    label: "Interviews",
+    label: "Phỏng vấn",
     to: "/hr/interviews",
   },
   {
     icon: "person",
-    label: "Profile",
+    label: "Hồ sơ",
     to: "/internal/profile",
   },
 ];
@@ -69,17 +69,17 @@ const hrItems: SideNavItem[] = [
 const managerItems: SideNavItem[] = [
   {
     icon: "dashboard",
-    label: "Dashboard",
+    label: "Tổng quan",
     to: "/manager/dashboard",
   },
   {
     icon: "approval",
-    label: "Job Approvals",
+    label: "Duyệt tuyển dụng",
     to: "/jobs",
   },
   {
     icon: "description",
-    label: "Applications",
+    label: "Hồ sơ ứng tuyển",
     to: "/manager/applications",
   },
   {
@@ -89,17 +89,17 @@ const managerItems: SideNavItem[] = [
   },
   {
     icon: "schedule",
-    label: "Interviews",
+    label: "Phỏng vấn",
     to: "/hr/interviews",
   },
   {
     icon: "analytics",
-    label: "Reports",
+    label: "Báo cáo",
     to: "/manager/reports",
   },
   {
     icon: "person",
-    label: "Profile",
+    label: "Hồ sơ",
     to: "/internal/profile",
   },
 ];
@@ -107,27 +107,27 @@ const managerItems: SideNavItem[] = [
 const adminItems: SideNavItem[] = [
   {
     icon: "dashboard",
-    label: "Dashboard",
+    label: "Tổng quan",
     to: "/system-admin/dashboard",
   },
   {
     icon: "group",
-    label: "Users",
+    label: "Người dùng",
     to: "/system-admin/users",
   },
   {
     icon: "shield_person",
-    label: "Roles",
+    label: "Vai trò",
     to: "/system-admin/roles",
   },
   {
     icon: "admin_panel_settings",
-    label: "Permissions",
+    label: "Quyền hạn",
     to: "/system-admin/permissions",
   },
   {
     icon: "history",
-    label: "Audit Logs",
+    label: "Nhật ký hệ thống",
     to: "/system-admin/audit-logs",
   },
 ];
@@ -137,27 +137,27 @@ const internalBottomItems: SideNavItem[] = [];
 const candidateItems: SideNavItem[] = [
   {
     icon: "dashboard",
-    label: "Dashboard",
+    label: "Tổng quan",
     to: "/candidate/dashboard",
   },
   {
     icon: "work",
-    label: "Jobs",
+    label: "Việc làm",
     to: "/jobs",
   },
   {
     icon: "description",
-    label: "My Applications",
+    label: "Đơn ứng tuyển",
     to: "/candidate/my-applications",
   },
   {
     icon: "schedule",
-    label: "Interviews",
+    label: "Phỏng vấn",
     to: "/candidate/interviews",
   },
   {
     icon: "person",
-    label: "Profile",
+    label: "Hồ sơ",
     to: "/candidate/profile",
   },
 ];
@@ -175,15 +175,15 @@ function getInitials(name: string) {
 function formatRoleLabel(role: string | null | undefined) {
   switch (role) {
     case ROLE_NAMES.CANDIDATE:
-      return "Candidate";
+      return "Ứng viên";
     case ROLE_NAMES.HR:
       return "HR";
     case ROLE_NAMES.MANAGER:
-      return "Manager";
+      return "Quản lý";
     case ROLE_NAMES.SYSTEM_ADMIN:
-      return "System Admin";
+      return "Quản trị hệ thống";
     default:
-      return "Internal User";
+      return "Người dùng nội bộ";
   }
 }
 
@@ -214,28 +214,28 @@ function SideNavBar({
     title: "RecruitPro",
     subtitle:
       portalVariant === "candidate"
-        ? "Candidate Portal"
+        ? "Cổng ứng viên"
         : primaryRole === ROLE_NAMES.SYSTEM_ADMIN
-          ? "System Administration"
+          ? "Quản trị hệ thống"
           : primaryRole === ROLE_NAMES.MANAGER
-            ? "Hiring Review"
-            : "Recruitment Operations",
+            ? "Phê duyệt tuyển dụng"
+            : "Vận hành tuyển dụng",
     to: defaultPath,
   };
 
   const resolvedUserName =
-    authUser?.fullName ?? (portalVariant === "candidate" ? "Candidate" : "Internal User");
+    authUser?.fullName ?? (portalVariant === "candidate" ? "Ứng viên" : "Người dùng nội bộ");
   const resolvedUserAvatarSrc = userAvatarSrc ?? authUser?.avatarUrl ?? undefined;
   const resolvedUserRole =
     portalVariant === "candidate"
-      ? "Candidate"
+      ? "Ứng viên"
       : formatRoleLabel(primaryRole);
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
   const resolvedCta =
     portalVariant === "internal"
       && primaryRole === ROLE_NAMES.HR
-      ? { label: "Post New Job" }
+      ? { label: "Đăng tin mới" }
       : null;
 
   const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A]`;

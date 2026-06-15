@@ -15,8 +15,8 @@ function SkillPicker({
   options,
   selectedValues,
   selectedLabelByValue,
-  placeholder = "Select a skill",
-  emptyLabel = "No skills selected yet.",
+  placeholder = "Chọn kỹ năng",
+  emptyLabel = "Chưa có kỹ năng nào được chọn.",
   onAdd,
   onRemove,
   disabled = false,
@@ -32,7 +32,7 @@ function SkillPicker({
       <CommonSelect
         disabled={disabled || availableOptions.length === 0}
         options={availableOptions}
-        placeholder={availableOptions.length === 0 ? "All skills selected" : placeholder}
+        placeholder={availableOptions.length === 0 ? "Đã chọn tất cả kỹ năng" : placeholder}
         value=""
         onChange={(event) => {
           const value = event.target.value;

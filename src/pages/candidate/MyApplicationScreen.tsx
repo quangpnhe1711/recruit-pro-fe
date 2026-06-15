@@ -20,9 +20,9 @@ type ApplicationItem = {
 };
 
 const emptySummaryCards = [
-  { label: "Total", value: 0 },
-  { label: "Active", value: 0 },
-  { label: "Closed", value: 0 },
+  { label: "Tổng", value: 0 },
+  { label: "Đang xử lý", value: 0 },
+  { label: "Đã đóng", value: 0 },
 ];
 
 function buildApplicationTableColumns(
@@ -33,7 +33,7 @@ function buildApplicationTableColumns(
   return [
     {
       key: "title",
-      header: "Job & Department",
+      header: "Vị trí & phòng ban",
       renderCell: (item) => (
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#e2dfde] bg-white">
@@ -54,14 +54,14 @@ function buildApplicationTableColumns(
     },
     {
       key: "appliedDate",
-      header: "Applied Date",
+      header: "Ngày ứng tuyển",
       renderCell: (item) => (
         <span className="text-[14px] text-[#5f5e5e]">{item.appliedDate}</span>
       ),
     },
     {
       key: "status",
-      header: "Status",
+      header: "Trạng thái",
       renderCell: (item) => (
         <span
           className={`inline-flex px-3 py-1 text-[10px] font-bold uppercase tracking-[0.05em] ${item.statusClass}`}
@@ -72,7 +72,7 @@ function buildApplicationTableColumns(
     },
     {
       key: "nextStep",
-      header: "Next Step",
+      header: "Bước tiếp theo",
       renderCell: (item) => (
         <span className="text-[14px] italic text-[#5f5e5e]">
           {item.nextStep}
@@ -81,16 +81,16 @@ function buildApplicationTableColumns(
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
         headerClassName: "text-right",
         alignRight: true,
         renderCell: (item) => {
           const canAcceptThisApplication =
-            item.actionLabel === "Accept Offer" && canAcceptOffer;
+            item.actionLabel === "Nhận offer" && canAcceptOffer;
 
           return (
             <div className="flex justify-end gap-3">
-              {item.actionLabel === "Accept Offer" ? (
+              {item.actionLabel === "Nhận offer" ? (
                 <button
                   className={`px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] transition-colors ${item.actionClass}`}
                   type="button"
@@ -104,15 +104,15 @@ function buildApplicationTableColumns(
                 type="button"
                 disabled={!canViewApplications}
               >
-                View Detail
+                Xem chi tiết
               </button>
               <button
                 className="text-[12px] font-bold text-[#ba1a1a] transition-opacity hover:opacity-70"
                 type="button"
                 disabled={!canWithdrawApplications}
               >
-                {item.actionLabel === "Accept Offer"
-                  ? "Withdraw"
+                {item.actionLabel === "Nhận offer"
+                  ? "Rút đơn"
                   : item.actionLabel}
               </button>
             </div>
@@ -165,7 +165,7 @@ function MyApplicationScreen() {
                 ? "bg-[#001d32]/10 text-[#004b74]"
                 : "bg-[#e2dfde] text-[#636262]",
           nextStep: item.nextStep,
-          actionLabel: item.availableActions?.includes("acceptOffer") ? "Accept Offer" : "Withdraw",
+          actionLabel: item.availableActions?.includes("acceptOffer") ? "Nhận offer" : "Rút đơn",
           actionClass: item.availableActions?.includes("acceptOffer")
             ? "bg-[#b90014] text-white hover:bg-[#93000d]"
             : "text-[#ba1a1a]",
@@ -175,9 +175,9 @@ function MyApplicationScreen() {
         const summary = res.data?.summary;
         if (summary) {
           setSummary([
-            { label: "Total", value: summary.total },
-            { label: "Active", value: summary.active },
-            { label: "Closed", value: summary.closed },
+            { label: "Tổng", value: summary.total },
+            { label: "Đang xử lý", value: summary.active },
+            { label: "Đã đóng", value: summary.closed },
           ]);
         }
       })
@@ -205,7 +205,7 @@ function MyApplicationScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Loading applications..." />
+        <LoadingIndicator label="Đang tải đơn ứng tuyển..." />
       </div>
     );
   }
@@ -215,11 +215,10 @@ function MyApplicationScreen() {
       <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h1 className="mb-2 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-            My Applications
+            Đơn ứng tuyển của tôi
           </h1>
           <p className="text-[14px] leading-5 text-[#5f5e5e]">
-            Manage and track your active recruitment journeys across the
-            RecruitPro network.
+            Theo dõi và quản lý toàn bộ quá trình ứng tuyển của bạn.
           </p>
         </div>
 
@@ -244,18 +243,18 @@ function MyApplicationScreen() {
         <div className="flex w-full flex-col gap-4 xl:flex-row xl:items-center">
           <div className="flex items-center gap-2">
           <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c]">
-            Filter By:
+            Lọc theo:
           </span>
           </div>
           <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
             <CommonSelect
               className="h-11 min-w-[220px]"
               options={[
-                { label: "All Statuses", value: "all" },
-                { label: "Under Review", value: "under-review" },
-                { label: "Interviewing", value: "interviewing" },
-                { label: "Offered", value: "offered" },
-                { label: "Rejected", value: "rejected" },
+                { label: "Tất cả trạng thái", value: "all" },
+                { label: "Đang xem xét", value: "under-review" },
+                { label: "Phỏng vấn", value: "interviewing" },
+                { label: "Đã nhận offer", value: "offered" },
+                { label: "Từ chối", value: "rejected" },
               ]}
               value="all"
               onChange={() => undefined}
@@ -263,9 +262,9 @@ function MyApplicationScreen() {
             <CommonSelect
               className="h-11 min-w-[220px]"
               options={[
-                { label: "Sort by: Applied Date", value: "applied-date" },
-                { label: "Sort by: Job Title", value: "job-title" },
-                { label: "Sort by: Company", value: "company" },
+                { label: "Sắp xếp: ngày ứng tuyển", value: "applied-date" },
+                { label: "Sắp xếp: tên vị trí", value: "job-title" },
+                { label: "Sắp xếp: công ty/phòng ban", value: "company" },
               ]}
               value="applied-date"
               onChange={() => undefined}
@@ -276,7 +275,7 @@ function MyApplicationScreen() {
         <div className="relative w-full md:w-72">
           <input
             className="w-full border border-[#e2dfde] bg-white px-4 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-            placeholder="Search applications..."
+            placeholder="Tìm kiếm đơn ứng tuyển..."
             type="text"
           />
         </div>
@@ -292,7 +291,7 @@ function MyApplicationScreen() {
           data={pageSlice}
           keyExtractor={(item) => item.title}
           loading={loading}
-          emptyMessage="No applications found."
+          emptyMessage="Chưa có đơn ứng tuyển nào."
           zebra
           hover
         />

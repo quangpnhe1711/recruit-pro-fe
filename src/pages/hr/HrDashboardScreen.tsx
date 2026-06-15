@@ -31,17 +31,17 @@ function buildRecentApplicationsColumns(): TableColumn<RecentApplication>[] {
   return [
     {
       key: "candidateName",
-      header: "Candidate Name",
+      header: "Tên ứng viên",
       renderCell: (item) => <span className="font-semibold">{item.candidateName}</span>,
     },
     {
       key: "jobAppliedFor",
-      header: "Job Applied For",
+      header: "Vị trí ứng tuyển",
       renderCell: (item) => <span className="text-[#5f5e5e]">{item.jobAppliedFor}</span>,
     },
     {
       key: "status",
-      header: "Status",
+      header: "Trạng thái",
       renderCell: (item) => (
         <span className={`rounded px-3 py-1 text-[10px] font-bold uppercase ${item.statusClassName}`}>
           {item.status}
@@ -50,19 +50,19 @@ function buildRecentApplicationsColumns(): TableColumn<RecentApplication>[] {
     },
     {
       key: "date",
-      header: "Date",
+      header: "Ngày",
       renderCell: (item) => <span className="text-[#5f5e5e]">{item.date}</span>,
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       headerClassName: "text-right",
       alignRight: true,
       renderCell: () => (
         <button
           type="button"
           className="text-[#1a1c1c] transition-colors hover:text-[#b90014]"
-          aria-label="More actions"
+          aria-label="Thêm thao tác"
         >
           <span className="material-symbols-outlined text-[20px]">more_vert</span>
         </button>
@@ -105,7 +105,7 @@ function HrDashboardScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Loading HR dashboard..." />
+        <LoadingIndicator label="Đang tải bảng điều khiển HR..." />
       </div>
     );
   }
@@ -114,9 +114,9 @@ function HrDashboardScreen() {
     return (
       <div className="w-full px-4 py-6 md:px-10">
         <div className="border border-[#e2dfde] bg-white p-8 text-center">
-          <h2 className="text-[24px] font-semibold text-[#1a1c1c]">Recruitment Overview</h2>
+          <h2 className="text-[24px] font-semibold text-[#1a1c1c]">Tổng quan tuyển dụng</h2>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Unable to load dashboard data right now. Please refresh and try again.
+            Hiện chưa thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.
           </p>
         </div>
       </div>
@@ -125,21 +125,21 @@ function HrDashboardScreen() {
 
   const statCardsData: StatCard[] = [
     {
-      label: "Active Postings",
+      label: "Tin đang tuyển",
       value: String(dashboard.stats.activePostings),
-      helper: "+2 from last week",
+      helper: "+2 so với tuần trước",
       helperClassName: "text-[#0079b9]",
       icon: "work",
     },
     {
-      label: "Total Applicants",
+      label: "Tổng ứng viên",
       value: String(dashboard.stats.totalApplicants),
-      helper: "15.2% conversion rate",
+      helper: "Tỷ lệ chuyển đổi 15.2%",
       helperClassName: "text-[#0079b9]",
       icon: "group",
     },
     {
-      label: "Interviews Today",
+      label: "Phỏng vấn hôm nay",
       value: String(dashboard.stats.interviewsToday),
       helper: dashboard.stats.nextInterviewLabel,
       helperClassName: "text-[#ba1a1a]",
@@ -173,10 +173,10 @@ function HrDashboardScreen() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Recruitment Overview
+            Tổng quan tuyển dụng
           </h2>
           <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Performance metrics for Q4 Hiring Cycle
+            Các chỉ số hiệu suất cho đợt tuyển dụng hiện tại
           </p>
         </div>
 
@@ -187,7 +187,7 @@ function HrDashboardScreen() {
               className="flex items-center gap-2 bg-[#e2e2e2] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#e2dfde]"
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
-              Export Report
+              Xuất báo cáo
             </button>
           </PermissionGuard>
         </div>
@@ -222,13 +222,13 @@ function HrDashboardScreen() {
         <section className="overflow-hidden border border-[#e2dfde] bg-white lg:col-span-2">
           <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
             <h4 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-              Recent Applications
+              Hồ sơ ứng tuyển gần đây
             </h4>
             <button
               type="button"
               className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
             >
-              View All
+              Xem tất cả
             </button>
           </div>
 
@@ -238,7 +238,7 @@ function HrDashboardScreen() {
               data={recentApplicationsData}
               keyExtractor={(item) => `${item.candidateName}-${item.date}`}
               loading={false}
-              emptyMessage="No recent applications."
+              emptyMessage="Chưa có hồ sơ ứng tuyển gần đây."
               zebra
               hover
               tableWrapperClassName="overflow-hidden border border-[#e2dfde] bg-white"
@@ -250,7 +250,7 @@ function HrDashboardScreen() {
           <section className="flex h-full flex-col border border-[#e2dfde] bg-white p-6">
             <div className="mb-6 flex items-center justify-between">
               <h4 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                Pending Approvals
+                Chờ phê duyệt
               </h4>
               <span className="rounded-full bg-[#b90014] px-2 py-0.5 text-[10px] font-bold text-white">
                 {pendingApprovalsData.length}
@@ -289,7 +289,7 @@ function HrDashboardScreen() {
                         type="button"
                         className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
                       >
-                        Review Draft
+                        Xem bản nháp
                       </button>
                     </PermissionGuard>
                   </div>
@@ -302,7 +302,7 @@ function HrDashboardScreen() {
                 type="button"
                 className="mt-6 w-full border border-[#e2dfde] py-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
               >
-                View All Approvals
+                Xem tất cả phê duyệt
               </button>
             </PermissionGuard>
           </section>
@@ -313,10 +313,10 @@ function HrDashboardScreen() {
         <section className="relative overflow-hidden bg-[#1a1c1c] p-6 md:col-span-1">
           <div className="relative z-10">
             <h4 className="mb-2 text-[20px] font-semibold leading-7 text-white">
-              Hiring Velocity
+              Tốc độ tuyển dụng
             </h4>
             <p className="text-[14px] leading-5 text-[#c8c6c5]">
-              Average time to hire decreased by 12% this quarter.
+              Thời gian tuyển trung bình đã giảm 12% trong kỳ này.
             </p>
           </div>
           <div className="absolute bottom-[-20px] right-[-20px] opacity-10">
@@ -327,18 +327,18 @@ function HrDashboardScreen() {
         <section className="flex flex-col items-start gap-6 border border-[#e2dfde] bg-[#f3f3f3] p-6 md:col-span-3 md:flex-row md:items-center">
           <div className="flex-1">
             <h4 className="mb-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-              Diversity & Inclusion Report
+              Báo cáo đa dạng & hòa nhập
             </h4>
             <p className="max-w-md text-[14px] leading-5 text-[#5f5e5e]">
-              Your team has reached 85% of the annual inclusion targets. Explore the full
-              breakdown to optimize your outreach strategies.
+              Đội ngũ của bạn đã đạt 85% mục tiêu hòa nhập trong năm. Xem chi
+              tiết để tối ưu chiến lược tiếp cận ứng viên.
             </p>
             <PermissionGuard permissions={PERMISSIONS.DASHBOARD_VIEW_INTERNAL}>
               <button
                 type="button"
                 className="mt-4 bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-[#c8c6c5] hover:text-[#1a1c1c]"
               >
-                View Full Report
+                Xem báo cáo đầy đủ
               </button>
             </PermissionGuard>
           </div>

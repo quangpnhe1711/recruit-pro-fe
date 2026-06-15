@@ -41,7 +41,7 @@ function DashboardCandidateScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Loading candidate dashboard..." />
+        <LoadingIndicator label="Đang tải bảng điều khiển ứng viên..." />
       </div>
     );
   }
@@ -51,10 +51,10 @@ function DashboardCandidateScreen() {
       <section className="w-full px-4 py-10 md:px-10">
         <div className="border border-[#e2dfde] bg-white p-8 text-center">
           <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
-            Candidate Dashboard
+            Bảng điều khiển ứng viên
           </h2>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Unable to load dashboard data right now. Please refresh and try again.
+            Hiện chưa thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.
           </p>
         </div>
       </section>
@@ -65,18 +65,18 @@ function DashboardCandidateScreen() {
     {
       icon: "assignment",
       iconClassName: "text-[#b90014]",
-      label: "Applied Jobs",
+      label: "Việc đã ứng tuyển",
       value: String(dashboard.stats.appliedJobs).padStart(2, "0"),
-      helper: dashboard.stats.appliedJobs > 0 ? "+1 since last week" : "No applications yet",
+      helper: dashboard.stats.appliedJobs > 0 ? "+1 so với tuần trước" : "Chưa có đơn ứng tuyển",
     },
     {
       icon: "event",
       iconClassName: "text-[#005f93]",
-      label: "Interviews",
+      label: "Phỏng vấn",
       value: String(dashboard.stats.interviews).padStart(2, "0"),
       helper: dashboard.upcomingInterview
-        ? `Next scheduled at ${dashboard.upcomingInterview.time}`
-        : "No interview scheduled",
+        ? `Lịch gần nhất lúc ${dashboard.upcomingInterview.time}`
+        : "Chưa có lịch phỏng vấn",
     },
     {
       icon: "notifications_active",
@@ -85,8 +85,8 @@ function DashboardCandidateScreen() {
       value: String(dashboard.stats.unreadNotifications).padStart(2, "0"),
       helper:
         dashboard.stats.unreadNotifications > 0
-          ? "New updates available"
-          : "No unread notifications",
+          ? "Có cập nhật mới"
+          : "Không có thông báo chưa đọc",
     },
   ];
 
@@ -98,12 +98,12 @@ function DashboardCandidateScreen() {
     <section className="w-full px-4 py-10 md:px-10">
             <div className="mb-10">
               <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-                Welcome back, {dashboard?.greetingName ?? user?.fullName ?? "Candidate"}
+                Chào mừng quay lại, {dashboard?.greetingName ?? user?.fullName ?? "Ứng viên"}
               </h2>
               <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
                 {stats
-                  ? `You have ${stats.interviews} interview${stats.interviews === 1 ? "" : "s"} scheduled and ${stats.unreadNotifications} new notification${stats.unreadNotifications === 1 ? "" : "s"}.`
-                  : "No dashboard activity available yet."}
+                  ? `Bạn có ${stats.interviews} lịch phỏng vấn và ${stats.unreadNotifications} thông báo mới.`
+                  : "Chưa có hoạt động nào trên bảng điều khiển."}
               </p>
             </div>
 
@@ -143,41 +143,41 @@ function DashboardCandidateScreen() {
                     calendar_today
                   </span>
                   <h3 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                    Upcoming Interview
+                    Phỏng vấn sắp tới
                   </h3>
                 </div>
 
                 <div className="flex h-full flex-col border-l-4 border-[#b90014] bg-[#1A1A1A] p-6 text-white">
                   <div className="mb-6">
                     <span className="rounded-full bg-[#b90014] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
-                      Today
+                      Hôm nay
                     </span>
                     <h4 className="mt-4 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                      {upcomingInterview?.time ?? "No upcoming interview"}
+                      {upcomingInterview?.time ?? "Chưa có lịch sắp tới"}
                     </h4>
                     <p className="text-[16px] leading-6 text-[#c8c6c5]">
-                      {upcomingInterview?.date ?? "No interview scheduled"}
+                      {upcomingInterview?.date ?? "Chưa có lịch phỏng vấn"}
                     </p>
                   </div>
 
                   <div className="mb-8 space-y-4">
                     <div className="flex flex-col">
                       <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#b90014]">
-                        Job Title
+                        Vị trí
                       </span>
                       <span className="text-[16px] font-bold">
-                        {upcomingInterview?.jobTitle ?? "No interview scheduled"}
+                        {upcomingInterview?.jobTitle ?? "Chưa có lịch phỏng vấn"}
                       </span>
                     </div>
 
                     <div className="flex flex-col">
                       <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#b90014]">
-                        Interviewer
+                        Người phỏng vấn
                       </span>
                       <span className="text-[16px]">
                         {upcomingInterview
                           ? `${upcomingInterview.interviewerName}, ${upcomingInterview.interviewerTitle}`
-                          : "No interviewer assigned"}
+                          : "Chưa phân công người phỏng vấn"}
                       </span>
                     </div>
                   </div>
@@ -189,7 +189,7 @@ function DashboardCandidateScreen() {
                     <span className="material-symbols-outlined">
                       video_call
                     </span>
-                    Join Meeting
+                    Tham gia cuộc họp
                   </a>
                 </div>
               </div>
@@ -201,14 +201,14 @@ function DashboardCandidateScreen() {
                       recommend
                     </span>
                     <h3 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
-                      Recommended Jobs
+                      Việc làm gợi ý
                     </h3>
                   </div>
                   <a
                     className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
                     href="#"
                   >
-                    View All Listings
+                    Xem tất cả tin tuyển dụng
                   </a>
                 </div>
 
@@ -262,7 +262,7 @@ function DashboardCandidateScreen() {
                               className="bg-[#e31b23] px-10 py-4 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:brightness-110"
                               type="button"
                             >
-                              {job.actionLabel ?? "Apply Now"}
+                              {job.actionLabel ?? "Ứng tuyển ngay"}
                             </button>
                           </div>
                         </div>
@@ -307,7 +307,7 @@ function DashboardCandidateScreen() {
                           className="w-full border border-[#1a1c1c] py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#1a1c1c] transition-colors hover:bg-[#1a1c1c] hover:text-white"
                           type="button"
                         >
-                          {job.actionLabel ?? "Quick Apply"}
+                          {job.actionLabel ?? "Ứng tuyển nhanh"}
                         </button>
                       </div>
                     );

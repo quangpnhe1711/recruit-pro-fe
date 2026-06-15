@@ -483,22 +483,22 @@ export type UpdateJobStatusRequest = {
 };
 
 export const jobStatusLabels: Record<JobStatus, string> = {
-  DRAFT: "Draft",
-  PENDING_APPROVAL: "Pending Approval",
-  APPROVED: "Approved",
-  CLOSED: "Closed",
-  REJECTED: "Rejected",
+  DRAFT: "Nháp",
+  PENDING_APPROVAL: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  CLOSED: "Đã đóng",
+  REJECTED: "Từ chối",
 };
 
 export const employmentTypeLabels: Record<EmploymentType, string> = {
-  "Full-time": "Full-time",
-  "Part-time": "Part-time",
-  Internship: "Internship",
-  Contract: "Contract",
+  "Full-time": "Toàn thời gian",
+  "Part-time": "Bán thời gian",
+  Internship: "Thực tập",
+  Contract: "Hợp đồng",
 };
 
 export const workModeLabels: Record<WorkMode, string> = {
-  Onsite: "On-site",
-  Hybrid: "Hybrid",
-  Remote: "Remote",
+  Onsite: "Tại văn phòng",
+  Hybrid: "Linh hoạt",
+  Remote: "Từ xa",
 };

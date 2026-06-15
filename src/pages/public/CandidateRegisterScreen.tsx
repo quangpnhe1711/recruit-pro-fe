@@ -34,26 +34,26 @@ type ErrorMap = Record<string, string | undefined>;
 const steps = [
   {
     key: "account",
-    label: "Account",
-    title: "Create your account",
-    desc: "Enter your basic information to get started.",
-    sectionTitle: "Account Credentials",
+    label: "Tài khoản",
+    title: "Tạo tài khoản",
+    desc: "Nhập thông tin cơ bản để bắt đầu.",
+    sectionTitle: "Thông tin tài khoản",
     sectionIcon: "badge",
   },
   {
     key: "professional",
-    label: "Professional",
-    title: "Professional Details",
-    desc: "Tell us more about your career background.",
-    sectionTitle: "Professional Profile",
+    label: "Nghề nghiệp",
+    title: "Thông tin nghề nghiệp",
+    desc: "Chia sẻ thêm về nền tảng và định hướng của bạn.",
+    sectionTitle: "Hồ sơ nghề nghiệp",
     sectionIcon: "work",
   },
   {
     key: "links",
-    label: "Links",
-    title: "Links & Resume",
-    desc: "Finalize your candidateProfile with links and documents.",
-    sectionTitle: "Links & Resume",
+    label: "Liên kết",
+    title: "Liên kết & CV",
+    desc: "Hoàn thiện hồ sơ với liên kết và tài liệu đính kèm.",
+    sectionTitle: "Liên kết & CV",
     sectionIcon: "attachment",
   },
 ];
@@ -126,14 +126,14 @@ function CandidateRegisterScreen() {
         : null,
       notes: [
         "Payload đã được map sang CandidateRegisterRequest thực tế của backend.",
-        "File resume được gửi cùng request qua multipart/form-data.",
+        "File CV được gửi cùng request qua multipart/form-data.",
       ],
     };
   }, [values]);
 
   const stepConfig = steps[currentStep - 1];
   const stepIndicatorText = useMemo(() => {
-    return `Step ${currentStep} of ${totalSteps}: ${stepConfig.label}`;
+    return `Bước ${currentStep}/${totalSteps}: ${stepConfig.label}`;
   }, [currentStep, totalSteps, stepConfig.label]);
 
   // 3. Hàm setField cải tiến hỗ trợ cập nhật Object lồng nhau
@@ -175,12 +175,12 @@ function CandidateRegisterScreen() {
     const schemas: Record<number, yup.ObjectSchema<any>> = {
       1: yup.object({
         userInfo: yup.object({
-          fullName: yup.string().required("Required"),
-          email: yup.string().email("Invalid email").required("Required"),
+          fullName: yup.string().required("Bắt buộc"),
+          email: yup.string().email("Email không hợp lệ").required("Bắt buộc"),
           password: yup
             .string()
-            .min(6, "Minimum 6 characters")
-            .required("Required"),
+            .min(6, "Tối thiểu 6 ký tự")
+            .required("Bắt buộc"),
         }),
       }),
       2: yup.object({}),
@@ -285,12 +285,11 @@ function CandidateRegisterScreen() {
 
           <div className="max-w-md">
             <h1 className="text-[48px] leading-[56px] tracking-[-0.02em] font-bold text-white mb-6">
-              Forge your career with the industry leaders.
+              Mở ra hành trình sự nghiệp cùng đội ngũ dẫn đầu.
             </h1>
             <p className="text-[16px] leading-6 text-[#c8c6c5]">
-              Access exclusive internal opportunities, manage your professional
-              growth, and connect with hiring managers across the RecruitPro
-              ecosystem.
+              Tiếp cận các cơ hội phù hợp, phát triển hồ sơ nghề nghiệp và kết
+              nối với đội ngũ tuyển dụng trong hệ sinh thái RecruitPro.
             </p>
           </div>
         </div>
@@ -307,11 +306,11 @@ function CandidateRegisterScreen() {
               </div>
               <div>
                 <p className="text-[12px] tracking-[0.05em] font-semibold text-white">
-                  Join 500+ Internal Hires
+                  Đồng hành cùng 500+ lượt tuyển dụng nội bộ
                 </p>
                 <p className="text-[14px] leading-5 text-[#c8c6c5]">
-                  &quot;The streamlined portal changed how I look for internal
-                  growth.&quot;
+                  &quot;Cổng tuyển dụng này giúp tôi tiếp cận cơ hội phát triển rõ
+                  ràng và nhanh hơn.&quot;
                 </p>
               </div>
             </div>
@@ -393,7 +392,7 @@ function CandidateRegisterScreen() {
 
               <MockJsonButton
                 className="self-start"
-                label="Mock API JSON"
+                label="JSON mô phỏng API"
                 payload={mockPayload}
               />
             </div>
@@ -417,7 +416,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="fullName"
                       >
-                        Full Name{" "}
+                        Họ và tên{" "}
                         <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
@@ -437,7 +436,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="email"
                       >
-                        Email Address{" "}
+                        Email{" "}
                         <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
@@ -457,7 +456,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="password"
                       >
-                        Password{" "}
+                        Mật khẩu{" "}
                         <span className="text-[#b90014] font-bold">*</span>
                       </label>
                       <input
@@ -477,7 +476,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="phone"
                       >
-                        Phone Number
+                        Số điện thoại
                       </label>
                       <input
                         id="phone"
@@ -511,7 +510,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="position"
                       >
-                        Current Position
+                        Vị trí hiện tại
                       </label>
                       <input
                         id="position"
@@ -529,7 +528,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="experienceYears"
                       >
-                        Years Exp.
+                        Số năm kinh nghiệm
                       </label>
                       <input
                         id="experienceYears"
@@ -551,13 +550,13 @@ function CandidateRegisterScreen() {
                       className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                       htmlFor="education"
                     >
-                      Education
+                      Học vấn
                     </label>
                     <textarea
                       id="education"
                       name="education"
                       className={baseTextareaClass}
-                      placeholder="List your degrees and institutions..."
+                      placeholder="Liệt kê bằng cấp và đơn vị đào tạo..."
                       rows={2}
                       value={values.candidateProfile.education}
                       onChange={setField("candidateProfile", "education")}
@@ -569,13 +568,13 @@ function CandidateRegisterScreen() {
                       className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                       htmlFor="address"
                     >
-                      Address
+                      Địa chỉ
                     </label>
                     <textarea
                       id="address"
                       name="address"
                       className={baseTextareaClass}
-                      placeholder="Street, City, State, ZIP..."
+                      placeholder="Số nhà, đường, quận/huyện, tỉnh/thành..."
                       rows={2}
                       value={values.candidateProfile.address}
                       onChange={setField("candidateProfile", "address")}
@@ -587,13 +586,13 @@ function CandidateRegisterScreen() {
                       className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                       htmlFor="bio"
                     >
-                      Professional Bio
+                      Giới thiệu bản thân
                     </label>
                     <textarea
                       id="bio"
                       name="bio"
                       className={baseTextareaClass}
-                      placeholder="Briefly describe your career goals and achievements..."
+                      placeholder="Mô tả ngắn về mục tiêu nghề nghiệp và thành tựu của bạn..."
                       rows={4}
                       value={values.candidateProfile.bio}
                       onChange={setField("candidateProfile", "bio")}
@@ -616,7 +615,7 @@ function CandidateRegisterScreen() {
 
                   <div className="space-y-1.5">
                     <label className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c]">
-                      Resume Upload
+                      Tải CV
                     </label>
 
                     <div className="relative group cursor-pointer border-2 border-dashed border-[#e2dfde] hover:border-[#b90014] rounded-lg p-8 transition-colors bg-[#f3f3f3]/50 flex flex-col items-center justify-center text-center">
@@ -631,15 +630,15 @@ function CandidateRegisterScreen() {
                         cloud_upload
                       </span>
                       <p className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c]">
-                        Drag and drop or{" "}
-                        <span className="text-[#b90014]">click to upload</span>
+                        Kéo thả hoặc{" "}
+                        <span className="text-[#b90014]">bấm để tải lên</span>
                       </p>
                       <p className="text-[10px] uppercase text-[#5f5e5e] tracking-[0.18em] mt-1">
-                        PDF, DOCX up to 10MB
+                        PDF, DOCX tối đa 10MB
                       </p>
                       {values.resume ? (
                         <p className="mt-3 text-[12px] text-[#5f5e5e]">
-                          Selected:{" "}
+                          Đã chọn:{" "}
                           <span className="font-semibold">
                             {values.resume.name}
                           </span>
@@ -654,7 +653,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="github"
                       >
-                        GitHub URL
+                        Liên kết GitHub
                       </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[#5f5e5e] text-[18px]">
@@ -677,7 +676,7 @@ function CandidateRegisterScreen() {
                         className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="linkedin"
                       >
-                        LinkedIn URL
+                        Liên kết LinkedIn
                       </label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[#5f5e5e] text-[18px]">
@@ -709,7 +708,7 @@ function CandidateRegisterScreen() {
                     <span className="material-symbols-outlined">
                       arrow_back
                     </span>
-                    Previous
+                    Quay lại
                   </button>
 
                   <button
@@ -717,7 +716,7 @@ function CandidateRegisterScreen() {
                     onClick={handleNext}
                     className={`${currentStep === totalSteps ? "hidden" : ""} flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10`}
                   >
-                    Next Step
+                    Bước tiếp theo
                     <span className="material-symbols-outlined">
                       arrow_forward
                     </span>
@@ -733,18 +732,18 @@ function CandidateRegisterScreen() {
                         <span className="material-symbols-outlined animate-spin">
                           progress_activity
                         </span>
-                        Processing...
+                        Đang xử lý...
                       </>
                     ) : submitState === "success" ? (
                       <>
                         <span className="material-symbols-outlined">
                           check_circle
                         </span>
-                        Success!
+                        Thành công!
                       </>
                     ) : (
                       <>
-                        Create Account
+                        Tạo tài khoản
                         <span className="material-symbols-outlined">
                           check_circle
                         </span>
@@ -754,12 +753,12 @@ function CandidateRegisterScreen() {
                 </div>
 
                 <p className="text-center text-[14px] leading-5 text-[#5f5e5e]">
-                  Already have an account?{" "}
+                  Đã có tài khoản?{" "}
                   <Link
                     className="text-[#1a1c1c] font-semibold underline hover:text-[#b90014] transition-colors"
                     to="/login"
                   >
-                    Login
+                    Đăng nhập
                   </Link>
                 </p>
               </div>
@@ -767,9 +766,9 @@ function CandidateRegisterScreen() {
 
             <footer className="mt-16 pt-8 border-t border-[#e2dfde] mb-8">
               <p className="text-center text-[12px] tracking-[0.05em] text-[#5f5e5e] opacity-60">
-                © 2024 RecruitPro Internal. For authorized personnel only.
+                © 2024 RecruitPro Internal. Dành cho người dùng được cấp quyền.
                 <br />
-                Internal Security Disclosure: IP logged on submission.
+                Lưu ý bảo mật nội bộ: hệ thống có ghi nhận IP khi gửi biểu mẫu.
               </p>
             </footer>
           </div>

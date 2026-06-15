@@ -8,7 +8,7 @@ import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSche
 import { jobsService } from "../../services/jobs/jobsService";
 
 function formatDateLabel(value: string | null) {
-  if (!value) return "Unknown";
+  if (!value) return "Không rõ";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
@@ -37,7 +37,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
   return [
     {
       key: "title",
-      header: "Approval Queue",
+      header: "Hàng chờ duyệt",
       renderCell: (item) => (
         <div>
           <p className="text-[14px] font-bold text-[#1a1c1c]">{item.title}</p>
@@ -47,7 +47,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
     },
     {
       key: "departmentName",
-      header: "Department",
+      header: "Phòng ban",
       renderCell: (item) => (
         <div>
           <p className="text-[14px] font-semibold text-[#1a1c1c]">{item.departmentName}</p>
@@ -57,7 +57,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
     },
     {
       key: "hrOwnerName",
-      header: "Created By HR",
+      header: "Người tạo",
       renderCell: (item) => (
         <div>
           <p className="text-[14px] font-semibold text-[#1a1c1c]">{item.hrOwnerName}</p>
@@ -67,32 +67,32 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
     },
     {
       key: "vacancyCount",
-      header: "Scope",
+      header: "Phạm vi",
       renderCell: (item) => (
         <div className="space-y-1 text-[12px] text-[#5f5e5e]">
-          <p><span className="font-semibold text-[#1a1c1c]">{item.vacancyCount}</span> openings</p>
-          <p><span className="font-semibold text-[#1a1c1c]">{item.requiredSkillsCount}</span> required skills</p>
-          <p><span className="font-semibold text-[#1a1c1c]">{item.applicationsCount}</span> applications</p>
+          <p><span className="font-semibold text-[#1a1c1c]">{item.vacancyCount}</span> vị trí tuyển</p>
+          <p><span className="font-semibold text-[#1a1c1c]">{item.requiredSkillsCount}</span> kỹ năng yêu cầu</p>
+          <p><span className="font-semibold text-[#1a1c1c]">{item.applicationsCount}</span> hồ sơ ứng tuyển</p>
         </div>
       ),
     },
     {
       key: "status",
-      header: "Status",
+      header: "Trạng thái",
       renderCell: (item) => (
         <div className="space-y-2">
           <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${statusBadge(item.status)}`}>
-            {item.status === "PendingApproval" ? "Pending Approval" : item.status}
+            {item.status === "PendingApproval" ? "Chờ duyệt" : item.status === "Approved" ? "Đã duyệt" : item.status === "Rejected" ? "Từ chối" : item.status}
           </span>
           <p className={`text-[12px] font-semibold ${item.isOverdue ? "text-[#ba1a1a]" : "text-[#5f5e5e]"}`}>
-            {item.isOverdue ? "Needs review attention" : "Within review window"}
+            {item.isOverdue ? "Cần ưu tiên xử lý" : "Trong thời hạn duyệt"}
           </p>
         </div>
       ),
     },
     {
       key: "action",
-      header: "Action",
+      header: "Thao tác",
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (item) => (
@@ -104,7 +104,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
             onOpen(item);
           }}
         >
-          Review Draft
+          Xem bản nháp
         </button>
       ),
     },
@@ -162,7 +162,7 @@ function ManagerJobApprovalListScreen() {
         });
         setTotalPages(1);
         setTotalItems(0);
-        toast.error("Unable to load job approval queue.");
+        toast.error("Không thể tải hàng chờ duyệt.");
       } finally {
         if (mounted) {
           setLoading(false);
@@ -188,7 +188,7 @@ function ManagerJobApprovalListScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-8 md:px-10">
-        <LoadingIndicator label="Loading job approval queue..." />
+        <LoadingIndicator label="Đang tải hàng chờ duyệt..." />
       </div>
     );
   }
@@ -198,13 +198,13 @@ function ManagerJobApprovalListScreen() {
       <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Job Approval Workflow
+            Quy trình duyệt tuyển dụng
           </p>
           <h1 className="mt-2 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Job Posting Approval
+            Duyệt tin tuyển dụng
           </h1>
           <p className="mt-2 max-w-3xl text-[16px] leading-6 text-[#5f5e5e]">
-            Review jobs submitted by HR, validate department scope and skills, then approve, reject, or send them back for revision.
+            Xem lại các job HR đã gửi lên, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa.
           </p>
         </div>
 
@@ -214,7 +214,7 @@ function ManagerJobApprovalListScreen() {
           </span>
           <input
             className="h-12 w-full rounded-lg border border-[#e7bdb8] bg-white pl-10 pr-4 text-sm outline-none transition-colors focus:border-[#1a1c1c]"
-            placeholder="Search title, department, skill, HR owner..."
+            placeholder="Tìm theo tiêu đề, phòng ban, kỹ năng, HR..."
             type="text"
             value={keyword}
             onChange={(event) => {
@@ -227,24 +227,24 @@ function ManagerJobApprovalListScreen() {
 
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Pending Approval Jobs</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Job chờ duyệt</p>
           <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">{summary.pendingApprovals}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">Queue size awaiting manager decision</p>
+          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">Số lượng đang chờ quản lý quyết định</p>
         </div>
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Submitted Today</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Gửi hôm nay</p>
           <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">{summary.submittedToday}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">New HR job drafts entering approval flow</p>
+          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">Bản nháp mới của HR đi vào luồng duyệt</p>
         </div>
         <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Overdue Reviews</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Quá hạn duyệt</p>
           <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#ba1a1a]">{summary.overdueReviews}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a]">Pending more than 3 days</p>
+          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a]">Chờ quá 3 ngày</p>
         </div>
         <div className="border border-[#e7bdb8] bg-[#1a1a1a] p-5 text-white">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">Departments Waiting</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">Phòng ban đang chờ</p>
           <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em]">{summary.departmentsWaiting}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-white/70">Business units with pending staffing requests</p>
+          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-white/70">Đơn vị đang có yêu cầu nhân sự chờ duyệt</p>
         </div>
       </div>
 
@@ -252,14 +252,14 @@ function ManagerJobApprovalListScreen() {
         <div className="flex flex-col gap-3 border-b border-[#e7bdb8] bg-[#f9f9f9] px-6 py-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
-              Approval Queue
+              Hàng chờ duyệt
             </p>
             <p className="mt-1 text-sm text-[#5d3f3c]">
-              Open a draft to inspect department context, skills, and workflow impact before publishing.
+              Mở bản nháp để kiểm tra bối cảnh phòng ban, kỹ năng và tác động luồng tuyển trước khi đăng.
             </p>
           </div>
           <p className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-            Showing <span className="text-[#1a1c1c]">{rangeStart}-{rangeEnd}</span> of <span className="text-[#1a1c1c]">{totalItems}</span>
+            Hiển thị <span className="text-[#1a1c1c]">{rangeStart}-{rangeEnd}</span> trên tổng <span className="text-[#1a1c1c]">{totalItems}</span>
           </p>
         </div>
 
@@ -268,7 +268,7 @@ function ManagerJobApprovalListScreen() {
           data={items}
           keyExtractor={(item) => item.jobId}
           loading={loading}
-          emptyMessage="No jobs are waiting for manager approval."
+          emptyMessage="Không có job nào đang chờ quản lý duyệt."
           hover
           zebra
           onRowClick={(item) => navigate(`/manager/jobs/${item.jobId}/approval`)}

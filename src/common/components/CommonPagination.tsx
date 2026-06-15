@@ -54,7 +54,7 @@ function CommonPagination({
   return (
     <div className="flex flex-col gap-3 border-t border-[#e2dfde] p-4 text-[12px] font-semibold text-[#5f5e5e] md:flex-row md:items-center md:justify-between">
       <span className="whitespace-nowrap">
-        Showing {rangeStart} to {rangeEnd} of {totalItems} entries
+        Hiển thị {rangeStart} đến {rangeEnd} trên tổng {totalItems} mục
       </span>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -63,7 +63,7 @@ function CommonPagination({
           className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage <= 1 || disabled}
-          aria-label="Previous"
+          aria-label="Trang trước"
         >
           <span className="material-symbols-outlined">chevron_left</span>
         </button>
@@ -131,7 +131,7 @@ function CommonPagination({
           className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:opacity-50 disabled:cursor-not-allowed "
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage >= totalPages || disabled}
-          aria-label="Next"
+          aria-label="Trang sau"
         >
           <span className="material-symbols-outlined">chevron_right</span>
         </button>

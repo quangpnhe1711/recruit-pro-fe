@@ -11,27 +11,27 @@ type BottomNavItem = {
 const defaultItems: BottomNavItem[] = [
   {
     icon: 'dashboard',
-    label: 'Dashboard',
+    label: 'Tổng quan',
     to: '/candidate/dashboard',
   },
   {
     icon: 'work',
-    label: 'Jobs',
+    label: 'Việc làm',
     to: '/jobs',
   },
   {
     icon: 'inbox',
-    label: 'My Applications',
+    label: 'Đơn ứng tuyển',
     to: '/candidate/my-applications',
   },
   {
     icon: 'schedule',
-    label: 'Interviews',
+    label: 'Phỏng vấn',
     to: '/candidate/interviews',
   },
   {
     icon: 'person',
-    label: 'Profile',
+    label: 'Hồ sơ',
     to: '/candidate/profile',
   },
 ]
