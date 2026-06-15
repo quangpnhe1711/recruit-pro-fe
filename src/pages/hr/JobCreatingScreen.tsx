@@ -30,10 +30,16 @@ type DraftState = {
   responsibilities: string[];
   requirements: string[];
 
-  skills: string[];
+  skills: SkillRequirementDraft[];
+  niceToHaveSkills: SkillRequirementDraft[];
   salaryMin: string;
   salaryMax: string;
   currency: string;
+};
+
+type SkillRequirementDraft = {
+  skillName: string;
+  minimumYearsOfExperience: string;
 };
 
 type CreatedJob = {
@@ -47,7 +53,6 @@ type CreatedJob = {
 };
 
 const departments = ["Engineering", "Product", "Design", "Marketing", "Sales"];
-const currencies = ["USD", "EUR", "GBP", "JPY", "VND"];
 const employmentTypeOptions = Object.entries(employmentTypeLabels).map(
   ([value, label]) => ({ value, label }),
 );
@@ -70,6 +75,47 @@ function normalizeList(values: unknown): string[] {
   return values
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v) => v.length > 0);
+}
+
+function normalizeSkillRequirements(values: unknown): SkillRequirementDraft[] {
+  if (!Array.isArray(values)) return [];
+
+  return values
+    .map((value) => {
+      if (typeof value === "string") {
+        const skillName = value.trim();
+        return skillName
+          ? {
+              skillName,
+              minimumYearsOfExperience: "",
+            }
+          : null;
+      }
+
+      if (value && typeof value === "object") {
+        const rawSkillName = "skillName" in value ? value.skillName : "";
+        const rawMinimumYears = "minimumYearsOfExperience" in value
+          ? value.minimumYearsOfExperience
+          : "";
+        const skillName = typeof rawSkillName === "string" ? rawSkillName.trim() : "";
+        if (!skillName) {
+          return null;
+        }
+
+        return {
+          skillName,
+          minimumYearsOfExperience:
+            typeof rawMinimumYears === "number"
+              ? String(rawMinimumYears)
+              : typeof rawMinimumYears === "string"
+                ? rawMinimumYears.trim()
+                : "",
+        };
+      }
+
+      return null;
+    })
+    .filter((value): value is SkillRequirementDraft => Boolean(value));
 }
 
 function loadDraft(): DraftState | null {
@@ -106,13 +152,11 @@ function loadDraft(): DraftState | null {
     responsibilities: normalizeList(parsed.responsibilities),
     requirements: normalizeList(parsed.requirements),
 
-    skills: normalizeList(parsed.skills),
+    skills: normalizeSkillRequirements(parsed.skills),
+    niceToHaveSkills: normalizeSkillRequirements(parsed.niceToHaveSkills),
     salaryMin: typeof parsed.salaryMin === "string" ? parsed.salaryMin : "",
     salaryMax: typeof parsed.salaryMax === "string" ? parsed.salaryMax : "",
-    currency:
-      typeof parsed.currency === "string" && parsed.currency
-        ? parsed.currency
-        : "USD",
+    currency: "VND",
   };
 }
 
@@ -159,8 +203,11 @@ function JobCreatingScreen() {
   const [requirementInput, setRequirementInput] = useState<string>("");
 
   // Step 3
-  const [skills, setSkills] = useState<string[]>(
+  const [skills, setSkills] = useState<SkillRequirementDraft[]>(
     () => initialDraft?.skills ?? [],
+  );
+  const [niceToHaveSkills, setNiceToHaveSkills] = useState<SkillRequirementDraft[]>(
+    () => initialDraft?.niceToHaveSkills ?? [],
   );
   const [availableSkills, setAvailableSkills] = useState<SkillDto[]>([]);
   const [skillOptions, setSkillOptions] = useState<
@@ -174,7 +221,7 @@ function JobCreatingScreen() {
     () => initialDraft?.salaryMax ?? "",
   );
   const [currency, setCurrency] = useState<string>(
-    () => initialDraft?.currency ?? "USD",
+    () => "VND",
   );
   const [publishing, setPublishing] = useState(false);
 
@@ -226,6 +273,7 @@ function JobCreatingScreen() {
       responsibilities,
       requirements,
       skills,
+      niceToHaveSkills,
       salaryMin,
       salaryMax,
       currency,
@@ -292,31 +340,45 @@ function JobCreatingScreen() {
   function validateStep3() {
     const schema = yup
       .object({
-        skills: yup.array().of(yup.string()).min(1, "Add at least one skill."),
-        salaryMin: yup
-          .number()
-          .typeError("Enter a valid salary range.")
-          .positive()
-          .required(),
-        salaryMax: yup
-          .number()
-          .typeError("Enter a valid salary range.")
-          .positive()
-          .required(),
-        currency: yup.string().trim().required("Select a currency."),
+        skills: yup
+          .array()
+          .of(
+            yup.object({
+              skillName: yup.string().trim().required(),
+              minimumYearsOfExperience: yup
+                .string()
+                .test(
+                  "valid-minimum-years",
+                  "Years of experience must be 0.5-step values such as 0.5, 1, 1.5.",
+                  (value) => {
+                    if (!value) return true;
+                    const parsedValue = Number(value);
+                    return Number.isFinite(parsedValue) && parsedValue >= 0 && (parsedValue * 2) % 1 === 0;
+                  },
+                ),
+            }),
+          )
+          .min(1, "Add at least one required skill."),
+        salaryMin: yup.number().nullable().transform((value, originalValue) =>
+          originalValue === "" || originalValue == null ? null : value,
+        ),
+        salaryMax: yup.number().nullable().transform((value, originalValue) =>
+          originalValue === "" || originalValue == null ? null : value,
+        ),
       })
       .test(
         "min<=max",
         "Salary min must be less than or equal to max.",
         (val) => {
           if (!val) return false;
+          if (val.salaryMin == null || val.salaryMax == null) return true;
           return Number(val.salaryMin) <= Number(val.salaryMax);
         },
       );
 
     try {
       schema.validateSync(
-        { skills, salaryMin, salaryMax, currency },
+        { skills, salaryMin, salaryMax },
         { abortEarly: false },
       );
       return true;
@@ -346,6 +408,56 @@ function JobCreatingScreen() {
     setter((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function addSkillRequirement(
+    skillName: string,
+    setter: (updater: (prev: SkillRequirementDraft[]) => SkillRequirementDraft[]) => void,
+  ) {
+    const next = skillName.trim();
+    if (!next) return;
+
+    setter((prev) => {
+      const exists = prev.some((item) => item.skillName.toLowerCase() === next.toLowerCase());
+      return exists
+        ? prev
+        : [
+            ...prev,
+            {
+              skillName: next,
+              minimumYearsOfExperience: "",
+            },
+          ];
+    });
+  }
+
+  function removeSkillRequirement(
+    skillName: string,
+    setter: (updater: (prev: SkillRequirementDraft[]) => SkillRequirementDraft[]) => void,
+  ) {
+    setter((prev) => prev.filter((item) => item.skillName !== skillName));
+  }
+
+  function updateSkillRequirementYears(
+    skillName: string,
+    value: string,
+    setter: (updater: (prev: SkillRequirementDraft[]) => SkillRequirementDraft[]) => void,
+  ) {
+    const normalizedValue = value.trim();
+    if (normalizedValue && !/^\d*\.?\d*$/.test(normalizedValue)) {
+      return;
+    }
+
+    setter((prev) =>
+      prev.map((item) =>
+        item.skillName === skillName
+          ? {
+              ...item,
+              minimumYearsOfExperience: normalizedValue,
+            }
+          : item,
+      ),
+    );
+  }
+
   function continueNext() {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
@@ -369,6 +481,7 @@ function JobCreatingScreen() {
         responsibilities,
         requirements,
         skills,
+        niceToHaveSkills,
         salaryMin,
         salaryMax,
         currency,
@@ -391,15 +504,30 @@ function JobCreatingScreen() {
   async function publishJob() {
     if (!validateStep1() || !validateStep2() || !validateStep3()) return;
 
-    const selectedSkillIds = availableSkills
-      .filter((skill) =>
-        skills.some(
-          (selectedSkill) =>
-            selectedSkill.trim().toLowerCase() ===
-            skill.name.trim().toLowerCase(),
-        ),
-      )
-      .map((skill) => skill.id);
+    const findSkillIdByName = (name: string) =>
+      availableSkills.find(
+        (skill) =>
+          skill.name.trim().toLowerCase() === name.trim().toLowerCase(),
+      )?.id;
+
+    const skillRequirements = [
+      ...skills.map((skill) => ({
+        skillId: findSkillIdByName(skill.skillName) ?? null,
+        skillName: skill.skillName,
+        skillType: "Required" as const,
+        minimumYearsOfExperience: skill.minimumYearsOfExperience
+          ? Number(skill.minimumYearsOfExperience)
+          : null,
+      })),
+      ...niceToHaveSkills.map((skill) => ({
+        skillId: findSkillIdByName(skill.skillName) ?? null,
+        skillName: skill.skillName,
+        skillType: "NiceToHave" as const,
+        minimumYearsOfExperience: skill.minimumYearsOfExperience
+          ? Number(skill.minimumYearsOfExperience)
+          : null,
+      })),
+    ];
 
     setPublishing(true);
     try {
@@ -413,15 +541,18 @@ function JobCreatingScreen() {
         description,
         responsibilities,
         requirements,
-        skills,
+        skills: skills.map((skill) => skill.skillName),
+        skillRequirements,
         salaryMin: salaryMin ? Number(salaryMin) : null,
         salaryMax: salaryMax ? Number(salaryMax) : null,
-        currency,
+        currency: "VND",
         vacancyCount: 1,
         benefits: [],
         deadline: null,
         departmentId: null,
-        skillIds: selectedSkillIds,
+        skillIds: skillRequirements
+          .map((item) => item.skillId)
+          .filter((value): value is string => Boolean(value)),
         minExperienceYears: 0,
       });
 
@@ -745,34 +876,124 @@ function JobCreatingScreen() {
           <div className="space-y-8">
             <div className="space-y-2">
               <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Skills
+                Required Skills
               </label>
               {skillsLoading ? (
                 <div className="rounded-xl border border-[#e2dfde] bg-white px-4 py-3">
                   <LoadingIndicator label="Loading skills..." size="sm" />
                 </div>
               ) : (
-                <SkillPicker
-                  emptyLabel="Select required skills from the existing database."
-                  options={skillOptions}
-                  placeholder="Choose a required skill"
-                  selectedValues={skills}
-                  onAdd={(value) =>
-                    setSkills((prev) =>
-                      prev.includes(value) ? prev : [...prev, value],
-                    )
-                  }
-                  onRemove={(value) =>
-                    setSkills((prev) => prev.filter((item) => item !== value))
-                  }
-                />
+                <div className="space-y-4">
+                  <SkillPicker
+                    emptyLabel="Select required skills from the existing database."
+                    options={skillOptions}
+                    placeholder="Choose a required skill"
+                    selectedValues={skills.map((skill) => skill.skillName)}
+                    onAdd={(value) => addSkillRequirement(value, setSkills)}
+                    onRemove={(value) => removeSkillRequirement(value, setSkills)}
+                  />
+
+                  {skills.length ? (
+                    <div className="space-y-3">
+                      {skills.map((skill) => (
+                        <div
+                          key={skill.skillName}
+                          className="grid gap-3 border border-[#e2dfde] bg-[#f9f9f9] px-4 py-3 md:grid-cols-[minmax(0,1fr)_200px]"
+                        >
+                          <div>
+                            <p className="text-[14px] font-semibold text-[#1a1c1c]">
+                              {skill.skillName}
+                            </p>
+                            <p className="mt-1 text-[12px] text-[#5f5e5e]">
+                              Optional minimum experience. Leave blank if the role only needs this skill to be present.
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
+                              Minimum years
+                            </label>
+                            <input
+                              value={skill.minimumYearsOfExperience}
+                              onChange={(e) =>
+                                updateSkillRequirementYears(
+                                  skill.skillName,
+                                  e.target.value,
+                                  setSkills,
+                                )
+                              }
+                              className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                              inputMode="decimal"
+                              placeholder="e.g. 1.5"
+                              type="text"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="space-y-2">
+                    <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
+                      Nice To Have Skills
+                    </label>
+                    <SkillPicker
+                      emptyLabel="Optional skills that improve candidate ranking."
+                      options={skillOptions}
+                      placeholder="Choose an optional skill"
+                      selectedValues={niceToHaveSkills.map((skill) => skill.skillName)}
+                      onAdd={(value) => addSkillRequirement(value, setNiceToHaveSkills)}
+                      onRemove={(value) => removeSkillRequirement(value, setNiceToHaveSkills)}
+                    />
+
+                    {niceToHaveSkills.length ? (
+                      <div className="space-y-3">
+                        {niceToHaveSkills.map((skill) => (
+                          <div
+                            key={skill.skillName}
+                            className="grid gap-3 border border-[#cfe1eb] bg-[#f7fbfd] px-4 py-3 md:grid-cols-[minmax(0,1fr)_200px]"
+                          >
+                            <div>
+                              <p className="text-[14px] font-semibold text-[#005f93]">
+                                {skill.skillName}
+                              </p>
+                              <p className="mt-1 text-[12px] text-[#5f5e5e]">
+                                Optional experience threshold used for bonus matching.
+                              </p>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
+                                Minimum years
+                              </label>
+                              <input
+                                value={skill.minimumYearsOfExperience}
+                                onChange={(e) =>
+                                  updateSkillRequirementYears(
+                                    skill.skillName,
+                                    e.target.value,
+                                    setNiceToHaveSkills,
+                                  )
+                                }
+                                className="w-full rounded-none border border-[#cfe1eb] bg-white px-3 py-2 text-[14px] focus:border-[#005f93] focus:ring-0"
+                                inputMode="decimal"
+                                placeholder="e.g. 0.5"
+                                type="text"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
               )}
             </div>
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Salary Min
+                  Salary Min (VND)
                 </label>
                 <input
                   value={salaryMin}
@@ -785,7 +1006,7 @@ function JobCreatingScreen() {
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Salary Max
+                  Salary Max (VND)
                 </label>
                 <input
                   value={salaryMax}
@@ -800,10 +1021,10 @@ function JobCreatingScreen() {
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
                   Currency
                 </label>
-                <CommonSelect
-                  options={currencies.map((c) => ({ label: c, value: c }))}
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
+                <input
+                  value="VND"
+                  readOnly
+                  className="w-full rounded-none border border-[#e2dfde] bg-[#f3f3f3] px-4 py-3 text-[14px] text-[#5f5e5e]"
                 />
               </div>
             </div>
@@ -865,22 +1086,44 @@ function JobCreatingScreen() {
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {skills.length ? (
-                    skills.map((s) => (
+                    skills.map((skill) => (
                       <span
-                        key={s}
+                        key={skill.skillName}
                         className="border border-[#e2dfde] bg-white px-3 py-1 text-[12px] font-semibold"
                       >
-                        {s}
+                        {skill.skillName}
+                        {skill.minimumYearsOfExperience
+                          ? ` (${skill.minimumYearsOfExperience} yrs)`
+                          : ""}
                       </span>
                     ))
                   ) : (
                     <span className="text-[14px] text-[#5f5e5e]">—</span>
                   )}
                 </div>
+                {niceToHaveSkills.length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {niceToHaveSkills.map((skill) => (
+                      <span
+                        key={skill.skillName}
+                        className="border border-[#005f93]/20 bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]"
+                      >
+                        {skill.skillName}
+                        {skill.minimumYearsOfExperience
+                          ? ` (${skill.minimumYearsOfExperience} yrs)`
+                          : ""}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 <p className="mt-4 text-[14px] text-[#1a1c1c]">
                   {salaryMin && salaryMax
-                    ? `${currency} ${salaryMin} – ${currency} ${salaryMax}`
-                    : "—"}
+                    ? `${Number(salaryMin).toLocaleString("vi-VN")} - ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
+                    : salaryMin
+                      ? `${Number(salaryMin).toLocaleString("vi-VN")}+ VNĐ`
+                      : salaryMax
+                        ? `Up to ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
+                        : "Thương lượng"}
                 </p>
               </div>
             </div>

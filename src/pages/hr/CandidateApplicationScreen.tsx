@@ -296,10 +296,10 @@ function buildApplicationTableColumns(
     },
     {
       key: "score",
-      header: "Score",
+      header: "Match Score",
       renderCell: (app) => (
         <p className="text-body-lg font-semibold text-[#1a1c1c]">
-          {app.score != null ? app.score.toFixed(1) : "--"}
+          {app.score != null ? `${app.score.toFixed(1)}%` : "--"}
         </p>
       ),
     },

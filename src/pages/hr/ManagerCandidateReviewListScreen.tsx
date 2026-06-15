@@ -83,10 +83,10 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "score",
-      header: "Score",
+      header: "Match Score",
       renderCell: (item) => (
         <div className="flex items-center gap-1">
-          <span className="font-bold text-[#005f93]">{item.score.toFixed(1)}</span>
+          <span className="font-bold text-[#005f93]">{item.score.toFixed(1)}%</span>
           <span
             className="material-symbols-outlined text-[16px] text-[#005f93]"
             style={{ fontVariationSettings: "'FILL' 1" }}

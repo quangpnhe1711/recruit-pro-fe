@@ -10,10 +10,10 @@ function AuthenticatedLayout() {
   const isCandidate = portalVariant === "candidate";
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
+    <div className="min-h-screen overflow-visible bg-[#f9f9f9] text-[#1a1c1c]">
       <SideNavBar />
 
-      <div className="flex min-h-screen flex-col lg:pl-64">
+      <div className="flex min-h-screen flex-col overflow-visible lg:pl-64">
         <AppHeader />
 
         <main className={`flex-1 ${isCandidate ? "pb-24 lg:pb-0" : ""}`}>

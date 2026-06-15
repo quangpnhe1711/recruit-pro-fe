@@ -78,6 +78,7 @@ export type HrCandidateDetailDto = {
     id: string;
     label: string;
     active: boolean;
+    yearsOfExperience: number | null;
   }>;
   experienceEntries: Array<{
     id: string;
@@ -92,12 +93,59 @@ export type HrCandidateDetailDto = {
     };
     bullets: string[];
   }>;
+  projects: Array<{
+    id: string;
+    name: string;
+    role: string | null;
+    description: string | null;
+    technologies: string[];
+    period: {
+      startMonth: number;
+      startYear: number;
+      endMonth: number | null;
+      endYear: number | null;
+      isCurrent: boolean;
+    };
+  }>;
+  educations: Array<{
+    id: string;
+    school: string;
+    degree: string;
+    fieldOfStudy: string | null;
+    startYear: number | null;
+    endYear: number | null;
+    description: string | null;
+  }>;
+  certifications: Array<{
+    id: string;
+    name: string;
+    issuer: string | null;
+    issuedOn: string | null;
+    expiresOn: string | null;
+    credentialId: string | null;
+    credentialUrl: string | null;
+  }>;
+  languages: Array<{
+    id: string;
+    name: string;
+    proficiency: string;
+  }>;
   resume: {
     id: string;
     fileName: string;
     fileUrl: string;
     uploadedAt: string;
+    version: number;
+    isCurrent: boolean;
   } | null;
+  resumeHistory: Array<{
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    uploadedAt: string;
+    version: number;
+    isCurrent: boolean;
+  }>;
   applicationHistory: Array<{
     applicationId: string;
     jobId: string;

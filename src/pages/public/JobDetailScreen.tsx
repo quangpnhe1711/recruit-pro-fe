@@ -87,7 +87,7 @@ function mapStatus(status: string): RecentApplication["status"] {
 function formatCurrency(amount: number | null) {
   if (amount == null) return null;
 
-  return `$${amount.toLocaleString()}`;
+  return `${amount.toLocaleString("vi-VN")} VNĐ`;
 }
 
 function toTextBlock(values: string[]) {
@@ -275,9 +275,10 @@ function JobDetailScreen() {
                 ? "Từ chối"
                 : "Đang tuyển",
       salaryRange:
-        detail.salaryMin != null || detail.salaryMax != null
-          ? `${formatCurrency(detail.salaryMin ?? detail.salaryMax) ?? "$0"} — ${formatCurrency(detail.salaryMax ?? detail.salaryMin) ?? "$0"}`
-          : "Thỏa thuận",
+        detail.salaryLabel ||
+        (detail.salaryMin != null || detail.salaryMax != null
+          ? `${formatCurrency(detail.salaryMin ?? detail.salaryMax) ?? "0 VNĐ"} — ${formatCurrency(detail.salaryMax ?? detail.salaryMin) ?? "0 VNĐ"}`
+          : "Thỏa thuận"),
       department: detail.department?.name ?? "",
       jobType: `${detail.employmentType}${detail.workMode ? `, ${detail.workMode}` : ""}`,
       vacancyCount: detail.vacancyCount ?? 0,

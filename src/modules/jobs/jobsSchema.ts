@@ -15,6 +15,8 @@ export type JobSkillDto = {
   skill: SkillDto;
   minYearsExperience: number | null;
   isRequired: boolean;
+  skillType?: "Required" | "NiceToHave" | string;
+  minimumYearsOfExperience?: number | null;
 };
 
 export type EmploymentType =
@@ -343,9 +345,12 @@ export type JobDetailDto = {
   status: JobStatus;
   createdAt: string;
   description: string;
+  salaryLabel?: string;
   requirements: string[];
   benefits: string[];
   skills: JobSkillDto[];
+  requiredSkills?: JobSkillDto[];
+  niceToHaveSkills?: JobSkillDto[];
   summary: string;
   hiringManager: UserDto | null;
   applicationCount: number;
@@ -465,9 +470,15 @@ export type CreateJobRequest = {
   requirements: string[];
   skills?: string[];
   skillIds?: string[];
+  skillRequirements?: Array<{
+    skillId?: string | null;
+    skillName?: string | null;
+    skillType: "Required" | "NiceToHave" | string;
+    minimumYearsOfExperience?: number | null;
+  }>;
   salaryMin: number | null;
   salaryMax: number | null;
-  currency?: string | null;
+  currency?: "VND" | string | null;
   vacancyCount: number;
   minExperienceYears?: number | null;
   benefits?: string[];

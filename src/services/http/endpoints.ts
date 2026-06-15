@@ -39,6 +39,7 @@ export const endpoints = {
     profileExperience: "/candidate/profile/experience",
     profileExperienceDetail: (experienceId: string) =>
       `/candidate/profile/experience/${experienceId}`,
+    profileResumeParse: "/candidate/profile/resume/parse",
     profileResume: "/candidate/profile/resume",
   },
   departments: "/departments",

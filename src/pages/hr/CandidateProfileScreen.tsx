@@ -190,6 +190,14 @@ function CandidateProfileScreen() {
           </p>
           <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.interviews}</p>
         </div>
+        <div className="border border-[#e7bdb8] bg-white p-6">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
+            Profile Completion
+          </p>
+          <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">
+            {detail.profile.completionScore}%
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -317,6 +325,7 @@ function CandidateProfileScreen() {
                     className="rounded-full bg-[#005f93]/10 px-3 py-1.5 text-xs font-semibold text-[#005f93]"
                   >
                     {skill.label}
+                    {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
                   </span>
                 ))
               ) : (
@@ -347,6 +356,123 @@ function CandidateProfileScreen() {
                 ))
               ) : (
                 <span className="text-sm text-[#5f5e5e]">No experience entries recorded yet.</span>
+              )}
+            </div>
+          </section>
+
+          <section className="border border-[#e7bdb8] bg-white p-6">
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Projects</h2>
+            <div className="mt-4 space-y-4">
+              {detail.projects.length ? (
+                detail.projects.map((project) => (
+                  <div key={project.id} className="border border-[#f0d7d3] p-4">
+                    <p className="font-semibold text-[#1a1c1c]">{project.name}</p>
+                    <p className="text-sm text-[#5f5e5e]">{project.role || "Project"}</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
+                      {formatExperiencePeriod(project.period)}
+                    </p>
+                    {project.description ? (
+                      <p className="mt-3 text-sm leading-6 text-[#5d3f3c]">{project.description}</p>
+                    ) : null}
+                    {project.technologies.length ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {project.technologies.map((technology) => (
+                          <span
+                            key={technology}
+                            className="rounded-full bg-[#f3f3f3] px-3 py-1 text-xs font-semibold text-[#1a1c1c]"
+                          >
+                            {technology}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))
+              ) : (
+                <span className="text-sm text-[#5f5e5e]">No projects recorded yet.</span>
+              )}
+            </div>
+          </section>
+
+          <section className="border border-[#e7bdb8] bg-white p-6">
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Education</h2>
+            <div className="mt-4 space-y-4">
+              {detail.educations.length ? (
+                detail.educations.map((education) => (
+                  <div key={education.id} className="border border-[#f0d7d3] p-4">
+                    <p className="font-semibold text-[#1a1c1c]">{education.school}</p>
+                    <p className="text-sm text-[#5f5e5e]">
+                      {education.degree}
+                      {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
+                      {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "N/A"}
+                    </p>
+                    {education.description ? (
+                      <p className="mt-3 text-sm leading-6 text-[#5d3f3c]">{education.description}</p>
+                    ) : null}
+                  </div>
+                ))
+              ) : (
+                <span className="text-sm text-[#5f5e5e]">No education records yet.</span>
+              )}
+            </div>
+          </section>
+
+          <section className="border border-[#e7bdb8] bg-white p-6">
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Certifications & Languages</h2>
+            <div className="mt-4 space-y-4">
+              {detail.certifications.length ? (
+                detail.certifications.map((certification) => (
+                  <div key={certification.id} className="border border-[#f0d7d3] p-4">
+                    <p className="font-semibold text-[#1a1c1c]">{certification.name}</p>
+                    <p className="text-sm text-[#5f5e5e]">{certification.issuer || "Unknown issuer"}</p>
+                  </div>
+                ))
+              ) : null}
+              {detail.languages.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {detail.languages.map((language) => (
+                    <span
+                      key={language.id}
+                      className="rounded-full bg-[#ffdad6] px-3 py-1 text-xs font-semibold text-[#b90014]"
+                    >
+                      {language.name} • {language.proficiency}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {!detail.certifications.length && !detail.languages.length ? (
+                <span className="text-sm text-[#5f5e5e]">No certifications or languages recorded yet.</span>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="border border-[#e7bdb8] bg-white p-6">
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Resume History</h2>
+            <div className="mt-4 space-y-3">
+              {detail.resumeHistory.length ? (
+                detail.resumeHistory.map((resume) => (
+                  <a
+                    key={resume.id}
+                    className="flex items-center justify-between border border-[#f0d7d3] p-4 hover:bg-[#fff8f7]"
+                    href={resume.fileUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <div>
+                      <p className="font-semibold text-[#1a1c1c]">
+                        v{resume.version} • {resume.fileName}
+                      </p>
+                      <p className="text-sm text-[#5f5e5e]">{formatDateTime(resume.uploadedAt)}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-[#b90014]">
+                      {resume.isCurrent ? "Current" : "Open"}
+                    </span>
+                  </a>
+                ))
+              ) : (
+                <span className="text-sm text-[#5f5e5e]">No resume history is available yet.</span>
               )}
             </div>
           </section>

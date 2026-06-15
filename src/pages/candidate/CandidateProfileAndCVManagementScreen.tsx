@@ -10,6 +10,7 @@ import { jobsService } from "../../services/jobs/jobsService";
 import { PERMISSIONS } from "../../permissions/permissions";
 import {
   candidateService,
+  type CandidateResumeParseResponseDto,
   type CandidateProfileResponseDto,
 } from "../../services/candidate/candidateService";
 import type { RootState } from "../../store";
@@ -19,21 +20,14 @@ type SkillItem = {
   id: string;
   label: string;
   active: boolean;
+  yearsOfExperience: number | null;
 };
 
-type ExperienceEntry = {
-  id: string;
-  title: string;
-  period: {
-    startMonth: number;
-    startYear: number;
-    endMonth?: number;
-    endYear?: number;
-    isCurrent: boolean;
-  };
-  company: string;
-  bullets: string[];
-};
+type ExperienceEntry = CandidateProfileResponseDto["experienceEntries"][number];
+type CandidateProjectItem = CandidateProfileResponseDto["projects"][number];
+type CandidateEducationItem = CandidateProfileResponseDto["educations"][number];
+type CandidateCertificationItem = CandidateProfileResponseDto["certifications"][number];
+type CandidateLanguageItem = CandidateProfileResponseDto["languages"][number];
 
 type ProfileState = {
   name: string;
@@ -88,6 +82,10 @@ const initialProfile: ProfileState = {
 const initialSkills: SkillItem[] = [];
 
 const initialExperience: ExperienceEntry[] = [];
+const initialProjects: CandidateProjectItem[] = [];
+const initialEducations: CandidateEducationItem[] = [];
+const initialCertifications: CandidateCertificationItem[] = [];
+const initialLanguages: CandidateLanguageItem[] = [];
 
 const emptyEntryDraft: EntryDraft = {
   title: "",
@@ -146,11 +144,20 @@ function CandidateProfileAndCVManagementScreen() {
   const [skills, setSkills] = useState(initialSkills);
   const [skillOptions, setSkillOptions] = useState<Array<{ label: string; value: string }>>([]);
   const [experienceEntries, setExperienceEntries] = useState(initialExperience);
+  const [projects, setProjects] = useState(initialProjects);
+  const [educations, setEducations] = useState(initialEducations);
+  const [certifications, setCertifications] = useState(initialCertifications);
+  const [languages, setLanguages] = useState(initialLanguages);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [entryDraft, setEntryDraft] = useState<EntryDraft>(emptyEntryDraft);
   const [showEntryComposer, setShowEntryComposer] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [parsedResumePreview, setParsedResumePreview] = useState<CandidateResumeParseResponseDto | null>(null);
+  const [isParsingResume, setIsParsingResume] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [resumeMeta, setResumeMeta] = useState<CandidateProfileResponseDto["resume"] | null>(null);
+  const [resumeHistory, setResumeHistory] = useState<CandidateProfileResponseDto["resumeHistory"]>([]);
+  const [completionScore, setCompletionScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const displayAvatarUrl = profileAvatarUrl ?? authUser?.avatarUrl ?? null;
   const profileInitials = getInitials(profile.name || authUser?.fullName || "Candidate");
@@ -191,6 +198,7 @@ function CandidateProfileAndCVManagementScreen() {
         });
         setProfileAvatarUrl(profileResponse.data.profile.avatarUrl ?? null);
         syncAuthUser(profileResponse.data.profile);
+        setCompletionScore(profileResponse.data.profile.completionScore ?? 0);
 
         const selectedSkillIds = new Set(profileResponse.data.skills.map((skill) => skill.id));
         const allSkillOptions = (skillsResponse.data ?? []).map((skill) => ({
@@ -204,10 +212,17 @@ function CandidateProfileAndCVManagementScreen() {
             id: skill.value,
             label: skill.label,
             active: selectedSkillIds.has(skill.value),
+            yearsOfExperience:
+              profileResponse.data.skills.find((item) => item.id === skill.value)?.yearsOfExperience ?? null,
           })),
         );
         setResumeMeta(profileResponse.data.resume ?? null);
+        setResumeHistory(profileResponse.data.resumeHistory ?? []);
         setExperienceEntries(profileResponse.data.experienceEntries ?? []);
+        setProjects(profileResponse.data.projects ?? []);
+        setEducations(profileResponse.data.educations ?? []);
+        setCertifications(profileResponse.data.certifications ?? []);
+        setLanguages(profileResponse.data.languages ?? []);
       })
       .catch(() => {
         if (mounted) {
@@ -229,7 +244,83 @@ function CandidateProfileAndCVManagementScreen() {
     setProfile((prev) => ({ ...prev, [field]: value }));
   }
 
+  function handleSkillYearsChange(skillId: string, value: string) {
+    const normalizedValue = value.trim();
+    if (normalizedValue && !/^\d*\.?\d*$/.test(normalizedValue)) {
+      return;
+    }
+
+    setSkills((prev) =>
+      prev.map((skill) =>
+        skill.id === skillId
+          ? {
+              ...skill,
+              yearsOfExperience: normalizedValue === "" ? null : Number(normalizedValue),
+            }
+          : skill,
+      ),
+    );
+  }
+
+  function applyParsedResumeToForm(preview: CandidateResumeParseResponseDto) {
+    setProfile((prev) => ({
+      ...prev,
+      name: preview.profile.name || prev.name,
+      headline: preview.profile.headline || prev.headline,
+      email: preview.profile.email || prev.email,
+      phone: preview.profile.phone || prev.phone,
+      location: preview.profile.location || prev.location,
+      bio: preview.profile.bio || prev.bio,
+      github: preview.profile.github || prev.github,
+      linkedin: preview.profile.linkedin || prev.linkedin,
+    }));
+
+    const parsedSkillById = new Map(
+      preview.skills.map((skill) => [
+        skill.id,
+        {
+          yearsOfExperience: skill.yearsOfExperience,
+          label: skill.label,
+        },
+      ]),
+    );
+
+    setSkills((prev) => {
+      const merged = prev.map((skill) => {
+        const parsedSkill = parsedSkillById.get(skill.id);
+        return parsedSkill
+          ? {
+              ...skill,
+              active: true,
+              yearsOfExperience: parsedSkill.yearsOfExperience,
+            }
+          : skill;
+      });
+
+      const existingIds = new Set(merged.map((skill) => skill.id));
+      const missingParsedSkills = preview.skills
+        .filter((skill) => !existingIds.has(skill.id))
+        .map((skill) => ({
+          id: skill.id,
+          label: skill.label,
+          active: true,
+          yearsOfExperience: skill.yearsOfExperience,
+        }));
+
+      return [...merged, ...missingParsedSkills];
+    });
+
+    setExperienceEntries(preview.experienceEntries ?? []);
+    setProjects(preview.projects ?? []);
+    setEducations(preview.educations ?? []);
+    setCertifications(preview.certifications ?? []);
+    setLanguages(preview.languages ?? []);
+    setIsEditingProfile(true);
+    toast.success("Đã áp dụng dữ liệu phân tích CV vào biểu mẫu. Hãy kiểm tra lại trước khi lưu.");
+  }
+
   async function handleSaveProfile() {
+    setIsSavingProfile(true);
     try {
       const profileResult = await candidateService.updateProfile({
         name: profile.name,
@@ -240,6 +331,62 @@ function CandidateProfileAndCVManagementScreen() {
         bio: profile.bio,
         github: profile.github,
         linkedin: profile.linkedin,
+        skills: skills
+          .filter((skill) => skill.active)
+          .map((skill) => ({
+            skillId: skill.id,
+            yearsOfExperience: skill.yearsOfExperience,
+          })),
+        experienceEntries: experienceEntries.map((entry) => ({
+          id: entry.id,
+          title: entry.title,
+          company: entry.company,
+          period: {
+            startMonth: entry.period.startMonth,
+            startYear: entry.period.startYear,
+            endMonth: entry.period.endMonth ?? null,
+            endYear: entry.period.endYear ?? null,
+            isCurrent: entry.period.isCurrent,
+          },
+          bullets: entry.bullets,
+        })),
+        projects: projects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          role: project.role,
+          description: project.description,
+          technologies: project.technologies,
+          period: {
+            startMonth: project.period.startMonth,
+            startYear: project.period.startYear,
+            endMonth: project.period.endMonth ?? null,
+            endYear: project.period.endYear ?? null,
+            isCurrent: project.period.isCurrent,
+          },
+        })),
+        educations: educations.map((education) => ({
+          id: education.id,
+          school: education.school,
+          degree: education.degree,
+          fieldOfStudy: education.fieldOfStudy,
+          startYear: education.startYear,
+          endYear: education.endYear,
+          description: education.description,
+        })),
+        certifications: certifications.map((certification) => ({
+          id: certification.id,
+          name: certification.name,
+          issuer: certification.issuer,
+          issuedOn: certification.issuedOn,
+          expiresOn: certification.expiresOn,
+          credentialId: certification.credentialId,
+          credentialUrl: certification.credentialUrl,
+        })),
+        languages: languages.map((language) => ({
+          id: language.id,
+          name: language.name,
+          proficiency: language.proficiency,
+        })),
       });
 
       if (profileResult.data) {
@@ -256,33 +403,33 @@ function CandidateProfileAndCVManagementScreen() {
         });
         setProfileAvatarUrl(profileResult.data.profile.avatarUrl ?? null);
         syncAuthUser(profileResult.data.profile);
-      }
-
-      const selectedSkillIds = skills
-        .filter((skill) => skill.active)
-        .map((skill) => skill.id);
-
-      const updatedSkills = await candidateService.updateSkills(selectedSkillIds);
-      if (updatedSkills.data) {
-        const activeIds = new Set(updatedSkills.data.skills.filter((skill) => skill.active).map((skill) => skill.id));
-        setSkills((prev) =>
-          prev.map((skill) => ({
-            ...skill,
-            active: activeIds.has(skill.id),
-          })),
-        );
+        setCompletionScore(profileResult.data.profile.completionScore ?? 0);
+        setSkills((profileResult.data.skills ?? []).map((skill) => ({
+          id: skill.id,
+          label: skill.label,
+          active: skill.active,
+          yearsOfExperience: skill.yearsOfExperience,
+        })));
+        setExperienceEntries(profileResult.data.experienceEntries ?? []);
+        setProjects(profileResult.data.projects ?? []);
+        setEducations(profileResult.data.educations ?? []);
+        setCertifications(profileResult.data.certifications ?? []);
+        setLanguages(profileResult.data.languages ?? []);
       }
 
       if (resumeFile) {
-        const uploadResult = await candidateService.uploadResume(resumeFile);
-        if (uploadResult.data) {
-          setResumeMeta({
-            id: uploadResult.data.resumeId,
-            fileName: uploadResult.data.fileName,
-            fileUrl: resumeMeta?.fileUrl ?? "",
-            uploadedAt: uploadResult.data.uploadedAt,
-          });
+        await candidateService.uploadResume(resumeFile);
+        const refreshedProfile = await candidateService.getProfile();
+        if (refreshedProfile.data) {
+          setResumeMeta(refreshedProfile.data.resume ?? null);
+          setResumeHistory(refreshedProfile.data.resumeHistory ?? []);
+          setCompletionScore(refreshedProfile.data.profile.completionScore ?? 0);
+          setProjects(refreshedProfile.data.projects ?? []);
+          setEducations(refreshedProfile.data.educations ?? []);
+          setCertifications(refreshedProfile.data.certifications ?? []);
+          setLanguages(refreshedProfile.data.languages ?? []);
           setResumeFile(null);
+          setParsedResumePreview(null);
         }
       }
 
@@ -291,6 +438,8 @@ function CandidateProfileAndCVManagementScreen() {
     } catch (error) {
       console.error(error);
       toast.error("Không thể lưu hồ sơ");
+    } finally {
+      setIsSavingProfile(false);
     }
   }
 
@@ -302,7 +451,36 @@ function CandidateProfileAndCVManagementScreen() {
     }
 
     setResumeFile(file);
+    setParsedResumePreview(null);
     toast.success("Resume file selected: " + file.name);
+  }
+
+  async function handleParseResume() {
+    if (!resumeFile) {
+      toast.error("Hãy chọn CV trước khi phân tích.");
+      return;
+    }
+
+    setIsParsingResume(true);
+    try {
+      const response = await candidateService.parseResume(resumeFile);
+      if (!response.data) {
+        toast.error(response.message || "Không thể phân tích CV.");
+        return;
+      }
+
+      setParsedResumePreview(response.data);
+      toast.success(
+        response.data.usedAi
+          ? "Đã phân tích CV bằng AI. Hãy kiểm tra dữ liệu trước khi áp dụng."
+          : "Đã phân tích CV bằng chế độ dự phòng. Hãy kiểm tra lại kỹ dữ liệu trước khi áp dụng.",
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể phân tích CV hiện tại.");
+    } finally {
+      setIsParsingResume(false);
+    }
   }
 
   function handleAddSkill(skillId: string) {
@@ -405,14 +583,15 @@ function CandidateProfileAndCVManagementScreen() {
               <div className="mb-6 flex flex-col gap-3 md:absolute md:right-6 md:top-6 md:flex-row">
                 <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE}>
                   <button
-                    className="inline-flex items-center justify-center gap-2 rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110"
+                    className="inline-flex items-center justify-center gap-2 rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
                     onClick={handleSaveProfile}
+                    disabled={isSavingProfile}
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       save
                     </span>
-                    Lưu thay đổi
+                    {isSavingProfile ? "Đang lưu..." : "Lưu thay đổi"}
                   </button>
                 </PermissionGuard>
                 <PermissionGuard permissions={PERMISSIONS.CANDIDATE_UPDATE_OWN_PROFILE}>
@@ -439,9 +618,6 @@ function CandidateProfileAndCVManagementScreen() {
                       {profileInitials}
                     </div>
                   )}
-                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-[#e2dfde] bg-white px-3 py-1 text-[11px] font-semibold text-[#5f5e5e] shadow-sm whitespace-nowrap">
-                    Ảnh đại diện đồng bộ từ tài khoản
-                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -459,6 +635,9 @@ function CandidateProfileAndCVManagementScreen() {
                         {profile.name}
                       </h1>
                     )}
+                    <div className="mt-2 inline-flex rounded-full bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                      Hoàn thiện hồ sơ {completionScore}%
+                    </div>
                     {isEditingProfile && canEditProfile ? (
                       <input
                         className="mt-1 w-full max-w-2xl rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[20px] font-semibold text-[#b90014] outline-none focus:border-[#1a1c1c]"
@@ -619,18 +798,46 @@ function CandidateProfileAndCVManagementScreen() {
                   </div>
 
                   {canManageSkills ? (
-                    <SkillPicker
-                      emptyLabel="Chọn kỹ năng từ hệ thống để thêm vào hồ sơ."
-                      options={skillOptions}
-                      placeholder="Chọn kỹ năng từ danh sách"
-                      selectedLabelByValue={skills.reduce<Record<string, string>>((acc, skill) => {
-                        acc[skill.id] = skill.label;
-                        return acc;
-                      }, {})}
-                      selectedValues={skills.filter((skill) => skill.active).map((skill) => skill.id)}
-                      onAdd={handleAddSkill}
-                      onRemove={handleRemoveSkill}
-                    />
+                    <div className="space-y-4">
+                      <SkillPicker
+                        emptyLabel="Chọn kỹ năng từ hệ thống để thêm vào hồ sơ."
+                        options={skillOptions}
+                        placeholder="Chọn kỹ năng từ danh sách"
+                        selectedLabelByValue={skills.reduce<Record<string, string>>((acc, skill) => {
+                          acc[skill.id] = skill.label;
+                          return acc;
+                        }, {})}
+                        selectedValues={skills.filter((skill) => skill.active).map((skill) => skill.id)}
+                        onAdd={handleAddSkill}
+                        onRemove={handleRemoveSkill}
+                      />
+
+                      {skills.filter((skill) => skill.active).length ? (
+                        <div className="space-y-3">
+                          {skills
+                            .filter((skill) => skill.active)
+                            .map((skill) => (
+                              <div
+                                key={skill.id}
+                                className="flex flex-col gap-3 rounded border border-[#e2dfde] bg-[#f9f9f9] px-4 py-3 md:flex-row md:items-center md:justify-between"
+                              >
+                                <div>
+                                  <p className="text-[14px] font-semibold text-[#1a1c1c]">{skill.label}</p>
+                                  <p className="text-[12px] text-[#5f5e5e]">Số năm kinh nghiệm cho kỹ năng này</p>
+                                </div>
+                                <input
+                                  className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c] md:w-[180px]"
+                                  inputMode="decimal"
+                                  placeholder="VD: 1.5"
+                                  type="text"
+                                  value={skill.yearsOfExperience ?? ""}
+                                  onChange={(e) => handleSkillYearsChange(skill.id, e.target.value)}
+                                />
+                              </div>
+                            ))}
+                        </div>
+                      ) : null}
+                    </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {skills.filter((skill) => skill.active).map((skill) => (
@@ -639,6 +846,7 @@ function CandidateProfileAndCVManagementScreen() {
                           className="inline-flex items-center gap-2 rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
                         >
                           {skill.label}
+                          {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
                         </span>
                       ))}
                     </div>
@@ -736,6 +944,150 @@ function CandidateProfileAndCVManagementScreen() {
                       </button>
                     </div>
                   </div>
+
+                  {resumeFile ? (
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <button
+                        className="inline-flex items-center justify-center gap-2 rounded bg-[#005f93] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                        type="button"
+                        disabled={isParsingResume}
+                        onClick={handleParseResume}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          psychiatry
+                        </span>
+                        {isParsingResume ? "Đang phân tích CV..." : "Phân tích CV"}
+                      </button>
+                      <p className="text-[12px] text-[#5f5e5e]">
+                        Phân tích CV trước để xem dữ liệu gợi ý, sau đó xác nhận rồi mới lưu hồ sơ chính thức.
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {parsedResumePreview ? (
+                    <div className="mt-6 rounded-[20px] border border-[#cde5ff] bg-[linear-gradient(180deg,#f7fbff_0%,#ffffff_100%)] p-5 shadow-[0_18px_50px_rgba(0,95,147,0.08)]">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="mb-3 flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-[#cde5ff] bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#005f93]">
+                              <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                            {parsedResumePreview.usedAi ? "AI Parsing" : parsedResumePreview.parsingMode}
+                          </span>
+                          {parsedResumePreview.modelName ? (
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[11px] font-semibold text-[#47657a]">
+                              {parsedResumePreview.modelName}
+                            </span>
+                          ) : null}
+                        </div>
+                        {!parsedResumePreview.usedAi && parsedResumePreview.aiFallbackReason ? (
+                          <div className="rounded-xl border border-[#ffd7dc] bg-[#fff4f6] px-4 py-3 text-[13px] leading-6 text-[#8a1020]">
+                            AI chưa được áp dụng ở lượt phân tích này: {parsedResumePreview.aiFallbackReason}
+                          </div>
+                        ) : null}
+                        <h3 className="text-[20px] font-semibold text-[#005f93]">
+                          Bản nháp hồ sơ từ CV
+                        </h3>
+                          <p className="mt-1 text-[13px] leading-6 text-[#47657a]">
+                            CV đã được phân tích thành dữ liệu có cấu trúc. Rà soát nhanh rồi áp dụng vào biểu mẫu để chỉnh tay trước khi lưu chính thức.
+                          </p>
+                        </div>
+
+                        <button
+                          className="rounded-full bg-[#005f93] px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:brightness-110"
+                          type="button"
+                          onClick={() => applyParsedResumeToForm(parsedResumePreview)}
+                        >
+                          Áp dụng vào biểu mẫu
+                        </button>
+                      </div>
+
+                      {parsedResumePreview.notes.length ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {parsedResumePreview.notes.map((note) => (
+                            <span
+                              key={note}
+                              className="inline-flex rounded-full border border-[#cde5ff] bg-white px-3 py-1 text-[12px] font-medium text-[#005f93]"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-5 grid gap-4 md:grid-cols-2">
+                        <div className="rounded-2xl border border-[#d7e8f7] bg-white p-4">
+                          <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+                            Thông tin cá nhân
+                          </p>
+                          <div className="mt-3 space-y-2 text-[14px] text-[#1a1c1c]">
+                            <p><strong>Họ tên:</strong> {parsedResumePreview.profile.name || "Chưa rõ"}</p>
+                            <p><strong>Headline:</strong> {parsedResumePreview.profile.headline || "Chưa rõ"}</p>
+                            <p><strong>Email:</strong> {parsedResumePreview.profile.email || "Chưa rõ"}</p>
+                            <p><strong>Điện thoại:</strong> {parsedResumePreview.profile.phone || "Chưa rõ"}</p>
+                            <p><strong>Địa điểm:</strong> {parsedResumePreview.profile.location || "Chưa rõ"}</p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#d7e8f7] bg-white p-4">
+                          <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+                            Dữ liệu phát hiện
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                              {parsedResumePreview.skills.length} ky nang
+                            </span>
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                              {parsedResumePreview.experienceEntries.length} kinh nghiem
+                            </span>
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                              {parsedResumePreview.projects.length} du an
+                            </span>
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                              {parsedResumePreview.educations.length} hoc van
+                            </span>
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                              {parsedResumePreview.certifications.length} chung chi
+                            </span>
+                            <span className="rounded-full bg-[#edf6fd] px-3 py-1 text-[12px] font-semibold text-[#005f93]">
+                              {parsedResumePreview.languages.length} ngon ngu
+                            </span>
+                          </div>
+                          <pre className="mt-4 max-h-48 overflow-auto whitespace-pre-wrap rounded border border-[#e2dfde] bg-[#f9f9f9] p-3 text-[12px] leading-5 text-[#4e5f6a]">
+                            {parsedResumePreview.extractedTextPreview}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {resumeHistory.length ? (
+                    <div className="mt-6 space-y-3">
+                      <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+                        Lịch sử CV
+                      </p>
+                      {resumeHistory.map((resume) => (
+                        <a
+                          key={resume.id}
+                          className="flex items-center justify-between rounded border border-[#e2dfde] bg-white px-4 py-3 hover:border-[#b90014]"
+                          href={resume.fileUrl}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <div>
+                            <p className="text-[14px] font-semibold text-[#1a1c1c]">
+                              v{resume.version} • {resume.fileName}
+                            </p>
+                            <p className="text-[12px] text-[#5f5e5e]">
+                              {new Date(resume.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <span className="text-[12px] font-semibold text-[#b90014]">
+                            {resume.isCurrent ? "Đang dùng" : "Mở"}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
                 </section>
 
                 <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
@@ -921,6 +1273,99 @@ function CandidateProfileAndCVManagementScreen() {
                         </ul>
                       </div>
                     ))}
+                  </div>
+                </section>
+
+                <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
+                        Projects
+                      </h2>
+                      <div className="mt-4 space-y-3">
+                        {projects.length ? projects.map((project) => (
+                          <div key={project.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
+                            <p className="text-[15px] font-semibold text-[#1a1c1c]">{project.name}</p>
+                            <p className="mt-1 text-[13px] font-medium text-[#005f93]">{project.role || "Project"}</p>
+                            {project.description ? (
+                              <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">{project.description}</p>
+                            ) : null}
+                            {project.technologies.length ? (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {project.technologies.map((technology) => (
+                                  <span key={technology} className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#1a1c1c]">
+                                    {technology}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        )) : (
+                          <p className="text-[14px] text-[#5f5e5e]">Chưa có project nào trong hồ sơ.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
+                        Education
+                      </h2>
+                      <div className="mt-4 space-y-3">
+                        {educations.length ? educations.map((education) => (
+                          <div key={education.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
+                            <p className="text-[15px] font-semibold text-[#1a1c1c]">{education.school}</p>
+                            <p className="mt-1 text-[13px] font-medium text-[#005f93]">
+                              {education.degree}
+                              {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
+                            </p>
+                            <p className="mt-2 text-[12px] text-[#5f5e5e]">
+                              {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "Chưa rõ mốc thời gian"}
+                            </p>
+                            {education.description ? (
+                              <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">{education.description}</p>
+                            ) : null}
+                          </div>
+                        )) : (
+                          <p className="text-[14px] text-[#5f5e5e]">Chưa có dữ liệu học vấn trong hồ sơ.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 grid gap-6 md:grid-cols-2">
+                    <div>
+                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
+                        Certifications
+                      </h2>
+                      <div className="mt-4 space-y-3">
+                        {certifications.length ? certifications.map((certification) => (
+                          <div key={certification.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
+                            <p className="text-[15px] font-semibold text-[#1a1c1c]">{certification.name}</p>
+                            <p className="mt-1 text-[13px] text-[#5f5e5e]">{certification.issuer || "Chưa rõ đơn vị cấp"}</p>
+                          </div>
+                        )) : (
+                          <p className="text-[14px] text-[#5f5e5e]">Chưa có chứng chỉ trong hồ sơ.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h2 className="border-l-4 border-[#005f93] pl-4 text-[20px] font-semibold">
+                        Languages
+                      </h2>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {languages.length ? languages.map((language) => (
+                          <span
+                            key={language.id}
+                            className="rounded-full border border-[#005f93]/20 bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]"
+                          >
+                            {language.name} • {language.proficiency}
+                          </span>
+                        )) : (
+                          <p className="text-[14px] text-[#5f5e5e]">Chưa có ngôn ngữ nào trong hồ sơ.</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </section>
               </div>

@@ -149,16 +149,35 @@ type RawPublicJobDetail = {
     max?: number | null;
     label?: string | null;
   } | null;
+  salaryLabel?: string | null;
   department?: string;
   jobType?: string;
   vacancyCount?: number | null;
   description?: string[] | string | null;
   requirements?: string[] | null;
+  requiredSkills?: Array<{
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
+    isRequired?: boolean;
+    skillType?: string;
+  }> | null;
+  niceToHaveSkills?: Array<{
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
+    isRequired?: boolean;
+    skillType?: string;
+  }> | null;
   skills?: Array<{
     id?: string;
     name?: string;
     minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
     isRequired?: boolean;
+    skillType?: string;
   }> | null;
   applicationSummary?: {
     totalApplications?: number;
@@ -177,11 +196,29 @@ type RawHrJobDetail = {
   location?: string;
   workMode?: string;
   requirements?: string[] | null;
+  requiredSkills?: Array<{
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
+    isRequired?: boolean;
+    skillType?: string;
+  }> | null;
+  niceToHaveSkills?: Array<{
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
+    isRequired?: boolean;
+    skillType?: string;
+  }> | null;
   skills?: Array<{
     id?: string;
     name?: string;
     minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
     isRequired?: boolean;
+    skillType?: string;
   }> | null;
   salaryMin?: number | null;
   salaryMax?: number | null;
@@ -244,6 +281,33 @@ function toDescriptionText(value?: string[] | string | null) {
   return value ?? "";
 }
 
+function mapJobSkill(
+  skill: {
+    id?: string;
+    name?: string;
+    minYearsExperience?: number | null;
+    minimumYearsOfExperience?: number | null;
+    isRequired?: boolean;
+    skillType?: string;
+  },
+) {
+  return {
+    skill: {
+      id: skill.id ?? "",
+      name: skill.name ?? "",
+    },
+    minYearsExperience:
+      skill.minimumYearsOfExperience ?? skill.minYearsExperience ?? null,
+    isRequired:
+      skill.isRequired ??
+      (skill.skillType?.toLowerCase() === "required"),
+    skillType:
+      skill.skillType ?? (skill.isRequired ? "Required" : "NiceToHave"),
+    minimumYearsOfExperience:
+      skill.minimumYearsOfExperience ?? skill.minYearsExperience ?? null,
+  };
+}
+
 function normalizePublicJobDetail(item: RawPublicJobDetail | null | undefined): JobDetailDto {
   const employmentTypeLabel = item?.jobType?.split(",")[0]?.trim();
   const workModeLabel = item?.location?.match(/\(([^)]+)\)\s*$/)?.[1] ?? item?.jobType?.split(",")[1]?.trim();
@@ -264,20 +328,16 @@ function normalizePublicJobDetail(item: RawPublicJobDetail | null | undefined): 
     vacancyCount: item?.vacancyCount ?? 0,
     salaryMin: item?.salaryRange?.min ?? null,
     salaryMax: item?.salaryRange?.max ?? null,
+    salaryLabel: item?.salaryLabel ?? item?.salaryRange?.label ?? "",
     deadline: null,
     status: normalizeJobDetailStatus(item?.status),
     createdAt: item?.postedAt ?? new Date().toISOString(),
     description: toDescriptionText(item?.description),
     requirements: item?.requirements ?? [],
     benefits: [],
-    skills: (item?.skills ?? []).map((skill) => ({
-      skill: {
-        id: skill.id ?? "",
-        name: skill.name ?? "",
-      },
-      minYearsExperience: skill.minYearsExperience ?? null,
-      isRequired: skill.isRequired ?? false,
-    })),
+    requiredSkills: (item?.requiredSkills ?? []).map(mapJobSkill),
+    niceToHaveSkills: (item?.niceToHaveSkills ?? []).map(mapJobSkill),
+    skills: (item?.skills ?? []).map(mapJobSkill),
     summary: "",
     hiringManager: null,
     applicationCount: item?.applicationSummary?.totalApplications ?? 0,
@@ -309,20 +369,16 @@ function normalizeHrJobDetail(item: RawHrJobDetail | null | undefined): JobDetai
     vacancyCount: item?.vacancyCount ?? 0,
     salaryMin: item?.salaryMin ?? null,
     salaryMax: item?.salaryMax ?? null,
+    salaryLabel: "",
     deadline: item?.deadline ?? null,
     status: normalizeJobDetailStatus(item?.status),
     createdAt: item?.posted ? new Date(item.posted).toISOString() : new Date().toISOString(),
     description: toDescriptionText(item?.description),
     requirements: item?.requirements ?? [],
     benefits: [],
-    skills: (item?.skills ?? []).map((skill) => ({
-      skill: {
-        id: skill.id ?? "",
-        name: skill.name ?? "",
-      },
-      minYearsExperience: skill.minYearsExperience ?? null,
-      isRequired: skill.isRequired ?? false,
-    })),
+    requiredSkills: (item?.requiredSkills ?? []).map(mapJobSkill),
+    niceToHaveSkills: (item?.niceToHaveSkills ?? []).map(mapJobSkill),
+    skills: (item?.skills ?? []).map(mapJobSkill),
     summary: "",
     hiringManager: null,
     applicationCount: 0,

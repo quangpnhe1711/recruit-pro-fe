@@ -76,11 +76,13 @@ export type CandidateProfileResponseDto = {
     bio: string;
     github: string;
     linkedin: string;
+    completionScore: number;
   };
   skills: Array<{
     id: string;
     label: string;
     active: boolean;
+    yearsOfExperience: number | null;
   }>;
   experienceEntries: Array<{
     id: string;
@@ -95,12 +97,89 @@ export type CandidateProfileResponseDto = {
     };
     bullets: string[];
   }>;
+  projects: Array<{
+    id: string;
+    name: string;
+    role: string | null;
+    description: string | null;
+    technologies: string[];
+    period: {
+      startMonth: number;
+      startYear: number;
+      endMonth: number | null;
+      endYear: number | null;
+      isCurrent: boolean;
+    };
+  }>;
+  educations: Array<{
+    id: string;
+    school: string;
+    degree: string;
+    fieldOfStudy: string | null;
+    startYear: number | null;
+    endYear: number | null;
+    description: string | null;
+  }>;
+  certifications: Array<{
+    id: string;
+    name: string;
+    issuer: string | null;
+    issuedOn: string | null;
+    expiresOn: string | null;
+    credentialId: string | null;
+    credentialUrl: string | null;
+  }>;
+  languages: Array<{
+    id: string;
+    name: string;
+    proficiency: string;
+  }>;
   resume: {
     id: string;
     fileName: string;
     fileUrl: string;
     uploadedAt: string;
+    version: number;
+    isCurrent: boolean;
   } | null;
+  resumeHistory: Array<{
+    id: string;
+    fileName: string;
+    fileUrl: string;
+    uploadedAt: string;
+    version: number;
+    isCurrent: boolean;
+  }>;
+};
+
+export type CandidateResumeParseResponseDto = {
+  usedAi: boolean;
+  parsingMode: string;
+  modelName?: string | null;
+  aiFallbackReason?: string | null;
+  profile: {
+    name: string;
+    headline: string;
+    email: string;
+    phone: string;
+    location: string;
+    bio: string;
+    github: string;
+    linkedin: string;
+  };
+  skills: Array<{
+    id: string;
+    label: string;
+    active: boolean;
+    yearsOfExperience: number | null;
+  }>;
+  experienceEntries: CandidateProfileResponseDto["experienceEntries"];
+  projects: CandidateProfileResponseDto["projects"];
+  educations: CandidateProfileResponseDto["educations"];
+  certifications: CandidateProfileResponseDto["certifications"];
+  languages: CandidateProfileResponseDto["languages"];
+  notes: string[];
+  extractedTextPreview: string;
 };
 
 export type CandidateProfileUpdateRequest = {
@@ -112,6 +191,42 @@ export type CandidateProfileUpdateRequest = {
   bio: string;
   github: string;
   linkedin: string;
+  skills?: Array<{
+    skillId: string;
+    yearsOfExperience: number | null;
+  }>;
+  experienceEntries?: CandidateExperienceRequest[];
+  projects?: Array<{
+    id?: string;
+    name: string;
+    role?: string | null;
+    description?: string | null;
+    technologies: string[];
+    period: CandidateExperienceRequest["period"];
+  }>;
+  educations?: Array<{
+    id?: string;
+    school: string;
+    degree: string;
+    fieldOfStudy?: string | null;
+    startYear?: number | null;
+    endYear?: number | null;
+    description?: string | null;
+  }>;
+  certifications?: Array<{
+    id?: string;
+    name: string;
+    issuer?: string | null;
+    issuedOn?: string | null;
+    expiresOn?: string | null;
+    credentialId?: string | null;
+    credentialUrl?: string | null;
+  }>;
+  languages?: Array<{
+    id?: string;
+    name: string;
+    proficiency: string;
+  }>;
 };
 
 export type CandidateExperienceRequest = {
@@ -250,10 +365,16 @@ export const candidateService = {
     );
   },
 
-  updateSkills: async (skillIds: string[]): Promise<ApiResponse<CandidateProfileResponseDto>> => {
-    return request.put<ApiResponse<CandidateProfileResponseDto>, { skillIds: string[] }>(
+  updateSkills: async (
+    skills: Array<{ skillId: string; yearsOfExperience?: number | null }> | string[],
+  ): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    const payload = Array.isArray(skills) && typeof skills[0] === "string"
+      ? { skillIds: skills as string[] }
+      : { skills: skills as Array<{ skillId: string; yearsOfExperience?: number | null }> };
+
+    return request.put<ApiResponse<CandidateProfileResponseDto>, typeof payload>(
       endpoints.candidate.profileSkills,
-      { skillIds },
+      payload,
     );
   },
 
@@ -282,11 +403,30 @@ export const candidateService = {
     );
   },
 
-  uploadResume: async (file: File): Promise<ApiResponse<{ resumeId: string; fileName: string; uploadedAt: string }>> => {
+  parseResume: async (
+    file: File,
+  ): Promise<ApiResponse<CandidateResumeParseResponseDto>> => {
     const formData = new FormData();
     formData.append("resume", file);
 
-    return request.post<ApiResponse<{ resumeId: string; fileName: string; uploadedAt: string }>, FormData>(
+    return request.post<ApiResponse<CandidateResumeParseResponseDto>, FormData>(
+      endpoints.candidate.profileResumeParse,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
+
+  uploadResume: async (
+    file: File,
+  ): Promise<ApiResponse<{ resumeId: string; fileName: string; uploadedAt: string; version: number; isCurrent: boolean }>> => {
+    const formData = new FormData();
+    formData.append("resume", file);
+
+    return request.post<ApiResponse<{ resumeId: string; fileName: string; uploadedAt: string; version: number; isCurrent: boolean }>, FormData>(
       endpoints.candidate.profileResume,
       formData,
       {
