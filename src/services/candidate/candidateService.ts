@@ -352,6 +352,10 @@ export const candidateService = {
     return request.post<ApiResponse<null>>(endpoints.candidate.applicationAcceptOffer(applicationId));
   },
 
+  declineOffer: async (applicationId: string): Promise<ApiResponse<null>> => {
+    return request.post<ApiResponse<null>>(endpoints.candidate.applicationDeclineOffer(applicationId));
+  },
+
   getProfile: async (): Promise<ApiResponse<CandidateProfileResponseDto>> => {
     return request.get<ApiResponse<CandidateProfileResponseDto>>(endpoints.candidate.profile);
   },

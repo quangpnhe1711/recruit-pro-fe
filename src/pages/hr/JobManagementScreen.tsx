@@ -80,7 +80,7 @@ function buildJobTableColumns(
   return [
     {
       key: "title",
-      header: "Tiêu đề công việc",
+      header: "Công việc",
       renderCell: (job) => (
         <div>
           <button
@@ -213,11 +213,11 @@ function JobManagementScreen() {
                 ? "Đã duyệt"
                 : item.status === "CLOSED"
                   ? "Đã đóng"
-                : item.status === "REJECTED"
-                  ? "Từ chối"
-                  : item.status === "DRAFT"
-                    ? "Nháp"
-                    : "Chờ duyệt",
+                  : item.status === "REJECTED"
+                    ? "Từ chối"
+                    : item.status === "DRAFT"
+                      ? "Nháp"
+                      : "Chờ duyệt",
             applicationsCount: item.applicationCount,
             createdByUserId: item.createdBy.id,
             createdByName: item.createdBy.fullName || "Không rõ",
@@ -489,7 +489,8 @@ function JobManagementScreen() {
             <span className="font-bold text-[#1a1c1c]">
               {rangeStart}-{rangeEnd}
             </span>{" "}
-            trên tổng <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
+            trên tổng{" "}
+            <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
           </div>
         </div>
 

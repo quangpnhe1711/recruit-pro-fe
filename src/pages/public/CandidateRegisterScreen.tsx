@@ -1,7 +1,6 @@
 import { useMemo, useState, type ChangeEvent } from "react";
 import * as yup from "yup";
 import { Link } from "react-router-dom";
-import MockJsonButton from "../../common/components/MockJsonButton";
 import { toast } from "react-toastify";
 import { candidateService } from "../../services/candidate/candidateService";
 
@@ -309,8 +308,8 @@ function CandidateRegisterScreen() {
                   Đồng hành cùng 500+ lượt tuyển dụng nội bộ
                 </p>
                 <p className="text-[14px] leading-5 text-[#c8c6c5]">
-                  &quot;Cổng tuyển dụng này giúp tôi tiếp cận cơ hội phát triển rõ
-                  ràng và nhanh hơn.&quot;
+                  &quot;Cổng tuyển dụng này giúp tôi tiếp cận cơ hội phát triển
+                  rõ ràng và nhanh hơn.&quot;
                 </p>
               </div>
             </div>
@@ -389,12 +388,6 @@ function CandidateRegisterScreen() {
                   {stepConfig.desc}
                 </p>
               </div>
-
-              <MockJsonButton
-                className="self-start"
-                label="JSON mô phỏng API"
-                payload={mockPayload}
-              />
             </div>
 
             <form className="space-y-8" onSubmit={handleSubmit}>

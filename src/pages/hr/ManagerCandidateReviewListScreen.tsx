@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import {
+  formatApplicationStatus,
+  getApplicationStatusBadgeClass,
+} from "../../common/utils/applicationPresentation";
 import type { ManagerReviewQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { hrService } from "../../services/hr/hrService";
 
@@ -20,21 +24,8 @@ function recommendationTone(recommendation: string) {
   }
 }
 
-function statusTone(status: string) {
-  switch (status.toLowerCase()) {
-    case "interviewing":
-      return "bg-sky-50 text-sky-700";
-    case "reviewing":
-      return "bg-amber-50 text-amber-700";
-    case "managerreview":
-      return "bg-emerald-50 text-emerald-700";
-    default:
-      return "bg-[#f3f3f3] text-[#5f5e5e]";
-  }
-}
-
 function formatDate(value: string | null) {
-  if (!value) return "N/A";
+  if (!value) return "Không có";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
@@ -50,7 +41,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
   return [
     {
       key: "candidateName",
-      header: "Candidate Name",
+      header: "Tên ứng viên",
       renderCell: (item) => (
         <div className="flex items-center gap-3">
           {item.candidateAvatarUrl ? (
@@ -73,17 +64,17 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "jobTitle",
-      header: "Job Title",
+      header: "Vị trí tuyển dụng",
       renderCell: (item) => (
         <div>
           <p className="font-semibold text-[#1a1c1c]">{item.jobTitle}</p>
-          <p className="text-[12px] text-[#5f5e5e]">Applied {formatDate(item.appliedAt)}</p>
+          <p className="text-[12px] text-[#5f5e5e]">Ứng tuyển {formatDate(item.appliedAt)}</p>
         </div>
       ),
     },
     {
       key: "score",
-      header: "Match Score",
+      header: "Điểm phù hợp",
       renderCell: (item) => (
         <div className="flex items-center gap-1">
           <span className="font-bold text-[#005f93]">{item.score.toFixed(1)}%</span>
@@ -98,7 +89,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "recommendation",
-      header: "Review Recommendation",
+      header: "Đề xuất đánh giá",
       renderCell: (item) => (
         <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${recommendationTone(item.recommendation)}`}>
           {item.recommendation}
@@ -107,21 +98,21 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "status",
-      header: "Workflow State",
+      header: "Trạng thái quy trình",
       renderCell: (item) => (
         <div className="space-y-1">
-          <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${statusTone(item.status)}`}>
-            {item.status}
+          <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${getApplicationStatusBadgeClass(item.status, "candidate")}`}>
+            {formatApplicationStatus(item.status)}
           </span>
           <p className="text-[12px] text-[#5f5e5e]">
-            {item.completedInterviews}/{item.totalInterviews} completed interviews
+            {item.completedInterviews}/{item.totalInterviews} vòng phỏng vấn đã hoàn tất
           </p>
         </div>
       ),
     },
     {
       key: "action",
-      header: "Action",
+      header: "Thao tác",
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (item) => (
@@ -133,7 +124,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
             onViewDetails(item);
           }}
         >
-          View Details
+          Xem chi tiết
         </button>
       ),
     },

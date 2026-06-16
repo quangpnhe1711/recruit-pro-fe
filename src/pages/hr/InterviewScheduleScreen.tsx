@@ -29,9 +29,9 @@ type DraftInterviewSchedule = {
 };
 
 const durationOptions = [
-  { label: "30 Minutes", value: "30" },
-  { label: "60 Minutes", value: "60" },
-  { label: "90 Minutes", value: "90" },
+  { label: "30 phút", value: "30" },
+  { label: "60 phút", value: "60" },
+  { label: "90 phút", value: "90" },
 ];
 
 const draftStorageKey = "rp_hr_interview_schedule_draft_v1";
@@ -530,7 +530,7 @@ function InterviewScheduleScreen() {
                     onClick={() => setMode("video")}
                   >
                     <span className="material-symbols-outlined">videocam</span>
-                    Video
+                    Trực tuyến
                   </button>
 
                   <button
@@ -543,14 +543,14 @@ function InterviewScheduleScreen() {
                     onClick={() => setMode("inPerson")}
                   >
                     <span className="material-symbols-outlined">person</span>
-                    In-person
+                    Trực tiếp
                   </button>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                  Duration
+                  Thời lượng
                 </label>
                 <CommonSelect
                   value={String(durationMinutes)}
@@ -564,7 +564,7 @@ function InterviewScheduleScreen() {
 
             <div className="space-y-3">
               <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                Conference Link / Location
+                Link họp / Địa điểm
               </label>
               <div className="flex">
                 <div className="flex items-center border border-[#e2e2e2] border-r-0 bg-[#f3f3f3] px-4">
@@ -574,7 +574,7 @@ function InterviewScheduleScreen() {
                   className="w-full border border-[#e2e2e2] bg-white px-4 py-3 font-mono text-[12px] text-[#1a1c1c] outline-none transition-colors focus:border-[#1a1c1c]"
                   value={locationOrLink}
                   onChange={(e) => setLocationOrLink(e.target.value)}
-                  placeholder={mode === "video" ? "Paste conference link" : "Enter office location"}
+                  placeholder={mode === "video" ? "Dán link cuộc họp" : "Nhập địa điểm phỏng vấn"}
                 />
               </div>
             </div>
@@ -583,7 +583,7 @@ function InterviewScheduleScreen() {
 
         <div className="col-span-12 space-y-6 lg:col-span-4">
           <section className="border border-[#e2e2e2] bg-white p-6">
-            <h3 className="mb-6 text-[20px] font-semibold leading-7">Assigned Interviewer</h3>
+            <h3 className="mb-6 text-[20px] font-semibold leading-7">Người phỏng vấn phụ trách</h3>
             <div className="mb-4 flex items-center gap-4 border border-[#e2e2e2] bg-[#f3f3f3] p-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[14px] font-bold text-[#5f5e5e]">
                 {currentInterviewer.avatarUrl ? (
@@ -660,7 +660,7 @@ function InterviewScheduleScreen() {
               <div className="flex justify-between border-b border-[#eeeeee] pb-2">
                 <span className="text-[14px] text-[#5f5e5e]">Mode</span>
                 <span className="font-semibold">
-                  {mode === "video" ? "Video Conference" : "In-person"}
+                  {mode === "video" ? "Phỏng vấn trực tuyến" : "Phỏng vấn trực tiếp"}
                 </span>
               </div>
             </div>

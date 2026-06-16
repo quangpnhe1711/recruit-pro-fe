@@ -22,7 +22,7 @@ type OfferFormState = {
 };
 
 function formatDateDisplay(value: string | null | undefined) {
-  if (!value) return "To be confirmed";
+  if (!value) return "Sẽ xác nhận sau";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
@@ -36,9 +36,9 @@ function formatDateDisplay(value: string | null | undefined) {
 
 function formatCurrencyAmount(value: string, symbol: string) {
   const amount = Number(value);
-  if (!Number.isFinite(amount) || amount <= 0) return `${symbol}0`;
+  if (!Number.isFinite(amount) || amount <= 0) return `0 ${symbol}`;
 
-  return `${symbol}${amount.toLocaleString()}`;
+  return `${amount.toLocaleString("vi-VN")} ${symbol}`;
 }
 
 function normalizeEmploymentLabel(value: string) {
@@ -52,7 +52,7 @@ function normalizeEmploymentLabel(value: string) {
   }
 }
 
-const emptyOption = [{ label: "Select", value: "" }];
+const emptyOption = [{ label: "Chọn", value: "" }];
 
 const currencyOptions = (currencies: OfferEditorDto["masterData"]["currencies"]) => [
   ...emptyOption,
@@ -92,7 +92,7 @@ function mapEditorToForm(editor: OfferEditorDto): OfferFormState {
   return {
     offerTemplateId: editor.offer.offerTemplateId ?? editor.masterData.templates[0]?.id ?? "",
     baseSalary: editor.offer.baseSalary ? String(editor.offer.baseSalary) : "",
-    currencyCode: editor.offer.currencyCode ?? editor.masterData.currencies[0]?.code ?? "USD",
+    currencyCode: editor.offer.currencyCode ?? editor.masterData.currencies[0]?.code ?? "VND",
     bonusDescription: editor.offer.bonusDescription ?? "",
     equityNotes: editor.offer.equityNotes ?? "",
     employmentType: normalizeEmploymentLabel(
@@ -129,7 +129,7 @@ function SendOfferScreen() {
         setForm(mapEditorToForm(response.data));
       } catch {
         if (!mounted) return;
-        toast.error("Unable to load offer editor.");
+        toast.error("Không thể tải màn hình tạo offer.");
       } finally {
         if (mounted) {
           setLoading(false);
@@ -204,9 +204,9 @@ function SendOfferScreen() {
       const response = await hrService.saveOfferDraft(applicationId, payload);
       setEditor(response.data);
       setForm(mapEditorToForm(response.data));
-      toast.success(response.message || "Offer draft saved.");
+      toast.success(response.message || "Đã lưu nháp offer.");
     } catch {
-      toast.error("Unable to save offer draft.");
+      toast.error("Không thể lưu nháp offer.");
     } finally {
       setSaving(false);
     }
@@ -221,9 +221,9 @@ function SendOfferScreen() {
       const response = await hrService.sendOffer(applicationId, payload);
       setEditor(response.data);
       setForm(mapEditorToForm(response.data));
-      toast.success(response.message || "Offer sent successfully.");
+      toast.success(response.message || "Đã gửi offer thành công.");
     } catch {
-      toast.error("Unable to send offer.");
+      toast.error("Không thể gửi offer.");
     } finally {
       setSending(false);
     }
@@ -232,7 +232,7 @@ function SendOfferScreen() {
   if (loading || !editor || !form) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Loading offer editor..." />
+        <LoadingIndicator label="Đang tải màn hình tạo offer..." />
       </div>
     );
   }
@@ -247,14 +247,14 @@ function SendOfferScreen() {
       <div className="mb-8">
         <nav className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
           <Link className="hover:text-[#b90014]" to="/hr/applications">
-            Applications
+            Hồ sơ ứng tuyển
           </Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
           <Link className="hover:text-[#b90014]" to={`/hr/applications/${applicationId}`}>
             {editor.application.candidateName}
           </Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="text-[#1a1c1c]">Send Offer</span>
+          <span className="text-[#1a1c1c]">Gửi offer</span>
         </nav>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -265,11 +265,11 @@ function SendOfferScreen() {
               </span>
               <span className="text-sm text-[#5f5e5e]">{editor.application.referenceCode}</span>
             </div>
-            <h1 className="text-[40px] font-bold leading-tight text-[#1a1c1c]">
-              Create & Send Offer Letter
+            <h1 className="page-title">
+              Tạo và gửi thư mời nhận việc
             </h1>
             <p className="mt-2 text-lg text-[#5f5e5e]">
-              Finalize the recruitment journey for {editor.application.candidateName}.
+              Hoàn tất bước cuối của quy trình tuyển dụng cho {editor.application.candidateName}.
             </p>
           </div>
 
@@ -280,7 +280,7 @@ function SendOfferScreen() {
               onClick={() => navigate(`/hr/applications/${applicationId}`)}
             >
               <span className="material-symbols-outlined text-base">arrow_back</span>
-              Back to Review
+              Quay lại đánh giá
             </button>
             <AsyncActionButton
               type="button"
@@ -339,7 +339,7 @@ function SendOfferScreen() {
                 Stage: {editor.application.stageLabel}
               </span>
               <p className="mt-2 text-[11px] text-[#5f5e5e]">
-                Last updated {formatDateDisplay(editor.offer.updatedAt)}
+                Cập nhật lần cuối {formatDateDisplay(editor.offer.updatedAt)}
               </p>
             </div>
           </section>
@@ -347,11 +347,11 @@ function SendOfferScreen() {
           <section className="space-y-8 border border-[#e7bdb8] bg-white p-8">
             <div>
               <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.12em] text-[#1a1c1c]">
-                Financial Package
+                Gói lương thưởng
               </h3>
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Base Salary</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Lương cơ bản</span>
                   <input
                     className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
                     type="number"
@@ -361,7 +361,7 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Currency</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Tiền tệ</span>
                   <CommonSelect
                     value={form.currencyCode}
                     options={currencyOptions(editor.masterData.currencies)}
@@ -372,7 +372,7 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Bonus Structure</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Thưởng bổ sung</span>
                   <input
                     className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
                     type="text"
@@ -382,7 +382,7 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Equity / Stock Options</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Cổ phần / Quyền chọn cổ phiếu</span>
                   <input
                     className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
                     type="text"
@@ -395,11 +395,11 @@ function SendOfferScreen() {
 
             <div>
               <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.12em] text-[#1a1c1c]">
-                Employment Terms
+                Điều khoản làm việc
               </h3>
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Employment Type</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Loại hình làm việc</span>
                   <CommonSelect
                     value={form.employmentType}
                     options={employmentTypeOptions(editor.masterData.employmentTypes)}
@@ -410,7 +410,7 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Proposed Start Date</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Ngày bắt đầu đề xuất</span>
                   <input
                     className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
                     type="date"
@@ -420,7 +420,7 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Probation Period</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Thời gian thử việc</span>
                   <input
                     className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
                     type="text"
@@ -430,7 +430,7 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Reporting Manager</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Quản lý trực tiếp</span>
                   <CommonSelect
                     value={form.reportingManagerId}
                     options={reportingManagerOptions(editor.masterData.reportingManagers)}
@@ -444,7 +444,7 @@ function SendOfferScreen() {
 
             <div>
               <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.12em] text-[#1a1c1c]">
-                Benefits Package
+                Gói phúc lợi
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {editor.masterData.benefits.map((benefit) => {
@@ -477,7 +477,7 @@ function SendOfferScreen() {
         <div className="space-y-6">
           <section className="border border-[#e7bdb8] bg-white p-6 xl:sticky xl:top-24">
             <label className="mb-5 block space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Select Template</span>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Chọn mẫu offer</span>
               <CommonSelect
                 value={form.offerTemplateId}
                 options={templateOptions(editor.masterData.templates)}
@@ -491,10 +491,10 @@ function SendOfferScreen() {
             </label>
 
             <label className="mb-6 block space-y-2 border-t border-[#e7bdb8] pt-6">
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Personal Message</span>
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Lời nhắn cá nhân</span>
               <textarea
                 className="min-h-28 w-full border border-[#e7bdb8] px-4 py-3 text-sm outline-none transition-all focus:border-[#1a1c1c]"
-                placeholder={`Add a personal note to ${editor.application.candidateName}...`}
+                placeholder={`Thêm lời nhắn gửi tới ${editor.application.candidateName}...`}
                 value={form.personalMessage}
                 onChange={(event) => updateForm("personalMessage", event.target.value)}
               />
@@ -502,7 +502,7 @@ function SendOfferScreen() {
 
             <div className="bg-[#f3f3f3] p-2">
               <div className="mb-3 flex items-center justify-between px-2 pt-1">
-                <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Document Preview</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Xem trước tài liệu</span>
                 <button
                   type="button"
                   className="text-sm font-semibold text-[#1a1c1c] hover:text-[#b90014]"
@@ -533,9 +533,9 @@ function SendOfferScreen() {
                 <table className="mb-6 w-full text-sm">
                   <tbody>
                     <tr className="border-b border-[#e7bdb8]">
-                      <td className="py-3 text-[#5f5e5e]">Base Salary</td>
+                      <td className="py-3 text-[#5f5e5e]">Lương cơ bản</td>
                       <td className="py-3 text-right font-bold text-[#1a1c1c]">
-                        {formatCurrencyAmount(form.baseSalary, selectedCurrency?.symbol ?? "$")} {form.currencyCode} / Year
+                        {formatCurrencyAmount(form.baseSalary, selectedCurrency?.symbol ?? "₫")} / tháng
                       </td>
                     </tr>
                     <tr className="border-b border-[#e7bdb8]">
@@ -545,13 +545,13 @@ function SendOfferScreen() {
                       </td>
                     </tr>
                     <tr className="border-b border-[#e7bdb8]">
-                      <td className="py-3 text-[#5f5e5e]">Employment Type</td>
+                      <td className="py-3 text-[#5f5e5e]">Loại hình làm việc</td>
                       <td className="py-3 text-right font-bold text-[#1a1c1c]">{form.employmentType}</td>
                     </tr>
                     <tr className="border-b border-[#e7bdb8]">
                       <td className="py-3 text-[#5f5e5e]">Reporting To</td>
                       <td className="py-3 text-right font-bold text-[#1a1c1c]">
-                        {selectedManager?.fullName ?? "To be assigned"}
+                        {selectedManager?.fullName ?? "Sẽ cập nhật sau"}
                       </td>
                     </tr>
                     <tr>
@@ -560,7 +560,7 @@ function SendOfferScreen() {
                         {editor.masterData.benefits
                           .filter((benefit) => form.benefitIds.includes(benefit.id))
                           .map((benefit) => benefit.name)
-                          .join(", ") || "No benefits selected"}
+                          .join(", ") || "Chưa chọn phúc lợi"}
                       </td>
                     </tr>
                   </tbody>
@@ -573,12 +573,12 @@ function SendOfferScreen() {
                 ) : null}
 
                 <p className="text-sm leading-6 text-[#5f5e5e]">
-                  This offer is contingent upon the successful completion of our standard checks. We look forward to welcoming you to the team.
+                  Offer này có hiệu lực sau khi hoàn tất các bước xác minh tiêu chuẩn của công ty. Chúng tôi mong sớm được chào đón bạn gia nhập đội ngũ.
                 </p>
 
                 <div className="mt-10">
                   <div className="mb-2 flex h-10 w-40 items-center justify-center border border-dashed border-[#e7bdb8] text-[11px] italic text-[#5f5e5e]">
-                    Signature placeholder
+                    Vị trí chữ ký
                   </div>
                   <p className="text-sm font-bold text-[#1a1c1c]">HR Director, RecruitPro</p>
                 </div>

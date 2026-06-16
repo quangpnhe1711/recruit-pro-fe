@@ -8,21 +8,10 @@ import type { EmploymentType, JobListItemDto, JobSearchFilterOption, SkillDto } 
 import { employmentTypeLabels } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 
-type SalaryRangeOption = {
-  id: string;
-  label: string;
-  min: number;
-  max: number | null;
-};
-
 const pageSize = 5;
-
-const salaryRanges: SalaryRangeOption[] = [
-  { id: "50-80", label: "$50k - $80k", min: 50_000, max: 80_000 },
-  { id: "80-120", label: "$80k - $120k", min: 80_000, max: 120_000 },
-  { id: "120-180", label: "$120k - $180k", min: 120_000, max: 180_000 },
-  { id: "180+", label: "Trên $180k", min: 180_000, max: null },
-];
+const SALARY_FILTER_MIN = 5_000_000;
+const SALARY_FILTER_MAX = 60_000_000;
+const SALARY_FILTER_STEP = 1_000_000;
 
 const employmentTypeOptionsFromEnum = (
   Object.entries(employmentTypeLabels) as Array<[EmploymentType, string]>
@@ -32,11 +21,15 @@ const employmentTypeOptionsFromEnum = (
 }));
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("vi-VN", {
     style: "currency",
-    currency: "USD",
+    currency: "VND",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function formatSalaryInMillions(amount: number) {
+  return `${Math.round(amount / 1_000_000)} triệu`;
 }
 
 function formatEmploymentType(value: string) {
@@ -115,8 +108,15 @@ function extractJobTags(job: JobListItemDto) {
     .filter((tag): tag is string => Boolean(tag));
 }
 
-function matchesSalaryFilters(job: JobListItemDto, selectedRanges: SalaryRangeOption[]) {
-  if (selectedRanges.length === 0) {
+function matchesSalaryFilters(
+  job: JobListItemDto,
+  selectedMin: number,
+  selectedMax: number,
+) {
+  if (
+    selectedMin === SALARY_FILTER_MIN &&
+    selectedMax === SALARY_FILTER_MAX
+  ) {
     return true;
   }
 
@@ -127,13 +127,10 @@ function matchesSalaryFilters(job: JobListItemDto, selectedRanges: SalaryRangeOp
     return false;
   }
 
-  return selectedRanges.some((range) => {
-    const effectiveMin = salaryMin ?? 0;
-    const effectiveMax = salaryMax ?? effectiveMin;
-    const rangeMax = range.max ?? Number.POSITIVE_INFINITY;
+  const effectiveMin = salaryMin ?? 0;
+  const effectiveMax = salaryMax ?? effectiveMin;
 
-    return effectiveMin < rangeMax && effectiveMax >= range.min;
-  });
+  return effectiveMin <= selectedMax && effectiveMax >= selectedMin;
 }
 
 function matchesSearchQuery(job: JobListItemDto, keyword: string) {
@@ -165,16 +162,18 @@ function JobListingCandidateScreen() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [selectedSalaryRangeIds, setSelectedSalaryRangeIds] = useState<string[]>([]);
+  const [salaryFilterMin, setSalaryFilterMin] = useState(SALARY_FILTER_MIN);
+  const [salaryFilterMax, setSalaryFilterMax] = useState(SALARY_FILTER_MAX);
   const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState<EmploymentType[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [employmentTypeOptions] = useState<JobSearchFilterOption[]>(employmentTypeOptionsFromEnum);
   const [skillOptions, setSkillOptions] = useState<JobSearchFilterOption[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-
-  const selectedSalaryRanges = useMemo(
-    () => salaryRanges.filter((range) => selectedSalaryRangeIds.includes(range.id)),
-    [selectedSalaryRangeIds],
+  const hasCustomSalaryFilter = useMemo(
+    () =>
+      salaryFilterMin !== SALARY_FILTER_MIN ||
+      salaryFilterMax !== SALARY_FILTER_MAX,
+    [salaryFilterMax, salaryFilterMin],
   );
 
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -220,7 +219,7 @@ function JobListingCandidateScreen() {
   useEffect(() => {
     let mounted = true;
 
-    const usesClientSalaryFiltering = selectedSalaryRangeIds.length > 0;
+    const usesClientSalaryFiltering = hasCustomSalaryFilter;
     const usesClientSearchFiltering = debouncedSearch.length > 0;
     const usesClientFiltering = usesClientSalaryFiltering || usesClientSearchFiltering;
     const requestPage = usesClientFiltering ? 1 : page;
@@ -251,7 +250,9 @@ function JobListingCandidateScreen() {
         if (usesClientFiltering) {
           const filteredItems = items
             .filter((job) => matchesSearchQuery(job, debouncedSearch))
-            .filter((job) => matchesSalaryFilters(job, selectedSalaryRanges));
+            .filter((job) =>
+              matchesSalaryFilters(job, salaryFilterMin, salaryFilterMax),
+            );
           const pageSlice = filteredItems.slice((page - 1) * pageSize, page * pageSize);
 
           setJobs(pageSlice);
@@ -279,17 +280,7 @@ function JobListingCandidateScreen() {
     return () => {
       mounted = false;
     };
-  }, [debouncedSearch, page, selectedEmploymentTypes, selectedSalaryRangeIds, selectedSkills, selectedSalaryRanges, sortBy]);
-
-  function toggleSalaryRange(rangeId: string) {
-    setLoading(true);
-    setSelectedSalaryRangeIds((current) =>
-      current.includes(rangeId)
-        ? current.filter((item) => item !== rangeId)
-        : [...current, rangeId],
-    );
-    setPage(1);
-  }
+  }, [debouncedSearch, hasCustomSalaryFilter, page, salaryFilterMax, salaryFilterMin, selectedEmploymentTypes, selectedSkills, sortBy]);
 
   function toggleEmploymentType(value: string) {
     setLoading(true);
@@ -328,7 +319,8 @@ function JobListingCandidateScreen() {
     setSearch("");
     setDebouncedSearch("");
     setSortBy("newest");
-    setSelectedSalaryRangeIds([]);
+    setSalaryFilterMin(SALARY_FILTER_MIN);
+    setSalaryFilterMax(SALARY_FILTER_MAX);
     setSelectedEmploymentTypes([]);
     setSelectedSkills([]);
     setPage(1);
@@ -362,34 +354,50 @@ function JobListingCandidateScreen() {
               <label className="mb-4 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
                 Mức lương
               </label>
-              <div className="space-y-3">
-                {salaryRanges.map((range) => {
-                  const checked = selectedSalaryRangeIds.includes(range.id);
-
-                  return (
-                    <label
-                      key={range.id}
-                      className="flex cursor-pointer items-center gap-3 text-[14px] text-[#5f5e5e]"
-                    >
-                      <span
-                        className={`flex h-4 w-4 items-center justify-center border ${
-                          checked ? "border-[#b90014] bg-[#b90014]" : "border-[#d4cecc] bg-white"
-                        }`}
-                      >
-                        {checked ? (
-                          <span className="block h-1.5 w-2.5 -translate-y-[1px] rotate-[-45deg] border-b-[1.5px] border-l-[1.5px] border-white" />
-                        ) : null}
-                      </span>
-                      <input
-                        checked={checked}
-                        className="hidden"
-                        type="checkbox"
-                        onChange={() => toggleSalaryRange(range.id)}
-                      />
-                      <span>{range.label}</span>
-                    </label>
-                  );
-                })}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-[13px] font-semibold text-[#5f5e5e]">
+                  <span>{formatSalaryInMillions(salaryFilterMin)}</span>
+                  <span>{formatSalaryInMillions(salaryFilterMax)}</span>
+                </div>
+                <div className="relative h-10">
+                  <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#e7d8d5]" />
+                  <div
+                    className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#b90014]"
+                    style={{
+                      left: `${((salaryFilterMin - SALARY_FILTER_MIN) / (SALARY_FILTER_MAX - SALARY_FILTER_MIN)) * 100}%`,
+                      right: `${100 - ((salaryFilterMax - SALARY_FILTER_MIN) / (SALARY_FILTER_MAX - SALARY_FILTER_MIN)) * 100}%`,
+                    }}
+                  />
+                  <input
+                    className="pointer-events-none absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#b90014] [&::-webkit-slider-thumb]:bg-white"
+                    max={salaryFilterMax - SALARY_FILTER_STEP}
+                    min={SALARY_FILTER_MIN}
+                    step={SALARY_FILTER_STEP}
+                    type="range"
+                    value={salaryFilterMin}
+                    onChange={(event) => {
+                      setLoading(true);
+                      setSalaryFilterMin(Number(event.target.value));
+                      setPage(1);
+                    }}
+                  />
+                  <input
+                    className="pointer-events-none absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#b90014] [&::-webkit-slider-thumb]:bg-white"
+                    max={SALARY_FILTER_MAX}
+                    min={salaryFilterMin + SALARY_FILTER_STEP}
+                    step={SALARY_FILTER_STEP}
+                    type="range"
+                    value={salaryFilterMax}
+                    onChange={(event) => {
+                      setLoading(true);
+                      setSalaryFilterMax(Number(event.target.value));
+                      setPage(1);
+                    }}
+                  />
+                </div>
+                <p className="text-[12px] text-[#7a7776]">
+                  Lọc theo khoảng lương tháng từ {formatCurrency(salaryFilterMin)} đến {formatCurrency(salaryFilterMax)}.
+                </p>
               </div>
             </div>
 
@@ -543,7 +551,7 @@ function JobListingCandidateScreen() {
                       {job.title}
                     </Link>
                     <p className="text-[14px] font-medium text-[#5f5e5e]">
-                      {job.department?.name ?? "General"} • {job.location}
+                      {job.department?.name ?? "Chung"} • {job.location}
                       {job.workMode ? ` (${job.workMode})` : ""} • {resolveLevel(job.minExperienceYears)}
                     </p>
                     <p className="mt-1 text-[13px] text-[#7a7776]">
@@ -554,11 +562,11 @@ function JobListingCandidateScreen() {
                     <p className="text-[20px] font-semibold text-[#1a1c1c]">
                       {job.salaryMin != null || job.salaryMax != null
                         ? `${formatCurrency(job.salaryMin ?? job.salaryMax ?? 0)} - ${formatCurrency(job.salaryMax ?? job.salaryMin ?? 0)}`
-                        : "Negotiable"}
+                        : "Thỏa thuận"}
                     </p>
                     <p className="text-[12px] uppercase text-[#5f5e5e]">
                       {job.postedAt ?? job.createdAt
-                        ? `Posted ${new Date(job.postedAt ?? job.createdAt).toLocaleDateString()}`
+                        ? `Đăng ngày ${new Date(job.postedAt ?? job.createdAt).toLocaleDateString()}`
                         : ""}
                     </p>
                   </div>
@@ -577,13 +585,13 @@ function JobListingCandidateScreen() {
 
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <p className="max-w-3xl text-[14px] leading-5 text-[#5f5e5e]">
-                    {job.shortDescription ?? job.summary ?? "Explore this opportunity to learn more about the role and team."}
+                    {job.shortDescription ?? job.summary ?? "Khám phá thêm về công việc này để hiểu rõ vai trò và đội ngũ phù hợp với bạn."}
                   </p>
                   <Link
                     className="inline-flex items-center justify-center bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-white transition-colors hover:bg-[#b90014]"
                     to={`/jobs/${job.id}`}
                   >
-                    Apply Now
+                    Ứng tuyển ngay
                   </Link>
                 </div>
               </div>

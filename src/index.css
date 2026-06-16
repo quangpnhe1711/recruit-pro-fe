@@ -16,6 +16,16 @@
   }
 }
 
+@layer components {
+  .page-title {
+    @apply text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c];
+  }
+
+  .page-subtitle {
+    @apply mt-2 text-[16px] leading-7 text-[#5f5e5e];
+  }
+}
+
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }

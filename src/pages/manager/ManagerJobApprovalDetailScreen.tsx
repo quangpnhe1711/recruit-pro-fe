@@ -28,14 +28,14 @@ function formatMoneyRange(min: number | null, max: number | null) {
   });
 
   if (min != null && max != null) {
-    return `${formatter.format(min)} - ${formatter.format(max)} / năm`;
+    return `${formatter.format(min)} - ${formatter.format(max)} VNĐ / tháng`;
   }
 
   if (min != null) {
-    return `${formatter.format(min)}+ / năm`;
+    return `${formatter.format(min)}+ VNĐ / tháng`;
   }
 
-  return `Tối đa ${formatter.format(max ?? 0)} / năm`;
+  return `Tối đa ${formatter.format(max ?? 0)} VNĐ / tháng`;
 }
 
 function toneForSkill(required: boolean) {

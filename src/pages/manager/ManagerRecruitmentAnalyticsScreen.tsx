@@ -70,7 +70,7 @@ function ManagerRecruitmentAnalyticsScreen() {
         { label: "Average Review Cycle", value: "0d", helper: "No completed interview cycles yet", delta: 0, suffix: "%" },
         { label: "Active Candidates", value: "0", helper: "Candidates currently active in pipeline", delta: 0, suffix: "" },
         { label: "Pending Interviews", value: "0", helper: "Upcoming scheduled interviews", delta: 0, suffix: "" },
-        { label: "Offer Acceptance", value: "0%", helper: "Accepted from manager review stage", delta: 0, suffix: "%" },
+        { label: "Offer Acceptance", value: "0%", helper: "Accepted from offer-stage applications", delta: 0, suffix: "%" },
       ];
     }
 
@@ -99,7 +99,7 @@ function ManagerRecruitmentAnalyticsScreen() {
       {
         label: "Offer Acceptance",
         value: `${overview.offerAcceptanceRate}%`,
-        helper: "Accepted versus all final-review offer-stage applications",
+        helper: "Accepted versus all offer-stage applications",
         delta: overview.offerAcceptanceDeltaPercent,
         suffix: "%",
       },
@@ -253,8 +253,8 @@ function ManagerRecruitmentAnalyticsScreen() {
               <tr className="bg-[#1a1a1a] text-white">
                 <th className="px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em]">Department</th>
                 <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Active</th>
-                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Offered</th>
-                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Accepted</th>
+                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Offer</th>
+                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Hired</th>
                 <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Conv %</th>
               </tr>
             </thead>
@@ -275,7 +275,7 @@ function ManagerRecruitmentAnalyticsScreen() {
         <div className="col-span-12 flex flex-col border border-[#e2dfde] bg-white p-8 lg:col-span-6">
           <div className="mb-6">
             <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Pipeline Status Distribution</h2>
-            <p className="text-[14px] text-[#5f5e5e]">Status mix across review, interview, final review, and accepted stages.</p>
+            <p className="text-[14px] text-[#5f5e5e]">Status mix across HR screening, manager review, interview, offer, and hired stages.</p>
           </div>
           <div className="flex flex-1 items-center gap-12">
             <div className="relative flex h-48 w-48 items-center justify-center rounded-full border-[16px] border-[#b90014]">

@@ -125,10 +125,10 @@ function ManagerDashboardScreen() {
     <div className="w-full space-y-6 px-4 py-10 md:px-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+          <h1 className="page-title">
             Bảng điều khiển quản lý
           </h1>
-          <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
+          <p className="page-subtitle mt-1">
             Theo dõi tập trung vào quyết định duyệt job, review ứng viên và sức khỏe pipeline tuyển dụng.
           </p>
         </div>

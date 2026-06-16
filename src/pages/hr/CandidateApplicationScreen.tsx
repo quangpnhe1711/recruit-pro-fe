@@ -5,18 +5,17 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import { usePermissions } from "../../hooks/usePermissions";
+import {
+  applicationStatusOptions,
+  formatApplicationStatus,
+  getApplicationStatusBadgeClass,
+  getDepartmentBadgeClass,
+  type ApplicationStatusLabel,
+} from "../../common/utils/applicationPresentation";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
 import { hrService } from "../../services/hr/hrService";
 
-type ApplicationStatus =
-  | "New"
-  | "Under Review"
-  | "Interviewing"
-  | "Final Review"
-  | "Offered"
-  | "Accepted"
-  | "Rejected";
 type DateRange =
   | "Anytime"
   | "Last 7 Days"
@@ -24,7 +23,7 @@ type DateRange =
   | "This Quarter"
   | "This Year";
 type Department =
-  | "All Departments"
+  | "Tất cả phòng ban"
   | "Engineering"
   | "Data & Analytics"
   | "Marketing"
@@ -33,6 +32,7 @@ type Department =
   | "Finance"
   | "Operations"
   | "Product";
+("Data & Analytics");
 
 type Application = {
   id: string;
@@ -45,7 +45,7 @@ type Application = {
   department: Department;
   appliedDate: string;
   appliedAt: number;
-  status: ApplicationStatus;
+  status: ApplicationStatusLabel;
   recruiter: string;
   score: number | null;
 };
@@ -63,16 +63,44 @@ type EmailComposerState = {
   body: string;
 };
 
-const applicationStatuses: ApplicationStatus[] = [
-  "New",
-  "Under Review",
-  "Interviewing",
-  "Final Review",
-  "Offered",
-  "Accepted",
-  "Rejected",
+const DATE_RANGE_LABELS: Record<DateRange, string> = {
+  Anytime: "Mọi thời gian",
+  "Last 7 Days": "7 ngày gần đây",
+  "Last 30 Days": "30 ngày gần đây",
+  "This Quarter": "Quý này",
+  "This Year": "Năm nay",
+};
+
+const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateType, string> = {
+  "Interview Invitation": "Thư mời phỏng vấn",
+  "Job Offer": "Thư mời nhận việc",
+  "Rejection Mail": "Thư từ chối",
+  Custom: "Tùy chỉnh",
+};
+
+const JOB_FILTER_ALL = "ALL_JOBS";
+const STATUS_FILTER_ALL = "ALL_STATUSES";
+
+const emailTemplateOptions: Array<{
+  label: string;
+  value: EmailTemplateType;
+}> = [
+  {
+    label: EMAIL_TEMPLATE_LABELS["Interview Invitation"],
+    value: "Interview Invitation",
+  },
+  { label: EMAIL_TEMPLATE_LABELS["Job Offer"], value: "Job Offer" },
+  { label: EMAIL_TEMPLATE_LABELS["Rejection Mail"], value: "Rejection Mail" },
+  { label: EMAIL_TEMPLATE_LABELS.Custom, value: "Custom" },
 ];
-const departments: Department[] = [
+
+const statusOptions: ("Tất cả trạng thái" | ApplicationStatusLabel)[] = [
+  "Tất cả trạng thái",
+  ...applicationStatusOptions,
+];
+
+const departmentOptions: Department[] = [
+  "Tất cả phòng ban",
   "Engineering",
   "Data & Analytics",
   "Marketing",
@@ -82,6 +110,7 @@ const departments: Department[] = [
   "Operations",
   "Product",
 ];
+
 const dateRanges: DateRange[] = [
   "Anytime",
   "Last 7 Days",
@@ -89,87 +118,6 @@ const dateRanges: DateRange[] = [
   "This Quarter",
   "This Year",
 ];
-
-const emailTemplateOptions: Array<{
-  label: EmailTemplateType;
-  value: EmailTemplateType;
-}> = [
-  { label: "Interview Invitation", value: "Interview Invitation" },
-  { label: "Job Offer", value: "Job Offer" },
-  { label: "Rejection Mail", value: "Rejection Mail" },
-  { label: "Custom", value: "Custom" },
-];
-
-const statusOptions: ("All Statuses" | ApplicationStatus)[] = [
-  "All Statuses",
-  "New",
-  "Under Review",
-  "Interviewing",
-  "Final Review",
-  "Offered",
-  "Accepted",
-  "Rejected",
-];
-
-const departmentOptions: Department[] = [
-  "All Departments",
-  "Engineering",
-  "Data & Analytics",
-  "Marketing",
-  "Sales",
-  "Human Resources",
-  "Finance",
-  "Operations",
-  "Product",
-];
-
-function parseDateLabelToEpoch(label: string) {
-  const parsed = Date.parse(label);
-  return Number.isNaN(parsed) ? Date.now() : parsed;
-}
-
-function normalizeApplicationStatus(status: string): ApplicationStatus {
-  switch (status.trim().toLowerCase()) {
-    case "reviewing":
-    case "under review":
-      return "Under Review";
-    case "interviewing":
-      return "Interviewing";
-    case "managerreview":
-    case "manager_review":
-    case "final review":
-      return "Final Review";
-    case "offered":
-      return "Offered";
-    case "accepted":
-      return "Accepted";
-    case "rejected":
-      return "Rejected";
-    default:
-      return "New";
-  }
-}
-
-function statusBadgeColors(status: ApplicationStatus) {
-  switch (status) {
-    case "New":
-      return "bg-primary/10 text-primary border-primary/20";
-    case "Under Review":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "Interviewing":
-      return "bg-blue-100 text-blue-700 border-blue-200";
-    case "Final Review":
-      return "bg-emerald-100 text-emerald-700 border-emerald-200";
-    case "Offered":
-      return "bg-purple-100 text-purple-700 border-purple-200";
-    case "Accepted":
-      return "bg-green-100 text-green-700 border-green-200";
-    case "Rejected":
-      return "bg-red-100 text-red-700 border-red-200";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
 
 function buildEmailDraft(
   application: Application,
@@ -202,25 +150,6 @@ function buildEmailDraft(
   }
 }
 
-function departmentBadgeColors(dept: Department) {
-  switch (dept) {
-    case "Engineering":
-      return "bg-[#005f93]/10 text-[#005f93]";
-    case "Marketing":
-      return "bg-secondary-container/50 text-secondary";
-    case "Sales":
-      return "bg-green-100 text-green-700";
-    case "Human Resources":
-      return "bg-purple-100 text-purple-700";
-    case "Operations":
-      return "bg-indigo-100 text-indigo-700";
-    case "Product":
-      return "bg-indigo-100 text-indigo-700";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
-
 function buildJobOptions(items: Application[]) {
   const unique = new Map<string, string>();
 
@@ -231,7 +160,7 @@ function buildJobOptions(items: Application[]) {
   });
 
   return [
-    { label: "All Jobs", value: "All Jobs" },
+    { label: "Tất cả công việc", value: JOB_FILTER_ALL },
     ...Array.from(unique.entries())
       .map(([value, label]) => ({ label, value }))
       .sort((a, b) => a.label.localeCompare(b.label)),
@@ -255,21 +184,20 @@ function buildApplicationTableColumns(
   return [
     {
       key: "candidate",
-      header: "Candidate",
+      header: "Ứng viên",
       renderCell: (app) => (
         <div className="flex items-center gap-4">
           <div>
-            <p className="text-lg font-bold text-[#1a1c1c]">
+            <p className="text-md font-bold text-[#1a1c1c]">
               {app.candidateFirstName} {app.candidateLastName}
             </p>
-            <p className="text-sm text-[#5f5e5e]">{app.candidateEmail}</p>
           </div>
         </div>
       ),
     },
     {
       key: "jobTitle",
-      header: "Job Title",
+      header: "Vị trí tuyển dụng",
       renderCell: (app) => (
         <a
           className="text-body-lg font-semibold text-[#b90014] transition-colors hover:text-[#e31b23] hover:underline"
@@ -285,10 +213,10 @@ function buildApplicationTableColumns(
     },
     {
       key: "department",
-      header: "Department",
+      header: "Phòng ban",
       renderCell: (app) => (
         <span
-          className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${departmentBadgeColors(app.department)}`}
+          className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${getDepartmentBadgeClass(app.department)}`}
         >
           {app.department}
         </span>
@@ -296,33 +224,29 @@ function buildApplicationTableColumns(
     },
     {
       key: "score",
-      header: "Match Score",
+      header: "Điểm phù hợp",
       renderCell: (app) => (
-        <p className="text-body-lg font-semibold text-[#1a1c1c]">
+        <p className="text-body-md font-semibold text-[#1a1c1c]">
           {app.score != null ? `${app.score.toFixed(1)}%` : "--"}
         </p>
       ),
     },
     {
       key: "recruiter",
-      header: "Recruiter",
-      renderCell: (app) => (
-        <p className="text-body-lg text-[#5f5e5e]">{app.recruiter}</p>
-      ),
+      header: "Người phụ trách",
+      renderCell: (app) => <p className="text-[#5f5e5e]">{app.recruiter}</p>,
     },
     {
       key: "appliedDate",
-      header: "Applied Date",
-      renderCell: (app) => (
-        <p className="text-body-lg text-[#5f5e5e]">{app.appliedDate}</p>
-      ),
+      header: "Ngày ứng tuyển",
+      renderCell: (app) => <p className=" text-[#5f5e5e]">{app.appliedDate}</p>,
     },
     {
       key: "status",
-      header: "Status",
+      header: "Trạng thái",
       renderCell: (app) => (
         <span
-          className={`rounded-full px-3 py-1 text-[11px] font-black uppercase border ${statusBadgeColors(app.status)}`}
+          className={`rounded-full px-3 py-1 text-[11px] font-black uppercase border ${getApplicationStatusBadgeClass(app.status)}`}
         >
           {app.status}
         </span>
@@ -330,7 +254,7 @@ function buildApplicationTableColumns(
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       alignRight: true,
       headerClassName: "text-right",
       cellClassName: "whitespace-nowrap",
@@ -341,7 +265,7 @@ function buildApplicationTableColumns(
               type="button"
               className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#1a1c1c] bg-white text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
               onClick={() => onReviewApplication(app)}
-              title="Review application"
+              title="Đánh giá hồ sơ"
             >
               <span className="material-symbols-outlined text-[20px]">
                 rate_review
@@ -354,25 +278,13 @@ function buildApplicationTableColumns(
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#e31b23] text-white transition-all hover:bg-[#b90014]"
                 onClick={() => onOpenEmailComposer(app, "Interview Invitation")}
-                title="Compose email"
+                title="Soạn email"
               >
                 <span className="material-symbols-outlined text-[20px]">
                   mail
                 </span>
               </button>
             </div>
-          ) : null}
-          {options.canViewCv ? (
-            <button
-              type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#8a1538] text-white shadow-md shadow-[#b90014]/10 transition-all hover:bg-[#70112d]"
-              onClick={() => onViewCV(app)}
-              title="View CV"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                description
-              </span>
-            </button>
           ) : null}
         </div>
       ),
@@ -416,7 +328,7 @@ function CandidateApplicationScreen() {
             appliedAt: item.appliedDate
               ? Date.parse(item.appliedDate)
               : Date.now(),
-            status: normalizeApplicationStatus(item.status),
+            status: formatApplicationStatus(item.status),
             recruiter: item.recruiter,
             score: item.score,
           })),
@@ -433,10 +345,12 @@ function CandidateApplicationScreen() {
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [jobFilter, setJobFilter] = useState<string>(filteredJobId || "All Jobs");
+  const [jobFilter, setJobFilter] = useState<string>(
+    filteredJobId || JOB_FILTER_ALL,
+  );
   const [departmentFilter, setDepartmentFilter] =
-    useState<Department>("All Departments");
-  const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
+    useState<Department>("Tất cả phòng ban");
+  const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTER_ALL);
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>("Anytime");
   const [page, setPage] = useState<number>(1);
   const [currentTime] = useState(() => Date.now());
@@ -464,17 +378,17 @@ function CandidateApplicationScreen() {
       );
     }
 
-    if (jobFilter !== "All Jobs") {
+    if (jobFilter !== JOB_FILTER_ALL) {
       result = result.filter((a) => a.jobId === jobFilter);
     }
 
     // Department filter
-    if (departmentFilter !== "All Departments") {
+    if (departmentFilter !== "Tất cả phòng ban") {
       result = result.filter((a) => a.department === departmentFilter);
     }
 
     // Status filter
-    if (statusFilter !== "All Statuses") {
+    if (statusFilter !== STATUS_FILTER_ALL) {
       result = result.filter((a) => a.status === statusFilter);
     }
 
@@ -524,7 +438,10 @@ function CandidateApplicationScreen() {
 
   const rangeStart = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, totalItems);
-  const jobOptions = useMemo(() => buildJobOptions(applications), [applications]);
+  const jobOptions = useMemo(
+    () => buildJobOptions(applications),
+    [applications],
+  );
 
   function resetToFirstPage() {
     setPage(1);
@@ -610,11 +527,11 @@ function CandidateApplicationScreen() {
       });
 
       toast.success(
-        `Email sent to ${emailComposer.application.candidateFirstName} ${emailComposer.application.candidateLastName}`,
+        `Đã gửi email cho ${emailComposer.application.candidateFirstName} ${emailComposer.application.candidateLastName}`,
       );
       closeEmailComposer();
     } catch {
-      toast.error("Unable to send email");
+      toast.error("Không thể gửi email");
     } finally {
       setSendingEmail(false);
     }
@@ -633,12 +550,12 @@ function CandidateApplicationScreen() {
     <div className="w-full flex-grow px-4 py-10 md:px-10">
       {/* Page Header */}
       <div className="mb-12">
-        <h1 className="mb-2 text-[40px] font-bold leading-tight text-[#1a1c1c]">
+        <h1 className="page-title">
           {filteredJobTitle
             ? `Hồ sơ ứng tuyển - ${filteredJobTitle}`
             : "Danh sách hồ sơ ứng tuyển"}
         </h1>
-        <p className="text-xl text-[#5f5e5e]">
+        <p className="page-subtitle">
           {filteredJobTitle
             ? "Theo dõi các hồ sơ ứng tuyển cho job đang chọn."
             : "Theo dõi và xử lý hồ sơ ứng tuyển trên toàn bộ phòng ban."}
@@ -658,7 +575,7 @@ function CandidateApplicationScreen() {
               </span>
               <input
                 className="w-full rounded-lg border border-[#e7bdb8] py-3 pl-10 pr-4 text-body-md outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
-                placeholder="Tìm ứng viên, tiêu đề job, mã job hoặc recruiter..."
+                placeholder="Tìm ứng viên, tiêu đề job, mã job hoặc người phụ trách..."
                 type="text"
                 value={searchTerm}
                 onChange={(e) => {
@@ -671,7 +588,7 @@ function CandidateApplicationScreen() {
 
           <div className="w-full space-y-2 xl:w-64">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Job
+              Công việc
             </label>
             <CommonSelect
               className="h-[52px] text-body-md"
@@ -710,7 +627,8 @@ function CandidateApplicationScreen() {
               className="h-[52px] text-body-md"
               options={statusOptions.map((status) => ({
                 label: status,
-                value: status,
+                value:
+                  status === "Tất cả trạng thái" ? STATUS_FILTER_ALL : status,
               }))}
               value={statusFilter}
               onChange={(event) => {
@@ -727,7 +645,7 @@ function CandidateApplicationScreen() {
             <CommonSelect
               className="h-[52px] text-body-md"
               options={dateRanges.map((range) => ({
-                label: range,
+                label: DATE_RANGE_LABELS[range],
                 value: range,
               }))}
               value={dateRangeFilter}
@@ -790,7 +708,7 @@ function CandidateApplicationScreen() {
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5f5e5e] hover:bg-[#f3f3f3] hover:text-[#1a1c1c]"
                 onClick={closeEmailComposer}
-                title="Close"
+                title="Đóng"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>

@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import PermissionGuard from "../../guards/PermissionGuard";
+import {
+  formatApplicationStatus,
+  getApplicationStatusBadgeClass,
+} from "../../common/utils/applicationPresentation";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService, type HrDashboardDto } from "../../services/hr/hrService";
 
@@ -151,13 +155,8 @@ function HrDashboardScreen() {
     dashboard.recentApplications?.map((item) => ({
       candidateName: item.candidateName,
       jobAppliedFor: item.jobAppliedFor,
-      status: item.status,
-      statusClassName:
-        item.status === "Interviewing"
-          ? "bg-[#005f93]/10 text-[#005f93]"
-          : item.status === "Offer Sent"
-            ? "bg-[#b90014]/10 text-[#b90014]"
-            : "bg-[#e2dfde] text-[#636262]",
+      status: formatApplicationStatus(item.status),
+      statusClassName: getApplicationStatusBadgeClass(item.status),
       date: new Date(item.date).toLocaleDateString(),
     })) ?? [];
 

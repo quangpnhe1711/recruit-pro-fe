@@ -1,85 +1,97 @@
-import { useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import { useDispatch } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
-import MockJsonButton from '../../common/components/MockJsonButton'
-import { authService } from '../../services/auth/authService'
-import { setCredentials } from '../../store/slices/authSlice'
-import { toast } from 'react-toastify'
-import { getPrimaryRole, getRoleHomePath } from '../../permissions/rolePermissions'
-import ForgotPasswordDialog from '../../common/components/auth/ForgotPasswordDialog'
+import { useMemo, useState } from "react";
+import { Resolver, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { authService } from "../../services/auth/authService";
+import { setCredentials } from "../../store/slices/authSlice";
+import { toast } from "react-toastify";
+import {
+  getPrimaryRole,
+  getRoleHomePath,
+} from "../../permissions/rolePermissions";
+import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
 
 const rememberedInternalIdentifierKey = "rp_internal_remembered_identifier";
 
 type InternalLoginForm = {
-  employeeId: string
-  password: string
-  remember: boolean
-}
+  employeeId: string;
+  password: string;
+  remember: boolean;
+};
 
 function InternalLoginScreen() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const schema = yup.object({
-    employeeId: yup.string().required('Vui lòng nhập mã nhân viên hoặc email'),
-    password: yup.string().required('Vui lòng nhập mật khẩu'),
-  }).required();
+    employeeId: yup.string().required("Vui lòng nhập mã nhân viên hoặc email"),
+    password: yup.string().required("Vui lòng nhập mật khẩu"),
+    remember: yup.boolean().default(false),
+  });
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<InternalLoginForm>({
-    resolver: yupResolver(schema),
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<InternalLoginForm>({
+    resolver: yupResolver(schema) as Resolver<InternalLoginForm>,
     defaultValues: {
-      employeeId: localStorage.getItem(rememberedInternalIdentifierKey) ?? '',
-      password: '',
+      employeeId: localStorage.getItem(rememberedInternalIdentifierKey) ?? "",
+      password: "",
       remember: Boolean(localStorage.getItem(rememberedInternalIdentifierKey)),
     },
-  })
+  });
 
-  const employeeId = watch('employeeId')
+  const employeeId = watch("employeeId");
 
-  const employeeIdPlaceholder = useMemo(
-    () => 'VD: RP-8829 hoặc name@recruitpro.com',
-    [],
-  )
+  const employeeIdPlaceholder = useMemo(() => "name@recruitpro.com", []);
 
   async function onSubmit(data: InternalLoginForm) {
-    setSubmitted(true)
+    setSubmitted(true);
 
     try {
       const res = await authService.internalLogin({
         employeeIdOrEmail: data.employeeId,
         password: data.password,
-      })
+      });
 
       if (!res.data) {
-        throw new Error('Thiếu dữ liệu đăng nhập')
+        throw new Error("Thiếu dữ liệu đăng nhập");
       }
 
-      dispatch(setCredentials(res.data))
+      dispatch(setCredentials(res.data));
       if (data.remember) {
-        localStorage.setItem(rememberedInternalIdentifierKey, data.employeeId.trim())
+        localStorage.setItem(
+          rememberedInternalIdentifierKey,
+          data.employeeId.trim(),
+        );
       } else {
-        localStorage.removeItem(rememberedInternalIdentifierKey)
+        localStorage.removeItem(rememberedInternalIdentifierKey);
       }
-      toast.success('Đăng nhập thành công')
+      toast.success("Đăng nhập thành công");
 
-      const primaryRole = getPrimaryRole(res.data.user.roles ?? [])
-      navigate(getRoleHomePath(primaryRole) ?? '/hr/dashboard', { replace: true })
+      const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
+      navigate(getRoleHomePath(primaryRole) ?? "/hr/dashboard", {
+        replace: true,
+      });
     } catch {
-      toast.error('Mã nhân viên/email hoặc mật khẩu không chính xác')
-      setSubmitted(false)
+      toast.error("Mã nhân viên/email hoặc mật khẩu không chính xác");
+      setSubmitted(false);
     }
   }
 
   async function handleForgotPassword(identifier: string) {
-    const response = await authService.internalForgotPassword({ identifier })
-    toast.success(response.message || "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.")
+    const response = await authService.internalForgotPassword({ identifier });
+    toast.success(
+      response.message || "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.",
+    );
   }
 
   return (
@@ -96,7 +108,8 @@ function InternalLoginScreen() {
           <div className="mb-10 text-center">
             <div className="mb-2 flex items-center justify-center">
               <h1 className="text-[32px] font-black tracking-[-0.02em] text-[#1a1a1a] md:text-[48px] md:leading-[56px]">
-                RecruitPro <span className="text-[#b90014] block">Internal</span>
+                RecruitPro{" "}
+                <span className="text-[#b90014] block">Internal</span>
               </h1>
             </div>
             <p className="text-[12px] font-semibold uppercase tracking-[0.25em] text-[#5d3f3c]">
@@ -107,23 +120,10 @@ function InternalLoginScreen() {
           <div className="w-full rounded-lg border border-[#926e6b]/20 bg-white p-8 shadow-[0_0_40px_rgba(185,0,20,0.05)] md:p-10">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.25em] text-[#5d3f3c]">
-                  Truy cập bảo mật
-                </p>
                 <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
                   Đăng nhập cổng nội bộ
                 </h2>
               </div>
-              <MockJsonButton
-                className="shrink-0"
-                label="JSON mô phỏng"
-                payload={{
-                  screen: 'InternalLoginScreen',
-                  employeeId,
-                  showPassword,
-                  submitted,
-                }}
-              />
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -139,13 +139,17 @@ function InternalLoginScreen() {
                     badge
                   </span>
                   <input
-                   id="employee-id"
-                   {...register('employeeId')}
-                   type="text"
-                   placeholder={employeeIdPlaceholder}
-                   className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-4 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
+                    id="employee-id"
+                    {...register("employeeId")}
+                    type="text"
+                    placeholder={employeeIdPlaceholder}
+                    className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-4 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
                   />
-                  {errors.employeeId ? <p className="text-[12px] text-[#ba1a1a]">{errors.employeeId.message}</p> : null}
+                  {errors.employeeId ? (
+                    <p className="text-[12px] text-[#ba1a1a]">
+                      {errors.employeeId.message}
+                    </p>
+                  ) : null}
                 </div>
               </div>
 
@@ -170,21 +174,25 @@ function InternalLoginScreen() {
                     lock
                   </span>
                   <input
-                   id="password"
-                   {...register('password')}
-                   type={showPassword ? 'text' : 'password'}
-                   placeholder="••••••••••••"
-                   className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-12 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
+                    id="password"
+                    {...register("password")}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••••••"
+                    className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-12 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
                   />
-                  {errors.password ? <p className="text-[12px] text-[#ba1a1a]">{errors.password.message}</p> : null}
+                  {errors.password ? (
+                    <p className="text-[12px] text-[#ba1a1a]">
+                      {errors.password.message}
+                    </p>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1a1a]"
-                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
                     <span className="material-symbols-outlined text-xl">
-                      {showPassword ? 'visibility_off' : 'visibility'}
+                      {showPassword ? "visibility_off" : "visibility"}
                     </span>
                   </button>
                 </div>
@@ -192,7 +200,7 @@ function InternalLoginScreen() {
               <div className="flex items-center">
                 <input
                   id="remember"
-                  {...register('remember')}
+                  {...register("remember")}
                   type="checkbox"
                   className="h-4 w-4 rounded-none border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
                 />
@@ -205,32 +213,12 @@ function InternalLoginScreen() {
               </div>
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 bg-[#b90014] py-4 text-[16px] font-semibold text-white transition-colors active:scale-[0.98] hover:bg-[#e31b23]"
+                className="flex w-full mt-5 items-center justify-center gap-2 bg-[#b90014] py-4 text-[16px] font-semibold text-white transition-colors active:scale-[0.98] hover:bg-[#e31b23]"
               >
-                <span>Đăng nhập an toàn</span>
+                <span>Đăng nhập</span>
                 <span className="material-symbols-outlined text-xl">login</span>
               </button>
             </form>
-
-            <div className="mt-8 flex items-start gap-3 border-l-4 border-[#ba1a1a] bg-[#ffdad6]/20 p-4">
-              <span className="material-symbols-outlined text-xl text-[#ba1a1a]">
-                warning
-              </span>
-              <p className="text-[14px] leading-tight text-[#93000a]">
-                <span className="font-bold">Chỉ dành cho nhân sự được cấp quyền.</span>
-                <br />
-                Đây là hệ thống nội bộ có kiểm soát. Mọi lần truy cập và hoạt
-                động đều được ghi nhận và giám sát.
-              </p>
-            </div>
-            <div className="mt-4 flex justify-center">
-              <Link
-                className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
-                to="/jobs"
-              >
-                Xem trước tin tuyển dụng nội bộ
-              </Link>
-            </div>
           </div>
         </div>
       </main>
@@ -243,7 +231,7 @@ function InternalLoginScreen() {
         onSubmit={handleForgotPassword}
       />
     </div>
-  )
+  );
 }
 
-export default InternalLoginScreen
+export default InternalLoginScreen;

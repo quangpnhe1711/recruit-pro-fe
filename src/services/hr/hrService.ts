@@ -403,9 +403,9 @@ export const hrService = {
     applicationId: string,
     decision: ApplicationReviewDecision,
   ): Promise<ApiResponse<ApplicationReviewDetailDto>> => {
-    return request.patch<ApiResponse<ApplicationReviewDetailDto>, { decision: ApplicationReviewDecision }>(
+    return request.patch<ApiResponse<ApplicationReviewDetailDto>, { targetStatus: ApplicationReviewDecision }>(
       endpoints.hr.applicationDecision(applicationId),
-      { decision },
+      { targetStatus: decision },
     );
   },
 

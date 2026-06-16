@@ -1,5 +1,8 @@
 import axios from "axios";
-import { logout } from "../../store/slices/authSlice";
+import {
+  forceLogoutAndRedirectToLogin,
+  isBrokenJwtClaimError,
+} from "../auth/authFailure";
 
 const authFreeEndpoints = [
   "/auth/login",
@@ -24,8 +27,6 @@ apiClient.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    logout();
   }
 
   return config;
@@ -37,10 +38,14 @@ apiClient.interceptors.response.use(
 
   async (error) => {
     const originalRequest = error.config;
-
     const shouldSkipRefresh = authFreeEndpoints.some((endpoint) =>
       originalRequest.url?.includes(endpoint),
     );
+
+    if (isBrokenJwtClaimError(error) && !shouldSkipRefresh) {
+      forceLogoutAndRedirectToLogin();
+      return Promise.reject(error);
+    }
 
     const isUnauthorized = error.response?.status === 401;
 
@@ -71,15 +76,13 @@ apiClient.interceptors.response.use(
 
         return apiClient(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("auth_user");
-        localStorage.removeItem("current_variant");
-
-        window.location.href = "/login";
-
+        forceLogoutAndRedirectToLogin();
         return Promise.reject(refreshError);
       }
+    }
+
+    if (isUnauthorized && !shouldSkipRefresh) {
+      forceLogoutAndRedirectToLogin();
     }
 
     return Promise.reject(error);

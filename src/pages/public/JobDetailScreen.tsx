@@ -17,6 +17,11 @@ import {
   employmentTypeLabels,
   workModeLabels,
 } from "../../modules/jobs/jobsSchema";
+import {
+  formatApplicationStatus,
+  getApplicationStatusBadgeClass,
+  type ApplicationStatusLabel,
+} from "../../common/utils/applicationPresentation";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -27,7 +32,7 @@ type RecentApplication = {
   id: string;
   candidateName: string;
   applied: string;
-  status: "Reviewing" | "Screening" | "Qualified";
+  status: ApplicationStatusLabel;
   score: string;
   avatarUrl?: string;
   initials?: string;
@@ -55,33 +60,8 @@ type JobEditForm = {
   skills: string;
 };
 
-function getStatusClassName(status: RecentApplication["status"]) {
-  switch (status) {
-    case "Reviewing":
-      return "bg-blue-50 text-blue-700 border-blue-100";
-    case "Screening":
-      return "bg-orange-50 text-orange-700 border-orange-100";
-    case "Qualified":
-      return "bg-green-50 text-green-700 border-green-100";
-    default:
-      return "bg-[#e2dfde] text-[#636262] border-[#e2dfde]";
-  }
-}
-
 function Icon({ name }: { name: string }) {
   return <span className="material-symbols-outlined">{name}</span>;
-}
-
-function mapStatus(status: string): RecentApplication["status"] {
-  if (status === "REVIEWING" || status === "Reviewing") {
-    return "Reviewing";
-  }
-
-  if (status === "SCREENING" || status === "Screening") {
-    return "Screening";
-  }
-
-  return "Qualified";
 }
 
 function formatCurrency(amount: number | null) {
@@ -200,7 +180,7 @@ function JobDetailScreen() {
           applied: item.appliedAt
             ? new Date(item.appliedAt).toLocaleDateString()
             : "",
-          status: mapStatus(item.status),
+          status: formatApplicationStatus(item.status),
           score: "0",
           avatarUrl: item.candidate?.avatarUrl ?? undefined,
           initials:
@@ -950,7 +930,7 @@ function JobDetailScreen() {
                             </td>
                             <td className="px-6 py-4">
                               <span
-                                className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getStatusClassName(item.status)}`}
+                                className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getApplicationStatusBadgeClass(item.status)}`}
                               >
                                 {item.status}
                               </span>

@@ -166,15 +166,15 @@ function buildAssistantSummaryFromResults(results: CopilotRankingResultDto[]) {
 
 function buildDefaultAssistantContext(pool: CopilotCandidatePoolDto | null) {
   if (!pool) {
-    return "Chon mot job de toi nap context JD va ung vien cho cuoc trao doi nay.";
+    return "Chọn một job để tôi nạp JD và danh sách ứng viên cho cuộc trao đổi này.";
   }
 
   const requiredSkills = pool.job.requiredSkills.slice(0, 5).join(", ");
   const skillsLine = requiredSkills
-    ? `Ky nang chinh: ${requiredSkills}.`
-    : "JD hien chua co ky nang bat buoc duoc cau hinh.";
+    ? `Kỹ năng chính: ${requiredSkills}.`
+    : "JD hiện chưa có kỹ năng bắt buộc được cấu hình.";
 
-  return `Start chat with AI Copilot to review candidates for the job "${pool.job.title}". ${skillsLine} You can ask me to analyze specific candidates, or provide general instructions on how to review the candidate pool.`;
+  return `Bắt đầu trao đổi với AI Copilot để đánh giá ứng viên cho job "${pool.job.title}". ${skillsLine} Bạn có thể yêu cầu tôi phân tích từng ứng viên hoặc đưa ra hướng dẫn sàng lọc tổng quát cho cả nguồn ứng viên.`;
 }
 
 function renderInlineRichText(text: string) {
@@ -442,8 +442,8 @@ function AiCopilotScreen() {
     setRankingLoading(true);
     setLoadingStatus(
       rankingEnabled
-        ? "AI is reviewing candidates and generating reasoning..."
-        : "AI is reading the job context and preparing a response...",
+        ? "AI đang đánh giá ứng viên và tạo phần giải thích..."
+        : "AI đang đọc ngữ cảnh job và chuẩn bị phản hồi...",
     );
     setChat((current) => [
       ...current,
@@ -604,7 +604,7 @@ function AiCopilotScreen() {
               <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#b90014]">
                 AI Recruitment Copilot
               </p>
-              <h1 className="mt-2 text-[32px] font-semibold leading-10 text-[#1a1c1c]">
+              <h1 className="page-title mt-2">
                 {pool?.job.title ?? "Chọn một job"}
               </h1>
             </div>
@@ -643,22 +643,22 @@ function AiCopilotScreen() {
               <thead className="sticky top-0 z-10 bg-[#1a1c1c] text-white">
                 <tr>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
-                    Candidate
+                    Ứng viên
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
-                    Education
+                    Học vấn
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
-                    Skills
+                    Kỹ năng
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
-                    Match Reason
+                    Lý do phù hợp
                   </th>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
-                    AI Score
+                    Điểm AI
                   </th>
                   <th className="px-6 py-4 text-right text-[12px] font-semibold uppercase tracking-[0.08em]">
-                    Status
+                    Trạng thái
                   </th>
                 </tr>
               </thead>
@@ -679,14 +679,14 @@ function AiCopilotScreen() {
                               {candidate.fullName}
                             </p>
                             <p className="text-[12px] text-[#5f5e5e]">
-                              {candidate.experienceYears} years exp
+                              {candidate.experienceYears} năm kinh nghiệm
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-[#1a1c1c]">
-                          {candidate.education ?? "N/A"}
+                          <p className="text-[#1a1c1c]">
+                          {candidate.education ?? "Chưa cập nhật"}
                         </p>
                       </td>
                       <td className="px-6 py-4">
@@ -771,7 +771,7 @@ function AiCopilotScreen() {
         <div className="min-h-0 flex-1 space-y-5 overflow-auto p-6">
           {chat.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#e2dfde] bg-[#f9f9f9] p-4 text-[14px] text-[#5f5e5e]">
-              Start chat or apply structured criteria to rank candidates.
+              Bắt đầu chat hoặc áp dụng bộ tiêu chí để xếp hạng ứng viên.
             </div>
           ) : null}
 
@@ -812,7 +812,7 @@ function AiCopilotScreen() {
           {ranking ? (
             <div className="rounded-3xl bg-[#1a1c1c] p-4 text-white shadow-[0_16px_32px_rgba(0,0,0,0.22)]">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
-                Filtering Impact
+                Tác động lọc
               </p>
               <div className="mt-4 grid grid-cols-3 divide-x divide-white/20 text-center">
                 <div>
@@ -822,7 +822,7 @@ function AiCopilotScreen() {
                         .length
                     }
                   </p>
-                  <p className="text-[10px] text-white/60">Retained</p>
+                  <p className="text-[10px] text-white/60">Giữ lại</p>
                 </div>
                 <div>
                   <p className="text-[28px] font-bold text-[#ffb4ac]">
@@ -831,13 +831,13 @@ function AiCopilotScreen() {
                         .length
                     }
                   </p>
-                  <p className="text-[10px] text-white/60">Rejected</p>
+                  <p className="text-[10px] text-white/60">Loại</p>
                 </div>
                 <div>
                   <p className="text-[28px] font-bold">
                     {ranking.normalizedRules.requiredSkills.length}
                   </p>
-                  <p className="text-[10px] text-white/60">Required</p>
+                  <p className="text-[10px] text-white/60">Bắt buộc</p>
                 </div>
               </div>
             </div>
@@ -916,7 +916,7 @@ function AiCopilotScreen() {
                   <span className="material-symbols-outlined text-[16px]">
                     {rankingEnabled ? "toggle_on" : "toggle_off"}
                   </span>
-                  {rankingEnabled ? "Ranking Mode On" : "Ranking Mode Off"}
+                  {rankingEnabled ? "Bật chế độ xếp hạng" : "Tắt chế độ xếp hạng"}
                 </button>
                 <button
                   type="button"
@@ -927,7 +927,7 @@ function AiCopilotScreen() {
                   <span className="material-symbols-outlined text-[16px]">
                     tune
                   </span>
-                  {showCriteriaBuilder ? "Hide Criteria" : "Add Criteria"}
+                  {showCriteriaBuilder ? "Ẩn tiêu chí" : "Thêm tiêu chí"}
                 </button>
               </div>
               {rankingEnabled && hasStructuredCriteria ? (
@@ -941,7 +941,7 @@ function AiCopilotScreen() {
               ) : (
                 <span className="text-right text-[11px] text-[#5f5e5e]">
                   {rankingEnabled
-                    ? "Optional"
+                    ? "Tùy chọn"
                     : ""}
                 </span>
               )}
@@ -950,7 +950,7 @@ function AiCopilotScreen() {
             {rankingLoading ? (
               <div className="mb-3 flex items-center gap-2 border border-[#ffdad6] bg-[#fff8f7] px-3 py-2 text-[12px] text-[#8a2d1d]">
                 <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#e7bdb8] border-t-[#b90014]" />
-                <span>{loadingStatus || "AI is reviewing candidates..."}</span>
+                <span>{loadingStatus || "AI đang đánh giá ứng viên..."}</span>
               </div>
             ) : null}
 
@@ -958,8 +958,8 @@ function AiCopilotScreen() {
               className="h-24 w-full resize-none rounded-2xl border border-[#e2dfde] bg-[#f3f3f3] p-4 pr-12 text-[14px] outline-none focus:border-[#1a1c1c]"
               placeholder={
                 rankingEnabled
-                  ? "Ask for ranking, or leave blank and rank with active criteria..."
-                  : "Ask about the JD, candidate pool, filtering approach, or screening strategy..."
+                  ? "Yêu cầu xếp hạng, hoặc để trống để xếp hạng theo tiêu chí đang bật..."
+                  : "Hỏi về JD, danh sách ứng viên, cách lọc hoặc chiến lược sàng lọc..."
               }
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
@@ -992,10 +992,10 @@ function AiCopilotScreen() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Criteria Builder
+                  Trình tạo tiêu chí
                 </p>
                 <h3 className="mt-2 text-[24px] font-semibold text-[#1a1c1c]">
-                  Tune AI evaluation rules
+                  Tinh chỉnh tiêu chí đánh giá AI
                 </h3>
               </div>
               <button
@@ -1003,14 +1003,14 @@ function AiCopilotScreen() {
                 className="border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
                 onClick={() => setShowCriteriaBuilder(false)}
               >
-                Close
+                Đóng
               </button>
             </div>
 
             <div className="mt-4 border border-[#e2dfde] bg-[#faf7f6] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Current Criteria
+                  Tiêu chí hiện tại
                 </p>
                 <div className="flex items-center gap-3">
                   {hasStructuredCriteria ? (
@@ -1032,7 +1032,7 @@ function AiCopilotScreen() {
                       className="text-[11px] font-semibold text-[#ba1a1a]"
                       onClick={clearCurrentCriteria}
                     >
-                      Clear All
+                      Xóa tất cả
                     </button>
                   ) : null}
                 </div>
@@ -1070,7 +1070,7 @@ function AiCopilotScreen() {
                 </div>
               ) : (
                 <p className="mt-3 text-[12px] text-[#5f5e5e]">
-                  No custom criteria.
+                  Chưa có tiêu chí tùy chỉnh.
                 </p>
               )}
             </div>
@@ -1078,15 +1078,15 @@ function AiCopilotScreen() {
             <div className="mt-6 grid gap-6 lg:grid-cols-2">
               <div className="border border-[#e2dfde] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Priority Criteria
+                  Tiêu chí ưu tiên
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <CommonSelect
                     options={[
-                      { label: "Skill", value: "skill" },
-                      { label: "Experience", value: "experienceYears" },
-                      { label: "Education", value: "education" },
-                      { label: "CV Summary", value: "cvSummary" },
+                      { label: "Kỹ năng", value: "skill" },
+                      { label: "Kinh nghiệm", value: "experienceYears" },
+                      { label: "Học vấn", value: "education" },
+                      { label: "Tóm tắt CV", value: "cvSummary" },
                     ]}
                     value={priorityDraft.field}
                     onChange={(event) =>
@@ -1098,9 +1098,9 @@ function AiCopilotScreen() {
                   />
                   <CommonSelect
                     options={[
-                      { label: "High", value: "high" },
-                      { label: "Medium", value: "medium" },
-                      { label: "Low", value: "low" },
+                      { label: "Cao", value: "high" },
+                      { label: "Trung bình", value: "medium" },
+                      { label: "Thấp", value: "low" },
                     ]}
                     value={priorityDraft.weight}
                     onChange={(event) =>
@@ -1112,7 +1112,7 @@ function AiCopilotScreen() {
                   />
                   <input
                     className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
-                    placeholder="Label, eg. Strong .NET background"
+                    placeholder="Nhãn, ví dụ: Nền tảng .NET vững"
                     value={priorityDraft.label}
                     onChange={(event) =>
                       setPriorityDraft((current) => ({
@@ -1123,7 +1123,7 @@ function AiCopilotScreen() {
                   />
                   <input
                     className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
-                    placeholder="Value, eg. .NET or 3"
+                    placeholder="Giá trị, ví dụ: .NET hoặc 3"
                     value={priorityDraft.value}
                     onChange={(event) =>
                       setPriorityDraft((current) => ({
@@ -1138,7 +1138,7 @@ function AiCopilotScreen() {
                   className="mt-3 border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
                   onClick={addPriorityCriterion}
                 >
-                  Add Priority
+                  Thêm tiêu chí ưu tiên
                 </button>
 
                 {priorityCriteria.length > 0 ? (
@@ -1163,14 +1163,14 @@ function AiCopilotScreen() {
 
               <div className="border border-[#e2dfde] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Negative Criteria
+                  Tiêu chí loại trừ
                 </p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <CommonSelect
                     options={[
-                      { label: "Education", value: "education" },
-                      { label: "Experience", value: "experienceYears" },
-                      { label: "CV Summary", value: "cvSummary" },
+                      { label: "Học vấn", value: "education" },
+                      { label: "Kinh nghiệm", value: "experienceYears" },
+                      { label: "Tóm tắt CV", value: "cvSummary" },
                     ]}
                     value={negativeDraft.field}
                     onChange={(event) =>
@@ -1182,8 +1182,8 @@ function AiCopilotScreen() {
                   />
                   <CommonSelect
                     options={[
-                      { label: "Auto Reject", value: "true" },
-                      { label: "Penalty Only", value: "false" },
+                      { label: "Tự động loại", value: "true" },
+                      { label: "Chỉ trừ điểm", value: "false" },
                     ]}
                     value={negativeDraft.autoReject ? "true" : "false"}
                     onChange={(event) =>
@@ -1195,7 +1195,7 @@ function AiCopilotScreen() {
                   />
                   <input
                     className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
-                    placeholder="Label, eg. Reject FPT Student"
+                    placeholder="Nhãn, ví dụ: Loại ứng viên thiếu bằng cấp"
                     value={negativeDraft.label}
                     onChange={(event) =>
                       setNegativeDraft((current) => ({
@@ -1206,7 +1206,7 @@ function AiCopilotScreen() {
                   />
                   <input
                     className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
-                    placeholder="Value, eg. FPT"
+                    placeholder="Giá trị, ví dụ: FPT"
                     value={negativeDraft.value}
                     onChange={(event) =>
                       setNegativeDraft((current) => ({
@@ -1221,7 +1221,7 @@ function AiCopilotScreen() {
                   className="mt-3 border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
                   onClick={addNegativeCriterion}
                 >
-                  Add Negative
+                  Thêm tiêu chí loại trừ
                 </button>
 
                 {negativeCriteria.length > 0 ? (
@@ -1238,7 +1238,7 @@ function AiCopilotScreen() {
                         }
                       >
                         {describeCriterion(criterion)}
-                        {criterion.autoReject ? " (Auto Reject)" : " (Penalty)"} x
+                        {criterion.autoReject ? " (Tự động loại)" : " (Trừ điểm)"} x
                       </button>
                     ))}
                   </div>
@@ -1249,7 +1249,7 @@ function AiCopilotScreen() {
             <div className="mt-6 border border-[#e2dfde] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8a2d1d]">
-                  Saved Presets
+                  Preset đã lưu
                 </p>
                 <span className="text-[11px] text-[#5f5e5e]">Áp dụng hoặc xóa</span>
               </div>

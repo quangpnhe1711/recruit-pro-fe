@@ -84,19 +84,38 @@ export type ApplicationListItemDto = {
   candidate: ApplicationCandidateSummaryDto;
   job: ApplicationJobSummaryDto;
   status:
-    | "PENDING"
-    | "REVIEWING"
-    | "INTERVIEWING"
+    | "APPLIED"
+    | "Applied"
+    | "Pending"
+    | "SCREENING"
+    | "Screening"
+    | "Reviewing"
     | "MANAGER_REVIEW"
-    | "ACCEPTED"
-    | "REJECTED";
+    | "ManagerReview"
+    | "INTERVIEW"
+    | "Interview"
+    | "Interviewing"
+    | "OFFER"
+    | "Offer"
+    | "Offered"
+    | "HIRED"
+    | "Hired"
+    | "Accepted"
+    | "REJECTED"
+    | "OFFER_DECLINED"
+    | "OfferDeclined";
   appliedAt: string;
   reviewedBy: UserDto | null;
   score?: number | null;
   nextStep: string | null;
 };
 
-export type ApplicationReviewDecision = "hire" | "hold" | "reject";
+export type ApplicationReviewDecision =
+  | "Screening"
+  | "ManagerReview"
+  | "Interview"
+  | "Offer"
+  | "Rejected";
 
 export type ApplicationReviewDetailDto = {
   applicationId: string;

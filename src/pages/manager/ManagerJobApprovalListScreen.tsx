@@ -200,10 +200,10 @@ function ManagerJobApprovalListScreen() {
           <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
             Quy trình duyệt tuyển dụng
           </p>
-          <h1 className="mt-2 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+          <h1 className="page-title mt-2">
             Duyệt tin tuyển dụng
           </h1>
-          <p className="mt-2 max-w-3xl text-[16px] leading-6 text-[#5f5e5e]">
+          <p className="page-subtitle max-w-3xl">
             Xem lại các job HR đã gửi lên, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa.
           </p>
         </div>

@@ -11,7 +11,7 @@ import { hrService } from "../../services/hr/hrService";
 
 /* eslint-disable react-hooks/refs */
 
-type InterviewStatus = "Confirmed" | "Completed" | "Rescheduled";
+type InterviewStatus = "Scheduled" | "Completed" | "Canceled";
 
 type Interview = {
   id: string;
@@ -31,17 +31,25 @@ type Timeframe = "Next 7 Days" | "Last 30 Days" | "Custom Range";
 
 type Range = { start: string; end: string };
 
+const TIMEFRAME_LABELS: Record<Timeframe, string> = {
+  "Next 7 Days": "7 ngày tới",
+  "Last 30 Days": "30 ngày qua",
+  "Custom Range": "Tùy chọn ngày",
+};
+
+const STATUS_FILTER_ALL = "ALL_STATUSES";
+
 const interviewStatusOptions = [
-  { label: "All Statuses", value: "All Statuses" },
-  { label: "Confirmed", value: "Confirmed" },
+  { label: "Tất cả", value: STATUS_FILTER_ALL },
+  { label: "Confirmed", value: "Scheduled" },
   { label: "Completed", value: "Completed" },
-  { label: "Rescheduled", value: "Rescheduled" },
+  { label: "Canceled", value: "Canceled" },
 ];
 
 const timeframeOptions = [
-  { label: "Next 7 Days", value: "Next 7 Days" },
-  { label: "Last 30 Days", value: "Last 30 Days" },
-  { label: "Custom Range", value: "Custom Range" },
+  { label: TIMEFRAME_LABELS["Next 7 Days"], value: "Next 7 Days" },
+  { label: TIMEFRAME_LABELS["Last 30 Days"], value: "Last 30 Days" },
+  { label: TIMEFRAME_LABELS["Custom Range"], value: "Custom Range" },
 ];
 
 const anchorNow = new Date();
@@ -52,9 +60,9 @@ function normalizeInterviewStatus(status: string): InterviewStatus {
       return "Completed";
     case "canceled":
     case "cancelled":
-      return "Rescheduled";
+      return "Canceled";
     default:
-      return "Confirmed";
+      return "Scheduled";
   }
 }
 
@@ -82,11 +90,11 @@ function getInitials(name: string) {
 
 function statusChip(status: InterviewStatus) {
   switch (status) {
-    case "Confirmed":
+    case "Scheduled":
       return "bg-[#005f93]/10 text-[#005f93]";
     case "Completed":
       return "bg-[#b90014]/10 text-[#b90014]";
-    case "Rescheduled":
+    case "Canceled":
       return "bg-[#e2dfde] text-[#5f5e5e]";
     default:
       return "bg-[#e2dfde] text-[#5f5e5e]";
@@ -129,7 +137,7 @@ function buildInterviewTableColumns(
   return [
     {
       key: "candidateName",
-      header: "Candidate",
+      header: "Ứng viên",
       renderCell: (item) => (
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e2dfde] text-[12px] font-bold text-[#5f5e5e]">
@@ -144,17 +152,17 @@ function buildInterviewTableColumns(
     },
     {
       key: "jobTitle",
-      header: "Job Title",
+      header: "Vị trí tuyển dụng",
       renderCell: (item) => item.jobTitle,
     },
     {
       key: "interviewer",
-      header: "Interviewer",
+      header: "Người phỏng vấn",
       renderCell: (item) => item.interviewer,
     },
     {
       key: "dateLabel",
-      header: "Date & Time",
+      header: "Ngày & giờ",
       renderCell: (item) => (
         <div>
           <p className="font-bold">{item.dateLabel}</p>
@@ -164,7 +172,7 @@ function buildInterviewTableColumns(
     },
     {
       key: "status",
-      header: "Status",
+      header: "Trạng thái",
       renderCell: (item) => (
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusChipFn(
@@ -177,7 +185,7 @@ function buildInterviewTableColumns(
     },
     {
       key: "actions",
-      header: "Actions",
+      header: "Thao tác",
       headerClassName: "text-right",
       alignRight: true,
       renderCell: (item) => {
@@ -197,7 +205,7 @@ function buildInterviewTableColumns(
                   e.stopPropagation();
                   setOpenMenuId(openMenuId === item.id ? null : item.id);
                 }}
-                aria-label="Actions"
+                aria-label="Thao tác"
               >
                 <span className="material-symbols-outlined">more_vert</span>
               </button>
@@ -221,7 +229,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       visibility
                     </span>
-                    View details
+                    Xem chi tiết
                   </button>
                 ) : null}
                 {actions.canUpdateInterviews ? (
@@ -234,7 +242,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       schedule
                     </span>
-                    Reschedule
+                    Đổi lịch
                   </button>
                 ) : null}
                 {actions.canApproveInterviews ? (
@@ -248,7 +256,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       check_circle
                     </span>
-                    Mark completed
+                    Đánh dấu hoàn tất
                   </AsyncActionButton>
                 ) : null}
                 {actions.canDeleteInterviews ? (
@@ -262,7 +270,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       close
                     </span>
-                    Cancel
+                    Hủy lịch
                   </AsyncActionButton>
                 ) : null}
               </div>
@@ -288,7 +296,7 @@ function JobInterviewListScreen() {
   const [loading, setLoading] = useState(true);
 
   const [query, setQuery] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("All Statuses");
+  const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTER_ALL);
   const [timeframe, setTimeframe] = useState<Timeframe>("Next 7 Days");
   const [customRange, setCustomRange] = useState<Range>(() => {
     const start = new Date(anchorNow);
@@ -335,7 +343,7 @@ function JobInterviewListScreen() {
       .catch(() => {
         if (!mounted) return;
         setItems([]);
-        toast.error("Unable to load interviews");
+        toast.error("Không thể tải danh sách lịch phỏng vấn");
       })
       .finally(() => {
         if (mounted) {
@@ -360,27 +368,30 @@ function JobInterviewListScreen() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [openMenuForId]);
 
-  const withinTimeframe = useCallback((it: Interview) => {
-    const t = it.startAt;
+  const withinTimeframe = useCallback(
+    (it: Interview) => {
+      const t = it.startAt;
 
-    if (timeframe === "Next 7 Days") {
-      const start = anchorNow.getTime();
-      const end = new Date(anchorNow).getTime() + 7 * 24 * 60 * 60 * 1000;
+      if (timeframe === "Next 7 Days") {
+        const start = anchorNow.getTime();
+        const end = new Date(anchorNow).getTime() + 7 * 24 * 60 * 60 * 1000;
+        return t >= start && t <= end;
+      }
+
+      if (timeframe === "Last 30 Days") {
+        const end = anchorNow.getTime();
+        const start = end - 30 * 24 * 60 * 60 * 1000;
+        return t >= start && t <= end;
+      }
+
+      // Custom Range
+      const start = Date.parse(`${customRange.start}T00:00:00.000Z`);
+      const end = Date.parse(`${customRange.end}T23:59:59.999Z`);
+      if (Number.isNaN(start) || Number.isNaN(end)) return true;
       return t >= start && t <= end;
-    }
-
-    if (timeframe === "Last 30 Days") {
-      const end = anchorNow.getTime();
-      const start = end - 30 * 24 * 60 * 60 * 1000;
-      return t >= start && t <= end;
-    }
-
-    // Custom Range
-    const start = Date.parse(`${customRange.start}T00:00:00.000Z`);
-    const end = Date.parse(`${customRange.end}T23:59:59.999Z`);
-    if (Number.isNaN(start) || Number.isNaN(end)) return true;
-    return t >= start && t <= end;
-  }, [timeframe, customRange]);
+    },
+    [timeframe, customRange],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -388,7 +399,7 @@ function JobInterviewListScreen() {
     return items
       .filter(withinTimeframe)
       .filter((it) => {
-        if (statusFilter === "All Statuses") return true;
+        if (statusFilter === STATUS_FILTER_ALL) return true;
         return it.status === statusFilter;
       })
       .filter((it) => {
@@ -418,7 +429,7 @@ function JobInterviewListScreen() {
   const stats = useMemo(() => {
     const base = items.filter(withinTimeframe);
     const total = base.length;
-    const actionNeeded = base.filter((x) => x.status === "Confirmed").length;
+    const actionNeeded = base.filter((x) => x.status === "Scheduled").length;
     const completed = base.filter((x) => x.status === "Completed").length;
 
     const completionRate =
@@ -444,13 +455,13 @@ function JobInterviewListScreen() {
 
   function exportCsv() {
     const header = [
-      "Candidate",
+      "Ứng viên",
       "Email",
-      "Job Title",
-      "Interviewer",
-      "Date",
-      "Time",
-      "Status",
+      "Vị trí tuyển dụng",
+      "Người phỏng vấn",
+      "Ngày",
+      "Giờ",
+      "Trạng thái",
     ];
 
     const rows = filtered.map((it) => [
@@ -465,18 +476,18 @@ function JobInterviewListScreen() {
 
     const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
     downloadTextFile("interview_schedule.csv", csv, "text/csv");
-    toast.success("Exported CSV.");
+    toast.success("Đã xuất file CSV.");
   }
 
   function openDetails(it: Interview) {
     toast.info(
-      `Opening interview details: ${it.candidateName} · ${it.jobTitle}`,
+      `Đang mở chi tiết buổi phỏng vấn: ${it.candidateName} · ${it.jobTitle}`,
     );
   }
 
   const markCompleted = useCallback(async (it: Interview) => {
     if (it.status === "Completed") {
-      toast.info("Already completed.");
+      toast.info("Buổi phỏng vấn này đã hoàn tất.");
       return;
     }
 
@@ -485,37 +496,42 @@ function JobInterviewListScreen() {
       setItems((prev) =>
         prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
       );
-      toast.success("Marked as completed.");
+      toast.success("Đã đánh dấu hoàn tất.");
       setOpenMenuForId(null);
     } catch {
-      toast.error("Unable to update interview");
+      toast.error("Không thể cập nhật trạng thái phỏng vấn");
     }
   }, []);
 
-  const reschedule = useCallback((it: Interview) => {
-    setOpenMenuForId(null);
-    toast.info("Rescheduling…");
-    navigate("/hr/interviews/schedule", {
-      state: {
-        candidateName: it.candidateName,
-        candidateEmail: it.candidateEmail,
-        jobTitle: it.jobTitle,
-        interviewer: it.interviewer,
-      },
-    });
-  }, [navigate]);
+  const reschedule = useCallback(
+    (it: Interview) => {
+      setOpenMenuForId(null);
+      toast.info("Rescheduling…");
+      navigate("/hr/interviews/schedule", {
+        state: {
+          candidateName: it.candidateName,
+          candidateEmail: it.candidateEmail,
+          jobTitle: it.jobTitle,
+          interviewer: it.interviewer,
+        },
+      });
+    },
+    [navigate],
+  );
 
   const cancelInterview = useCallback(async (it: Interview) => {
-    const ok = window.confirm(`Cancel interview for ${it.candidateName}?`);
+    const ok = window.confirm(
+      `Bạn có chắc muốn hủy lịch phỏng vấn của ${it.candidateName}?`,
+    );
     if (!ok) return;
 
     try {
       await hrService.deleteInterview(it.id);
       setItems((prev) => prev.filter((x) => x.id !== it.id));
-      toast.info("Interview cancelled.");
+      toast.info("Đã hủy lịch phỏng vấn.");
       setOpenMenuForId(null);
     } catch {
-      toast.error("Unable to cancel interview");
+      toast.error("Không thể hủy lịch phỏng vấn");
     }
   }, []);
 
@@ -562,21 +578,9 @@ function JobInterviewListScreen() {
       {/* Page header (title + local search) */}
       <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-6">
-          <h2 className="text-[20px] font-bold leading-7 text-[#b90014]">
-            Phỏng vấn
+          <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+            Danh sách Lịch phỏng vấn
           </h2>
-          <div className="relative transition-transform focus-within:scale-[1.02]">
-            <span className="material-symbols-outlined absolute inset-y-0 left-3 flex items-center text-[#5f5e5e]">
-              search
-            </span>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Tìm ứng viên hoặc job..."
-              className="w-64 rounded-lg bg-[#f3f3f3] py-2 pl-10 pr-4 text-[14px] outline-none transition-all focus:ring-2 focus:ring-[#b90014]"
-              type="text"
-            />
-          </div>
         </div>
 
         <div className="flex items-center gap-2" />
@@ -587,7 +591,7 @@ function JobInterviewListScreen() {
         {/* Stats bento */}
         <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-3">
           <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
-            <span className="text-[12px] font-semibold text-[#5f5e5e]">
+            <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
               Tổng trong kỳ
             </span>
             <div className="mt-2 flex items-baseline gap-2">
@@ -620,9 +624,7 @@ function JobInterviewListScreen() {
               <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
                 {stats.completionRate}%
               </span>
-              <span className="text-[12px] font-bold text-[#005f93]">
-                Tốt
-              </span>
+              <span className="text-[12px] font-bold text-[#005f93]">Tốt</span>
             </div>
           </div>
         </div>
@@ -712,7 +714,7 @@ function JobInterviewListScreen() {
                 type="button"
                 className="rounded border border-[#b90014] bg-white px-4 py-2 text-[12px] font-semibold text-[#b90014] transition-colors hover:bg-[#fff3f2]"
                 onClick={() => {
-                  toast.info("Create a new interview");
+                  toast.info("Đang mở form tạo lịch phỏng vấn");
                   navigate("/hr/interviews/schedule");
                 }}
               >

@@ -9,6 +9,9 @@ export const endpoints = {
   },
   public: {
     home: "/public/home",
+    list: "/jobs",
+    filters: "/jobs/filters",
+    detail: (jobId: string) => `/jobs/${jobId}`,
   },
   jobs: {
     list: "/jobs",
@@ -34,6 +37,8 @@ export const endpoints = {
       `/candidate/applications/${applicationId}/withdraw`,
     applicationAcceptOffer: (applicationId: string) =>
       `/candidate/applications/${applicationId}/accept-offer`,
+    applicationDeclineOffer: (applicationId: string) =>
+      `/candidate/applications/${applicationId}/decline-offer`,
     profile: "/candidate/profile",
     profileSkills: "/candidate/profile/skills",
     profileExperience: "/candidate/profile/experience",

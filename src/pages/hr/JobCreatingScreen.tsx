@@ -292,17 +292,17 @@ function JobCreatingScreen() {
     setShortPitch(
       "Build high-performance internal recruiting workflows for enterprise teams.",
     );
-    toast.info("Template applied.");
+    toast.info("Đã áp dụng mẫu.");
   }
 
   function validateStep1() {
     const schema = yup.object({
-      title: yup.string().trim().required("Job title is required."),
-      department: yup.string().trim().required("Department is required."),
-      location: yup.string().trim().required("Location is required."),
-      employmentType: yup.string().required("Select an employment type."),
-      workMode: yup.string().required("Select a work mode."),
-      shortPitch: yup.string().trim().required("Short pitch is required."),
+      title: yup.string().trim().required("Vui lòng nhập tiêu đề tuyển dụng."),
+      department: yup.string().trim().required("Vui lòng chọn phòng ban."),
+      location: yup.string().trim().required("Vui lòng nhập địa điểm làm việc."),
+      employmentType: yup.string().required("Vui lòng chọn loại hình làm việc."),
+      workMode: yup.string().required("Vui lòng chọn hình thức làm việc."),
+      shortPitch: yup.string().trim().required("Vui lòng nhập mô tả ngắn."),
     });
 
     try {
@@ -313,7 +313,7 @@ function JobCreatingScreen() {
       return true;
     } catch (err) {
       if (err instanceof yup.ValidationError)
-        toast.error(err.errors?.[0] || "Validation error");
+        toast.error(err.errors?.[0] || "Dữ liệu chưa hợp lệ");
       return false;
     }
   }
@@ -332,7 +332,7 @@ function JobCreatingScreen() {
       return true;
     } catch (err) {
       if (err instanceof yup.ValidationError)
-        toast.error(err.errors?.[0] || "Validation error");
+        toast.error(err.errors?.[0] || "Dữ liệu chưa hợp lệ");
       return false;
     }
   }
@@ -384,7 +384,7 @@ function JobCreatingScreen() {
       return true;
     } catch (err) {
       if (err instanceof yup.ValidationError)
-        toast.error(err.errors?.[0] || "Validation error");
+        toast.error(err.errors?.[0] || "Dữ liệu chưa hợp lệ");
       return false;
     }
   }
@@ -620,11 +620,11 @@ function JobCreatingScreen() {
       <section className="rounded-lg border border-[#e2dfde] bg-white p-8 shadow-sm">
         <div className="mb-8">
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-            Create New Job Posting
+            Tạo tin tuyển dụng mới
           </h2>
           <p className="mt-2 text-[16px] leading-6 text-[#5f5e5e]">
-            Fill in the primary details to start building your internal
-            recruitment campaign.
+            Điền các thông tin chính để bắt đầu tạo chiến dịch tuyển dụng nội
+            bộ.
           </p>
         </div>
 
@@ -633,20 +633,20 @@ function JobCreatingScreen() {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Job Title
+                  Chức danh công việc
                 </label>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                  placeholder="e.g. Senior Software Engineer"
+                  placeholder="Ví dụ: Kỹ sư phần mềm cấp cao"
                   type="text"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Department
+                  Phòng ban
                 </label>
                 <CommonSelect
                   options={departments.map((d) => ({ label: d, value: d }))}
@@ -657,11 +657,11 @@ function JobCreatingScreen() {
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Employment Type
+                  Loại hình công việc
                 </label>
                 <CommonSelect
                   options={employmentTypeOptions}
-                  placeholder="Select employment type"
+                  placeholder="Chọn loại hình công việc"
                   value={employmentType}
                   onChange={(e) =>
                     setEmploymentType(e.target.value as EmploymentType | "")
@@ -671,24 +671,24 @@ function JobCreatingScreen() {
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Location
+                  Địa điểm
                 </label>
                 <input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                  placeholder="e.g. Ho Chi Minh City"
+                  placeholder="Ví dụ: TP. Ho Chi Minh"
                   type="text"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Work Mode
+                  Hình thức làm việc
                 </label>
                 <CommonSelect
                   options={workModeOptions}
-                  placeholder="Select work mode"
+                  placeholder="Chọn hình thức làm việc"
                   value={workMode}
                   onChange={(e) => setWorkMode(e.target.value as WorkMode | "")}
                 />
@@ -697,7 +697,7 @@ function JobCreatingScreen() {
 
             <div className="space-y-2">
               <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Short Pitch
+                Mô tả ngắn
               </label>
               <textarea
                 value={shortPitch}
@@ -885,7 +885,7 @@ function JobCreatingScreen() {
               ) : (
                 <div className="space-y-4">
                   <SkillPicker
-                    emptyLabel="Select required skills from the existing database."
+                    emptyLabel="Chọn kỹ năng yêu cầu từ danh sách kỹ năng hiện có."
                     options={skillOptions}
                     placeholder="Choose a required skill"
                     selectedValues={skills.map((skill) => skill.skillName)}
@@ -993,33 +993,33 @@ function JobCreatingScreen() {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Salary Min (VND)
+                  Lương tối thiểu (VND/tháng)
                 </label>
                 <input
                   value={salaryMin}
                   onChange={(e) => setSalaryMin(e.target.value)}
                   className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                  placeholder="e.g. 120000"
+                  placeholder="Ví dụ: 20000000"
                   inputMode="numeric"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Salary Max (VND)
+                  Lương tối đa (VND/tháng)
                 </label>
                 <input
                   value={salaryMax}
                   onChange={(e) => setSalaryMax(e.target.value)}
                   className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                  placeholder="e.g. 160000"
+                  placeholder="Ví dụ: 35000000"
                   inputMode="numeric"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Currency
+                  Tiền tệ
                 </label>
                 <input
                   value="VND"
@@ -1122,7 +1122,7 @@ function JobCreatingScreen() {
                     : salaryMin
                       ? `${Number(salaryMin).toLocaleString("vi-VN")}+ VNĐ`
                       : salaryMax
-                        ? `Up to ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
+                        ? `Tối đa ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
                         : "Thương lượng"}
                 </p>
               </div>
@@ -1233,7 +1233,7 @@ function JobCreatingScreen() {
             Recent Templates
           </p>
           <p className="mt-1 text-[14px] text-[#5f5e5e]">
-            Use Engineering L4 Template
+            Dùng mẫu Engineering L4
           </p>
         </button>
       </div>
