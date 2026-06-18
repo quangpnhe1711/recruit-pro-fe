@@ -337,6 +337,7 @@ function CandidateProfileAndCVManagementScreen() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [resumeMeta, setResumeMeta] = useState<CandidateProfileResponseDto["resume"] | null>(null);
   const [resumeHistory, setResumeHistory] = useState<CandidateProfileResponseDto["resumeHistory"]>([]);
+  const [resumeParsing, setResumeParsing] = useState<CandidateProfileResponseDto["resumeParsing"] | null>(null);
   const [completionScore, setCompletionScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const displayAvatarUrl = profileAvatarUrl ?? authUser?.avatarUrl ?? null;
@@ -400,6 +401,7 @@ function CandidateProfileAndCVManagementScreen() {
         );
         setResumeMeta(profileResponse.data.resume ?? null);
         setResumeHistory(profileResponse.data.resumeHistory ?? []);
+        setResumeParsing(profileResponse.data.resumeParsing ?? null);
         setExperienceEntries(profileResponse.data.experienceEntries ?? []);
         setProjects(profileResponse.data.projects ?? []);
         setEducations(profileResponse.data.educations ?? []);
@@ -602,12 +604,13 @@ function CandidateProfileAndCVManagementScreen() {
       }
 
       if (resumeFile) {
-        await candidateService.uploadResume(resumeFile);
+        const uploadResponse = await candidateService.uploadResume(resumeFile);
         const refreshedProfile = await candidateService.getProfile();
         if (refreshedProfile.data) {
           syncAuthUser(refreshedProfile.data.profile);
           setResumeMeta(refreshedProfile.data.resume ?? null);
           setResumeHistory(refreshedProfile.data.resumeHistory ?? []);
+          setResumeParsing(refreshedProfile.data.resumeParsing ?? null);
           setCompletionScore(refreshedProfile.data.profile.completionScore ?? 0);
           setProjects(refreshedProfile.data.projects ?? []);
           setEducations(refreshedProfile.data.educations ?? []);
@@ -616,10 +619,20 @@ function CandidateProfileAndCVManagementScreen() {
           setResumeFile(null);
           setParsedResumePreview(null);
         }
+
+        if (uploadResponse.data?.parseMessage) {
+          if (uploadResponse.data.parseStatus === "Completed") {
+            toast.success(uploadResponse.data.parseMessage);
+          } else {
+            toast.info(uploadResponse.data.parseMessage);
+          }
+        }
       }
 
       setIsEditingProfile(false);
-      toast.success("Cập nhật hồ sơ thành công");
+      if (!resumeFile) {
+        toast.success("Cập nhật hồ sơ thành công");
+      }
     } catch (error) {
       console.error(error);
       toast.error("Không thể lưu hồ sơ");

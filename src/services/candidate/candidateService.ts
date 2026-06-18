@@ -150,6 +150,13 @@ export type CandidateProfileResponseDto = {
     version: number;
     isCurrent: boolean;
   }>;
+  resumeParsing: {
+    status: string;
+    error?: string | null;
+    model?: string | null;
+    parsedAt?: string | null;
+    warnings: string[];
+  };
 };
 
 export type CandidateResumeParseResponseDto = {
@@ -427,11 +434,31 @@ export const candidateService = {
 
   uploadResume: async (
     file: File,
-  ): Promise<ApiResponse<{ resumeId: string; fileName: string; uploadedAt: string; version: number; isCurrent: boolean }>> => {
+  ): Promise<ApiResponse<{
+    resumeId: string;
+    fileName: string;
+    uploadedAt: string;
+    version: number;
+    isCurrent: boolean;
+    parseStatus: string;
+    parseMessage?: string | null;
+    parsedAt?: string | null;
+    parserWarnings: string[];
+  }>> => {
     const formData = new FormData();
     formData.append("resume", file);
 
-    return request.post<ApiResponse<{ resumeId: string; fileName: string; uploadedAt: string; version: number; isCurrent: boolean }>, FormData>(
+    return request.post<ApiResponse<{
+      resumeId: string;
+      fileName: string;
+      uploadedAt: string;
+      version: number;
+      isCurrent: boolean;
+      parseStatus: string;
+      parseMessage?: string | null;
+      parsedAt?: string | null;
+      parserWarnings: string[];
+    }>, FormData>(
       endpoints.candidate.profileResume,
       formData,
       {
