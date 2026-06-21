@@ -12,6 +12,9 @@ import {
   candidateService,
   type CandidateResumeParseResponseDto,
   type CandidateProfileResponseDto,
+  type CandidateProfileSectionDto,
+  type CandidateProfileSectionItemDto,
+  type ResumeUploadResponseDto,
 } from "../../services/candidate/candidateService";
 import type { RootState } from "../../store";
 import { updateUser } from "../../store/slices/authSlice";
@@ -28,6 +31,8 @@ type CandidateProjectItem = CandidateProfileResponseDto["projects"][number];
 type CandidateEducationItem = CandidateProfileResponseDto["educations"][number];
 type CandidateCertificationItem = CandidateProfileResponseDto["certifications"][number];
 type CandidateLanguageItem = CandidateProfileResponseDto["languages"][number];
+type CandidateSectionItem = CandidateProfileSectionItemDto;
+type CandidateSection = CandidateProfileSectionDto;
 
 type ProfileState = {
   name: string;
@@ -85,6 +90,21 @@ type CertificationDraft = {
 type LanguageDraft = {
   name: string;
   proficiency: string;
+};
+
+type CustomSectionDraft = {
+  title: string;
+  sectionType: string;
+};
+
+type CustomSectionItemDraft = {
+  title: string;
+  subtitle: string;
+  organization: string;
+  location: string;
+  description: string;
+  dateLabel: string;
+  tags: string;
 };
 
 const monthOptions = [
@@ -168,6 +188,29 @@ const emptyLanguageDraft: LanguageDraft = {
   proficiency: "",
 };
 
+const emptyCustomSectionDraft: CustomSectionDraft = {
+  title: "",
+  sectionType: "Custom",
+};
+
+const emptyCustomSectionItemDraft: CustomSectionItemDraft = {
+  title: "",
+  subtitle: "",
+  organization: "",
+  location: "",
+  description: "",
+  dateLabel: "",
+  tags: "",
+};
+
+const managedSectionKeys = new Set([
+  "experience",
+  "projects",
+  "education",
+  "certifications",
+  "languages",
+]);
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -239,6 +282,178 @@ function formatSimpleDate(value: string | null | undefined) {
 
 function getCountLabel(count: number, label: string) {
   return `${count} ${label}`;
+}
+
+function isManagedSection(section: CandidateSection) {
+  return !!section.sectionKey && managedSectionKeys.has(section.sectionKey.toLowerCase());
+}
+
+function buildManagedSectionsFromLegacy(
+  experienceEntries: ExperienceEntry[],
+  projects: CandidateProjectItem[],
+  educations: CandidateEducationItem[],
+  certifications: CandidateCertificationItem[],
+  languages: CandidateLanguageItem[],
+): CandidateSection[] {
+  const sections: CandidateSection[] = [];
+
+  if (experienceEntries.length) {
+    sections.push({
+      id: "",
+      sectionKey: "experience",
+      title: "Experience",
+      sectionType: "Timeline",
+      source: "System",
+      displayOrder: 100,
+      schema: {},
+      items: experienceEntries.map((entry, index) => ({
+        id: entry.id,
+        itemType: "Experience",
+        title: entry.title,
+        subtitle: null,
+        organization: entry.company,
+        location: null,
+        description: entry.bullets.join("\n"),
+        dateLabel: null,
+        startMonth: entry.period.startMonth,
+        startYear: entry.period.startYear,
+        endMonth: entry.period.endMonth ?? null,
+        endYear: entry.period.endYear ?? null,
+        isCurrent: entry.period.isCurrent,
+        displayOrder: index,
+        tags: [],
+        attributes: {},
+      })),
+    });
+  }
+
+  if (projects.length) {
+    sections.push({
+      id: "",
+      sectionKey: "projects",
+      title: "Projects",
+      sectionType: "Portfolio",
+      source: "System",
+      displayOrder: 200,
+      schema: {},
+      items: projects.map((project, index) => ({
+        id: project.id,
+        itemType: "Project",
+        title: project.name,
+        subtitle: project.role,
+        organization: null,
+        location: null,
+        description: project.description,
+        dateLabel: null,
+        startMonth: project.period.startMonth,
+        startYear: project.period.startYear,
+        endMonth: project.period.endMonth ?? null,
+        endYear: project.period.endYear ?? null,
+        isCurrent: project.period.isCurrent,
+        displayOrder: index,
+        tags: project.technologies,
+        attributes: {},
+      })),
+    });
+  }
+
+  if (educations.length) {
+    sections.push({
+      id: "",
+      sectionKey: "education",
+      title: "Education",
+      sectionType: "Education",
+      source: "System",
+      displayOrder: 300,
+      schema: {},
+      items: educations.map((education, index) => ({
+        id: education.id,
+        itemType: "Education",
+        title: education.school,
+        subtitle: education.degree,
+        organization: null,
+        location: null,
+        description: education.description,
+        dateLabel: null,
+        startMonth: null,
+        startYear: education.startYear,
+        endMonth: null,
+        endYear: education.endYear,
+        isCurrent: false,
+        displayOrder: index,
+        tags: [],
+        attributes: {
+          fieldOfStudy: education.fieldOfStudy ?? "",
+        },
+      })),
+    });
+  }
+
+  if (certifications.length) {
+    sections.push({
+      id: "",
+      sectionKey: "certifications",
+      title: "Certifications",
+      sectionType: "Achievements",
+      source: "System",
+      displayOrder: 400,
+      schema: {},
+      items: certifications.map((certification, index) => ({
+        id: certification.id,
+        itemType: "Certification",
+        title: certification.name,
+        subtitle: null,
+        organization: certification.issuer,
+        location: null,
+        description: null,
+        dateLabel: certification.issuedOn,
+        startMonth: null,
+        startYear: null,
+        endMonth: null,
+        endYear: null,
+        isCurrent: false,
+        displayOrder: index,
+        tags: [],
+        attributes: {
+          expiresOn: certification.expiresOn ?? "",
+          credentialId: certification.credentialId ?? "",
+          credentialUrl: certification.credentialUrl ?? "",
+        },
+      })),
+    });
+  }
+
+  if (languages.length) {
+    sections.push({
+      id: "",
+      sectionKey: "languages",
+      title: "Languages",
+      sectionType: "Attributes",
+      source: "System",
+      displayOrder: 500,
+      schema: {},
+      items: languages.map((language, index) => ({
+        id: language.id,
+        itemType: "Language",
+        title: language.name,
+        subtitle: language.proficiency,
+        organization: null,
+        location: null,
+        description: null,
+        dateLabel: null,
+        startMonth: null,
+        startYear: null,
+        endMonth: null,
+        endYear: null,
+        isCurrent: false,
+        displayOrder: index,
+        tags: [],
+        attributes: {},
+      })),
+    });
+  }
+
+  return sections;
 }
 
 function renderHighlightedLine(line: string) {
@@ -320,6 +535,7 @@ function CandidateProfileAndCVManagementScreen() {
   const [educations, setEducations] = useState(initialEducations);
   const [certifications, setCertifications] = useState(initialCertifications);
   const [languages, setLanguages] = useState(initialLanguages);
+  const [sections, setSections] = useState<CandidateSection[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [entryDraft, setEntryDraft] = useState<EntryDraft>(emptyEntryDraft);
   const [showEntryComposer, setShowEntryComposer] = useState(false);
@@ -327,12 +543,17 @@ function CandidateProfileAndCVManagementScreen() {
   const [showEducationComposer, setShowEducationComposer] = useState(false);
   const [showCertificationComposer, setShowCertificationComposer] = useState(false);
   const [showLanguageComposer, setShowLanguageComposer] = useState(false);
+  const [showCustomSectionComposer, setShowCustomSectionComposer] = useState(false);
   const [projectDraft, setProjectDraft] = useState<ProjectDraft>(emptyProjectDraft);
   const [educationDraft, setEducationDraft] = useState<EducationDraft>(emptyEducationDraft);
   const [certificationDraft, setCertificationDraft] = useState<CertificationDraft>(emptyCertificationDraft);
   const [languageDraft, setLanguageDraft] = useState<LanguageDraft>(emptyLanguageDraft);
+  const [customSectionDraft, setCustomSectionDraft] = useState<CustomSectionDraft>(emptyCustomSectionDraft);
+  const [customSectionItemDrafts, setCustomSectionItemDrafts] = useState<Record<string, CustomSectionItemDraft>>({});
+  const [openCustomSectionItemComposerId, setOpenCustomSectionItemComposerId] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [parsedResumePreview, setParsedResumePreview] = useState<CandidateResumeParseResponseDto | null>(null);
+  const [resumeMismatchNotice, setResumeMismatchNotice] = useState<ResumeUploadResponseDto | null>(null);
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [resumeMeta, setResumeMeta] = useState<CandidateProfileResponseDto["resume"] | null>(null);
@@ -342,6 +563,7 @@ function CandidateProfileAndCVManagementScreen() {
   const [loading, setLoading] = useState(true);
   const displayAvatarUrl = profileAvatarUrl ?? authUser?.avatarUrl ?? null;
   const profileInitials = getInitials(profile.name || authUser?.fullName || "Candidate");
+  const customSections = sections.filter((section) => !isManagedSection(section));
 
   function syncAuthUser(profileData: CandidateProfileResponseDto["profile"]) {
     if (!authUser) {
@@ -407,6 +629,7 @@ function CandidateProfileAndCVManagementScreen() {
         setEducations(profileResponse.data.educations ?? []);
         setCertifications(profileResponse.data.certifications ?? []);
         setLanguages(profileResponse.data.languages ?? []);
+        setSections(profileResponse.data.sections ?? []);
       })
       .catch(() => {
         if (mounted) {
@@ -452,13 +675,13 @@ function CandidateProfileAndCVManagementScreen() {
     setProfile((prev) => ({
       ...prev,
       name: preview.profile.name || prev.name,
-      headline: preview.profile.headline || prev.headline,
+      headline: preview.profile.headline || "",
       email: preview.profile.email || prev.email,
-      phone: preview.profile.phone || prev.phone,
-      location: preview.profile.location || prev.location,
-      bio: preview.profile.bio || prev.bio,
-      github: preview.profile.github || prev.github,
-      linkedin: preview.profile.linkedin || prev.linkedin,
+      phone: preview.profile.phone || "",
+      location: preview.profile.location || "",
+      bio: preview.profile.bio || "",
+      github: preview.profile.github || "",
+      linkedin: preview.profile.linkedin || "",
     }));
 
     const parsedSkillById = new Map(
@@ -471,19 +694,25 @@ function CandidateProfileAndCVManagementScreen() {
       ]),
     );
 
-    setSkills((prev) => {
-      const merged = prev.map((skill) => {
-        const parsedSkill = parsedSkillById.get(skill.id);
+    setSkills(() => {
+      const overwritten = skillOptions.map((skill) => {
+        const parsedSkill = parsedSkillById.get(skill.value);
         return parsedSkill
           ? {
-              ...skill,
+              id: skill.value,
+              label: skill.label,
               active: true,
               yearsOfExperience: parsedSkill.yearsOfExperience,
             }
-          : skill;
+          : {
+              id: skill.value,
+              label: skill.label,
+              active: false,
+              yearsOfExperience: null,
+            };
       });
 
-      const existingIds = new Set(merged.map((skill) => skill.id));
+      const existingIds = new Set(overwritten.map((skill) => skill.id));
       const missingParsedSkills = preview.skills
         .filter((skill) => !existingIds.has(skill.id))
         .map((skill) => ({
@@ -493,7 +722,7 @@ function CandidateProfileAndCVManagementScreen() {
           yearsOfExperience: skill.yearsOfExperience,
         }));
 
-      return [...merged, ...missingParsedSkills];
+      return [...overwritten, ...missingParsedSkills];
     });
 
     setExperienceEntries(preview.experienceEntries ?? []);
@@ -501,8 +730,10 @@ function CandidateProfileAndCVManagementScreen() {
     setEducations(preview.educations ?? []);
     setCertifications(preview.certifications ?? []);
     setLanguages(preview.languages ?? []);
+    setSections(preview.sections ?? []);
     setIsEditingProfile(true);
-    toast.success("Đã áp dụng dữ liệu phân tích CV vào biểu mẫu. Hãy kiểm tra lại trước khi lưu.");
+    setResumeMismatchNotice(null);
+    toast.success("Đã áp dữ liệu parse từ CV vào biểu mẫu theo chế độ ghi đè. Nếu bạn lưu, hệ thống sẽ coi profile này là CV chính thức.");
   }
 
   async function handleSaveProfile() {
@@ -573,6 +804,42 @@ function CandidateProfileAndCVManagementScreen() {
           name: language.name,
           proficiency: language.proficiency,
         })),
+        sections: [
+          ...buildManagedSectionsFromLegacy(
+            experienceEntries,
+            projects,
+            educations,
+            certifications,
+            languages,
+          ),
+          ...sections.filter((section) => !isManagedSection(section)),
+        ].map((section, sectionIndex) => ({
+          id: section.id || undefined,
+          sectionKey: section.sectionKey,
+          title: section.title,
+          sectionType: section.sectionType,
+          source: section.source,
+          displayOrder: section.displayOrder || (sectionIndex + 1) * 100,
+          schema: section.schema,
+          items: section.items.map((item, itemIndex) => ({
+            id: item.id || undefined,
+            itemType: item.itemType,
+            title: item.title,
+            subtitle: item.subtitle,
+            organization: item.organization,
+            location: item.location,
+            description: item.description,
+            dateLabel: item.dateLabel,
+            startMonth: item.startMonth,
+            startYear: item.startYear,
+            endMonth: item.endMonth,
+            endYear: item.endYear,
+            isCurrent: item.isCurrent,
+            displayOrder: item.displayOrder || itemIndex,
+            tags: item.tags,
+            attributes: item.attributes,
+          })),
+        })),
       });
 
       if (profileResult.data) {
@@ -601,6 +868,7 @@ function CandidateProfileAndCVManagementScreen() {
         setEducations(profileResult.data.educations ?? []);
         setCertifications(profileResult.data.certifications ?? []);
         setLanguages(profileResult.data.languages ?? []);
+        setSections(profileResult.data.sections ?? []);
       }
 
       if (resumeFile) {
@@ -616,12 +884,22 @@ function CandidateProfileAndCVManagementScreen() {
           setEducations(refreshedProfile.data.educations ?? []);
           setCertifications(refreshedProfile.data.certifications ?? []);
           setLanguages(refreshedProfile.data.languages ?? []);
-          setResumeFile(null);
-          setParsedResumePreview(null);
+          setSections(refreshedProfile.data.sections ?? []);
+          if (!uploadResponse.data?.profileRefreshRequired) {
+            setResumeFile(null);
+            setParsedResumePreview(null);
+            setResumeMismatchNotice(null);
+          }
         }
 
         if (uploadResponse.data?.parseMessage) {
-          if (uploadResponse.data.parseStatus === "Completed") {
+          if (uploadResponse.data.profileRefreshRequired) {
+            setResumeMismatchNotice(uploadResponse.data);
+            toast.warning(
+              uploadResponse.data.profileRefreshMessage
+              || "CV mới không khớp với profile hiện tại. Hãy parse và cập nhật lại profile để đồng bộ.",
+            );
+          } else if (uploadResponse.data.parseStatus === "Completed") {
             toast.success(uploadResponse.data.parseMessage);
           } else {
             toast.info(uploadResponse.data.parseMessage);
@@ -650,6 +928,7 @@ function CandidateProfileAndCVManagementScreen() {
 
     setResumeFile(file);
     setParsedResumePreview(null);
+    setResumeMismatchNotice(null);
     toast.success("Resume file selected: " + file.name);
   }
 
@@ -853,6 +1132,114 @@ function CandidateProfileAndCVManagementScreen() {
     ]);
     setLanguageDraft(emptyLanguageDraft);
     setShowLanguageComposer(false);
+    setIsEditingProfile(true);
+  }
+
+  function handleAddCustomSection() {
+    const title = customSectionDraft.title.trim();
+    if (!title) {
+      toast.error("Hãy nhập tên đầu mục lớn.");
+      return;
+    }
+
+    const sectionId = `custom-section-${Date.now()}`;
+    setSections((prev) => [
+      ...prev,
+      {
+        id: sectionId,
+        sectionKey: null,
+        title,
+        sectionType: customSectionDraft.sectionType.trim() || "Custom",
+        source: "User",
+        displayOrder: 800 + prev.filter((section) => !isManagedSection(section)).length * 100,
+        schema: {},
+        items: [],
+      },
+    ]);
+    setCustomSectionDraft(emptyCustomSectionDraft);
+    setShowCustomSectionComposer(false);
+    setOpenCustomSectionItemComposerId(sectionId);
+    setIsEditingProfile(true);
+  }
+
+  function handleRemoveCustomSection(sectionId: string) {
+    setSections((prev) => prev.filter((section) => section.id !== sectionId));
+    setOpenCustomSectionItemComposerId((prev) => (prev === sectionId ? null : prev));
+    setIsEditingProfile(true);
+  }
+
+  function handleCustomSectionItemDraftChange(sectionId: string, field: keyof CustomSectionItemDraft, value: string) {
+    setCustomSectionItemDrafts((prev) => ({
+      ...prev,
+      [sectionId]: {
+        ...(prev[sectionId] ?? emptyCustomSectionItemDraft),
+        [field]: value,
+      },
+    }));
+  }
+
+  function handleAddCustomSectionItem(sectionId: string) {
+    const draft = customSectionItemDrafts[sectionId] ?? emptyCustomSectionItemDraft;
+    const title = draft.title.trim();
+    if (!title) {
+      toast.error("Hãy nhập tiêu đề cho mục con.");
+      return;
+    }
+
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id !== sectionId
+          ? section
+          : {
+              ...section,
+              items: [
+                ...section.items,
+                {
+                  id: `custom-item-${Date.now()}`,
+                  itemType: "Entry",
+                  title,
+                  subtitle: draft.subtitle.trim() || null,
+                  organization: draft.organization.trim() || null,
+                  location: draft.location.trim() || null,
+                  description: draft.description.trim() || null,
+                  dateLabel: draft.dateLabel.trim() || null,
+                  startMonth: null,
+                  startYear: null,
+                  endMonth: null,
+                  endYear: null,
+                  isCurrent: false,
+                  displayOrder: section.items.length,
+                  tags: draft.tags
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter(Boolean),
+                  attributes: {},
+                },
+              ],
+            },
+      ),
+    );
+
+    setCustomSectionItemDrafts((prev) => ({
+      ...prev,
+      [sectionId]: emptyCustomSectionItemDraft,
+    }));
+    setOpenCustomSectionItemComposerId(null);
+    setIsEditingProfile(true);
+  }
+
+  function handleRemoveCustomSectionItem(sectionId: string, itemId: string) {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id !== sectionId
+          ? section
+          : {
+              ...section,
+              items: section.items.filter((item) => item.id !== itemId)
+                .map((item, index) => ({ ...item, displayOrder: index })),
+            },
+      ),
+    );
     setIsEditingProfile(true);
   }
 
@@ -1295,6 +1682,38 @@ function CandidateProfileAndCVManagementScreen() {
                           </span>
                           {isParsingResume ? "Đang phân tích CV..." : "Phân tích CV"}
                         </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {resumeMismatchNotice ? (
+                    <div className="mt-5 rounded-[20px] border border-[#f3c7cd] bg-[#fff4f6] p-5 shadow-[0_16px_30px_rgba(185,0,20,0.08)]">
+                      <div className="flex items-start gap-3">
+                        <span className="material-symbols-outlined mt-0.5 text-[24px] text-[#b90014]">
+                          warning
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[15px] font-semibold text-[#8a1020]">
+                            CV mới đang lệch với profile hiện tại
+                          </p>
+                          <p className="mt-1 text-[13px] leading-6 text-[#7a4b53]">
+                            {resumeMismatchNotice.profileRefreshMessage
+                              ?? "Hãy parse CV mới và cập nhật lại profile để thông tin trên hệ thống khớp với CV bạn vừa tải lên."}
+                          </p>
+                          {resumeMismatchNotice.profileMismatchWarnings.length ? (
+                            <ul className="mt-3 space-y-2 text-[13px] leading-6 text-[#7a4b53]">
+                              {resumeMismatchNotice.profileMismatchWarnings.map((warning) => (
+                                <li key={warning} className="flex gap-2">
+                                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b90014]" />
+                                  <span>{warning}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                          <p className="mt-3 text-[12px] font-medium text-[#8a1020]">
+                            Gợi ý: bấm `Phân tích CV`, rà soát bản parse rồi `Áp dụng vào biểu mẫu` để đồng bộ profile với CV mới.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ) : null}
@@ -2273,6 +2692,207 @@ function CandidateProfileAndCVManagementScreen() {
                           <p className="text-[14px] text-[#5f5e5e]">Chưa có ngôn ngữ nào trong hồ sơ.</p>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between gap-3">
+                      <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
+                        Flexible Sections
+                      </h2>
+                      {canEditProfile ? (
+                        <button
+                          className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                          type="button"
+                          onClick={() => setShowCustomSectionComposer((value) => !value)}
+                        >
+                          {showCustomSectionComposer ? "Đóng" : "Thêm đầu mục lớn"}
+                        </button>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">
+                      Dùng cho các mục không muốn bị ép cố định như vinh danh, hoạt động, publications, speaking, volunteer, patents hoặc bất kỳ đầu mục riêng nào.
+                    </p>
+
+                    {showCustomSectionComposer && canEditProfile ? (
+                      <div className="mt-4 grid gap-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4 md:grid-cols-2">
+                        <input
+                          className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                          placeholder="Ví dụ: Vinh danh"
+                          value={customSectionDraft.title}
+                          onChange={(e) => setCustomSectionDraft((prev) => ({ ...prev, title: e.target.value }))}
+                        />
+                        <input
+                          className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                          placeholder="Ví dụ: Achievements"
+                          value={customSectionDraft.sectionType}
+                          onChange={(e) => setCustomSectionDraft((prev) => ({ ...prev, sectionType: e.target.value }))}
+                        />
+                        <div className="md:col-span-2 flex justify-end gap-2">
+                          <button
+                            className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                            type="button"
+                            onClick={() => setShowCustomSectionComposer(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                            type="button"
+                            onClick={handleAddCustomSection}
+                          >
+                            Tạo đầu mục
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="mt-4 space-y-4">
+                      {customSections.length ? customSections.map((section) => {
+                        const itemDraft = customSectionItemDrafts[section.id] ?? emptyCustomSectionItemDraft;
+                        const composerOpen = openCustomSectionItemComposerId === section.id;
+
+                        return (
+                          <div key={section.id} className="rounded border border-[#e2dfde] bg-[#fcfcfc] p-4">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div>
+                                <p className="text-[18px] font-semibold text-[#1a1c1c]">{section.title}</p>
+                                <p className="mt-1 text-[12px] uppercase tracking-[0.06em] text-[#7a4b53]">
+                                  {section.sectionType}
+                                </p>
+                              </div>
+                              {canEditProfile ? (
+                                <div className="flex gap-2">
+                                  <button
+                                    className="rounded border border-[#e2dfde] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
+                                    type="button"
+                                    onClick={() => setOpenCustomSectionItemComposerId((prev) => prev === section.id ? null : section.id)}
+                                  >
+                                    {composerOpen ? "Đóng mục con" : "Thêm mục con"}
+                                  </button>
+                                  <button
+                                    className="rounded border border-[#f0c9cf] bg-[#fff5f6] px-3 py-2 text-[12px] font-semibold text-[#b90014]"
+                                    type="button"
+                                    onClick={() => handleRemoveCustomSection(section.id)}
+                                  >
+                                    Xóa đầu mục
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+
+                            {composerOpen && canEditProfile ? (
+                              <div className="mt-4 grid gap-3 rounded border border-[#efe3e5] bg-white p-4 md:grid-cols-2">
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  placeholder="Tiêu đề"
+                                  value={itemDraft.title}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "title", e.target.value)}
+                                />
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  placeholder="Phụ đề / vai trò"
+                                  value={itemDraft.subtitle}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "subtitle", e.target.value)}
+                                />
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  placeholder="Tổ chức"
+                                  value={itemDraft.organization}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "organization", e.target.value)}
+                                />
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  placeholder="Mốc thời gian hiển thị"
+                                  value={itemDraft.dateLabel}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "dateLabel", e.target.value)}
+                                />
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  placeholder="Địa điểm"
+                                  value={itemDraft.location}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "location", e.target.value)}
+                                />
+                                <input
+                                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                                  placeholder="Tags, phân tách bằng dấu phẩy"
+                                  value={itemDraft.tags}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "tags", e.target.value)}
+                                />
+                                <textarea
+                                  className="min-h-[100px] rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c] md:col-span-2"
+                                  placeholder="Mô tả"
+                                  value={itemDraft.description}
+                                  onChange={(e) => handleCustomSectionItemDraftChange(section.id, "description", e.target.value)}
+                                />
+                                <div className="md:col-span-2 flex justify-end gap-2">
+                                  <button
+                                    className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                                    type="button"
+                                    onClick={() => setOpenCustomSectionItemComposerId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                                    type="button"
+                                    onClick={() => handleAddCustomSectionItem(section.id)}
+                                  >
+                                    Add Entry
+                                  </button>
+                                </div>
+                              </div>
+                            ) : null}
+
+                            <div className="mt-4 space-y-3">
+                              {section.items.length ? section.items.map((item) => (
+                                <div key={item.id} className="rounded border border-[#e2dfde] bg-white p-4">
+                                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                    <div>
+                                      <p className="text-[15px] font-semibold text-[#1a1c1c]">{item.title}</p>
+                                      {item.subtitle ? (
+                                        <p className="mt-1 text-[13px] font-medium text-[#b90014]">{item.subtitle}</p>
+                                      ) : null}
+                                      {item.organization || item.dateLabel ? (
+                                        <p className="mt-1 text-[13px] text-[#5f5e5e]">
+                                          {[item.organization, item.dateLabel].filter(Boolean).join(" • ")}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                    {canEditProfile ? (
+                                      <button
+                                        className="text-[12px] font-semibold text-[#b90014]"
+                                        type="button"
+                                        onClick={() => handleRemoveCustomSectionItem(section.id, item.id)}
+                                      >
+                                        Xóa mục con
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                  {item.description ? (
+                                    <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">{item.description}</p>
+                                  ) : null}
+                                  {item.tags.length ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                      {item.tags.map((tag) => (
+                                        <span key={`${item.id}-${tag}`} className="rounded-full bg-[#f7f1f2] px-3 py-1 text-[12px] font-semibold text-[#7a4b53]">
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              )) : (
+                                <p className="text-[14px] text-[#5f5e5e]">Đầu mục này chưa có mục con nào.</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }) : (
+                        <p className="text-[14px] text-[#5f5e5e]">
+                          Chưa có đầu mục linh hoạt nào. Bạn có thể thêm các nhóm như Vinh danh, Hoạt động, Publications, Speaking, Volunteer...
+                        </p>
+                      )}
                     </div>
                   </div>
                 </section>

@@ -63,6 +63,36 @@ export type CandidateApplicationsResponseDto = {
   };
 };
 
+export type CandidateProfileSectionItemDto = {
+  id: string;
+  itemType: string;
+  title: string;
+  subtitle: string | null;
+  organization: string | null;
+  location: string | null;
+  description: string | null;
+  dateLabel: string | null;
+  startMonth: number | null;
+  startYear: number | null;
+  endMonth: number | null;
+  endYear: number | null;
+  isCurrent: boolean;
+  displayOrder: number;
+  tags: string[];
+  attributes: Record<string, string>;
+};
+
+export type CandidateProfileSectionDto = {
+  id: string;
+  sectionKey: string | null;
+  title: string;
+  sectionType: string;
+  source: string;
+  displayOrder: number;
+  schema: Record<string, string>;
+  items: CandidateProfileSectionItemDto[];
+};
+
 export type CandidateProfileResponseDto = {
   profile: {
     id: string;
@@ -134,6 +164,7 @@ export type CandidateProfileResponseDto = {
     name: string;
     proficiency: string;
   }>;
+  sections: CandidateProfileSectionDto[];
   resume: {
     id: string;
     fileName: string;
@@ -185,8 +216,24 @@ export type CandidateResumeParseResponseDto = {
   educations: CandidateProfileResponseDto["educations"];
   certifications: CandidateProfileResponseDto["certifications"];
   languages: CandidateProfileResponseDto["languages"];
+  sections: CandidateProfileSectionDto[];
   notes: string[];
   extractedTextPreview: string;
+};
+
+export type ResumeUploadResponseDto = {
+  resumeId: string;
+  fileName: string;
+  uploadedAt: string;
+  version: number;
+  isCurrent: boolean;
+  parseStatus: string;
+  parseMessage?: string | null;
+  parsedAt?: string | null;
+  parserWarnings: string[];
+  profileRefreshRequired: boolean;
+  profileRefreshMessage?: string | null;
+  profileMismatchWarnings: string[];
 };
 
 export type CandidateProfileUpdateRequest = {
@@ -233,6 +280,33 @@ export type CandidateProfileUpdateRequest = {
     id?: string;
     name: string;
     proficiency: string;
+  }>;
+  sections?: Array<{
+    id?: string;
+    sectionKey?: string | null;
+    title: string;
+    sectionType: string;
+    source: string;
+    displayOrder: number;
+    schema?: Record<string, string>;
+    items: Array<{
+      id?: string;
+      itemType: string;
+      title: string;
+      subtitle?: string | null;
+      organization?: string | null;
+      location?: string | null;
+      description?: string | null;
+      dateLabel?: string | null;
+      startMonth?: number | null;
+      startYear?: number | null;
+      endMonth?: number | null;
+      endYear?: number | null;
+      isCurrent: boolean;
+      displayOrder: number;
+      tags: string[];
+      attributes?: Record<string, string>;
+    }>;
   }>;
 };
 
@@ -434,31 +508,11 @@ export const candidateService = {
 
   uploadResume: async (
     file: File,
-  ): Promise<ApiResponse<{
-    resumeId: string;
-    fileName: string;
-    uploadedAt: string;
-    version: number;
-    isCurrent: boolean;
-    parseStatus: string;
-    parseMessage?: string | null;
-    parsedAt?: string | null;
-    parserWarnings: string[];
-  }>> => {
+  ): Promise<ApiResponse<ResumeUploadResponseDto>> => {
     const formData = new FormData();
     formData.append("resume", file);
 
-    return request.post<ApiResponse<{
-      resumeId: string;
-      fileName: string;
-      uploadedAt: string;
-      version: number;
-      isCurrent: boolean;
-      parseStatus: string;
-      parseMessage?: string | null;
-      parsedAt?: string | null;
-      parserWarnings: string[];
-    }>, FormData>(
+    return request.post<ApiResponse<ResumeUploadResponseDto>, FormData>(
       endpoints.candidate.profileResume,
       formData,
       {
