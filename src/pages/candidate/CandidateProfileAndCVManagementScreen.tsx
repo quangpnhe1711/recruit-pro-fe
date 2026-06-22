@@ -697,7 +697,9 @@ function CandidateProfileAndCVManagementScreen() {
       linkedin: profileData.profile.linkedin ?? "",
     };
 
-    const selectedSkillIds = new Set(profileData.skills.map((skill) => skill.id));
+    const selectedSkillIds = new Set(
+      profileData.skills.map((skill) => skill.id),
+    );
 
     setProfile(nextProfileState);
     setProfileAvatarUrl(profileData.profile.avatarUrl ?? null);
@@ -1841,11 +1843,6 @@ function CandidateProfileAndCVManagementScreen() {
                     <div>
                       <p className="text-[15px] font-semibold text-[#b90014]">
                         Xem trước dữ liệu CV trước khi ghi vào hồ sơ
-                      </p>
-                      <p className="mt-1 text-[13px] leading-6 text-[#7a4b53]">
-                        Hệ thống sẽ trích xuất nội dung theo cấu trúc CV thực tế
-                        để bạn rà soát, đối chiếu và chỉ áp dụng khi thấy hợp
-                        lý.
                       </p>
                     </div>
                     <button
