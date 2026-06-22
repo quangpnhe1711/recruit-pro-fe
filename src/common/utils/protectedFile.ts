@@ -1,7 +1,19 @@
 import apiClient from "../../services/http/api-client";
 
+function normalizeProtectedFileUrl(url: string) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+
+  if (url.startsWith("/api/")) {
+    return url.replace(/^\/api/, "");
+  }
+
+  return url;
+}
+
 export async function fetchProtectedFileBlob(url: string) {
-  return apiClient.get<Blob>(url, {
+  return apiClient.get<Blob>(normalizeProtectedFileUrl(url), {
     responseType: "blob",
   });
 }
