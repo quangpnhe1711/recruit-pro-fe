@@ -3,6 +3,10 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import {
+  downloadProtectedFile,
+  openProtectedFileInNewTab,
+} from "../../common/utils/protectedFile";
 import { buildResumeDownloadPath, buildResumePreviewPath } from "../../common/utils/resumeLinks";
 import { hrService, type HrCandidateDetailDto } from "../../services/hr/hrService";
 
@@ -155,15 +159,20 @@ function CandidateProfileScreen() {
 
         <div className="flex flex-wrap gap-3">
           {detail.resume ? (
-            <a
+            <button
+              type="button"
               className="inline-flex items-center gap-2 bg-[#b90014] px-5 py-3 text-sm font-semibold text-white hover:bg-[#93000d]"
-              href={currentResumeDownloadPath ?? detail.resume.fileUrl}
-              rel="noreferrer"
-              target="_blank"
+              onClick={() => {
+                if (!currentResumeDownloadPath || !detail.resume) return;
+                void downloadProtectedFile(
+                  currentResumeDownloadPath,
+                  detail.resume.fileName,
+                ).catch(() => toast.error("Unable to download CV."));
+              }}
             >
               <span className="material-symbols-outlined text-base">download</span>
               Download CV
-            </a>
+            </button>
           ) : null}
           <a
             className="inline-flex items-center gap-2 border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] hover:bg-[#f3f3f3]"
@@ -457,12 +466,15 @@ function CandidateProfileScreen() {
             <div className="mt-4 space-y-3">
               {detail.resumeHistory.length ? (
                 detail.resumeHistory.map((resume) => (
-                  <a
+                  <button
                     key={resume.id}
-                    className="flex items-center justify-between border border-[#f0d7d3] p-4 hover:bg-[#fff8f7]"
-                    href={buildResumePreviewPath(resume.id, resume.fileUrl)}
-                    rel="noreferrer"
-                    target="_blank"
+                    className="flex w-full items-center justify-between border border-[#f0d7d3] p-4 text-left hover:bg-[#fff8f7]"
+                    type="button"
+                    onClick={() => {
+                      void openProtectedFileInNewTab(
+                        buildResumePreviewPath(resume.id, resume.fileUrl),
+                      ).catch(() => toast.error("Unable to open CV."));
+                    }}
                   >
                     <div>
                       <p className="font-semibold text-[#1a1c1c]">
@@ -473,7 +485,7 @@ function CandidateProfileScreen() {
                     <span className="text-sm font-semibold text-[#b90014]">
                       {resume.isCurrent ? "Current" : "Open"}
                     </span>
-                  </a>
+                  </button>
                 ))
               ) : (
                 <span className="text-sm text-[#5f5e5e]">No resume history is available yet.</span>

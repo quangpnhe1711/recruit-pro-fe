@@ -5,6 +5,10 @@ import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import SkillPicker from "../../common/components/SkillPicker";
 import {
+  downloadProtectedFile,
+  openProtectedFileInNewTab,
+} from "../../common/utils/protectedFile";
+import {
   buildResumeDownloadPath,
   buildResumePreviewPath,
 } from "../../common/utils/resumeLinks";
@@ -1762,11 +1766,9 @@ function CandidateProfileAndCVManagementScreen() {
                       type="button"
                       disabled={!resumePreviewPath}
                       onClick={() => {
-                        if (resumePreviewPath) {
-                          window.open(
-                            resumePreviewPath,
-                            "_blank",
-                            "noopener,noreferrer",
+                        if (resumePreviewPath && resumeMeta) {
+                          void openProtectedFileInNewTab(resumePreviewPath).catch(
+                            () => toast.error("Không thể mở CV."),
                           );
                         }
                       }}
@@ -1784,11 +1786,12 @@ function CandidateProfileAndCVManagementScreen() {
                         type="button"
                         disabled={!resumeDownloadPath}
                         onClick={() => {
-                          if (resumeDownloadPath) {
-                            window.open(
+                          if (resumeDownloadPath && resumeMeta) {
+                            void downloadProtectedFile(
                               resumeDownloadPath,
-                              "_blank",
-                              "noopener,noreferrer",
+                              resumeMeta.fileName,
+                            ).catch(() =>
+                              toast.error("Không thể tải CV xuống."),
                             );
                           }
                         }}
@@ -2333,12 +2336,15 @@ function CandidateProfileAndCVManagementScreen() {
                     Lịch sử CV
                   </p>
                   {resumeHistory.map((resume) => (
-                    <a
+                    <button
                       key={resume.id}
-                      className="flex items-center justify-between rounded border border-[#e2dfde] bg-white px-4 py-3 hover:border-[#b90014]"
-                      href={buildResumePreviewPath(resume.id, resume.fileUrl)}
-                      rel="noreferrer"
-                      target="_blank"
+                      className="flex w-full items-center justify-between rounded border border-[#e2dfde] bg-white px-4 py-3 text-left hover:border-[#b90014]"
+                      type="button"
+                      onClick={() => {
+                        void openProtectedFileInNewTab(
+                          buildResumePreviewPath(resume.id, resume.fileUrl),
+                        ).catch(() => toast.error("Không thể mở CV."));
+                      }}
                     >
                       <div>
                         <p className="text-[14px] font-semibold text-[#1a1c1c]">
@@ -2351,7 +2357,7 @@ function CandidateProfileAndCVManagementScreen() {
                       <span className="text-[12px] font-semibold text-[#b90014]">
                         {resume.isCurrent ? "Đang dùng" : "Mở"}
                       </span>
-                    </a>
+                    </button>
                   ))}
                 </div>
               ) : null}

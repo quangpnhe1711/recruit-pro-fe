@@ -12,6 +12,7 @@ import {
   getDepartmentBadgeClass,
   type ApplicationStatusLabel,
 } from "../../common/utils/applicationPresentation";
+import { openProtectedFileInNewTab } from "../../common/utils/protectedFile";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
 import { hrService } from "../../services/hr/hrService";
@@ -453,7 +454,9 @@ function CandidateApplicationScreen() {
       .then((res) => {
         const url = res.data?.fileUrl;
         if (url) {
-          window.open(url, "_blank", "noopener,noreferrer");
+          void openProtectedFileInNewTab(url).catch(() =>
+            toast.error("Unable to load CV"),
+          );
           return;
         }
         toast.info("CV not available");

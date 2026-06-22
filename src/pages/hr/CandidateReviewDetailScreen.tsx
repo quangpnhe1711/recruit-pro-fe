@@ -4,6 +4,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import {
+  downloadProtectedFile,
+  fetchProtectedFileBlob,
+  openProtectedFileInNewTab,
+} from "../../common/utils/protectedFile";
+import {
   buildPdfViewerUrl,
   buildResumeDownloadPath,
   buildResumePreviewPath,
@@ -208,6 +213,9 @@ function CandidateReviewDetailScreen() {
     fileUrl: string;
   } | null>(null);
   const [resumePreviewError, setResumePreviewError] = useState(false);
+  const [resumePreviewBlobUrl, setResumePreviewBlobUrl] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [submittingDecision, setSubmittingDecision] =
     useState<ApplicationReviewDecision | null>(null);
@@ -254,6 +262,44 @@ function CandidateReviewDetailScreen() {
       mounted = false;
     };
   }, [applicationId]);
+
+  useEffect(() => {
+    if (!resumeFile) {
+      setResumePreviewBlobUrl(null);
+      return;
+    }
+
+    const previewPath = buildResumePreviewPath(
+      resumeFile.resumeId,
+      resumeFile.fileUrl,
+    );
+    let active = true;
+    let objectUrl: string | null = null;
+
+    void fetchProtectedFileBlob(previewPath)
+      .then((blob) => {
+        if (!active) {
+          return;
+        }
+
+        objectUrl = URL.createObjectURL(blob);
+        setResumePreviewBlobUrl(objectUrl);
+        setResumePreviewError(false);
+      })
+      .catch(() => {
+        if (active) {
+          setResumePreviewBlobUrl(null);
+          setResumePreviewError(true);
+        }
+      });
+
+    return () => {
+      active = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [resumeFile]);
 
   const canReview = useMemo(
     () => canApprove || canReject,
@@ -322,8 +368,8 @@ function CandidateReviewDetailScreen() {
   const resumeDownloadPath = resumeFile
     ? buildResumeDownloadPath(resumeFile.resumeId, resumeFile.fileUrl)
     : null;
-  const resumePreviewUrl = resumeFile
-    ? buildPdfViewerUrl(resumePreviewPath ?? resumeFile.fileUrl)
+  const resumePreviewUrl = resumePreviewBlobUrl
+    ? buildPdfViewerUrl(resumePreviewBlobUrl)
     : null;
 
   return (
@@ -415,17 +461,22 @@ function CandidateReviewDetailScreen() {
               </Link>
             ) : null}
             {resumeFile ? (
-              <a
+              <button
+                type="button"
                 className="inline-flex items-center gap-2 bg-[#e2e2e2] px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#dadada]"
-                href={resumeDownloadPath ?? resumeFile.fileUrl}
-                rel="noreferrer"
-                target="_blank"
+                onClick={() => {
+                  if (!resumeDownloadPath) return;
+                  void downloadProtectedFile(
+                    resumeDownloadPath,
+                    resumeFile.fileName,
+                  ).catch(() => toast.error("Không thể tải CV."));
+                }}
               >
                 <span className="material-symbols-outlined text-base">
                   download
                 </span>
                 Tải CV
-              </a>
+              </button>
             ) : null}
           </div>
         </div>
@@ -503,26 +554,35 @@ function CandidateReviewDetailScreen() {
               </div>
               {resumeFile && canViewCv ? (
                 <div className="flex items-center gap-3">
-                  <a
-                    href={resumePreviewPath ?? resumeFile.fileUrl}
-                    rel="noreferrer"
-                    target="_blank"
+                  <button
+                    type="button"
                     title="Mở CV"
+                    onClick={() => {
+                      if (!resumePreviewPath) return;
+                      void openProtectedFileInNewTab(resumePreviewPath).catch(() =>
+                        toast.error("Không thể mở CV."),
+                      );
+                    }}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       open_in_new
                     </span>
-                  </a>
-                  <a
-                    href={resumeDownloadPath ?? resumeFile.fileUrl}
-                    rel="noreferrer"
-                    target="_blank"
+                  </button>
+                  <button
+                    type="button"
                     title="Tải CV"
+                    onClick={() => {
+                      if (!resumeDownloadPath) return;
+                      void downloadProtectedFile(
+                        resumeDownloadPath,
+                        resumeFile.fileName,
+                      ).catch(() => toast.error("Không thể tải CV."));
+                    }}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       download
                     </span>
-                  </a>
+                  </button>
                 </div>
               ) : null}
             </div>
@@ -532,14 +592,18 @@ function CandidateReviewDetailScreen() {
                 <div className="p-8">
                   <p className="text-sm text-[#5f5e5e]">
                     Không thể hiển thị xem trước CV trong trình duyệt.{" "}
-                    <a
+                    <button
+                      type="button"
                       className="font-semibold text-[#b90014] hover:underline"
-                      href={resumePreviewPath ?? resumeFile.fileUrl}
-                      rel="noreferrer"
-                      target="_blank"
+                      onClick={() => {
+                        if (!resumePreviewPath) return;
+                        void openProtectedFileInNewTab(resumePreviewPath).catch(() =>
+                          toast.error("Không thể mở CV."),
+                        );
+                      }}
                     >
                       Mở file CV ở tab mới
-                    </a>
+                    </button>
                   </p>
                 </div>
               ) : (
@@ -559,14 +623,18 @@ function CandidateReviewDetailScreen() {
                 <p className="text-sm text-[#5f5e5e]">
                   Không thể hiển thị xem trước CV.{" "}
                   {resumeFile ? (
-                    <a
+                    <button
+                      type="button"
                       className="font-semibold text-[#b90014] hover:underline"
-                      href={resumePreviewPath ?? resumeFile.fileUrl}
-                      rel="noreferrer"
-                      target="_blank"
+                      onClick={() => {
+                        if (!resumePreviewPath) return;
+                        void openProtectedFileInNewTab(resumePreviewPath).catch(() =>
+                          toast.error("Không thể mở CV."),
+                        );
+                      }}
                     >
                       Mở file CV ở tab mới
-                    </a>
+                    </button>
                   ) : (
                     "Hồ sơ này hiện chưa có file CV được lưu."
                   )}
