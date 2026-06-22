@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { buildResumeDownloadPath, buildResumePreviewPath } from "../../common/utils/resumeLinks";
 import { hrService, type HrCandidateDetailDto } from "../../services/hr/hrService";
 
 function formatDate(value?: string | null) {
@@ -77,6 +78,9 @@ function CandidateProfileScreen() {
         ).length ?? 0,
     };
   }, [detail]);
+  const currentResumeDownloadPath = detail?.resume
+    ? buildResumeDownloadPath(detail.resume.id, detail.resume.fileUrl)
+    : null;
 
   if (loading) {
     return (
@@ -153,7 +157,7 @@ function CandidateProfileScreen() {
           {detail.resume ? (
             <a
               className="inline-flex items-center gap-2 bg-[#b90014] px-5 py-3 text-sm font-semibold text-white hover:bg-[#93000d]"
-              href={detail.resume.fileUrl}
+              href={currentResumeDownloadPath ?? detail.resume.fileUrl}
               rel="noreferrer"
               target="_blank"
             >
@@ -456,7 +460,7 @@ function CandidateProfileScreen() {
                   <a
                     key={resume.id}
                     className="flex items-center justify-between border border-[#f0d7d3] p-4 hover:bg-[#fff8f7]"
-                    href={resume.fileUrl}
+                    href={buildResumePreviewPath(resume.id, resume.fileUrl)}
                     rel="noreferrer"
                     target="_blank"
                   >

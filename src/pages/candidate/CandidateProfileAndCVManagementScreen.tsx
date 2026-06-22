@@ -4,6 +4,10 @@ import { toast } from "react-toastify";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import SkillPicker from "../../common/components/SkillPicker";
+import {
+  buildResumeDownloadPath,
+  buildResumePreviewPath,
+} from "../../common/utils/resumeLinks";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -654,6 +658,12 @@ function CandidateProfileAndCVManagementScreen() {
       sections,
     }) !== initialSnapshot;
   const hasPendingResumeUpload = resumeFile !== null;
+  const resumePreviewPath = resumeMeta
+    ? buildResumePreviewPath(resumeMeta.id, resumeMeta.fileUrl)
+    : "";
+  const resumeDownloadPath = resumeMeta
+    ? buildResumeDownloadPath(resumeMeta.id, resumeMeta.fileUrl)
+    : "";
 
   function syncAuthUser(profileData: CandidateProfileResponseDto["profile"]) {
     if (!authUser) {
@@ -1748,11 +1758,11 @@ function CandidateProfileAndCVManagementScreen() {
                     <button
                       className="inline-flex items-center gap-2 rounded-full border border-[#e2dfde] bg-white px-4 py-2 text-[13px] font-semibold text-[#1a1c1c] transition-colors hover:border-[#b90014] hover:text-[#b90014] disabled:cursor-not-allowed disabled:opacity-60"
                       type="button"
-                      disabled={!resumeMeta?.fileUrl}
+                      disabled={!resumePreviewPath}
                       onClick={() => {
-                        if (resumeMeta?.fileUrl) {
+                        if (resumePreviewPath) {
                           window.open(
-                            resumeMeta.fileUrl,
+                            resumePreviewPath,
                             "_blank",
                             "noopener,noreferrer",
                           );
@@ -1770,11 +1780,11 @@ function CandidateProfileAndCVManagementScreen() {
                       <button
                         className="inline-flex items-center gap-2 rounded-full border border-[#e2dfde] bg-white px-4 py-2 text-[13px] font-semibold text-[#1a1c1c] transition-colors hover:border-[#b90014] hover:text-[#b90014] disabled:cursor-not-allowed disabled:opacity-60"
                         type="button"
-                        disabled={!resumeMeta?.fileUrl}
+                        disabled={!resumeDownloadPath}
                         onClick={() => {
-                          if (resumeMeta?.fileUrl) {
+                          if (resumeDownloadPath) {
                             window.open(
-                              resumeMeta.fileUrl,
+                              resumeDownloadPath,
                               "_blank",
                               "noopener,noreferrer",
                             );
@@ -2329,7 +2339,7 @@ function CandidateProfileAndCVManagementScreen() {
                     <a
                       key={resume.id}
                       className="flex items-center justify-between rounded border border-[#e2dfde] bg-white px-4 py-3 hover:border-[#b90014]"
-                      href={resume.fileUrl}
+                      href={buildResumePreviewPath(resume.id, resume.fileUrl)}
                       rel="noreferrer"
                       target="_blank"
                     >

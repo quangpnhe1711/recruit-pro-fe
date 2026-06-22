@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { buildResumePreviewPath } from "../../common/utils/resumeLinks";
 import type { ApplyJobResponseDto, ApplyJobScreenDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 
@@ -258,7 +259,7 @@ function ApplyJobScreen() {
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <a
-                      href={resume.fileUrl}
+                      href={buildResumePreviewPath(resume.resumeId, resume.fileUrl)}
                       rel="noreferrer"
                       target="_blank"
                       className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c] hover:text-[#b90014]"

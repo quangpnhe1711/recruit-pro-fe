@@ -3,6 +3,11 @@ import { toast } from "react-toastify";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import {
+  buildPdfViewerUrl,
+  buildResumeDownloadPath,
+  buildResumePreviewPath,
+} from "../../common/utils/resumeLinks";
 import { formatApplicationStatus } from "../../common/utils/applicationPresentation";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -114,11 +119,6 @@ function formatOfferStatusVi(status: string | null) {
   }
 }
 
-function buildResumePreviewUrl(fileUrl: string) {
-  const separator = fileUrl.includes("#") ? "&" : "#";
-  return `${fileUrl}${separator}toolbar=0&navpanes=0&scrollbar=0&view=FitH`;
-}
-
 function decisionButtonClassName(decision: ApplicationReviewDecision) {
   switch (decision) {
     case "Screening":
@@ -203,6 +203,7 @@ function CandidateReviewDetailScreen() {
 
   const [detail, setDetail] = useState<ApplicationReviewDetailDto | null>(null);
   const [resumeFile, setResumeFile] = useState<{
+    resumeId: string;
     fileName: string;
     fileUrl: string;
   } | null>(null);
@@ -229,6 +230,7 @@ function CandidateReviewDetailScreen() {
         setResumeFile(
           resumeResponse?.data
             ? {
+                resumeId: resumeResponse.data.resumeId,
                 fileName: resumeResponse.data.fileName,
                 fileUrl: resumeResponse.data.fileUrl,
               }
@@ -314,8 +316,14 @@ function CandidateReviewDetailScreen() {
 
   const interviewNotes = detail.interviews.filter((item) => item.notes);
   const availableDecisions = getAvailableDecisions(detail.status, primaryRole);
+  const resumePreviewPath = resumeFile
+    ? buildResumePreviewPath(resumeFile.resumeId, resumeFile.fileUrl)
+    : null;
+  const resumeDownloadPath = resumeFile
+    ? buildResumeDownloadPath(resumeFile.resumeId, resumeFile.fileUrl)
+    : null;
   const resumePreviewUrl = resumeFile
-    ? buildResumePreviewUrl(resumeFile.fileUrl)
+    ? buildPdfViewerUrl(resumePreviewPath ?? resumeFile.fileUrl)
     : null;
 
   return (
@@ -409,7 +417,7 @@ function CandidateReviewDetailScreen() {
             {resumeFile ? (
               <a
                 className="inline-flex items-center gap-2 bg-[#e2e2e2] px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#dadada]"
-                href={resumeFile.fileUrl}
+                href={resumeDownloadPath ?? resumeFile.fileUrl}
                 rel="noreferrer"
                 target="_blank"
               >
@@ -496,7 +504,7 @@ function CandidateReviewDetailScreen() {
               {resumeFile && canViewCv ? (
                 <div className="flex items-center gap-3">
                   <a
-                    href={resumeFile.fileUrl}
+                    href={resumePreviewPath ?? resumeFile.fileUrl}
                     rel="noreferrer"
                     target="_blank"
                     title="Mở CV"
@@ -506,7 +514,7 @@ function CandidateReviewDetailScreen() {
                     </span>
                   </a>
                   <a
-                    href={resumeFile.fileUrl}
+                    href={resumeDownloadPath ?? resumeFile.fileUrl}
                     rel="noreferrer"
                     target="_blank"
                     title="Tải CV"
@@ -526,7 +534,7 @@ function CandidateReviewDetailScreen() {
                     Không thể hiển thị xem trước CV trong trình duyệt.{" "}
                     <a
                       className="font-semibold text-[#b90014] hover:underline"
-                      href={resumeFile.fileUrl}
+                      href={resumePreviewPath ?? resumeFile.fileUrl}
                       rel="noreferrer"
                       target="_blank"
                     >
@@ -553,7 +561,7 @@ function CandidateReviewDetailScreen() {
                   {resumeFile ? (
                     <a
                       className="font-semibold text-[#b90014] hover:underline"
-                      href={resumeFile.fileUrl}
+                      href={resumePreviewPath ?? resumeFile.fileUrl}
                       rel="noreferrer"
                       target="_blank"
                     >
