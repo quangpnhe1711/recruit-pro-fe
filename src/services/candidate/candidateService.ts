@@ -450,6 +450,29 @@ export const candidateService = {
     );
   },
 
+  saveProfile: async (
+    data: CandidateProfileUpdateRequest,
+    resume?: File | null,
+  ): Promise<ApiResponse<CandidateProfileResponseDto>> => {
+    const formData = new FormData();
+    formData.append("payload", JSON.stringify(data));
+
+    if (resume) {
+      formData.append("resume", resume);
+    }
+
+    return request.post<ApiResponse<CandidateProfileResponseDto>, FormData>(
+      endpoints.candidate.profileSave,
+      formData,
+      {
+        timeout: 190000,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
+
   updateSkills: async (
     skills: Array<{ skillId: string; yearsOfExperience?: number | null }> | string[],
   ): Promise<ApiResponse<CandidateProfileResponseDto>> => {

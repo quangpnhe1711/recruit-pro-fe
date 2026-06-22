@@ -14,7 +14,6 @@ import {
   type CandidateProfileResponseDto,
   type CandidateProfileSectionDto,
   type CandidateProfileSectionItemDto,
-  type ResumeUploadResponseDto,
 } from "../../services/candidate/candidateService";
 import type { RootState } from "../../store";
 import { updateUser } from "../../store/slices/authSlice";
@@ -282,6 +281,34 @@ function formatSimpleDate(value: string | null | undefined) {
 
 function getCountLabel(count: number, label: string) {
   return `${count} ${label}`;
+}
+
+function buildProfileSnapshot(data: {
+  profile: ProfileState;
+  skills: SkillItem[];
+  experienceEntries: ExperienceEntry[];
+  projects: CandidateProjectItem[];
+  educations: CandidateEducationItem[];
+  certifications: CandidateCertificationItem[];
+  languages: CandidateLanguageItem[];
+  sections: CandidateSection[];
+}) {
+  return JSON.stringify({
+    profile: data.profile,
+    skills: data.skills
+      .map((skill) => ({
+        id: skill.id,
+        active: skill.active,
+        yearsOfExperience: skill.yearsOfExperience,
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+    experienceEntries: data.experienceEntries,
+    projects: data.projects,
+    educations: data.educations,
+    certifications: data.certifications,
+    languages: data.languages,
+    sections: data.sections,
+  });
 }
 
 function isManagedSection(section: CandidateSection) {
@@ -553,7 +580,6 @@ function CandidateProfileAndCVManagementScreen() {
   const [openCustomSectionItemComposerId, setOpenCustomSectionItemComposerId] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [parsedResumePreview, setParsedResumePreview] = useState<CandidateResumeParseResponseDto | null>(null);
-  const [resumeMismatchNotice, setResumeMismatchNotice] = useState<ResumeUploadResponseDto | null>(null);
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [resumeMeta, setResumeMeta] = useState<CandidateProfileResponseDto["resume"] | null>(null);
@@ -561,9 +587,21 @@ function CandidateProfileAndCVManagementScreen() {
   const [resumeParsing, setResumeParsing] = useState<CandidateProfileResponseDto["resumeParsing"] | null>(null);
   const [completionScore, setCompletionScore] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [initialSnapshot, setInitialSnapshot] = useState<string>("");
   const displayAvatarUrl = profileAvatarUrl ?? authUser?.avatarUrl ?? null;
   const profileInitials = getInitials(profile.name || authUser?.fullName || "Candidate");
   const customSections = sections.filter((section) => !isManagedSection(section));
+  const isProfileDirty = initialSnapshot !== "" && buildProfileSnapshot({
+    profile,
+    skills,
+    experienceEntries,
+    projects,
+    educations,
+    certifications,
+    languages,
+    sections,
+  }) !== initialSnapshot;
+  const hasPendingResumeUpload = resumeFile !== null;
 
   function syncAuthUser(profileData: CandidateProfileResponseDto["profile"]) {
     if (!authUser) {
@@ -630,6 +668,32 @@ function CandidateProfileAndCVManagementScreen() {
         setCertifications(profileResponse.data.certifications ?? []);
         setLanguages(profileResponse.data.languages ?? []);
         setSections(profileResponse.data.sections ?? []);
+        setInitialSnapshot(buildProfileSnapshot({
+          profile: {
+            name: profileResponse.data.profile.name,
+            headline: profileResponse.data.profile.headline,
+            email: profileResponse.data.profile.email,
+            phone: profileResponse.data.profile.phone ?? "",
+            location: profileResponse.data.profile.location,
+            memberSince: profileResponse.data.profile.memberSince,
+            bio: profileResponse.data.profile.bio ?? "",
+            github: profileResponse.data.profile.github ?? "",
+            linkedin: profileResponse.data.profile.linkedin ?? "",
+          },
+          skills: allSkillOptions.map((skill) => ({
+            id: skill.value,
+            label: skill.label,
+            active: selectedSkillIds.has(skill.value),
+            yearsOfExperience:
+              profileResponse.data.skills.find((item) => item.id === skill.value)?.yearsOfExperience ?? null,
+          })),
+          experienceEntries: profileResponse.data.experienceEntries ?? [],
+          projects: profileResponse.data.projects ?? [],
+          educations: profileResponse.data.educations ?? [],
+          certifications: profileResponse.data.certifications ?? [],
+          languages: profileResponse.data.languages ?? [],
+          sections: profileResponse.data.sections ?? [],
+        }));
       })
       .catch(() => {
         if (mounted) {
@@ -732,14 +796,13 @@ function CandidateProfileAndCVManagementScreen() {
     setLanguages(preview.languages ?? []);
     setSections(preview.sections ?? []);
     setIsEditingProfile(true);
-    setResumeMismatchNotice(null);
     toast.success("Đã áp dữ liệu parse từ CV vào biểu mẫu theo chế độ ghi đè. Nếu bạn lưu, hệ thống sẽ coi profile này là CV chính thức.");
   }
 
   async function handleSaveProfile() {
     setIsSavingProfile(true);
     try {
-      const profileResult = await candidateService.updateProfile({
+      const savePayload = {
         name: profile.name,
         headline: profile.headline,
         email: profile.email,
@@ -840,10 +903,11 @@ function CandidateProfileAndCVManagementScreen() {
             attributes: item.attributes,
           })),
         })),
-      });
+      };
+      const profileResult = await candidateService.saveProfile(savePayload, resumeFile);
 
       if (profileResult.data) {
-        setProfile({
+        const nextProfileState = {
           name: profileResult.data.profile.name,
           headline: profileResult.data.profile.headline,
           email: profileResult.data.profile.email,
@@ -853,6 +917,9 @@ function CandidateProfileAndCVManagementScreen() {
           bio: profileResult.data.profile.bio ?? "",
           github: profileResult.data.profile.github ?? "",
           linkedin: profileResult.data.profile.linkedin ?? "",
+        };
+        setProfile({
+          ...nextProfileState,
         });
         setProfileAvatarUrl(profileResult.data.profile.avatarUrl ?? null);
         syncAuthUser(profileResult.data.profile);
@@ -869,42 +936,29 @@ function CandidateProfileAndCVManagementScreen() {
         setCertifications(profileResult.data.certifications ?? []);
         setLanguages(profileResult.data.languages ?? []);
         setSections(profileResult.data.sections ?? []);
+        setResumeMeta(profileResult.data.resume ?? null);
+        setResumeHistory(profileResult.data.resumeHistory ?? []);
+        setResumeParsing(profileResult.data.resumeParsing ?? null);
+        setInitialSnapshot(buildProfileSnapshot({
+          profile: nextProfileState,
+          skills: (profileResult.data.skills ?? []).map((skill) => ({
+            id: skill.id,
+            label: skill.label,
+            active: skill.active,
+            yearsOfExperience: skill.yearsOfExperience,
+          })),
+          experienceEntries: profileResult.data.experienceEntries ?? [],
+          projects: profileResult.data.projects ?? [],
+          educations: profileResult.data.educations ?? [],
+          certifications: profileResult.data.certifications ?? [],
+          languages: profileResult.data.languages ?? [],
+          sections: profileResult.data.sections ?? [],
+        }));
       }
 
       if (resumeFile) {
-        const uploadResponse = await candidateService.uploadResume(resumeFile);
-        const refreshedProfile = await candidateService.getProfile();
-        if (refreshedProfile.data) {
-          syncAuthUser(refreshedProfile.data.profile);
-          setResumeMeta(refreshedProfile.data.resume ?? null);
-          setResumeHistory(refreshedProfile.data.resumeHistory ?? []);
-          setResumeParsing(refreshedProfile.data.resumeParsing ?? null);
-          setCompletionScore(refreshedProfile.data.profile.completionScore ?? 0);
-          setProjects(refreshedProfile.data.projects ?? []);
-          setEducations(refreshedProfile.data.educations ?? []);
-          setCertifications(refreshedProfile.data.certifications ?? []);
-          setLanguages(refreshedProfile.data.languages ?? []);
-          setSections(refreshedProfile.data.sections ?? []);
-          if (!uploadResponse.data?.profileRefreshRequired) {
-            setResumeFile(null);
-            setParsedResumePreview(null);
-            setResumeMismatchNotice(null);
-          }
-        }
-
-        if (uploadResponse.data?.parseMessage) {
-          if (uploadResponse.data.profileRefreshRequired) {
-            setResumeMismatchNotice(uploadResponse.data);
-            toast.warning(
-              uploadResponse.data.profileRefreshMessage
-              || "CV mới không khớp với profile hiện tại. Hãy parse và cập nhật lại profile để đồng bộ.",
-            );
-          } else if (uploadResponse.data.parseStatus === "Completed") {
-            toast.success(uploadResponse.data.parseMessage);
-          } else {
-            toast.info(uploadResponse.data.parseMessage);
-          }
-        }
+        setResumeFile(null);
+        setParsedResumePreview(null);
       }
 
       setIsEditingProfile(false);
@@ -928,7 +982,6 @@ function CandidateProfileAndCVManagementScreen() {
 
     setResumeFile(file);
     setParsedResumePreview(null);
-    setResumeMismatchNotice(null);
     toast.success("Resume file selected: " + file.name);
   }
 
@@ -1273,7 +1326,7 @@ function CandidateProfileAndCVManagementScreen() {
                     className="inline-flex items-center justify-center gap-2 rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                     type="button"
                     onClick={handleSaveProfile}
-                    disabled={isSavingProfile}
+                    disabled={isSavingProfile || (!isProfileDirty && !hasPendingResumeUpload)}
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       save
@@ -1682,38 +1735,6 @@ function CandidateProfileAndCVManagementScreen() {
                           </span>
                           {isParsingResume ? "Đang phân tích CV..." : "Phân tích CV"}
                         </button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {resumeMismatchNotice ? (
-                    <div className="mt-5 rounded-[20px] border border-[#f3c7cd] bg-[#fff4f6] p-5 shadow-[0_16px_30px_rgba(185,0,20,0.08)]">
-                      <div className="flex items-start gap-3">
-                        <span className="material-symbols-outlined mt-0.5 text-[24px] text-[#b90014]">
-                          warning
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[15px] font-semibold text-[#8a1020]">
-                            CV mới đang lệch với profile hiện tại
-                          </p>
-                          <p className="mt-1 text-[13px] leading-6 text-[#7a4b53]">
-                            {resumeMismatchNotice.profileRefreshMessage
-                              ?? "Hãy parse CV mới và cập nhật lại profile để thông tin trên hệ thống khớp với CV bạn vừa tải lên."}
-                          </p>
-                          {resumeMismatchNotice.profileMismatchWarnings.length ? (
-                            <ul className="mt-3 space-y-2 text-[13px] leading-6 text-[#7a4b53]">
-                              {resumeMismatchNotice.profileMismatchWarnings.map((warning) => (
-                                <li key={warning} className="flex gap-2">
-                                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b90014]" />
-                                  <span>{warning}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : null}
-                          <p className="mt-3 text-[12px] font-medium text-[#8a1020]">
-                            Gợi ý: bấm `Phân tích CV`, rà soát bản parse rồi `Áp dụng vào biểu mẫu` để đồng bộ profile với CV mới.
-                          </p>
-                        </div>
                       </div>
                     </div>
                   ) : null}

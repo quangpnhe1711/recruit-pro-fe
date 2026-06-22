@@ -40,6 +40,7 @@ export const endpoints = {
     applicationDeclineOffer: (applicationId: string) =>
       `/candidate/applications/${applicationId}/decline-offer`,
     profile: "/candidate/profile",
+    profileSave: "/candidate/profile/save",
     profileSkills: "/candidate/profile/skills",
     profileExperience: "/candidate/profile/experience",
     profileExperienceDetail: (experienceId: string) =>
