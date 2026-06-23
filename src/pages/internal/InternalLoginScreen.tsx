@@ -16,7 +16,7 @@ import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDia
 const rememberedInternalIdentifierKey = "rp_internal_remembered_identifier";
 
 type InternalLoginForm = {
-  employeeId: string;
+  username: string;
   password: string;
   remember: boolean;
 };
@@ -30,7 +30,7 @@ function InternalLoginScreen() {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const schema = yup.object({
-    employeeId: yup.string().required("Vui lòng nhập mã nhân viên hoặc email"),
+    username: yup.string().required("Vui lòng nhập username"),
     password: yup.string().required("Vui lòng nhập mật khẩu"),
     remember: yup.boolean().default(false),
   });
@@ -43,22 +43,20 @@ function InternalLoginScreen() {
   } = useForm<InternalLoginForm>({
     resolver: yupResolver(schema) as Resolver<InternalLoginForm>,
     defaultValues: {
-      employeeId: localStorage.getItem(rememberedInternalIdentifierKey) ?? "",
+      username: localStorage.getItem(rememberedInternalIdentifierKey) ?? "",
       password: "",
       remember: Boolean(localStorage.getItem(rememberedInternalIdentifierKey)),
     },
   });
 
-  const employeeId = watch("employeeId");
-
-  const employeeIdPlaceholder = useMemo(() => "name@recruitpro.com", []);
+  const usernamePlaceholder = useMemo(() => "your.username", []);
 
   async function onSubmit(data: InternalLoginForm) {
     setSubmitted(true);
 
     try {
       const res = await authService.internalLogin({
-        employeeIdOrEmail: data.employeeId,
+        username: data.username,
         password: data.password,
       });
 
@@ -70,7 +68,7 @@ function InternalLoginScreen() {
       if (data.remember) {
         localStorage.setItem(
           rememberedInternalIdentifierKey,
-          data.employeeId.trim(),
+          data.username.trim(),
         );
       } else {
         localStorage.removeItem(rememberedInternalIdentifierKey);
@@ -82,7 +80,7 @@ function InternalLoginScreen() {
         replace: true,
       });
     } catch {
-      toast.error("Mã nhân viên/email hoặc mật khẩu không chính xác");
+      toast.error("Username hoặc mật khẩu không chính xác");
       setSubmitted(false);
     }
   }
@@ -132,7 +130,7 @@ function InternalLoginScreen() {
                   className="mb-2 block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                   htmlFor="employee-id"
                 >
-                  Mã nhân viên hoặc email công ty
+                  Username
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-[#5d3f3c]">
@@ -140,14 +138,14 @@ function InternalLoginScreen() {
                   </span>
                   <input
                     id="employee-id"
-                    {...register("employeeId")}
+                    {...register("username")}
                     type="text"
-                    placeholder={employeeIdPlaceholder}
+                    placeholder={usernamePlaceholder}
                     className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-4 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
                   />
-                  {errors.employeeId ? (
+                  {errors.username ? (
                     <p className="text-[12px] text-[#ba1a1a]">
-                      {errors.employeeId.message}
+                      {errors.username.message}
                     </p>
                   ) : null}
                 </div>
@@ -224,8 +222,8 @@ function InternalLoginScreen() {
       </main>
       <ForgotPasswordDialog
         title="Khôi phục mật khẩu nội bộ"
-        label="Email công ty"
-        placeholder="name@recruitpro.com"
+        label="Username hoặc email"
+        placeholder="your.username hoặc name@recruitpro.com"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

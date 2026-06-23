@@ -10,7 +10,7 @@ import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
 
 export type InternalLoginRequest = {
-  employeeIdOrEmail: string;
+  username: string;
   password: string;
 };
 

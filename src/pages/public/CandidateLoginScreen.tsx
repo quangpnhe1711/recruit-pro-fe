@@ -304,8 +304,8 @@ function CandidateLoginScreen() {
       </main>
       <ForgotPasswordDialog
         title="Khôi phục mật khẩu ứng viên"
-        label="Username hoặc email"
-        placeholder="your.username hoặc name@company.com"
+        label="Username"
+        placeholder="your.username"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

@@ -25,7 +25,7 @@ export type LoginResponseDto = {
 };
 
 export type LoginRequest = {
-  email: string;
+  username: string;
   password: string;
 };
 
