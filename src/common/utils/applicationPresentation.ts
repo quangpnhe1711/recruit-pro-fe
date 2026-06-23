@@ -9,14 +9,14 @@ export type ApplicationStatusKey =
   | "offerdeclined";
 
 export type ApplicationStatusLabel =
-  | "Applied"
-  | "Screening"
-  | "Manager Review"
-  | "Interview"
+  | "Đã ứng tuyển"
+  | "Sàng lọc"
+  | "QL xét duyệt"
+  | "Phỏng vấn"
   | "Offer"
-  | "Hired"
-  | "Rejected"
-  | "Offer Declined";
+  | "Đã nhận việc"
+  | "Từ chối"
+  | "Từ chối offer";
 
 type ApplicationStatusVariant = "default" | "candidate" | "detail";
 
@@ -29,7 +29,7 @@ type ApplicationStatusMeta = {
 const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMeta> = {
   applied: {
     key: "applied",
-    label: "Applied",
+    label: "Đã ứng tuyển",
     classes: {
       default: "bg-slate-50 text-slate-700 border-slate-100",
       candidate: "bg-slate-50 text-slate-700",
@@ -38,7 +38,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   screening: {
     key: "screening",
-    label: "Screening",
+    label: "Sàng lọc",
     classes: {
       default: "bg-amber-50 text-amber-700 border-amber-100",
       candidate: "bg-amber-50 text-amber-700",
@@ -47,7 +47,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   managerreview: {
     key: "managerreview",
-    label: "Manager Review",
+    label: "QL xét duyệt",
     classes: {
       default: "bg-emerald-50 text-emerald-700 border-emerald-100",
       candidate: "bg-emerald-50 text-emerald-700",
@@ -56,7 +56,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   interview: {
     key: "interview",
-    label: "Interview",
+    label: "Phỏng vấn",
     classes: {
       default: "bg-sky-50 text-sky-700 border-sky-100",
       candidate: "bg-sky-50 text-sky-700",
@@ -74,7 +74,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   hired: {
     key: "hired",
-    label: "Hired",
+    label: "Đã nhận việc",
     classes: {
       default: "bg-green-50 text-green-700 border-green-100",
       candidate: "bg-green-50 text-green-700",
@@ -83,7 +83,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   rejected: {
     key: "rejected",
-    label: "Rejected",
+    label: "Từ chối",
     classes: {
       default: "bg-rose-50 text-rose-700 border-rose-100",
       candidate: "bg-rose-50 text-rose-700",
@@ -92,7 +92,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   offerdeclined: {
     key: "offerdeclined",
-    label: "Offer Declined",
+    label: "Từ chối offer",
     classes: {
       default: "bg-stone-100 text-stone-700 border-stone-200",
       candidate: "bg-stone-100 text-stone-700",
@@ -102,26 +102,26 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
 };
 
 export const applicationStatusOptions: ApplicationStatusLabel[] = [
-  "Applied",
-  "Screening",
-  "Manager Review",
-  "Interview",
+  "Đã ứng tuyển",
+  "Sàng lọc",
+  "QL xét duyệt",
+  "Phỏng vấn",
   "Offer",
-  "Hired",
-  "Rejected",
-  "Offer Declined",
+  "Đã nhận việc",
+  "Từ chối",
+  "Từ chối offer",
 ];
 
 export const applicationStatusFilterOptions = [
-  { label: "All Statuses", value: "all" },
-  { label: "Applied", value: "applied" },
-  { label: "Screening", value: "screening" },
-  { label: "Manager Review", value: "managerreview" },
-  { label: "Interview", value: "interview" },
+  { label: "Tất cả trạng thái", value: "all" },
+  { label: "Đã ứng tuyển", value: "applied" },
+  { label: "Sàng lọc", value: "screening" },
+  { label: "QL xét duyệt", value: "managerreview" },
+  { label: "Phỏng vấn", value: "interview" },
   { label: "Offer", value: "offer" },
-  { label: "Hired", value: "hired" },
-  { label: "Rejected", value: "rejected" },
-  { label: "Offer Declined", value: "offerdeclined" },
+  { label: "Đã nhận việc", value: "hired" },
+  { label: "Từ chối", value: "rejected" },
+  { label: "Từ chối offer", value: "offerdeclined" },
 ] as const;
 
 export function normalizeApplicationStatusKey(status: string): ApplicationStatusKey {

@@ -300,7 +300,7 @@ function AiCopilotScreen() {
         setJobs(items);
         setSelectedJobId(items[0]?.jobId ?? "");
       })
-      .catch(() => toast.error("Unable to load jobs for AI Copilot."))
+      .catch(() => toast.error("Không tải được danh sách job cho AI Copilot."))
       .finally(() => {
         if (mounted) setLoadingJobs(false);
       });
@@ -371,7 +371,7 @@ function AiCopilotScreen() {
           setRanking(mapRankingSessionToPromptResponse(rankingSessionResponse.data));
         }
       } catch {
-        if (mounted) toast.error("Unable to load candidate pool.");
+        if (mounted) toast.error("Không tải được danh sách ứng viên.");
       } finally {
         if (mounted) setLoadingPool(false);
       }
@@ -492,7 +492,7 @@ function AiCopilotScreen() {
       }
     } catch {
       setChat((current) => current.slice(0, -1));
-      toast.error("Unable to rank candidates.");
+      toast.error("Không thể xếp hạng ứng viên.");
     } finally {
       setRankingLoading(false);
       setLoadingStatus("");
@@ -502,7 +502,7 @@ function AiCopilotScreen() {
   function addPriorityCriterion() {
     const normalized = normalizeCriterion(priorityDraft);
     if (!normalized.value) {
-      toast.info("Enter a priority criterion first.");
+      toast.info("Hãy nhập tiêu chí ưu tiên.");
       return;
     }
 
@@ -513,7 +513,7 @@ function AiCopilotScreen() {
   function addNegativeCriterion() {
     const normalized = normalizeCriterion(negativeDraft);
     if (!normalized.value) {
-      toast.info("Enter a negative criterion first.");
+      toast.info("Hãy nhập tiêu chí loại trừ.");
       return;
     }
 
@@ -528,7 +528,7 @@ function AiCopilotScreen() {
 
   async function saveCurrentRule() {
     if (!selectedJobId || !hasStructuredCriteria) {
-      toast.info("Add criteria before saving a rule.");
+      toast.info("Hãy thêm tiêu chí trước khi lưu.");
       return;
     }
 
@@ -547,10 +547,10 @@ function AiCopilotScreen() {
 
       if (response.data) {
         setSavedRules((current) => [response.data!, ...current]);
-        toast.success("Preset saved.");
+        toast.success("Đã lưu mẫu.");
       }
     } catch {
-      toast.error("Unable to save rule.");
+      toast.error("Không lưu được quy tắc.");
     } finally {
       setSavingRule(false);
     }
@@ -561,7 +561,7 @@ function AiCopilotScreen() {
     try {
       await copilotService.deleteSavedRule(ruleId);
       setSavedRules((current) => current.filter((rule) => rule.ruleId !== ruleId));
-      toast.success("Preset deleted.");
+      toast.success("Đã xóa mẫu.");
     } catch {
       toast.error("Unable to delete preset.");
     } finally {
@@ -583,7 +583,7 @@ function AiCopilotScreen() {
         ),
       );
     } catch {
-      toast.error("Unable to update rule status.");
+      toast.error("Không cập nhật được trạng thái quy tắc.");
     }
   }
 

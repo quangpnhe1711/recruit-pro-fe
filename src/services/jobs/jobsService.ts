@@ -490,11 +490,11 @@ export const jobsService = {
     return {
       ...response,
       data: [
-        { label: "Applied", count: response.data?.applied ?? 0, color: "#b90014" },
-        { label: "Screening", count: response.data?.screening ?? 0, color: "#d97706" },
-        { label: "Interview", count: response.data?.interview ?? 0, color: "#005f93" },
+        { label: "Đã ứng tuyển", count: response.data?.applied ?? 0, color: "#b90014" },
+        { label: "Sàng lọc", count: response.data?.screening ?? 0, color: "#d97706" },
+        { label: "Phỏng vấn", count: response.data?.interview ?? 0, color: "#005f93" },
         { label: "Offer", count: response.data?.offer ?? 0, color: "#6d28d9" },
-        { label: "Hired", count: response.data?.hired ?? 0, color: "#15803d" },
+        { label: "Đã nhận việc", count: response.data?.hired ?? 0, color: "#15803d" },
       ],
     };
   },
@@ -512,11 +512,11 @@ export const jobsService = {
       ...response,
       data: {
         hiringFunnel: [
-          { label: "Applied", count: response.data?.applied ?? 0, color: "#b90014" },
-          { label: "Screening", count: response.data?.screening ?? 0, color: "#d97706" },
-          { label: "Interview", count: response.data?.interview ?? 0, color: "#005f93" },
+          { label: "Đã ứng tuyển", count: response.data?.applied ?? 0, color: "#b90014" },
+          { label: "Sàng lọc", count: response.data?.screening ?? 0, color: "#d97706" },
+          { label: "Phỏng vấn", count: response.data?.interview ?? 0, color: "#005f93" },
           { label: "Offer", count: response.data?.offer ?? 0, color: "#6d28d9" },
-          { label: "Hired", count: response.data?.hired ?? 0, color: "#15803d" },
+          { label: "Đã nhận việc", count: response.data?.hired ?? 0, color: "#15803d" },
         ],
       },
     };

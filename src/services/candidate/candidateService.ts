@@ -96,6 +96,7 @@ export type CandidateProfileSectionDto = {
 export type CandidateProfileResponseDto = {
   profile: {
     id: string;
+    username: string;
     name: string;
     avatarUrl: string | null;
     headline: string;
@@ -325,6 +326,7 @@ export type CandidateExperienceRequest = {
 
 export type CandidateRegisterPayload = {
   userInfo: {
+    username: string;
     fullName: string;
     email: string;
     password: string;
@@ -358,6 +360,7 @@ export const candidateService = {
   ): Promise<ApiResponse<{ userId: string; candidateId: string; resumeUploaded: boolean }>> => {
     const formData = new FormData();
 
+    formData.append("UserInfo.Username", payload.userInfo.username);
     formData.append("UserInfo.FullName", payload.userInfo.fullName);
     formData.append("UserInfo.Email", payload.userInfo.email);
     formData.append("UserInfo.PasswordHash", payload.userInfo.password);

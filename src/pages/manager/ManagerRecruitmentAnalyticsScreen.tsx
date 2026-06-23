@@ -67,37 +67,37 @@ function ManagerRecruitmentAnalyticsScreen() {
     const overview = analytics?.overview;
     if (!overview) {
       return [
-        { label: "Average Review Cycle", value: "0d", helper: "No completed interview cycles yet", delta: 0, suffix: "%" },
-        { label: "Active Candidates", value: "0", helper: "Candidates currently active in pipeline", delta: 0, suffix: "" },
-        { label: "Pending Interviews", value: "0", helper: "Upcoming scheduled interviews", delta: 0, suffix: "" },
-        { label: "Offer Acceptance", value: "0%", helper: "Accepted from offer-stage applications", delta: 0, suffix: "%" },
+        { label: "Chu kỳ duyệt TB", value: "0d", helper: "Chưa có đủ dữ liệu", delta: 0, suffix: "%" },
+        { label: "Ứng viên đang xử lý", value: "0", helper: "Đang ở trong pipeline", delta: 0, suffix: "" },
+        { label: "Phỏng vấn chờ tới", value: "0", helper: "Lịch phỏng vấn sắp diễn ra", delta: 0, suffix: "" },
+        { label: "Tỷ lệ nhận offer", value: "0%", helper: "Tính từ hồ sơ ở giai đoạn offer", delta: 0, suffix: "%" },
       ];
     }
 
     return [
       {
-        label: "Average Review Cycle",
+        label: "Chu kỳ duyệt TB",
         value: `${overview.averageReviewCycleDays}d`,
         helper: "Average from application date to latest completed interview",
         delta: overview.averageReviewCycleDeltaPercent,
         suffix: "%",
       },
       {
-        label: "Active Candidates",
+        label: "Ứng viên đang xử lý",
         value: String(overview.activeCandidates),
         helper: "Distinct candidates still moving through the pipeline",
         delta: overview.activeCandidatesDelta,
         suffix: "",
       },
       {
-        label: "Pending Interviews",
+        label: "Phỏng vấn chờ tới",
         value: String(overview.pendingInterviews),
         helper: "Upcoming interviews waiting to be completed",
         delta: overview.pendingInterviewsDelta,
         suffix: "",
       },
       {
-        label: "Offer Acceptance",
+        label: "Tỷ lệ nhận offer",
         value: `${overview.offerAcceptanceRate}%`,
         helper: "Accepted versus all offer-stage applications",
         delta: overview.offerAcceptanceDeltaPercent,

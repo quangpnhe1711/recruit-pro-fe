@@ -6,7 +6,7 @@ import { PERMISSIONS } from "../permissions/permissions";
 
 import DashboardCandidateScreen from "../pages/candidate/DashboardCandidateScreen";
 import MyApplicationScreen from "../pages/candidate/MyApplicationScreen";
-import CandidateProfileAndCVManagementScreen from "../pages/candidate/CandidateProfileAndCVManagementScreen";
+import CandidateProfileAndCVManagementScreen from "../pages/candidate/candidate-profile-screen/CandidateProfileAndCVManagementScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
 import CandidateInterviewScreen from "../pages/candidate/CandidateInterviewScreen";
 import ApplyJobScreen from "../pages/candidate/ApplyJobScreen";
@@ -15,9 +15,7 @@ const candidateRoutes = (
   <Route element={<RequireAuth />}>
     <Route element={<AuthenticatedLayout />}>
       <Route
-        element={
-          <RouteGuard permissions={PERMISSIONS.DASHBOARD_VIEW_OWN} />
-        }
+        element={<RouteGuard permissions={PERMISSIONS.DASHBOARD_VIEW_OWN} />}
       >
         <Route
           path="/candidate/dashboard"
@@ -26,14 +24,9 @@ const candidateRoutes = (
       </Route>
 
       <Route
-        element={
-          <RouteGuard permissions={PERMISSIONS.APPLICATION_VIEW_OWN} />
-        }
+        element={<RouteGuard permissions={PERMISSIONS.APPLICATION_VIEW_OWN} />}
       >
-        <Route
-          path="/jobs/:jobId/apply"
-          element={<ApplyJobScreen />}
-        />
+        <Route path="/jobs/:jobId/apply" element={<ApplyJobScreen />} />
 
         <Route
           path="/candidate/my-applications"
@@ -42,9 +35,7 @@ const candidateRoutes = (
       </Route>
 
       <Route
-        element={
-          <RouteGuard permissions={PERMISSIONS.INTERVIEW_VIEW_OWN} />
-        }
+        element={<RouteGuard permissions={PERMISSIONS.INTERVIEW_VIEW_OWN} />}
       >
         <Route
           path="/candidate/interviews"

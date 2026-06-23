@@ -1,6 +1,10 @@
 import { ApiResponse } from "../../common/types";
 
-import { LoginRequest, LoginResponseDto } from "../../modules/auth/authSchema";
+import {
+  CandidateLoginRequest,
+  LoginRequest,
+  LoginResponseDto,
+} from "../../modules/auth/authSchema";
 
 import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
@@ -23,9 +27,9 @@ export const authService = {
   },
 
   candidateLogin: async (
-    data: LoginRequest,
+    data: CandidateLoginRequest,
   ): Promise<ApiResponse<LoginResponseDto>> => {
-    return request.post<ApiResponse<LoginResponseDto>, LoginRequest>(
+    return request.post<ApiResponse<LoginResponseDto>, CandidateLoginRequest>(
       endpoints.auth.candidateLogin,
       data,
     );
@@ -61,7 +65,7 @@ export const authService = {
   logout: async (): Promise<ApiResponse<null>> => {
     return Promise.resolve({
       success: true,
-      message: "Logged out locally",
+      message: "Đã đăng xuất trên thiết bị",
       data: null,
     });
   },

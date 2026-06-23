@@ -6,6 +6,7 @@ import { candidateService } from "../../services/candidate/candidateService";
 
 // 1. Định nghĩa lại Type FE khớp hoàn toàn với DTO C#
 type UserInfoValues = {
+  username: string;
   fullName: string;
   email: string;
   password: string;
@@ -60,6 +61,7 @@ const steps = [
 // 2. Khởi tạo state theo cấu trúc phân tầng mới
 const initialValues: RegisterValues = {
   userInfo: {
+    username: "",
     fullName: "",
     email: "",
     password: "",
@@ -82,7 +84,7 @@ const requiredByStep: Record<
   number,
   { group: "userInfo" | "candidateProfile"; fields: string[] }[]
 > = {
-  1: [{ group: "userInfo", fields: ["fullName", "email", "password"] }],
+  1: [{ group: "userInfo", fields: ["username", "fullName", "email", "password"] }],
   2: [],
   3: [],
 };
@@ -174,6 +176,15 @@ function CandidateRegisterScreen() {
     const schemas: Record<number, yup.ObjectSchema<any>> = {
       1: yup.object({
         userInfo: yup.object({
+          username: yup
+            .string()
+            .required("Bắt buộc")
+            .min(4, "Tối thiểu 4 ký tự")
+            .max(50, "Tối đa 50 ký tự")
+            .matches(
+              /^[a-zA-Z0-9._-]+$/,
+              "Chỉ gồm chữ, số, dấu chấm, gạch dưới hoặc gạch ngang",
+            ),
           fullName: yup.string().required("Bắt buộc"),
           email: yup.string().email("Email không hợp lệ").required("Bắt buộc"),
           password: yup
@@ -403,10 +414,30 @@ function CandidateRegisterScreen() {
                     </h3>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-1.5 group">
-                      <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                <div className="space-y-4">
+                  <div className="space-y-1.5 group">
+                    <label
+                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                      htmlFor="username"
+                    >
+                      Username{" "}
+                      <span className="text-[#b90014] font-bold">*</span>
+                    </label>
+                    <input
+                      id="username"
+                      name="username"
+                      required
+                      className={`${baseInputClass} ${errorBorder("username")}`}
+                      placeholder="jane.doe"
+                      type="text"
+                      value={values.userInfo.username}
+                      onChange={setField("userInfo", "username")}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 group">
+                    <label
+                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                         htmlFor="fullName"
                       >
                         Họ và tên{" "}

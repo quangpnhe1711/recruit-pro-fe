@@ -1,6 +1,8 @@
 export type UserDto = {
   id: string;
 
+  username: string;
+
   email: string;
 
   fullName: string;
@@ -24,5 +26,10 @@ export type LoginResponseDto = {
 
 export type LoginRequest = {
   email: string;
+  password: string;
+};
+
+export type CandidateLoginRequest = {
+  username: string;
   password: string;
 };

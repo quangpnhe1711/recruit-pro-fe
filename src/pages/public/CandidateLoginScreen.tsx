@@ -12,7 +12,7 @@ import { useLoading } from "../../hooks/useLoading";
 import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
 
-const rememberedCandidateEmailKey = "rp_candidate_remembered_email";
+const rememberedCandidateUsernameKey = "rp_candidate_remembered_username";
 
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
@@ -24,7 +24,7 @@ function CandidateLoginScreen() {
 
   const schema = yup
     .object({
-      email: yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
+      username: yup.string().required("Vui lòng nhập username"),
       password: yup
         .string()
         .required("Vui lòng nhập mật khẩu")
@@ -41,9 +41,9 @@ function CandidateLoginScreen() {
   } = useForm<LoginForm>({
     resolver: yupResolver(schema),
     defaultValues: {
-      email: localStorage.getItem(rememberedCandidateEmailKey) ?? "",
+      username: localStorage.getItem(rememberedCandidateUsernameKey) ?? "",
       password: "",
-      remember: Boolean(localStorage.getItem(rememberedCandidateEmailKey)),
+      remember: Boolean(localStorage.getItem(rememberedCandidateUsernameKey)),
     },
   });
 
@@ -59,7 +59,7 @@ function CandidateLoginScreen() {
     try {
       const res = await withLoading(() =>
         authService.candidateLogin({
-          email: form.email,
+          username: form.username,
           password: form.password,
         }),
       );
@@ -71,9 +71,12 @@ function CandidateLoginScreen() {
       dispatch(setCredentials(res.data));
 
       if (form.remember) {
-        localStorage.setItem(rememberedCandidateEmailKey, form.email.trim());
+        localStorage.setItem(
+          rememberedCandidateUsernameKey,
+          form.username.trim(),
+        );
       } else {
-        localStorage.removeItem(rememberedCandidateEmailKey);
+        localStorage.removeItem(rememberedCandidateUsernameKey);
       }
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
@@ -84,7 +87,7 @@ function CandidateLoginScreen() {
         replace: true,
       });
     } catch {
-      setLoginError("Email hoặc mật khẩu không chính xác");
+      setLoginError("Username hoặc mật khẩu không chính xác");
       return;
     }
     toast.success("Đăng nhập thành công");
@@ -169,25 +172,25 @@ function CandidateLoginScreen() {
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              {/* Email */}
+              {/* Username */}
               <div className="space-y-2">
                 <label
                   className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
-                  htmlFor="email"
+                  htmlFor="username"
                 >
-                  Email
+                  Username
                 </label>
                 <input
-                  id="email"
-                  {...register("email")}
-                  type="email"
-                  autoComplete="email"
-                  placeholder="name@company.com"
+                  id="username"
+                  {...register("username")}
+                  type="text"
+                  autoComplete="username"
+                  placeholder="your.username"
                   className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
                 />
-                {errors.email ? (
+                {errors.username ? (
                   <p className="text-[12px] text-[#ba1a1a]">
-                    {errors.email.message}
+                    {errors.username.message}
                   </p>
                 ) : null}
               </div>
@@ -301,8 +304,8 @@ function CandidateLoginScreen() {
       </main>
       <ForgotPasswordDialog
         title="Khôi phục mật khẩu ứng viên"
-        label="Email ứng viên"
-        placeholder="name@company.com"
+        label="Username hoặc email"
+        placeholder="your.username hoặc name@company.com"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

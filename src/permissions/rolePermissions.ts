@@ -1,6 +1,7 @@
 import type { UserDto } from "../modules/auth/authSchema";
 import {
   CANDIDATE_PORTAL_PERMISSIONS,
+  HEAD_DEPARTMENT_PORTAL_PERMISSIONS,
   HR_PORTAL_PERMISSIONS,
   INTERNAL_PORTAL_PERMISSIONS,
   MANAGER_PORTAL_PERMISSIONS,
@@ -13,6 +14,7 @@ import {
 export const ROLE_NAMES = {
   CANDIDATE: "candidate",
   HR: "hr",
+  HEAD_DEPARTMENT: "headdepartment",
   MANAGER: "manager",
   SYSTEM_ADMIN: "systemadmin",
 } as const;
@@ -21,12 +23,14 @@ export type RoleName = (typeof ROLE_NAMES)[keyof typeof ROLE_NAMES];
 
 const candidatePermissions = [...CANDIDATE_PORTAL_PERMISSIONS];
 const hrPermissions = [...HR_PORTAL_PERMISSIONS];
+const headDepartmentPermissions = [...HEAD_DEPARTMENT_PORTAL_PERMISSIONS];
 const managerPermissions = [...MANAGER_PORTAL_PERMISSIONS];
 const systemAdminPermissions = [...SYSTEM_ADMIN_PERMISSIONS];
 
 const rolePermissionsMap: Record<string, Permission[]> = {
   [ROLE_NAMES.CANDIDATE]: candidatePermissions,
   [ROLE_NAMES.HR]: hrPermissions,
+  [ROLE_NAMES.HEAD_DEPARTMENT]: headDepartmentPermissions,
   [ROLE_NAMES.MANAGER]: managerPermissions,
   [ROLE_NAMES.SYSTEM_ADMIN]: systemAdminPermissions,
 };
@@ -54,6 +58,8 @@ export function getRoleHomePath(role: string | null) {
     case ROLE_NAMES.CANDIDATE:
       return "/candidate/dashboard";
     case ROLE_NAMES.HR:
+      return "/hr/dashboard";
+    case ROLE_NAMES.HEAD_DEPARTMENT:
       return "/hr/dashboard";
     case ROLE_NAMES.MANAGER:
       return "/manager/dashboard";

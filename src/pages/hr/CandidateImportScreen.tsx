@@ -50,13 +50,13 @@ function CandidateImportScreen() {
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Unable to download candidate import template.");
+      toast.error("Không tải được file mẫu.");
     }
   }
 
   async function handlePreview() {
     if (!selectedFile) {
-      toast.error("Please choose an Excel file before previewing.");
+      toast.error("Hãy chọn file Excel trước.");
       return;
     }
 
@@ -67,7 +67,7 @@ function CandidateImportScreen() {
       setPreview(payload);
       setSelectedRows((payload?.rows ?? []).filter((row) => row.isValid).map((row) => row.rowNumber));
     } catch {
-      toast.error("Unable to parse and preview the import file.");
+      toast.error("Không xem trước được file import.");
     } finally {
       setPreviewLoading(false);
     }
@@ -75,7 +75,7 @@ function CandidateImportScreen() {
 
   async function handleImportSelected() {
     if (!selectedValidRows.length) {
-      toast.error("Select at least one valid row to import.");
+      toast.error("Hãy chọn ít nhất 1 dòng hợp lệ.");
       return;
     }
 
@@ -93,10 +93,10 @@ function CandidateImportScreen() {
         })),
       );
 
-      toast.success(response.message || "Candidates imported successfully.");
+      toast.success(response.message || "Import ứng viên thành công.");
       navigate("/hr/candidates");
     } catch {
-      toast.error("Unable to confirm candidate import.");
+      toast.error("Không xác nhận được import.");
     } finally {
       setImportLoading(false);
     }
@@ -122,15 +122,15 @@ function CandidateImportScreen() {
       <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <nav className="mb-2 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-            <span>Candidates</span>
+            <span>Ứng viên</span>
             <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-            <span className="text-[#b90014]">Bulk Import</span>
+            <span className="text-[#b90014]">Import hàng loạt</span>
           </nav>
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Bulk Import Preview
+            Xem trước import
           </h1>
           <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Upload an Excel file, validate candidate data, preview rows, then confirm only valid records.
+            Tải file Excel, kiểm tra dữ liệu và chỉ import các dòng hợp lệ.
           </p>
         </div>
 
@@ -141,7 +141,7 @@ function CandidateImportScreen() {
             onClick={handleDownloadTemplate}
           >
             <span className="material-symbols-outlined text-[20px]">download</span>
-            Download Template
+            Tải file mẫu
           </button>
           <button
             type="button"
@@ -150,7 +150,7 @@ function CandidateImportScreen() {
             disabled={previewLoading}
           >
             <span className="material-symbols-outlined text-[20px]">upload_file</span>
-            {previewLoading ? "Parsing..." : "Upload & Preview"}
+            {previewLoading ? "Đang đọc..." : "Tải lên & xem trước"}
           </button>
           <AsyncActionButton
             type="button"
@@ -161,7 +161,7 @@ function CandidateImportScreen() {
             loadingText="Đang import..."
           >
             <span className="material-symbols-outlined text-[20px]">check_circle</span>
-            Xác nhận import
+            Xác nhận
           </AsyncActionButton>
         </div>
       </div>
@@ -178,26 +178,26 @@ function CandidateImportScreen() {
             <span className="material-symbols-outlined text-[36px] text-[#b90014]">cloud_upload</span>
             <div>
               <p className="text-[14px] font-bold text-[#1a1c1c]">
-                {selectedFile ? selectedFile.name : "Choose candidate import file"}
+                {selectedFile ? selectedFile.name : "Chọn file import ứng viên"}
               </p>
               <p className="mt-1 text-[12px] text-[#5f5e5e]">
-                Supported format: `.xlsx` with columns FullName, Email, PhoneNumber, Source, PositionApplied, Notes
+                Hỗ trợ `.xlsx` gồm các cột FullName, Email, PhoneNumber, Source, PositionApplied, Notes
               </p>
             </div>
           </div>
         </label>
 
         <div className="rounded-lg border border-[#e7bdb8] bg-white p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Total Rows</p>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Tổng dòng</p>
           <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">{preview?.totalRows ?? 0}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="rounded-lg border border-[#e7bdb8] bg-white p-5">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Valid</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Hợp lệ</p>
             <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a8a2a]">{preview?.validRows ?? 0}</p>
           </div>
           <div className="rounded-lg border border-[#e7bdb8] bg-white p-5">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Invalid</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Lỗi</p>
             <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#ba1a1a]">{preview?.invalidRows ?? 0}</p>
           </div>
         </div>
@@ -206,9 +206,9 @@ function CandidateImportScreen() {
       <div className="overflow-hidden rounded-lg border border-[#e7bdb8] bg-white shadow-sm">
         <div className="flex flex-col gap-4 border-b border-[#e7bdb8] bg-[#f3f3f3] px-6 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[20px] font-semibold text-[#1a1c1c]">Preview Table</p>
+            <p className="text-[20px] font-semibold text-[#1a1c1c]">Bảng xem trước</p>
             <p className="mt-1 text-[14px] text-[#5f5e5e]">
-              Invalid rows cannot be imported. You can import all valid rows or choose specific ones.
+              Dòng lỗi sẽ không được import. Bạn có thể chọn tất cả hoặc chọn từng dòng hợp lệ.
             </p>
           </div>
           <button
@@ -217,7 +217,7 @@ function CandidateImportScreen() {
             onClick={toggleAllValidRows}
             disabled={!validRows.length}
           >
-            Select All Valid Rows
+            Chọn tất cả dòng hợp lệ
           </button>
         </div>
 
@@ -225,15 +225,15 @@ function CandidateImportScreen() {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="bg-[#1a1a1a] text-white">
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Pick</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Status</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Full Name</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Chọn</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Trạng thái</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Họ tên</th>
                 <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Email</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Phone</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Source</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Position Applied</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Notes</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Validation Errors</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">SĐT</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Nguồn</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Vị trí</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Ghi chú</th>
+                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Lỗi kiểm tra</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e7bdb8]/40">
@@ -251,7 +251,7 @@ function CandidateImportScreen() {
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex rounded px-2 py-1 text-[11px] font-bold uppercase ${statusChip(row)}`}>
-                        {row.isValid ? "Valid" : "Invalid"}
+                        {row.isValid ? "Hợp lệ" : "Lỗi"}
                       </span>
                     </td>
                     <td className="px-4 py-4 font-semibold text-[#1a1c1c]">{row.fullName || "—"}</td>
@@ -261,14 +261,14 @@ function CandidateImportScreen() {
                     <td className="px-4 py-4 text-[#5f5e5e]">{row.positionApplied || "—"}</td>
                     <td className="px-4 py-4 text-[#5f5e5e]">{row.notes || "—"}</td>
                     <td className="px-4 py-4 text-[12px] leading-5 text-[#5d3f3c]">
-                      {row.errors.length ? row.errors.join(" ") : "No validation errors."}
+                      {row.errors.length ? row.errors.join(" ") : "Không có lỗi."}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={9} className="px-6 py-10 text-center text-sm text-[#5f5e5e]">
-                    Upload an Excel template to preview candidate data before import.
+                    Tải file Excel lên để xem trước dữ liệu trước khi import.
                   </td>
                 </tr>
               )}

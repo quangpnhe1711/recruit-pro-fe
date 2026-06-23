@@ -45,14 +45,14 @@ function toDateKey(date: Date) {
 }
 
 function formatMonthYear(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("vi-VN", {
     month: "long",
     year: "numeric",
   }).format(date);
 }
 
 function formatDayLabel(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("vi-VN", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -161,7 +161,7 @@ function InterviewScheduleScreen() {
         const data = response.data;
         if (!data) {
           setScheduleData(null);
-          toast.error("Unable to load interview schedule data.");
+          toast.error("Không tải được dữ liệu lịch phỏng vấn.");
           return;
         }
 
@@ -205,7 +205,7 @@ function InterviewScheduleScreen() {
       .catch(() => {
         if (!mounted) return;
         setScheduleData(null);
-        toast.error("Unable to load interview schedule data.");
+        toast.error("Không tải được dữ liệu lịch phỏng vấn.");
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
@@ -277,22 +277,22 @@ function InterviewScheduleScreen() {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    toast.info("Draft saved locally.");
+    toast.info("Đã lưu nháp.");
   }
 
   async function saveSchedule() {
     if (!scheduleData || !currentInterviewer) {
-      toast.error("Schedule data is not ready yet.");
+      toast.error("Dữ liệu lịch chưa sẵn sàng.");
       return;
     }
 
     if (selectedSlot === null) {
-      toast.error("Please select a time slot.");
+      toast.error("Hãy chọn khung giờ.");
       return;
     }
 
     if (!locationOrLink.trim()) {
-      toast.error(mode === "video" ? "Please enter a conference link." : "Please enter a location.");
+      toast.error(mode === "video" ? "Hãy nhập link họp." : "Hãy nhập địa điểm.");
       return;
     }
 
@@ -312,10 +312,10 @@ function InterviewScheduleScreen() {
       });
 
       window.localStorage.removeItem(draftStorageKey);
-      toast.success("Interview scheduled.");
+      toast.success("Đã lên lịch phỏng vấn.");
       navigate("/hr/interviews");
     } catch {
-      toast.error("Unable to schedule interview.");
+      toast.error("Không thể lên lịch phỏng vấn.");
     } finally {
       setIsSubmitting(false);
     }
@@ -361,7 +361,7 @@ function InterviewScheduleScreen() {
           type="button"
           className="text-[#b90014] transition-transform active:scale-95"
           onClick={() => navigate(-1)}
-          aria-label="Go back"
+          aria-label="Quay lại"
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
@@ -396,11 +396,11 @@ function InterviewScheduleScreen() {
                 {scheduleData.candidate.name}
               </h2>
               <span className="rounded-sm bg-[#cde5ff] px-2 py-0.5 text-[12px] font-semibold tracking-[0.05em] text-[#004b74]">
-                {scheduleData.candidate.roleLabel || "Candidate"}
+                {scheduleData.candidate.roleLabel || "Ứng viên"}
               </span>
             </div>
             <p className="mt-1 text-[14px] text-[#5f5e5e]">
-              Applied for:{" "}
+              Ứng tuyển vị trí:{" "}
               <span className="font-semibold text-[#1a1c1c]">
                 {scheduleData.candidate.appliedFor}
               </span>
@@ -413,12 +413,12 @@ function InterviewScheduleScreen() {
             <button
               type="button"
               className="flex items-center gap-2 border border-[#1a1c1c] px-4 py-2 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#eeeeee] active:scale-[0.98]"
-              onClick={() => toast.info("Candidate detail route is not available yet.")}
+              onClick={() => toast.info("Chức năng xem hồ sơ chi tiết chưa sẵn sàng.")}
             >
               <span className="material-symbols-outlined text-[20px]">
                 account_circle
               </span>
-              View Profile
+              Xem hồ sơ
             </button>
           </PermissionGuard>
         </div>
@@ -437,7 +437,7 @@ function InterviewScheduleScreen() {
                     type="button"
                     className="text-[#5f5e5e] transition-transform active:scale-95"
                     onClick={() => setViewMonth((v) => addMonths(v, -1))}
-                    aria-label="Previous month"
+                    aria-label="Tháng trước"
                   >
                     <span className="material-symbols-outlined">chevron_left</span>
                   </button>
@@ -445,7 +445,7 @@ function InterviewScheduleScreen() {
                     type="button"
                     className="text-[#5f5e5e] transition-transform active:scale-95"
                     onClick={() => setViewMonth((v) => addMonths(v, 1))}
-                    aria-label="Next month"
+                    aria-label="Tháng sau"
                   >
                     <span className="material-symbols-outlined">chevron_right</span>
                   </button>
@@ -473,7 +473,7 @@ function InterviewScheduleScreen() {
                       type="button"
                       className={`${baseClass} ${selected}`}
                       onClick={() => onPickDay(date)}
-                      aria-label={`Select ${formatDayLabel(date)}`}
+                      aria-label={`Chọn ${formatDayLabel(date)}`}
                     >
                       {date.getDate()}
                     </button>
@@ -483,7 +483,7 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-[20px] font-semibold leading-7">Available Slots</h3>
+              <h3 className="text-[20px] font-semibold leading-7">Khung giờ trống</h3>
               <div className="grid h-[260px] grid-cols-2 gap-2 overflow-y-auto pr-2">
                 {slotMinutes.map((slot) => {
                   const selected = slot === selectedSlot;
@@ -512,12 +512,12 @@ function InterviewScheduleScreen() {
           </section>
 
           <section className="space-y-6 border border-[#e2e2e2] bg-white p-6">
-            <h3 className="text-[20px] font-semibold leading-7">Interview Configuration</h3>
+            <h3 className="text-[20px] font-semibold leading-7">Cấu hình phỏng vấn</h3>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-3">
                 <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                  Interview Type
+                  Hình thức
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -610,7 +610,7 @@ function InterviewScheduleScreen() {
                 type="button"
                 className="text-[#b90014] transition-transform active:scale-95"
                 onClick={onSwapInterviewer}
-                aria-label="Swap interviewer"
+                aria-label="Đổi người phỏng vấn"
               >
                 <span className="material-symbols-outlined">swap_horiz</span>
               </button>
@@ -618,7 +618,7 @@ function InterviewScheduleScreen() {
 
             <div className="space-y-2">
               <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                Interviewer Availability
+                Lịch của người phỏng vấn
               </p>
               <div
                 className={`flex items-center gap-2 rounded-sm p-2 text-[14px] ${
@@ -630,19 +630,19 @@ function InterviewScheduleScreen() {
                 <span className="material-symbols-outlined text-[18px]">
                   {isInterviewerFree ? "check_circle" : "error"}
                 </span>
-                {isInterviewerFree ? "Free for selected time" : "Busy for selected time"}
+                {isInterviewerFree ? "Trống trong khung giờ này" : "Bận trong khung giờ này"}
               </div>
             </div>
           </section>
 
           <section className="sticky top-6 border border-[#e2e2e2] bg-white p-6">
-            <h3 className="mb-6 text-[20px] font-semibold leading-7">Session Summary</h3>
+            <h3 className="mb-6 text-[20px] font-semibold leading-7">Tóm tắt lịch</h3>
 
             <div className="mb-8 space-y-4">
               <div className="flex justify-between border-b border-[#eeeeee] pb-2">
-                <span className="text-[14px] text-[#5f5e5e]">Date</span>
+                <span className="text-[14px] text-[#5f5e5e]">Ngày</span>
                 <span className="font-semibold">
-                  {new Intl.DateTimeFormat("en-US", {
+                  {new Intl.DateTimeFormat("vi-VN", {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -651,14 +651,14 @@ function InterviewScheduleScreen() {
               </div>
 
               <div className="flex justify-between border-b border-[#eeeeee] pb-2">
-                <span className="text-[14px] text-[#5f5e5e]">Time</span>
+                <span className="text-[14px] text-[#5f5e5e]">Giờ</span>
                 <span className="font-semibold">
-                  {selectedSlot === null ? "Select a slot" : `${formatTime(selectedSlot)} - ${formatTime(endMinutes)}`}
+                  {selectedSlot === null ? "Chưa chọn" : `${formatTime(selectedSlot)} - ${formatTime(endMinutes)}`}
                 </span>
               </div>
 
               <div className="flex justify-between border-b border-[#eeeeee] pb-2">
-                <span className="text-[14px] text-[#5f5e5e]">Mode</span>
+                <span className="text-[14px] text-[#5f5e5e]">Hình thức</span>
                 <span className="font-semibold">
                   {mode === "video" ? "Phỏng vấn trực tuyến" : "Phỏng vấn trực tiếp"}
                 </span>
@@ -690,14 +690,14 @@ function InterviewScheduleScreen() {
                   onClick={saveDraftLocally}
                   disabled={!canViewScheduleData || isSubmitting}
                 >
-                  Save as Draft
+                  Lưu nháp
                 </button>
               </PermissionGuard>
             </div>
 
             <p className="mt-6 text-center text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
               <span className="material-symbols-outlined mr-1 text-[14px]">info</span>
-              Notification will be sent to both parties.
+              Hệ thống sẽ gửi thông báo cho hai bên.
             </p>
           </section>
         </div>

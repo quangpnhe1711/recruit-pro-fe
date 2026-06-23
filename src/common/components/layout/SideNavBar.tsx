@@ -104,6 +104,24 @@ const managerItems: SideNavItem[] = [
   },
 ];
 
+const headDepartmentItems: SideNavItem[] = [
+  {
+    icon: "dashboard",
+    label: "Tổng quan",
+    to: "/hr/dashboard",
+  },
+  {
+    icon: "schedule",
+    label: "Phỏng vấn",
+    to: "/hr/interviews",
+  },
+  {
+    icon: "person",
+    label: "Hồ sơ",
+    to: "/internal/profile",
+  },
+];
+
 const adminItems: SideNavItem[] = [
   {
     icon: "dashboard",
@@ -178,6 +196,8 @@ function formatRoleLabel(role: string | null | undefined) {
       return "Ứng viên";
     case ROLE_NAMES.HR:
       return "HR";
+    case ROLE_NAMES.HEAD_DEPARTMENT:
+      return "Trưởng bộ phận";
     case ROLE_NAMES.MANAGER:
       return "Quản lý";
     case ROLE_NAMES.SYSTEM_ADMIN:
@@ -200,6 +220,8 @@ function SideNavBar({
   const internalItems =
     primaryRole === ROLE_NAMES.SYSTEM_ADMIN
       ? adminItems
+      : primaryRole === ROLE_NAMES.HEAD_DEPARTMENT
+        ? headDepartmentItems
       : primaryRole === ROLE_NAMES.MANAGER
         ? managerItems
         : hrItems;
@@ -217,6 +239,8 @@ function SideNavBar({
         ? "Cổng ứng viên"
         : primaryRole === ROLE_NAMES.SYSTEM_ADMIN
           ? "Quản trị hệ thống"
+          : primaryRole === ROLE_NAMES.HEAD_DEPARTMENT
+            ? "Điều phối phỏng vấn"
           : primaryRole === ROLE_NAMES.MANAGER
             ? "Phê duyệt tuyển dụng"
             : "Vận hành tuyển dụng",
