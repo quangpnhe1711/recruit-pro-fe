@@ -5,6 +5,7 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
@@ -173,15 +174,32 @@ function buildInterviewTableColumns(
     {
       key: "status",
       header: "Trạng thái",
-      renderCell: (item) => (
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusChipFn(
-            item.status,
-          )}`}
-        >
-          {item.status}
-        </span>
-      ),
+      renderCell: (item) => {
+        const timingStatus = getInterviewTimingStatus(
+          item.startAt,
+          item.endAt,
+          item.status,
+        );
+
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusChipFn(
+                item.status,
+              )}`}
+            >
+              {item.status}
+            </span>
+            {timingStatus ? (
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${timingStatus.className}`}
+              >
+                {timingStatus.label}
+              </span>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: "actions",

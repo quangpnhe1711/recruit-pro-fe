@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import {
   candidateService,
   type CandidateInterviewItemDto,
@@ -113,6 +114,17 @@ function CandidateInterviewScreen() {
     () => items.find((item) => item.id === selectedInterviewId) ?? null,
     [items, selectedInterviewId],
   );
+  const selectedInterviewTimingStatus = useMemo(
+    () =>
+      selectedInterview
+        ? getInterviewTimingStatus(
+            selectedInterview.startAt,
+            selectedInterview.endAt,
+            selectedInterview.status,
+          )
+        : null,
+    [selectedInterview],
+  );
 
   if (loading) {
     return (
@@ -193,6 +205,11 @@ function CandidateInterviewScreen() {
             <div className="divide-y divide-[#e2dfde]">
               {items.map((item) => {
                 const normalizedStatus = normalizeStatus(item.status);
+                const timingStatus = getInterviewTimingStatus(
+                  item.startAt,
+                  item.endAt,
+                  item.status,
+                );
                 const isSelected = item.id === selectedInterviewId;
                 const isSpotlighted =
                   spotlightJobTitle &&
@@ -227,11 +244,20 @@ function CandidateInterviewScreen() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-3 md:justify-end">
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold ${statusChip(normalizedStatus)}`}
-                      >
-                        {normalizedStatus}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold ${statusChip(normalizedStatus)}`}
+                        >
+                          {normalizedStatus}
+                        </span>
+                        {timingStatus ? (
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold ${timingStatus.className}`}
+                          >
+                            {timingStatus.label}
+                          </span>
+                        ) : null}
+                      </div>
                       <button
                         className="border-b-2 border-transparent text-[12px] font-bold text-[#1a1c1c] transition-colors hover:border-[#b90014]"
                         type="button"
@@ -295,11 +321,20 @@ function CandidateInterviewScreen() {
                 <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
                   Trạng thái
                 </p>
-                <span
-                  className={`mt-2 inline-flex rounded-full px-3 py-1 text-[12px] font-semibold ${statusChip(normalizeStatus(selectedInterview.status))}`}
-                >
-                  {normalizeStatus(selectedInterview.status)}
-                </span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span
+                    className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold ${statusChip(normalizeStatus(selectedInterview.status))}`}
+                  >
+                    {normalizeStatus(selectedInterview.status)}
+                  </span>
+                  {selectedInterviewTimingStatus ? (
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold ${selectedInterviewTimingStatus.className}`}
+                    >
+                      {selectedInterviewTimingStatus.label}
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               <div className="border border-[#efe9e8] p-4">

@@ -25,6 +25,7 @@ type ProjectsSectionProps = SharedEditProps & {
   setProjectDraft: Dispatch<SetStateAction<ProjectDraft>>;
   projects: CandidateProjectItem[];
   onAddProject: () => void;
+  onRemoveProject: (projectId: string) => void;
 };
 
 export function ProjectsSection({
@@ -35,6 +36,7 @@ export function ProjectsSection({
   setProjectDraft,
   projects,
   onAddProject,
+  onRemoveProject,
 }: ProjectsSectionProps) {
   return (
     <div>
@@ -165,10 +167,23 @@ export function ProjectsSection({
         {projects.length ? (
           projects.map((project) => (
             <div key={project.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
-              <p className="text-[15px] font-semibold text-[#1a1c1c]">{project.name}</p>
-              <p className="mt-1 text-[13px] font-medium text-[#b90014]">
-                {project.role || "Dự án"}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[15px] font-semibold text-[#1a1c1c]">{project.name}</p>
+                  <p className="mt-1 text-[13px] font-medium text-[#b90014]">
+                    {project.role || "Dự án"}
+                  </p>
+                </div>
+                {canEditProfile ? (
+                  <button
+                    className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                    type="button"
+                    onClick={() => onRemoveProject(project.id)}
+                  >
+                    Xóa mục
+                  </button>
+                ) : null}
+              </div>
               {project.description ? (
                 <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">{project.description}</p>
               ) : null}
@@ -201,6 +216,7 @@ type EducationSectionProps = SharedEditProps & {
   setEducationDraft: Dispatch<SetStateAction<EducationDraft>>;
   educations: CandidateEducationItem[];
   onAddEducation: () => void;
+  onRemoveEducation: (educationId: string) => void;
 };
 
 export function EducationSection({
@@ -211,6 +227,7 @@ export function EducationSection({
   setEducationDraft,
   educations,
   onAddEducation,
+  onRemoveEducation,
 }: EducationSectionProps) {
   return (
     <div>
@@ -302,11 +319,24 @@ export function EducationSection({
         {educations.length ? (
           educations.map((education) => (
             <div key={education.id} className="rounded p-4">
-              <p className="text-[15px] font-semibold text-[#1a1c1c]">{education.school}</p>
-              <p className="mt-1 text-[13px] font-medium text-[#b90014]">
-                {education.degree}
-                {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[15px] font-semibold text-[#1a1c1c]">{education.school}</p>
+                  <p className="mt-1 text-[13px] font-medium text-[#b90014]">
+                    {education.degree}
+                    {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
+                  </p>
+                </div>
+                {canEditProfile ? (
+                  <button
+                    className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                    type="button"
+                    onClick={() => onRemoveEducation(education.id)}
+                  >
+                    Xóa mục
+                  </button>
+                ) : null}
+              </div>
               <p className="text-[14px] text-[#5f5e5e]">
                 {[education.startYear, education.endYear].filter(Boolean).join(" - ") ||
                   "Chưa rõ mốc thời gian"}
@@ -347,6 +377,7 @@ type CertificationsSectionProps = SharedEditProps & {
   >;
   certifications: CandidateCertificationItem[];
   onAddCertification: () => void;
+  onRemoveCertification: (certificationId: string) => void;
 };
 
 export function CertificationsSection({
@@ -357,6 +388,7 @@ export function CertificationsSection({
   setCertificationDraft,
   certifications,
   onAddCertification,
+  onRemoveCertification,
 }: CertificationsSectionProps) {
   return (
     <div>
@@ -448,10 +480,23 @@ export function CertificationsSection({
         {certifications.length ? (
           certifications.map((certification) => (
             <div key={certification.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
-              <p className="text-[15px] font-semibold text-[#1a1c1c]">{certification.name}</p>
-              <p className="mt-1 text-[13px] text-[#5f5e5e]">
-                {certification.issuer || "Chưa rõ đơn vị cấp"}
-              </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[15px] font-semibold text-[#1a1c1c]">{certification.name}</p>
+                  <p className="mt-1 text-[13px] text-[#5f5e5e]">
+                    {certification.issuer || "Chưa rõ đơn vị cấp"}
+                  </p>
+                </div>
+                {canEditProfile ? (
+                  <button
+                    className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                    type="button"
+                    onClick={() => onRemoveCertification(certification.id)}
+                  >
+                    Xóa mục
+                  </button>
+                ) : null}
+              </div>
             </div>
           ))
         ) : (
@@ -469,6 +514,7 @@ type LanguagesSectionProps = SharedEditProps & {
   setLanguageDraft: Dispatch<SetStateAction<LanguageDraft>>;
   languages: CandidateLanguageItem[];
   onAddLanguage: () => void;
+  onRemoveLanguage: (languageId: string) => void;
 };
 
 export function LanguagesSection({
@@ -479,6 +525,7 @@ export function LanguagesSection({
   setLanguageDraft,
   languages,
   onAddLanguage,
+  onRemoveLanguage,
 }: LanguagesSectionProps) {
   return (
     <div>
@@ -535,12 +582,23 @@ export function LanguagesSection({
       <div className="mt-4 flex flex-wrap gap-2">
         {languages.length ? (
           languages.map((language) => (
-            <span
+            <div
               key={language.id}
-              className="rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
+              className="flex items-center gap-2 rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
             >
-              {language.name} • {language.proficiency}
-            </span>
+              <span>
+                {language.name} • {language.proficiency}
+              </span>
+              {canEditProfile ? (
+                <button
+                  className="text-[#b90014] hover:underline"
+                  type="button"
+                  onClick={() => onRemoveLanguage(language.id)}
+                >
+                  Xóa
+                </button>
+              ) : null}
+            </div>
           ))
         ) : (
           <p className="text-[14px] text-[#5f5e5e]">Chưa có ngôn ngữ nào trong hồ sơ.</p>

@@ -11,6 +11,7 @@ type ExperienceSectionProps = {
   setEntryDraft: Dispatch<SetStateAction<EntryDraft>>;
   experienceEntries: ExperienceEntry[];
   onAddEntry: () => void;
+  onRemoveEntry: (entryId: string) => void;
 };
 
 function ExperienceSection({
@@ -21,6 +22,7 @@ function ExperienceSection({
   setEntryDraft,
   experienceEntries,
   onAddEntry,
+  onRemoveEntry,
 }: ExperienceSectionProps) {
   return (
     <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
@@ -187,10 +189,21 @@ function ExperienceSection({
               }`}
             />
             <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <h3 className="text-[16px] font-bold text-[#1a1c1c]">{entry.title}</h3>
-              <span className="rounded bg-[#e2dfde] px-2 py-1 text-[12px] font-semibold text-[#636262]">
-                {formatPeriod(entry.period)}
-              </span>
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+                <h3 className="text-[16px] font-bold text-[#1a1c1c]">{entry.title}</h3>
+                <span className="rounded bg-[#e2dfde] px-2 py-1 text-[12px] font-semibold text-[#636262]">
+                  {formatPeriod(entry.period)}
+                </span>
+              </div>
+              {canManageExperience ? (
+                <button
+                  className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                  type="button"
+                  onClick={() => onRemoveEntry(entry.id)}
+                >
+                  Xóa mục
+                </button>
+              ) : null}
             </div>
             <p className="mb-2 text-[14px] font-semibold text-[#b90014]">{entry.company}</p>
             <ul className="list-inside list-disc space-y-1 text-[14px] text-[#5f5e5e]">

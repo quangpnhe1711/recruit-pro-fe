@@ -107,6 +107,7 @@ function CandidateProfileAndCVManagementScreen() {
               setEntryDraft={setters.setEntryDraft}
               experienceEntries={state.experienceEntries}
               onAddEntry={actions.handleAddEntry}
+              onRemoveEntry={actions.handleRemoveEntry}
             />
 
             <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
@@ -119,6 +120,7 @@ function CandidateProfileAndCVManagementScreen() {
                   setProjectDraft={setters.setProjectDraft}
                   projects={state.projects}
                   onAddProject={actions.handleAddProject}
+                  onRemoveProject={actions.handleRemoveProject}
                 />
 
                 <EducationSection
@@ -129,6 +131,7 @@ function CandidateProfileAndCVManagementScreen() {
                   setEducationDraft={setters.setEducationDraft}
                   educations={state.educations}
                   onAddEducation={actions.handleAddEducation}
+                  onRemoveEducation={actions.handleRemoveEducation}
                 />
               </div>
 
@@ -143,6 +146,7 @@ function CandidateProfileAndCVManagementScreen() {
                   setCertificationDraft={setters.setCertificationDraft}
                   certifications={state.certifications}
                   onAddCertification={actions.handleAddCertification}
+                  onRemoveCertification={actions.handleRemoveCertification}
                 />
 
                 <LanguagesSection
@@ -153,6 +157,7 @@ function CandidateProfileAndCVManagementScreen() {
                   setLanguageDraft={setters.setLanguageDraft}
                   languages={state.languages}
                   onAddLanguage={actions.handleAddLanguage}
+                  onRemoveLanguage={actions.handleRemoveLanguage}
                 />
               </div>
 

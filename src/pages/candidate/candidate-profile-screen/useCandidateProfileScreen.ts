@@ -609,7 +609,7 @@ export function useCandidateProfileScreen() {
     );
   }
 
-  async function handleAddEntry() {
+  function handleAddEntry() {
     const title = entryDraft.title.trim();
     const company = entryDraft.company.trim();
     const bullets = entryDraft.bullets
@@ -617,7 +617,10 @@ export function useCandidateProfileScreen() {
       .map((line) => line.trim())
       .filter(Boolean);
 
-    if (!title || !company || bullets.length === 0) return;
+    if (!title || !company || bullets.length === 0) {
+      toast.error("Hãy nhập chức danh, công ty và ít nhất một gạch đầu dòng.");
+      return;
+    }
 
     const newEntry = {
       id: `${title.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
@@ -625,35 +628,23 @@ export function useCandidateProfileScreen() {
       period: {
         startMonth: entryDraft.startMonth,
         startYear: entryDraft.startYear,
-        endMonth: entryDraft.isCurrent ? undefined : entryDraft.endMonth,
-        endYear: entryDraft.isCurrent ? undefined : entryDraft.endYear,
+        endMonth: entryDraft.isCurrent ? null : entryDraft.endMonth,
+        endYear: entryDraft.isCurrent ? null : entryDraft.endYear,
         isCurrent: entryDraft.isCurrent,
       },
       company,
       bullets,
     };
 
-    try {
-      const response = await candidateService.createExperience({
-        title: newEntry.title,
-        company: newEntry.company,
-        period: {
-          startMonth: newEntry.period.startMonth,
-          startYear: newEntry.period.startYear,
-          endMonth: newEntry.period.endMonth ?? null,
-          endYear: newEntry.period.endYear ?? null,
-          isCurrent: newEntry.period.isCurrent,
-        },
-        bullets: newEntry.bullets,
-      });
+    setExperienceEntries((prev) => [newEntry, ...prev]);
+    setEntryDraft(emptyEntryDraft);
+    setShowEntryComposer(false);
+    setIsEditingProfile(true);
+  }
 
-      setExperienceEntries(response.data?.experienceEntries ?? []);
-      setEntryDraft(emptyEntryDraft);
-      setShowEntryComposer(false);
-      toast.success("Đã thêm kinh nghiệm làm việc");
-    } catch {
-      toast.error("Không thể lưu kinh nghiệm làm việc");
-    }
+  function handleRemoveEntry(entryId: string) {
+    setExperienceEntries((prev) => prev.filter((entry) => entry.id !== entryId));
+    setIsEditingProfile(true);
   }
 
   function handleAddProject() {
@@ -688,6 +679,11 @@ export function useCandidateProfileScreen() {
     setIsEditingProfile(true);
   }
 
+  function handleRemoveProject(projectId: string) {
+    setProjects((prev) => prev.filter((project) => project.id !== projectId));
+    setIsEditingProfile(true);
+  }
+
   function handleAddEducation() {
     const school = educationDraft.school.trim();
     const degree = educationDraft.degree.trim();
@@ -715,6 +711,13 @@ export function useCandidateProfileScreen() {
     setIsEditingProfile(true);
   }
 
+  function handleRemoveEducation(educationId: string) {
+    setEducations((prev) =>
+      prev.filter((education) => education.id !== educationId),
+    );
+    setIsEditingProfile(true);
+  }
+
   function handleAddCertification() {
     const name = certificationDraft.name.trim();
     if (!name) {
@@ -739,6 +742,13 @@ export function useCandidateProfileScreen() {
     setIsEditingProfile(true);
   }
 
+  function handleRemoveCertification(certificationId: string) {
+    setCertifications((prev) =>
+      prev.filter((certification) => certification.id !== certificationId),
+    );
+    setIsEditingProfile(true);
+  }
+
   function handleAddLanguage() {
     const name = languageDraft.name.trim();
     const proficiency = languageDraft.proficiency.trim();
@@ -757,6 +767,13 @@ export function useCandidateProfileScreen() {
     ]);
     setLanguageDraft(emptyLanguageDraft);
     setShowLanguageComposer(false);
+    setIsEditingProfile(true);
+  }
+
+  function handleRemoveLanguage(languageId: string) {
+    setLanguages((prev) =>
+      prev.filter((language) => language.id !== languageId),
+    );
     setIsEditingProfile(true);
   }
 
@@ -974,10 +991,15 @@ export function useCandidateProfileScreen() {
       handleAddSkill,
       handleRemoveSkill,
       handleAddEntry,
+      handleRemoveEntry,
       handleAddProject,
+      handleRemoveProject,
       handleAddEducation,
+      handleRemoveEducation,
       handleAddCertification,
+      handleRemoveCertification,
       handleAddLanguage,
+      handleRemoveLanguage,
       handleAddCustomSection,
       handleRemoveCustomSection,
       handleCustomSectionItemDraftChange,

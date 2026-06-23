@@ -5,6 +5,7 @@ import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
   applicationStatusFilterOptions,
@@ -630,22 +631,41 @@ function MyApplicationScreen() {
               ) : (
                 <div className="space-y-3">
                   {selectedApplicationInterviews.map((interview) => (
-                    <div
-                      key={interview.id}
-                      className="flex flex-col gap-2 border border-[#efe9e8] bg-[#faf8f8] p-4 md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold text-[#1a1c1c]">
-                          {interview.dateLabel} · {interview.timeLabel}
-                        </p>
-                        <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                          Người phỏng vấn: {interview.interviewer}
-                        </p>
-                      </div>
-                      <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#005f93]">
-                        {interview.status}
-                      </span>
-                    </div>
+                    (() => {
+                      const timingStatus = getInterviewTimingStatus(
+                        interview.startAt,
+                        interview.endAt,
+                        interview.status,
+                      );
+
+                      return (
+                        <div
+                          key={interview.id}
+                          className="flex flex-col gap-2 border border-[#efe9e8] bg-[#faf8f8] p-4 md:flex-row md:items-center md:justify-between"
+                        >
+                          <div>
+                            <p className="font-semibold text-[#1a1c1c]">
+                              {interview.dateLabel} · {interview.timeLabel}
+                            </p>
+                            <p className="mt-1 text-[14px] text-[#5f5e5e]">
+                              Người phỏng vấn: {interview.interviewer}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#005f93]">
+                              {interview.status}
+                            </span>
+                            {timingStatus ? (
+                              <span
+                                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${timingStatus.className}`}
+                              >
+                                {timingStatus.label}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      );
+                    })()
                   ))}
                 </div>
               )}
