@@ -53,7 +53,7 @@ function ForgotPasswordDialog({
           <div>
             <h3 className="text-[20px] font-semibold text-[#1a1c1c]">{title}</h3>
             <p className="mt-1 text-[14px] text-[#5f5e5e]">
-              Hệ thống sẽ cấp mật khẩu tạm cho tài khoản khớp thông tin.
+              Hệ thống sẽ cấp mật khẩu tạm cho tài khoản khớp với thông tin bạn nhập.
             </p>
           </div>
           <button

@@ -26,7 +26,6 @@ function InternalLoginScreen() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const schema = yup.object({
@@ -38,7 +37,6 @@ function InternalLoginScreen() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<InternalLoginForm>({
     resolver: yupResolver(schema) as Resolver<InternalLoginForm>,
@@ -52,8 +50,6 @@ function InternalLoginScreen() {
   const usernamePlaceholder = useMemo(() => "your.username", []);
 
   async function onSubmit(data: InternalLoginForm) {
-    setSubmitted(true);
-
     try {
       const res = await authService.internalLogin({
         username: data.username,
@@ -81,7 +77,6 @@ function InternalLoginScreen() {
       });
     } catch {
       toast.error("Username hoặc mật khẩu không chính xác");
-      setSubmitted(false);
     }
   }
 
@@ -128,7 +123,7 @@ function InternalLoginScreen() {
               <div>
                 <label
                   className="mb-2 block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
-                  htmlFor="employee-id"
+                  htmlFor="username"
                 >
                   Username
                 </label>
@@ -137,7 +132,7 @@ function InternalLoginScreen() {
                     badge
                   </span>
                   <input
-                    id="employee-id"
+                    id="username"
                     {...register("username")}
                     type="text"
                     placeholder={usernamePlaceholder}
@@ -222,8 +217,8 @@ function InternalLoginScreen() {
       </main>
       <ForgotPasswordDialog
         title="Khôi phục mật khẩu nội bộ"
-        label="Username hoặc email"
-        placeholder="your.username hoặc name@recruitpro.com"
+        label="Username"
+        placeholder="your.username"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}
