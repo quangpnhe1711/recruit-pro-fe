@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 
 const navLinks = [
   { label: "Trang chủ", href: "#home", active: true },
-  { label: "Cơ hội nghề nghiệp", href: "#careers", active: false },
-  { label: "Về chúng tôi", href: "#about", active: false },
+  { label: "Nền tảng", href: "#platform", active: false },
+  { label: "Việc làm", href: "#careers", active: false },
+  { label: "Câu chuyện", href: "#stories", active: false },
 ];
 
 function PublicHeader() {
