@@ -114,17 +114,29 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
         ]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e8e3e1] bg-white/85 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75">
+    <header className="sticky top-0 z-40 border-b border-[#ececec] bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70">
       <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 md:px-10">
-        <div className="flex flex-1 items-center">
-          <button
-            type="button"
-            className="premium-action p-2 text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014] lg:hidden"
-            aria-label="Mở menu điều hướng"
-            onClick={onMenuToggle}
-          >
-            <span className="material-symbols-outlined text-[26px]">menu</span>
-          </button>
+        <div className="flex flex-1 items-center gap-2">
+          {onMenuToggle ? (
+            <button
+              type="button"
+              className="premium-action -ml-2 flex h-10 w-10 items-center justify-center text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014] lg:hidden"
+              aria-label="Mở menu điều hướng"
+              onClick={onMenuToggle}
+            >
+              <span className="material-symbols-outlined text-[26px]">menu</span>
+            </button>
+          ) : null}
+
+          {/* Compact brand for mobile (candidate portal has no sidebar on mobile) */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-gradient-to-br from-[#f0353d] to-[#b90014] text-white">
+              <span className="material-symbols-outlined text-[18px]">hub</span>
+            </span>
+            <span className="text-[16px] font-bold tracking-[-0.01em] text-[#1a1c1c]">
+              RecruitPro
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 md:gap-6">
@@ -156,7 +168,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
               {open ? (
                 <div
                   id={buttonId}
-                  className="absolute right-0 top-[calc(100%+14px)] z-50 w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-lg border border-[#e2dfde] bg-white shadow-[0_24px_70px_rgba(26,28,28,0.16)]"
+                  className="animate-scale-in absolute right-0 top-[calc(100%+14px)] z-50 w-[calc(100vw-2rem)] max-w-[380px] origin-top-right overflow-hidden rounded-2xl border border-[#ececec] bg-white shadow-[0_24px_70px_rgba(26,28,28,0.18)]"
                 >
                   <div className="flex items-center justify-between border-b border-[#f0eceb] px-4 py-4">
                     <div>

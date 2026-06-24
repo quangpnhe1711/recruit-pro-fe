@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { Skeleton } from "../../common/components/Skeleton";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -323,11 +323,25 @@ function InterviewScheduleScreen() {
 
   if (isLoading) {
     return (
-      <div className="w-full px-4 py-6 md:px-10">
-        <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
-          <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Lên lịch phỏng vấn</h1>
-          <div className="mt-3">
-            <LoadingIndicator label="Đang tải dữ liệu lịch phỏng vấn..." />
+      <div className="app-container space-y-6 py-8">
+        <Skeleton className="h-7 w-56" />
+        <div className="surface-card p-6">
+          <div className="flex items-center gap-5">
+            <Skeleton className="h-16 w-16 rounded-[16px]" />
+            <div className="flex-1 space-y-3">
+              <Skeleton className="h-7 w-64" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 space-y-6 lg:col-span-8">
+            <div className="surface-card h-80" />
+            <div className="surface-card h-64" />
+          </div>
+          <div className="col-span-12 space-y-6 lg:col-span-4">
+            <div className="surface-card h-48" />
+            <div className="surface-card h-72" />
           </div>
         </div>
       </div>
@@ -336,17 +350,23 @@ function InterviewScheduleScreen() {
 
   if (!scheduleData || !currentInterviewer) {
     return (
-      <div className="w-full px-4 py-6 md:px-10">
-        <div className="rounded-lg border border-[#e2e2e2] bg-white p-6">
-          <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">Lên lịch phỏng vấn</h1>
+      <div className="app-container py-10">
+        <div className="surface-card p-10 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
+            <span className="material-symbols-outlined text-[32px]">event_busy</span>
+          </div>
+          <h2 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">
+            Lên lịch phỏng vấn
+          </h2>
           <p className="mt-2 text-[14px] text-[#5f5e5e]">
             Hiện chưa có dữ liệu để lên lịch phỏng vấn.
           </p>
           <button
             type="button"
-            className="mt-6 rounded border border-[#1a1c1c] px-4 py-2 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#eeeeee]"
+            className="btn btn-secondary mt-6"
             onClick={() => navigate("/hr/interviews")}
           >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Quay lại danh sách phỏng vấn
           </button>
         </div>
@@ -355,28 +375,29 @@ function InterviewScheduleScreen() {
   }
 
   return (
-    <div className="w-full space-y-6 px-4 py-6 md:px-10">
-      <div className="flex items-center gap-4">
+    <div className="app-container animate-fade-in space-y-6 py-8">
+      <div className="flex items-center gap-3">
         <button
           type="button"
-          className="text-[#b90014] transition-transform active:scale-95"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f7f6f5] hover:text-[#1a1c1c]"
           onClick={() => navigate(-1)}
           aria-label="Quay lại"
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <h1 className="text-[20px] font-semibold leading-7 text-[#b90014]">
-          Lên lịch phỏng vấn
-        </h1>
+        <div>
+          <p className="eyebrow">Phỏng vấn</p>
+          <h1 className="page-title">Lên lịch phỏng vấn</h1>
+        </div>
       </div>
 
-      <section className="flex flex-col gap-6 border border-[#e2e2e2] bg-white p-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#f3f3f3] text-[20px] font-bold text-[#5f5e5e]">
+      <section className="card flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-5">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[16px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[20px] font-bold text-[#b90014]">
             {scheduleData.candidate.avatarUrl ? (
               <img
                 alt={scheduleData.candidate.name}
-                className="h-16 w-16 rounded-lg object-cover"
+                className="h-16 w-16 rounded-[16px] object-cover"
                 src={scheduleData.candidate.avatarUrl}
               />
             ) : (
@@ -390,12 +411,12 @@ function InterviewScheduleScreen() {
             )}
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
+              <h2 className="text-[26px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1c]">
                 {scheduleData.candidate.name}
               </h2>
-              <span className="rounded-sm bg-[#cde5ff] px-2 py-0.5 text-[12px] font-semibold tracking-[0.05em] text-[#004b74]">
+              <span className="badge bg-[#e6f1fb] text-[#005f93]">
                 {scheduleData.candidate.roleLabel || "Ứng viên"}
               </span>
             </div>
@@ -408,14 +429,14 @@ function InterviewScheduleScreen() {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-2.5">
           <PermissionGuard permissions={PERMISSIONS.CANDIDATE_VIEW_DETAIL}>
             <button
               type="button"
-              className="flex items-center gap-2 border border-[#1a1c1c] px-4 py-2 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#eeeeee] active:scale-[0.98]"
+              className="btn btn-secondary"
               onClick={() => toast.info("Chức năng xem hồ sơ chi tiết chưa sẵn sàng.")}
             >
-              <span className="material-symbols-outlined text-[20px]">
+              <span className="material-symbols-outlined text-[18px]">
                 account_circle
               </span>
               Xem hồ sơ
@@ -426,10 +447,10 @@ function InterviewScheduleScreen() {
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 space-y-6 lg:col-span-8">
-          <section className="grid grid-cols-1 gap-6 border border-[#e2e2e2] bg-white p-6 md:grid-cols-2">
+          <section className="card grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
-                <h3 className="text-[20px] font-semibold leading-7">
+                <h3 className="section-title">
                   {formatMonthYear(viewMonth)}
                 </h3>
                 <div className="flex gap-2">
@@ -464,14 +485,14 @@ function InterviewScheduleScreen() {
                   const baseClass = "py-2 transition-colors active:scale-[0.98]";
                   const dim = inMonth ? "hover:bg-[#eeeeee]" : "text-[#c8c6c5]";
                   const selected = isSelected
-                    ? "bg-[#b90014] text-white ring-2 ring-[#ffdad6]"
+                    ? "bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-sm"
                     : dim;
 
                   return (
                     <button
                       key={toDateKey(date)}
                       type="button"
-                      className={`${baseClass} ${selected}`}
+                      className={`${baseClass} rounded-[10px] ${selected}`}
                       onClick={() => onPickDay(date)}
                       aria-label={`Chọn ${formatDayLabel(date)}`}
                     >
@@ -483,23 +504,23 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-[20px] font-semibold leading-7">Khung giờ trống</h3>
+              <h3 className="section-title">Khung giờ trống</h3>
               <div className="grid h-[260px] grid-cols-2 gap-2 overflow-y-auto pr-2">
                 {slotMinutes.map((slot) => {
                   const selected = slot === selectedSlot;
                   const disabled = isSlotDisabled(slot);
 
                   const className = disabled
-                    ? "cursor-not-allowed border border-[#e2e2e2] opacity-40"
+                    ? "cursor-not-allowed border border-[#ececec] text-[#a8a4a2] opacity-50"
                     : selected
-                      ? "border-2 border-[#b90014] bg-[#ffdad6] font-bold text-[#b90014]"
-                      : "border border-[#e2e2e2] text-[#5f5e5e] hover:border-[#b90014] hover:text-[#b90014]";
+                      ? "border border-[#b90014] bg-[#fff1f0] font-bold text-[#b90014] shadow-sm"
+                      : "border border-[#ececec] text-[#5f5e5e] hover:border-[#b90014] hover:text-[#b90014]";
 
                   return (
                     <button
                       key={slot}
                       type="button"
-                      className={`p-3 text-[12px] font-semibold tracking-[0.05em] transition-all active:scale-[0.98] ${className}`}
+                      className={`rounded-[10px] p-3 text-[12px] font-semibold tracking-[0.05em] transition-all active:scale-[0.98] ${className}`}
                       disabled={disabled}
                       onClick={() => onSelectSlot(slot)}
                     >
@@ -511,67 +532,60 @@ function InterviewScheduleScreen() {
             </div>
           </section>
 
-          <section className="space-y-6 border border-[#e2e2e2] bg-white p-6">
-            <h3 className="text-[20px] font-semibold leading-7">Cấu hình phỏng vấn</h3>
+          <section className="card space-y-6 p-6">
+            <h3 className="section-title">Cấu hình phỏng vấn</h3>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                  Hình thức
-                </label>
+                <label className="field-label">Hình thức</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    className={`flex items-center justify-center gap-2 py-3 transition-colors active:scale-[0.98] ${
+                    className={`flex h-12 items-center justify-center gap-2 rounded-[10px] transition-colors active:scale-[0.98] ${
                       mode === "video"
-                        ? "border-2 border-[#b90014] bg-[#ffdad6] font-bold text-[#b90014]"
-                        : "border border-[#e2e2e2] font-semibold text-[#5f5e5e] hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
+                        ? "border border-[#b90014] bg-[#fff1f0] font-bold text-[#b90014] shadow-sm"
+                        : "border border-[#ececec] font-semibold text-[#5f5e5e] hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
                     }`}
                     onClick={() => setMode("video")}
                   >
-                    <span className="material-symbols-outlined">videocam</span>
+                    <span className="material-symbols-outlined text-[20px]">videocam</span>
                     Trực tuyến
                   </button>
 
                   <button
                     type="button"
-                    className={`flex items-center justify-center gap-2 py-3 transition-colors active:scale-[0.98] ${
+                    className={`flex h-12 items-center justify-center gap-2 rounded-[10px] transition-colors active:scale-[0.98] ${
                       mode === "inPerson"
-                        ? "border-2 border-[#b90014] bg-[#ffdad6] font-bold text-[#b90014]"
-                        : "border border-[#e2e2e2] font-semibold text-[#5f5e5e] hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
+                        ? "border border-[#b90014] bg-[#fff1f0] font-bold text-[#b90014] shadow-sm"
+                        : "border border-[#ececec] font-semibold text-[#5f5e5e] hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
                     }`}
                     onClick={() => setMode("inPerson")}
                   >
-                    <span className="material-symbols-outlined">person</span>
+                    <span className="material-symbols-outlined text-[20px]">person</span>
                     Trực tiếp
                   </button>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                  Thời lượng
-                </label>
+                <label className="field-label">Thời lượng</label>
                 <CommonSelect
                   value={String(durationMinutes)}
                   options={durationOptions}
                   onValueChange={(value) => setDurationMinutes(Number(value))}
-                  className="h-12 border-2 border-[#e2e2e2] bg-white text-[14px] font-semibold shadow-none focus:border-[#1a1c1c]"
-                  menuClassName="border-[#e2e2e2]"
+                  className="h-12 text-[14px] font-semibold"
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                Link họp / Địa điểm
-              </label>
-              <div className="flex">
-                <div className="flex items-center border border-[#e2e2e2] border-r-0 bg-[#f3f3f3] px-4">
-                  <span className="material-symbols-outlined text-[#5f5e5e]">link</span>
-                </div>
+              <label className="field-label">Link họp / Địa điểm</label>
+              <div className="relative">
+                <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+                  link
+                </span>
                 <input
-                  className="w-full border border-[#e2e2e2] bg-white px-4 py-3 font-mono text-[12px] text-[#1a1c1c] outline-none transition-colors focus:border-[#1a1c1c]"
+                  className="input-field pl-10 font-mono text-[13px]"
                   value={locationOrLink}
                   onChange={(e) => setLocationOrLink(e.target.value)}
                   placeholder={mode === "video" ? "Dán link cuộc họp" : "Nhập địa điểm phỏng vấn"}
@@ -582,10 +596,10 @@ function InterviewScheduleScreen() {
         </div>
 
         <div className="col-span-12 space-y-6 lg:col-span-4">
-          <section className="border border-[#e2e2e2] bg-white p-6">
-            <h3 className="mb-6 text-[20px] font-semibold leading-7">Người phỏng vấn phụ trách</h3>
-            <div className="mb-4 flex items-center gap-4 border border-[#e2e2e2] bg-[#f3f3f3] p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[14px] font-bold text-[#5f5e5e]">
+          <section className="card p-6">
+            <h3 className="section-title mb-5">Người phỏng vấn phụ trách</h3>
+            <div className="mb-4 flex items-center gap-4 rounded-[14px] border border-[#ececec] bg-[#f7f6f5] p-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[14px] font-bold text-[#5f5e5e]">
                 {currentInterviewer.avatarUrl ? (
                   <img
                     alt={currentInterviewer.name}
@@ -603,12 +617,12 @@ function InterviewScheduleScreen() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold">{currentInterviewer.name}</p>
+                <p className="truncate font-bold text-[#1a1c1c]">{currentInterviewer.name}</p>
                 <p className="text-[12px] text-[#5f5e5e]">{currentInterviewer.title}</p>
               </div>
               <button
                 type="button"
-                className="text-[#b90014] transition-transform active:scale-95"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#b90014] transition-colors hover:bg-[#fff1f0] active:scale-95"
                 onClick={onSwapInterviewer}
                 aria-label="Đổi người phỏng vấn"
               >
@@ -617,14 +631,12 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-2">
-              <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                Lịch của người phỏng vấn
-              </p>
+              <p className="field-label">Lịch của người phỏng vấn</p>
               <div
-                className={`flex items-center gap-2 rounded-sm p-2 text-[14px] ${
+                className={`flex items-center gap-2 rounded-[10px] p-3 text-[13px] font-medium ${
                   isInterviewerFree
-                    ? "bg-[#0079b9]/10 text-[#004b74]"
-                    : "bg-[#ffdad6]/40 text-[#93000a]"
+                    ? "bg-[#e6f1fb] text-[#005f93]"
+                    : "bg-[#fff1f0] text-[#93000a]"
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">
@@ -635,13 +647,13 @@ function InterviewScheduleScreen() {
             </div>
           </section>
 
-          <section className="sticky top-6 border border-[#e2e2e2] bg-white p-6">
-            <h3 className="mb-6 text-[20px] font-semibold leading-7">Tóm tắt lịch</h3>
+          <section className="card sticky top-6 p-6">
+            <h3 className="section-title mb-5">Tóm tắt lịch</h3>
 
-            <div className="mb-8 space-y-4">
-              <div className="flex justify-between border-b border-[#eeeeee] pb-2">
+            <div className="mb-6 space-y-3">
+              <div className="flex justify-between border-b border-[#f0eceb] pb-3">
                 <span className="text-[14px] text-[#5f5e5e]">Ngày</span>
-                <span className="font-semibold">
+                <span className="font-semibold text-[#1a1c1c]">
                   {new Intl.DateTimeFormat("vi-VN", {
                     month: "short",
                     day: "numeric",
@@ -650,25 +662,25 @@ function InterviewScheduleScreen() {
                 </span>
               </div>
 
-              <div className="flex justify-between border-b border-[#eeeeee] pb-2">
+              <div className="flex justify-between border-b border-[#f0eceb] pb-3">
                 <span className="text-[14px] text-[#5f5e5e]">Giờ</span>
-                <span className="font-semibold">
+                <span className="font-semibold text-[#1a1c1c]">
                   {selectedSlot === null ? "Chưa chọn" : `${formatTime(selectedSlot)} - ${formatTime(endMinutes)}`}
                 </span>
               </div>
 
-              <div className="flex justify-between border-b border-[#eeeeee] pb-2">
+              <div className="flex justify-between border-b border-[#f0eceb] pb-3">
                 <span className="text-[14px] text-[#5f5e5e]">Hình thức</span>
-                <span className="font-semibold">
+                <span className="font-semibold text-[#1a1c1c]">
                   {mode === "video" ? "Phỏng vấn trực tuyến" : "Phỏng vấn trực tiếp"}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <AsyncActionButton
                 type="button"
-                className="w-full bg-[#b90014] py-4 text-[20px] font-bold text-white shadow-lg transition-all hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn btn-primary w-full justify-center py-3.5 text-[15px] disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={saveSchedule}
                 disabled={
                   !canCreateInterview
@@ -680,13 +692,14 @@ function InterviewScheduleScreen() {
                 loading={isSubmitting}
                 loadingText="Đang lưu lịch..."
               >
+                <span className="material-symbols-outlined text-[18px]">event_available</span>
                 Xác nhận lịch phỏng vấn
               </AsyncActionButton>
 
               <PermissionGuard permissions={PERMISSIONS.INTERVIEW_UPDATE}>
                 <button
                   type="button"
-                  className="w-full border-2 border-[#1a1c1c] bg-transparent py-3 text-[14px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#eeeeee] active:scale-95"
+                  className="btn btn-secondary w-full justify-center"
                   onClick={saveDraftLocally}
                   disabled={!canViewScheduleData || isSubmitting}
                 >
@@ -695,8 +708,8 @@ function InterviewScheduleScreen() {
               </PermissionGuard>
             </div>
 
-            <p className="mt-6 text-center text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-              <span className="material-symbols-outlined mr-1 text-[14px]">info</span>
+            <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[12px] font-medium text-[#5f5e5e]">
+              <span className="material-symbols-outlined text-[16px]">info</span>
               Hệ thống sẽ gửi thông báo cho hai bên.
             </p>
           </section>

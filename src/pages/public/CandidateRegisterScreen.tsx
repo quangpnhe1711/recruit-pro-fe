@@ -79,11 +79,9 @@ const initialValues: RegisterValues = {
   resume: null,
 };
 
-const baseInputClass =
-  "w-full h-11 px-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#b90014] focus:border-2";
+const baseInputClass = "input-field h-11";
 
-const baseTextareaClass =
-  "w-full p-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] resize-none focus:outline-none focus:border-[#b90014] focus:border-2";
+const baseTextareaClass = "input-field resize-none";
 
 function CandidateRegisterScreen() {
   const totalSteps = steps.length;
@@ -364,20 +362,25 @@ function CandidateRegisterScreen() {
             <form className="space-y-8" onSubmit={handleSubmit}>
               {/* Step 1: Account (Gói trong userInfo) */}
               {currentStep === 1 ? (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-[#e2dfde] pb-2">
-                    <span className="material-symbols-outlined text-[#b90014]">
-                      {stepConfig.sectionIcon}
+                <div className="card animate-fade-in space-y-6 p-5 md:p-6">
+                  <div className="flex items-center gap-3 border-b border-[#ececec] pb-4">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                      <span className="material-symbols-outlined text-[20px]">
+                        {stepConfig.sectionIcon}
+                      </span>
                     </span>
-                    <h3 className="text-[20px] leading-7 font-semibold">
-                      {stepConfig.sectionTitle}
-                    </h3>
+                    <div>
+                      <h3 className="section-title">{stepConfig.sectionTitle}</h3>
+                      <p className="text-[12px] text-[#8a8786]">
+                        Thông tin đăng nhập và liên hệ của bạn.
+                      </p>
+                    </div>
                   </div>
 
                 <div className="space-y-4">
                   <div className="space-y-1.5 group">
                     <label
-                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                      className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="username"
                     >
                       Tên đăng nhập{" "}
@@ -393,11 +396,16 @@ function CandidateRegisterScreen() {
                       value={values.userInfo.username}
                       onChange={setField("userInfo", "username")}
                     />
+                    {errors.username ? (
+                      <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                        {errors.username}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="space-y-1.5 group">
                     <label
-                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                      className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="fullName"
                       >
                         Họ và tên{" "}
@@ -413,11 +421,16 @@ function CandidateRegisterScreen() {
                         value={values.userInfo.fullName}
                         onChange={setField("userInfo", "fullName")}
                       />
+                      {errors.fullName ? (
+                        <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                          {errors.fullName}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="email"
                       >
                         Email{" "}
@@ -433,11 +446,16 @@ function CandidateRegisterScreen() {
                         value={values.userInfo.email}
                         onChange={setField("userInfo", "email")}
                       />
+                      {errors.email ? (
+                        <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                          {errors.email}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="password"
                       >
                         Mật khẩu{" "}
@@ -453,11 +471,16 @@ function CandidateRegisterScreen() {
                         value={values.userInfo.password}
                         onChange={setField("userInfo", "password")}
                       />
+                      {errors.password ? (
+                        <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                          {errors.password}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="phone"
                       >
                         Số điện thoại
@@ -478,20 +501,25 @@ function CandidateRegisterScreen() {
 
               {/* Step 2: Professional Details (Gói trong candidateProfile) */}
               {currentStep === 2 ? (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-[#e2dfde] pb-2">
-                    <span className="material-symbols-outlined text-[#b90014]">
-                      {stepConfig.sectionIcon}
+                <div className="card animate-fade-in space-y-6 p-5 md:p-6">
+                  <div className="flex items-center gap-3 border-b border-[#ececec] pb-4">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                      <span className="material-symbols-outlined text-[20px]">
+                        {stepConfig.sectionIcon}
+                      </span>
                     </span>
-                    <h3 className="text-[20px] leading-7 font-semibold">
-                      {stepConfig.sectionTitle}
-                    </h3>
+                    <div>
+                      <h3 className="section-title">{stepConfig.sectionTitle}</h3>
+                      <p className="text-[12px] text-[#8a8786]">
+                        Giúp nhà tuyển dụng hiểu rõ hơn về kinh nghiệm của bạn.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-3 space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="position"
                       >
                         Vị trí hiện tại
@@ -509,7 +537,7 @@ function CandidateRegisterScreen() {
 
                     <div className="md:col-span-1 space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="experienceYears"
                       >
                         Số năm kinh nghiệm
@@ -531,7 +559,7 @@ function CandidateRegisterScreen() {
 
                   <div className="space-y-1.5 group">
                     <label
-                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                      className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="education"
                     >
                       Học vấn
@@ -549,7 +577,7 @@ function CandidateRegisterScreen() {
 
                   <div className="space-y-1.5 group">
                     <label
-                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                      className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="address"
                     >
                       Địa chỉ
@@ -567,7 +595,7 @@ function CandidateRegisterScreen() {
 
                   <div className="space-y-1.5 group">
                     <label
-                      className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                      className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="bio"
                     >
                       Giới thiệu bản thân
@@ -587,22 +615,25 @@ function CandidateRegisterScreen() {
 
               {/* Step 3: Links & Resume (Gói trong candidateProfile và file rời) */}
               {currentStep === 3 ? (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-[#e2dfde] pb-2">
-                    <span className="material-symbols-outlined text-[#b90014]">
-                      {stepConfig.sectionIcon}
+                <div className="card animate-fade-in space-y-6 p-5 md:p-6">
+                  <div className="flex items-center gap-3 border-b border-[#ececec] pb-4">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                      <span className="material-symbols-outlined text-[20px]">
+                        {stepConfig.sectionIcon}
+                      </span>
                     </span>
-                    <h3 className="text-[20px] leading-7 font-semibold">
-                      {stepConfig.sectionTitle}
-                    </h3>
+                    <div>
+                      <h3 className="section-title">{stepConfig.sectionTitle}</h3>
+                      <p className="text-[12px] text-[#8a8786]">
+                        Đính kèm CV và liên kết hồ sơ trực tuyến của bạn.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c]">
-                      Tải CV
-                    </label>
+                    <label className="field-label">Tải CV</label>
 
-                    <div className="relative group cursor-pointer border-2 border-dashed border-[#e2dfde] hover:border-[#b90014] rounded-lg p-8 transition-colors bg-[#f3f3f3]/50 flex flex-col items-center justify-center text-center">
+                    <div className="relative group cursor-pointer border-2 border-dashed border-[#dcd7d5] hover:border-[#b90014] rounded-[14px] p-8 transition-colors bg-[#faf9f8] hover:bg-[#fff6f4] flex flex-col items-center justify-center text-center">
                       <input
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         id="resume"
@@ -634,7 +665,7 @@ function CandidateRegisterScreen() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="github"
                       >
                         Liên kết GitHub
@@ -657,7 +688,7 @@ function CandidateRegisterScreen() {
 
                     <div className="space-y-1.5 group">
                       <label
-                        className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
+                        className="field-label group-focus-within:text-[#b90014]"
                         htmlFor="linkedin"
                       >
                         Liên kết LinkedIn
@@ -682,14 +713,14 @@ function CandidateRegisterScreen() {
               ) : null}
 
               {/* Actions */}
-              <div className="pt-6 flex flex-col gap-4">
-                <div className="flex gap-4">
+              <div className="sticky bottom-0 -mx-4 mt-2 border-t border-[#ececec] bg-white/90 px-4 pb-4 pt-4 backdrop-blur md:-mx-6 md:px-6">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
                     onClick={handlePrev}
-                    className={`${currentStep === 1 ? "hidden" : ""} flex-1 h-14 border border-[#e2dfde] text-[#1a1c1c] text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#f3f3f3] transition-all active:scale-[0.98]`}
+                    className={`${currentStep === 1 ? "hidden" : ""} btn btn-secondary h-12 flex-1 text-[14px]`}
                   >
-                    <span className="material-symbols-outlined">
+                    <span className="material-symbols-outlined text-[18px]">
                       arrow_back
                     </span>
                     Quay lại
@@ -698,10 +729,10 @@ function CandidateRegisterScreen() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className={`${currentStep === totalSteps ? "hidden" : ""} flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10`}
+                    className={`${currentStep === totalSteps ? "hidden" : ""} btn btn-primary h-12 flex-1 text-[14px]`}
                   >
                     Bước tiếp theo
-                    <span className="material-symbols-outlined">
+                    <span className="material-symbols-outlined text-[18px]">
                       arrow_forward
                     </span>
                   </button>
@@ -709,18 +740,18 @@ function CandidateRegisterScreen() {
                   <button
                     type="submit"
                     disabled={submitState === "processing"}
-                    className={`${currentStep === totalSteps ? "" : "hidden"} flex-1 h-14 bg-[#b90014] text-white text-[20px] leading-7 font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#93000d] transition-all active:scale-[0.98] shadow-lg shadow-[#b90014]/10 disabled:opacity-70`}
+                    className={`${currentStep === totalSteps ? "" : "hidden"} btn btn-primary h-12 flex-1 text-[14px]`}
                   >
                     {submitState === "processing" ? (
                       <>
-                        <span className="material-symbols-outlined animate-spin">
+                        <span className="material-symbols-outlined animate-spin text-[18px]">
                           progress_activity
                         </span>
                         Đang xử lý...
                       </>
                     ) : submitState === "success" ? (
                       <>
-                        <span className="material-symbols-outlined">
+                        <span className="material-symbols-outlined text-[18px]">
                           check_circle
                         </span>
                         Thành công!
@@ -728,7 +759,7 @@ function CandidateRegisterScreen() {
                     ) : (
                       <>
                         Tạo tài khoản
-                        <span className="material-symbols-outlined">
+                        <span className="material-symbols-outlined text-[18px]">
                           check_circle
                         </span>
                       </>
@@ -736,7 +767,7 @@ function CandidateRegisterScreen() {
                   </button>
                 </div>
 
-                <p className="text-center text-[14px] leading-5 text-[#5f5e5e]">
+                <p className="mt-3 text-center text-[14px] leading-5 text-[#5f5e5e]">
                   Đã có tài khoản?{" "}
                   <Link
                     className="text-[#1a1c1c] font-semibold underline hover:text-[#b90014] transition-colors"

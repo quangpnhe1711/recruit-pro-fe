@@ -166,9 +166,8 @@ function buildCandidateTableColumns(
       renderCell: (candidate) => {
         const chip = statusChip(candidate.status);
         return (
-          <span
-            className={`rounded px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${chip.wrapper}`}
-          >
+          <span className={`badge ${chip.wrapper}`}>
+            <span className="material-symbols-outlined text-[14px] leading-none">{chip.icon}</span>
             {candidate.status}
           </span>
         );
@@ -330,41 +329,39 @@ function CandidateListScreen() {
     toast.info("Chức năng thêm ứng viên sẽ sớm được hỗ trợ.");
   }
 
+  const statCards = [
+    { label: "Tổng ứng viên", value: stats.totalCandidates.toLocaleString(), icon: "group", iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]" },
+    { label: "Mới thêm gần đây", value: String(stats.recentlyAdded), icon: "recent_actors", iconWrap: "from-sky-50 to-sky-100 text-sky-600" },
+    { label: "Chờ xem xét", value: String(stats.pendingReviews), icon: "pending_actions", iconWrap: "from-amber-50 to-amber-100 text-amber-600" },
+  ];
+
   return (
-    <div className="w-full flex-grow px-4 py-6 md:px-10">
+    <div className="app-container animate-fade-in flex-grow py-8">
       {/* Header section */}
-      <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Quản lý ứng viên
-          </h2>
-          <p className="mt-1 text-[14px] text-[#5f5e5e]">
-            Theo dõi và quản lý toàn bộ nguồn ứng viên trong hệ thống tuyển dụng.
-          </p>
+      <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014] sm:flex">
+            <span className="material-symbols-outlined text-[26px]">group</span>
+          </div>
+          <div>
+            <p className="eyebrow mb-1.5">Tuyển dụng</p>
+            <h1 className="page-title">Quản lý ứng viên</h1>
+            <p className="page-subtitle">
+              Theo dõi và quản lý toàn bộ nguồn ứng viên trong hệ thống tuyển dụng.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <PermissionGuard permissions={PERMISSIONS.CANDIDATE_IMPORT}>
-            <button
-              type="button"
-              className="flex items-center gap-2 border border-[#1a1c1c] bg-white px-6 py-3 text-[14px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-              onClick={handleImport}
-            >
-              <span className="material-symbols-outlined text-xl">
-                upload_file
-              </span>
-              <span>Import ứng viên</span>
+            <button type="button" className="btn btn-secondary" onClick={handleImport}>
+              <span className="material-symbols-outlined text-[18px]">upload_file</span>
+              <span>Import</span>
             </button>
           </PermissionGuard>
           <PermissionGuard permissions={PERMISSIONS.CANDIDATE_CREATE}>
-            <button
-              type="button"
-              className="flex items-center gap-2 bg-[#e31b23] px-6 py-3 text-[14px] font-semibold text-white transition-all hover:opacity-90"
-              onClick={handleAddCandidate}
-            >
-              <span className="material-symbols-outlined text-xl">
-                person_add
-              </span>
+            <button type="button" className="btn btn-primary" onClick={handleAddCandidate}>
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
               <span>Thêm ứng viên</span>
             </button>
           </PermissionGuard>
@@ -372,64 +369,33 @@ function CandidateListScreen() {
       </div>
 
       {/* Stats summary */}
-      <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#b90014]/5 text-[#b90014]">
-              <span className="material-symbols-outlined text-3xl">group</span>
-            </div>
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Tổng ứng viên
-              </p>
-              <h3 className="mt-2 text-3xl font-bold leading-10 tracking-[-0.01em]">
-                {stats.totalCandidates.toLocaleString()}
-              </h3>
-            </div>
-          </div>
-        </div>
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#005f93]/5 text-[#005f93]">
-              <span className="material-symbols-outlined text-3xl">
-                recent_actors
-              </span>
-            </div>
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Mới thêm gần đây
-              </p>
-              <h3 className="mt-2 text-3xl font-bold leading-10 tracking-[-0.01em]">
-                {stats.recentlyAdded}
-              </h3>
+      <div className="stagger mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {statCards.map((card) => (
+          <div key={card.label} className="stat-card group">
+            <div className="flex items-start gap-4">
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br ${card.iconWrap} transition-transform duration-200 group-hover:scale-105`}>
+                <span className="material-symbols-outlined text-[24px]">{card.icon}</span>
+              </div>
+              <div>
+                <p className="eyebrow">{card.label}</p>
+                <h3 className="mt-2 text-[30px] font-bold leading-none tracking-[-0.02em] text-[#1a1c1c]">
+                  {card.value}
+                </h3>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-orange-500/5 text-orange-500">
-              <span className="material-symbols-outlined text-3xl">
-                pending_actions
-              </span>
-            </div>
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Chờ xem xét
-              </p>
-              <h3 className="mt-2 text-3xl font-bold leading-10 tracking-[-0.01em]">
-                {stats.pendingReviews}
-              </h3>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Table Controls */}
-      <div className="flex flex-col gap-4 border-x border-t border-[#e7bdb8] bg-[#f3f3f3] px-6 py-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:gap-4">
-          <div className="relative w-full md:w-80">
+      <div className="card mb-4 flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-1 lg:flex-row lg:items-center">
+          <div className="relative w-full lg:max-w-xs">
+            <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+              search
+            </span>
             <input
-              className="w-full border border-[#e7bdb8] bg-white px-4 py-2.5 text-sm focus:border-[#1a1c1c] focus:outline-none focus:ring-0"
+              className="input-field pl-10"
               placeholder="Tìm theo tên hoặc email..."
               type="text"
               value={searchTerm}
@@ -438,17 +404,11 @@ function CandidateListScreen() {
                 resetToFirstPage();
               }}
             />
-            <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#5f5e5e]">
-              search
-            </span>
           </div>
-          <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto">
             <CommonSelect
-              className="h-[42px] min-w-[220px] text-sm"
-              options={statusOptions.map((status) => ({
-                label: status,
-                value: status,
-              }))}
+              className="h-[42px] min-w-[200px] text-sm"
+              options={statusOptions.map((status) => ({ label: status, value: status }))}
               value={statusFilter}
               onChange={(event) => {
                 setStatusFilter(event.target.value);
@@ -456,11 +416,8 @@ function CandidateListScreen() {
               }}
             />
             <CommonSelect
-              className="h-[42px] min-w-[220px] text-sm"
-              options={sourceOptions.map((source) => ({
-                label: source,
-                value: source,
-              }))}
+              className="h-[42px] min-w-[200px] text-sm"
+              options={sourceOptions.map((source) => ({ label: source, value: source }))}
               value={sourceFilter}
               onChange={(event) => {
                 setSourceFilter(event.target.value);
@@ -469,8 +426,8 @@ function CandidateListScreen() {
             />
           </div>
         </div>
-        <button className="flex items-center gap-2 text-sm font-semibold text-[#1a1c1c] transition-colors hover:underline">
-          <span className="material-symbols-outlined text-lg">filter_list</span>
+        <button className="btn btn-ghost shrink-0">
+          <span className="material-symbols-outlined text-[18px]">tune</span>
           Bộ lọc nâng cao
         </button>
       </div>
@@ -485,10 +442,10 @@ function CandidateListScreen() {
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}
-        emptyMessage="Không có dữ liệu"
-        zebra
+        emptyMessage="Không tìm thấy ứng viên nào"
+        emptyIcon="person_search"
         hover
-        tableWrapperClassName="border-x border-b border-[#e7bdb8] bg-white"
+        onRowClick={(item) => viewProfile(item)}
         pagination={{
           enabled: true,
           currentPage,

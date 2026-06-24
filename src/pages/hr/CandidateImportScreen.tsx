@@ -2,14 +2,10 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
+import Badge from "../../common/components/Badge";
+import PageHeader from "../../common/components/PageHeader";
 import type { CandidateImportPreviewRowDto } from "../../services/hr/hrService";
 import { hrService } from "../../services/hr/hrService";
-
-function statusChip(row: CandidateImportPreviewRowDto) {
-  return row.isValid
-    ? "bg-[#1a8a2a]/10 text-[#1a8a2a]"
-    : "bg-[#ba1a1a]/10 text-[#ba1a1a]";
-}
 
 function CandidateImportScreen() {
   const navigate = useNavigate();
@@ -117,57 +113,51 @@ function CandidateImportScreen() {
     setSelectedRows(allSelected ? [] : validRows.map((row) => row.rowNumber));
   }
 
+  const importStats = [
+    { label: "Tổng dòng", value: preview?.totalRows ?? 0, icon: "table_rows", valueClass: "text-[#1a1c1c]", iconWrap: "from-[#f2efed] to-[#e7e3e1] text-[#5f5e5e]" },
+    { label: "Hợp lệ", value: preview?.validRows ?? 0, icon: "check_circle", valueClass: "text-emerald-600", iconWrap: "from-emerald-50 to-emerald-100 text-emerald-600" },
+    { label: "Lỗi", value: preview?.invalidRows ?? 0, icon: "error", valueClass: "text-[#ba1a1a]", iconWrap: "from-rose-50 to-rose-100 text-rose-600" },
+  ];
+
   return (
-    <div className="relative w-full flex-grow bg-white px-4 py-10 md:px-10">
-      <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-        <div>
-          <nav className="mb-2 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-            <span>Ứng viên</span>
-            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-            <span className="text-[#b90014]">Import hàng loạt</span>
-          </nav>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Xem trước import
-          </h1>
-          <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Tải file Excel, kiểm tra dữ liệu và chỉ import các dòng hợp lệ.
-          </p>
-        </div>
+    <div className="app-container animate-fade-in space-y-6 py-8">
+      <PageHeader
+        eyebrow="Ứng viên · Import hàng loạt"
+        icon="upload_file"
+        title="Xem trước import"
+        subtitle="Tải file Excel, kiểm tra dữ liệu và chỉ import các dòng hợp lệ."
+        actions={
+          <>
+            <button type="button" className="btn btn-secondary" onClick={handleDownloadTemplate}>
+              <span className="material-symbols-outlined text-[18px]">download</span>
+              Tải file mẫu
+            </button>
+            <button
+              type="button"
+              className="btn btn-dark disabled:opacity-60"
+              onClick={handlePreview}
+              disabled={previewLoading}
+            >
+              <span className="material-symbols-outlined text-[18px]">upload_file</span>
+              {previewLoading ? "Đang đọc..." : "Tải lên & xem trước"}
+            </button>
+            <AsyncActionButton
+              type="button"
+              className="btn btn-primary disabled:opacity-60"
+              onClick={handleImportSelected}
+              disabled={importLoading || !selectedValidRows.length}
+              loading={importLoading}
+              loadingText="Đang import..."
+            >
+              <span className="material-symbols-outlined text-[18px]">check_circle</span>
+              Xác nhận
+            </AsyncActionButton>
+          </>
+        }
+      />
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className="flex items-center gap-2 border border-[#1a1c1c] bg-white px-6 py-2.5 text-[14px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-            onClick={handleDownloadTemplate}
-          >
-            <span className="material-symbols-outlined text-[20px]">download</span>
-            Tải file mẫu
-          </button>
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-[#1a1c1c] px-6 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-[#2f3131] disabled:opacity-60"
-            onClick={handlePreview}
-            disabled={previewLoading}
-          >
-            <span className="material-symbols-outlined text-[20px]">upload_file</span>
-            {previewLoading ? "Đang đọc..." : "Tải lên & xem trước"}
-          </button>
-          <AsyncActionButton
-            type="button"
-            className="flex items-center gap-2 bg-[#e31b23] px-6 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-[#b90014] disabled:opacity-60"
-            onClick={handleImportSelected}
-            disabled={importLoading || !selectedValidRows.length}
-            loading={importLoading}
-            loadingText="Đang import..."
-          >
-            <span className="material-symbols-outlined text-[20px]">check_circle</span>
-            Xác nhận
-          </AsyncActionButton>
-        </div>
-      </div>
-
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-        <label className="col-span-1 flex cursor-pointer flex-col justify-center rounded-lg border-2 border-dashed border-[#e7bdb8] bg-[#f9f9f9] p-6 md:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <label className="card-interactive flex cursor-pointer flex-col justify-center border-2 border-dashed border-[#e0d4d2] bg-[#faf9f8] p-6">
           <input
             className="hidden"
             type="file"
@@ -175,48 +165,54 @@ function CandidateImportScreen() {
             onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)}
           />
           <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[36px] text-[#b90014]">cloud_upload</span>
-            <div>
-              <p className="text-[14px] font-bold text-[#1a1c1c]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+              <span className="material-symbols-outlined text-[26px]">cloud_upload</span>
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">
                 {selectedFile ? selectedFile.name : "Chọn file import ứng viên"}
               </p>
-              <p className="mt-1 text-[12px] text-[#5f5e5e]">
+              <p className="mt-1 text-[12px] leading-5 text-[#8a8786]">
                 Hỗ trợ `.xlsx` gồm các cột FullName, Email, PhoneNumber, Source, PositionApplied, Notes
               </p>
             </div>
           </div>
         </label>
 
-        <div className="rounded-lg border border-[#e7bdb8] bg-white p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Tổng dòng</p>
-          <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">{preview?.totalRows ?? 0}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg border border-[#e7bdb8] bg-white p-5">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Hợp lệ</p>
-            <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a8a2a]">{preview?.validRows ?? 0}</p>
-          </div>
-          <div className="rounded-lg border border-[#e7bdb8] bg-white p-5">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Lỗi</p>
-            <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#ba1a1a]">{preview?.invalidRows ?? 0}</p>
-          </div>
+        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {importStats.map((card) => (
+            <div key={card.label} className="stat-card group">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="eyebrow">{card.label}</p>
+                  <h3 className={`mt-2 text-[28px] font-bold leading-none tracking-[-0.02em] ${card.valueClass}`}>
+                    {card.value}
+                  </h3>
+                </div>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br ${card.iconWrap} transition-transform duration-200 group-hover:scale-105`}>
+                  <span className="material-symbols-outlined text-[20px]">{card.icon}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[#e7bdb8] bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-[#e7bdb8] bg-[#f3f3f3] px-6 py-4 md:flex-row md:items-center md:justify-between">
+      <div className="card overflow-hidden">
+        <div className="flex flex-col gap-4 border-b border-[#f0eceb] px-5 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[20px] font-semibold text-[#1a1c1c]">Bảng xem trước</p>
-            <p className="mt-1 text-[14px] text-[#5f5e5e]">
+            <h2 className="section-title">Bảng xem trước</h2>
+            <p className="mt-1 text-[13px] text-[#5f5e5e]">
               Dòng lỗi sẽ không được import. Bạn có thể chọn tất cả hoặc chọn từng dòng hợp lệ.
             </p>
           </div>
           <button
             type="button"
-            className="text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1c1c] hover:underline disabled:opacity-60"
+            className="btn btn-secondary shrink-0 disabled:opacity-60"
             onClick={toggleAllValidRows}
             disabled={!validRows.length}
           >
+            <span className="material-symbols-outlined text-[18px]">checklist</span>
             Chọn tất cả dòng hợp lệ
           </button>
         </div>
@@ -224,50 +220,50 @@ function CandidateImportScreen() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="bg-[#1a1a1a] text-white">
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Chọn</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Trạng thái</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Họ tên</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Email</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">SĐT</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Nguồn</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Vị trí</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Ghi chú</th>
-                <th className="px-4 py-4 text-[12px] font-semibold uppercase tracking-[0.05em]">Lỗi kiểm tra</th>
+              <tr className="border-b border-[#f0eceb] bg-[#faf9f8] text-[#5f5e5e]">
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Chọn</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Trạng thái</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Họ tên</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Email</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">SĐT</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Nguồn</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Vị trí</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Ghi chú</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Lỗi kiểm tra</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e7bdb8]/40">
+            <tbody className="divide-y divide-[#f0eceb]">
               {preview?.rows.length ? (
-                preview.rows.map((row, index) => (
-                  <tr key={row.rowNumber} className={index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"}>
+                preview.rows.map((row) => (
+                  <tr key={row.rowNumber} className="transition-colors hover:bg-[#faf9f8]">
                     <td className="px-4 py-4">
                       <input
                         type="checkbox"
-                        className="h-4 w-4 border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
+                        className="h-4 w-4 accent-[#b90014]"
                         checked={selectedRows.includes(row.rowNumber)}
                         disabled={!row.isValid}
                         onChange={() => toggleRow(row.rowNumber)}
                       />
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`inline-flex rounded px-2 py-1 text-[11px] font-bold uppercase ${statusChip(row)}`}>
+                      <Badge tone={row.isValid ? "success" : "danger"} dot>
                         {row.isValid ? "Hợp lệ" : "Lỗi"}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-4 py-4 font-semibold text-[#1a1c1c]">{row.fullName || "—"}</td>
-                    <td className={`px-4 py-4 ${row.isValid ? "text-[#5f5e5e]" : "font-medium text-[#ba1a1a]"}`}>{row.email || "—"}</td>
-                    <td className="px-4 py-4 text-[#5f5e5e]">{row.phoneNumber || "—"}</td>
-                    <td className="px-4 py-4 text-[#5f5e5e]">{row.source || "—"}</td>
-                    <td className="px-4 py-4 text-[#5f5e5e]">{row.positionApplied || "—"}</td>
-                    <td className="px-4 py-4 text-[#5f5e5e]">{row.notes || "—"}</td>
-                    <td className="px-4 py-4 text-[12px] leading-5 text-[#5d3f3c]">
+                    <td className="px-4 py-4 text-[13px] font-semibold text-[#1a1c1c]">{row.fullName || "—"}</td>
+                    <td className={`px-4 py-4 text-[13px] ${row.isValid ? "text-[#5f5e5e]" : "font-medium text-[#ba1a1a]"}`}>{row.email || "—"}</td>
+                    <td className="px-4 py-4 text-[13px] text-[#5f5e5e]">{row.phoneNumber || "—"}</td>
+                    <td className="px-4 py-4 text-[13px] text-[#5f5e5e]">{row.source || "—"}</td>
+                    <td className="px-4 py-4 text-[13px] text-[#5f5e5e]">{row.positionApplied || "—"}</td>
+                    <td className="px-4 py-4 text-[13px] text-[#5f5e5e]">{row.notes || "—"}</td>
+                    <td className="px-4 py-4 text-[12px] leading-5 text-[#8a8786]">
                       {row.errors.length ? row.errors.join(" ") : "Không có lỗi."}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="px-6 py-10 text-center text-sm text-[#5f5e5e]">
+                  <td colSpan={9} className="px-6 py-12 text-center text-sm text-[#8a8786]">
                     Tải file Excel lên để xem trước dữ liệu trước khi import.
                   </td>
                 </tr>

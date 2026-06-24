@@ -47,18 +47,23 @@ function ForgotPasswordDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-lg border border-[#e2dfde] bg-white p-6 shadow-xl">
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-[20px] font-semibold text-[#1a1c1c]">{title}</h3>
-            <p className="mt-1 text-[14px] text-[#5f5e5e]">
-              Hệ thống sẽ cấp mật khẩu tạm cho tài khoản khớp với thông tin bạn nhập.
-            </p>
+    <div className="animate-fade-in fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1c1c]/45 p-4 backdrop-blur-[2px]">
+      <div className="animate-scale-in w-full max-w-md rounded-2xl border border-[#ececec] bg-white p-6 shadow-[0_32px_80px_-16px_rgba(26,28,28,0.3)]">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+              <span className="material-symbols-outlined">lock_reset</span>
+            </div>
+            <div>
+              <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">{title}</h3>
+              <p className="mt-1 text-[13px] leading-5 text-[#5f5e5e]">
+                Hệ thống sẽ cấp mật khẩu tạm cho tài khoản khớp với thông tin bạn nhập.
+              </p>
+            </div>
           </div>
           <button
             type="button"
-            className="text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+            className="premium-action -mr-1 -mt-1 flex h-9 w-9 items-center justify-center text-[#8a8786] transition-colors hover:bg-[#f3f0ef] hover:text-[#1a1c1c]"
             onClick={onClose}
             aria-label="Đóng hộp thoại"
           >
@@ -66,30 +71,28 @@ function ForgotPasswordDialog({
           </button>
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]">
-            {label}
-          </label>
+        <div>
+          <label className="field-label">{label}</label>
           <input
             type="text"
             value={identifier}
             onChange={(event) => setIdentifier(event.target.value)}
             placeholder={placeholder}
-            className="h-12 w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1a1a]"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSubmit();
+            }}
+            className="input-field h-12"
           />
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            className="border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-            onClick={onClose}
-          >
+        <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
             Hủy
           </button>
           <button
             type="button"
-            className="bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#93000d] disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn btn-primary"
             onClick={handleSubmit}
             disabled={submitting || !identifier.trim()}
           >

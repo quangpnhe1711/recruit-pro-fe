@@ -96,39 +96,35 @@ function InternalLoginScreen() {
         <div className="h-full w-full bg-[#f9f9f9] [background-image:radial-gradient(#e31b23_0.5px,transparent_0.5px)] [background-size:24px_24px]" />
       </div>
 
-      <main className="relative z-10 flex flex-1 items-center justify-center px-4 md:px-10">
-        <div className="flex w-full max-w-[440px] flex-col items-center">
-          <div className="mb-10 text-center">
-            <div className="mb-2 flex items-center justify-center">
-              <h1 className="text-[32px] font-black tracking-[-0.02em] text-[#1a1a1a] md:text-[48px] md:leading-[56px]">
-                RecruitPro{" "}
-                <span className="text-[#b90014] block">Internal</span>
-              </h1>
-            </div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.25em] text-[#5d3f3c]">
-              Cổng nội bộ doanh nghiệp
-            </p>
+      <main className="relative z-10 flex flex-1 items-center justify-center px-5 py-10 md:px-10">
+        <div className="animate-fade-in-up flex w-full max-w-[440px] flex-col items-center">
+          <div className="mb-9 flex flex-col items-center text-center">
+            <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_10px_24px_rgba(185,0,20,0.28)]">
+              <span className="material-symbols-outlined">shield_person</span>
+            </span>
+            <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#1a1c1c] md:text-[36px]">
+              RecruitPro <span className="text-[#b90014]">Internal</span>
+            </h1>
+            <p className="eyebrow mt-2">Cổng nội bộ doanh nghiệp</p>
           </div>
 
-          <div className="w-full rounded-lg border border-[#926e6b]/20 bg-white p-8 shadow-[0_0_40px_rgba(185,0,20,0.05)] md:p-10">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
-                  Đăng nhập cổng nội bộ
-                </h2>
-              </div>
+          <div className="card w-full p-6 md:p-8">
+            <div className="mb-6">
+              <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-[#1a1c1c]">
+                Đăng nhập cổng nội bộ
+              </h2>
+              <p className="mt-1.5 text-[14px] leading-6 text-[#5f5e5e]">
+                Nhập thông tin tài khoản nội bộ để tiếp tục.
+              </p>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
               <div>
-                <label
-                  className="mb-2 block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
-                  htmlFor="username"
-                >
+                <label className="field-label" htmlFor="username">
                   Tên đăng nhập
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-[#5d3f3c]">
+                  <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
                     badge
                   </span>
                   <input
@@ -136,34 +132,31 @@ function InternalLoginScreen() {
                     {...register("username")}
                     type="text"
                     placeholder={usernamePlaceholder}
-                    className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-4 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
+                    className="input-field h-12 pl-10"
                   />
-                  {errors.username ? (
-                    <p className="text-[12px] text-[#ba1a1a]">
-                      {errors.username.message}
-                    </p>
-                  ) : null}
                 </div>
+                {errors.username ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                    {errors.username.message}
+                  </p>
+                ) : null}
               </div>
 
               <div>
-                <div className="mb-2 flex items-end justify-between">
-                  <label
-                    className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
-                    htmlFor="password"
-                  >
+                <div className="flex items-center justify-between">
+                  <label className="field-label" htmlFor="password">
                     Mật khẩu
                   </label>
                   <button
                     type="button"
-                    className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] transition-all hover:underline"
+                    className="text-[12px] font-semibold text-[#b90014] transition-colors hover:underline"
                     onClick={() => setForgotPasswordOpen(true)}
                   >
                     Quên mật khẩu?
                   </button>
                 </div>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-[#5d3f3c]">
+                  <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
                     lock
                   </span>
                   <input
@@ -171,45 +164,49 @@ function InternalLoginScreen() {
                     {...register("password")}
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••••••"
-                    className="w-full rounded-none border border-[#926e6b]/30 bg-[#f9f9f9] py-3 pl-10 pr-12 text-[14px] leading-[20px] outline-none transition-colors focus:border-[#1a1a1a]"
+                    className="input-field h-12 pl-10 pr-12"
                   />
-                  {errors.password ? (
-                    <p className="text-[12px] text-[#ba1a1a]">
-                      {errors.password.message}
-                    </p>
-                  ) : null}
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1a1a]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8786] transition-colors hover:text-[#1a1c1c]"
                     aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
-                    <span className="material-symbols-outlined text-xl">
+                    <span className="material-symbols-outlined text-[20px]">
                       {showPassword ? "visibility_off" : "visibility"}
                     </span>
                   </button>
                 </div>
+                {errors.password ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                    {errors.password.message}
+                  </p>
+                ) : null}
               </div>
+
               <div className="flex items-center">
                 <input
                   id="remember"
                   {...register("remember")}
                   type="checkbox"
-                  className="h-4 w-4 rounded-none border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
+                  className="h-4 w-4 rounded border-[#cbc6c4] text-[#b90014] accent-[#b90014] focus:ring-[#b90014]"
                 />
                 <label
                   htmlFor="remember"
-                  className="ml-3 select-none text-[14px] leading-[20px] text-[#5d3f3c]"
+                  className="ml-2.5 select-none text-[14px] text-[#5f5e5e]"
                 >
                   Ghi nhớ tài khoản này
                 </label>
               </div>
+
               <button
                 type="submit"
-                className="flex w-full mt-5 items-center justify-center gap-2 bg-[#b90014] py-4 text-[16px] font-semibold text-white transition-colors active:scale-[0.98] hover:bg-[#e31b23]"
+                className="btn btn-primary h-12 w-full text-[14px]"
               >
-                <span>Đăng nhập</span>
-                <span className="material-symbols-outlined text-xl">login</span>
+                Đăng nhập
+                <span className="material-symbols-outlined text-[18px]">
+                  arrow_forward
+                </span>
               </button>
             </form>
           </div>

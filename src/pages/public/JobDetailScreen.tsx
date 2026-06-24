@@ -4,7 +4,8 @@ import { toast } from "react-toastify";
 
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import EmptyState from "../../common/components/EmptyState";
+import { Skeleton } from "../../common/components/Skeleton";
 import type {
   DepartmentDto,
   EmploymentType,
@@ -399,9 +400,17 @@ function JobDetailScreen() {
   if (loading) {
     return (
       <div
-        className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} flex min-h-[60vh] items-center justify-center px-4 py-10 md:px-10`}
+        className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} space-y-6 px-4 py-8 md:px-10`}
       >
-        <LoadingIndicator label="Đang tải chi tiết công việc..." />
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-9 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="surface-card h-[420px] lg:col-span-8" />
+          <div className="surface-card h-[420px] lg:col-span-4" />
+        </div>
       </div>
     );
   }
@@ -411,13 +420,12 @@ function JobDetailScreen() {
       <section
         className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} px-4 py-10 md:px-10`}
       >
-        <div className="border border-[#e2dfde] bg-white p-8 text-center">
-          <h2 className="text-[24px] font-semibold text-[#1a1c1c]">
-            Chi tiết công việc
-          </h2>
-          <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Hiện chưa thể tải công việc này. Vui lòng thử lại sau.
-          </p>
+        <div className="surface-card p-10">
+          <EmptyState
+            icon="work_off"
+            title="Chi tiết công việc"
+            description="Hiện chưa thể tải công việc này. Vui lòng thử lại sau."
+          />
         </div>
       </section>
     );
@@ -427,111 +435,125 @@ function JobDetailScreen() {
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
       <main className="flex min-h-screen flex-col">
         <div
-          className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} flex flex-1 flex-col px-6 py-6 md:px-10`}
+          className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} animate-fade-in flex flex-1 flex-col px-4 py-8 md:px-10`}
         >
-          <nav className="mb-6 flex items-center gap-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+          <nav className="mb-5 flex items-center gap-1.5 text-[12px] font-semibold text-[#5f5e5e]">
             <button
               type="button"
-              className="hover:text-[#b90014]"
+              className="transition-colors hover:text-[#b90014]"
               onClick={() => navigate("/jobs")}
             >
               Việc làm
             </button>
-            <span className="material-symbols-outlined text-[16px]">
+            <span className="material-symbols-outlined text-[16px] text-[#c8c6c5]">
               chevron_right
             </span>
-            <span className="text-[#1a1c1c]">{jobSummary.title}</span>
+            <span className="truncate text-[#1a1c1c]">{jobSummary.title}</span>
           </nav>
 
-          <section className="mb-8 flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
-            <div>
-              <div className="mb-2 flex items-center gap-3">
-                <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+          <section className="relative mb-6 overflow-hidden rounded-[20px] bg-gradient-to-br from-[#232525] to-[#161718] p-6 text-white md:p-8">
+            <div className="relative z-10 flex flex-col justify-between gap-6 lg:flex-row lg:items-start">
+              <div className="min-w-0">
+                <div className="mb-3 flex flex-wrap items-center gap-3">
+                  <span className="badge bg-white/10 text-white">{jobSummary.statusLabel}</span>
+                  {jobSummary.department ? (
+                    <span className="inline-flex items-center gap-1 text-[13px] text-white/70">
+                      <span className="material-symbols-outlined text-[16px]">apartment</span>
+                      {jobSummary.department}
+                    </span>
+                  ) : null}
+                </div>
+                <h2 className="text-[28px] font-bold leading-tight tracking-[-0.02em] md:text-[36px]">
                   {jobSummary.title}
                 </h2>
-                <span className="rounded-full border border-green-200 bg-green-100 px-3 py-1 text-[12px] font-semibold text-green-800">
-                  {jobSummary.statusLabel}
-                </span>
+
+                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[14px] text-white/80">
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">location_on</span>
+                    <span>{jobSummary.location}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">payments</span>
+                    <span>{jobSummary.salaryRange}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">group</span>
+                    <span>Số lượng tuyển: {jobSummary.vacancyCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">schedule</span>
+                    <span>{jobSummary.posted}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[14px] text-[#5f5e5e]">
-                <div className="flex items-center gap-2">
-                  <Icon name="location_on" />
-                  <span>{jobSummary.location}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="schedule" />
-                  <span>{jobSummary.posted}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="group" />
-                  <span>Số lượng tuyển: {jobSummary.vacancyCount}</span>
-                </div>
+              <div className="flex flex-wrap gap-3">
+                {showCandidateActions ? (
+                  <button
+                    type="button"
+                    className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-white px-5 text-[13px] font-bold text-[#b90014] transition-all hover:bg-[#fff1f0] disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={isAuthenticated && !canApplyJob}
+                    onClick={handleApplyClick}
+                  >
+                    <Icon name="send" />
+                    Ứng tuyển ngay
+                  </button>
+                ) : null}
+                <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
+                  <button
+                    type="button"
+                    className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-white/25 bg-white/5 px-5 text-[13px] font-semibold text-white transition-colors hover:bg-white/10"
+                    disabled={!canEditJob}
+                    onClick={() => {
+                      setEditing(true);
+                      navigate(`/jobs/${detail.id}?mode=edit`, { replace: true });
+                    }}
+                  >
+                    <Icon name="edit" />
+                    Chỉnh sửa
+                  </button>
+                </PermissionGuard>
+                <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_APPLICATIONS}>
+                  <button
+                    type="button"
+                    className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-gradient-to-r from-[#e8242c] to-[#b90014] px-5 text-[13px] font-semibold text-white transition-all hover:brightness-105"
+                    disabled={!canViewApplications}
+                    onClick={() =>
+                      navigate(
+                        `${applicationListPath}?jobId=${detail.id}&jobTitle=${encodeURIComponent(detail.title)}`,
+                      )
+                    }
+                  >
+                    <Icon name="visibility" />
+                    Xem hồ sơ ứng tuyển
+                  </button>
+                </PermissionGuard>
+                {isInternalPortal ? (
+                  <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
+                    <AsyncActionButton
+                      type="button"
+                      className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-white/25 bg-white/5 px-5 text-[13px] font-semibold text-[#ffb3ac] transition-colors hover:bg-white/10 disabled:opacity-60"
+                      disabled={closing}
+                      loading={closing}
+                      loadingText={
+                        detail.status === "CLOSED" ? "Đang mở lại..." : "Đang đóng..."
+                      }
+                      onClick={() =>
+                        detail.status === "CLOSED"
+                          ? handleReopenPosting()
+                          : handleClosePosting()
+                      }
+                      spinnerTone="brand"
+                    >
+                      <Icon name={detail.status === "CLOSED" ? "refresh" : "close"} />
+                      {detail.status === "CLOSED" ? "Mở lại tin" : "Đóng tin"}
+                    </AsyncActionButton>
+                  </PermissionGuard>
+                ) : null}
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              {showCandidateActions ? (
-                <button
-                  type="button"
-                  className="bg-[#b90014] px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isAuthenticated && !canApplyJob}
-                  onClick={handleApplyClick}
-                >
-                  Ứng tuyển ngay
-                </button>
-              ) : null}
-              <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
-                <button
-                  type="button"
-                  className="flex items-center gap-2 border border-black bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                  disabled={!canEditJob}
-                  onClick={() => {
-                    setEditing(true);
-                    navigate(`/jobs/${detail.id}?mode=edit`, { replace: true });
-                  }}
-                >
-                  <Icon name="edit" />
-                  Chỉnh sửa
-                </button>
-              </PermissionGuard>
-              <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_APPLICATIONS}>
-                <button
-                  type="button"
-                  className="flex items-center gap-2 bg-[#b90014] px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-white transition-all hover:brightness-110"
-                  disabled={!canViewApplications}
-                  onClick={() =>
-                    navigate(
-                      `${applicationListPath}?jobId=${detail.id}&jobTitle=${encodeURIComponent(detail.title)}`,
-                    )
-                  }
-                >
-                  <Icon name="visibility" />
-                  Xem hồ sơ ứng tuyển
-                </button>
-              </PermissionGuard>
-              {isInternalPortal ? (
-                <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
-                  <AsyncActionButton
-                    type="button"
-                    className="flex items-center gap-2 border border-[#5f5e5e] bg-white px-5 py-2.5 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a] transition-colors hover:bg-[#ba1a1a]/5 disabled:opacity-60"
-                    disabled={closing}
-                    loading={closing}
-                    loadingText={
-                      detail.status === "CLOSED" ? "Đang mở lại..." : "Đang đóng..."
-                    }
-                    onClick={() =>
-                      detail.status === "CLOSED"
-                        ? handleReopenPosting()
-                        : handleClosePosting()
-                    }
-                    spinnerTone="brand"
-                  >
-                    <Icon name={detail.status === "CLOSED" ? "refresh" : "close"} />
-                    {detail.status === "CLOSED" ? "Mở lại tin" : "Đóng tin"}
-                  </AsyncActionButton>
-                </PermissionGuard>
-              ) : null}
+            <div className="absolute bottom-[-30px] right-[-20px] opacity-[0.05]">
+              <span className="material-symbols-outlined text-[180px] text-white">work</span>
             </div>
           </section>
 
@@ -799,26 +821,26 @@ function JobDetailScreen() {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="flex flex-col gap-6 lg:col-span-8">
-              <section className="border border-[#e2dfde] bg-white p-8">
-                <h3 className="mb-6 flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+              <section className="card p-6 md:p-8">
+                <h3 className="section-title mb-5 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#b90014]">
                     description
                   </span>
                   Mô tả công việc
                 </h3>
 
-                <div className="space-y-4 text-[14px] leading-6 text-[#5d3f3c]">
+                <div className="space-y-4 whitespace-pre-line text-[14px] leading-7 text-[#5f5e5e]">
                   {detail.description}
                 </div>
 
-                <h3 className="mb-6 mt-10 flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                <h3 className="section-title mb-5 mt-10 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[#b90014]">
                     checklist
                   </span>
                   Yêu cầu
                 </h3>
 
-                <ul className="space-y-3 text-[14px] leading-6 text-[#5d3f3c]">
+                <ul className="space-y-3 text-[14px] leading-6 text-[#1a1c1c]">
                   {detail.requirements.map((item) => (
                     <li key={item} className="flex items-start gap-3">
                       <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">
@@ -831,7 +853,7 @@ function JobDetailScreen() {
 
                 {detail.benefits?.length ? (
                   <>
-                    <h3 className="mb-6 mt-10 flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                    <h3 className="section-title mb-5 mt-10 flex items-center gap-2">
                       <span className="material-symbols-outlined text-[#b90014]">
                         redeem
                       </span>
@@ -842,7 +864,7 @@ function JobDetailScreen() {
                       {detail.benefits.map((benefit) => (
                         <span
                           key={benefit}
-                          className="rounded-full bg-[#f3f3f3] px-3 py-1.5 text-[12px] font-semibold text-[#1a1c1c]"
+                          className="badge bg-[#f2efed] text-[#5f5e5e]"
                         >
                           {benefit}
                         </span>
@@ -855,9 +877,9 @@ function JobDetailScreen() {
               <PermissionGuard
                 permissions={PERMISSIONS.JOB_VIEW_RECENT_APPLICATIONS}
               >
-                <section className="overflow-hidden border border-[#e2dfde] bg-white">
-                  <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
-                    <h3 className="flex items-center gap-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                <section className="card overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-[#f0eceb] px-5 py-4">
+                    <h3 className="section-title flex items-center gap-2">
                       <span className="material-symbols-outlined text-[#b90014]">
                         group
                       </span>
@@ -865,8 +887,8 @@ function JobDetailScreen() {
                     </h3>
                     <button
                       type="button"
-                      className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
-                  disabled={!canViewApplications}
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] transition-colors hover:gap-1.5 disabled:opacity-60"
+                      disabled={!canViewApplications}
                       onClick={() =>
                         navigate(
                           `${applicationListPath}?jobId=${detail.id}&jobTitle=${encodeURIComponent(detail.title)}`,
@@ -874,68 +896,61 @@ function JobDetailScreen() {
                       }
                     >
                       Xem tất cả {totalApplications}
+                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </button>
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left">
-                      <thead className="bg-[#1A1A1A] text-white">
-                        <tr>
-                          <th className="px-6 py-4 text-[12px] font-semibold">
+                    <table className="w-full min-w-[480px] border-collapse text-left">
+                      <thead>
+                        <tr className="border-b border-[#ececec]">
+                          <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
                             Ứng viên
                           </th>
-                          <th className="px-6 py-4 text-[12px] font-semibold">
+                          <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
                             Applied
                           </th>
-                          <th className="px-6 py-4 text-[12px] font-semibold">
+                          <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
                             Status
                           </th>
-                          <th className="px-6 py-4 text-[12px] font-semibold">
+                          <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
                             Score
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#e2dfde]">
-                        {recentApplications.map((item, index) => (
+                      <tbody>
+                        {recentApplications.map((item) => (
                           <tr
                             key={item.id}
-                            className={
-                              index % 2 === 1
-                                ? "bg-[#f9f9f9] hover:bg-[#eeeeee]"
-                                : "hover:bg-[#f9f9f9]"
-                            }
+                            className="border-b border-[#f0eceb] last:border-0 transition-colors hover:bg-[#faf9f8]"
                           >
-                            <td className="px-6 py-4">
+                            <td className="px-5 py-3.5">
                               <div className="flex items-center gap-3">
                                 {item.avatarUrl ? (
                                   <img
                                     alt="Candidate"
-                                    className="h-8 w-8 rounded-full object-cover"
+                                    className="h-9 w-9 rounded-full object-cover"
                                     src={item.avatarUrl}
                                   />
                                 ) : (
-                                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffdad6] text-[12px] font-bold text-[#b90014]">
+                                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[12px] font-bold text-[#b90014]">
                                     {item.initials}
                                   </div>
                                 )}
-                                <div>
-                                  <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                                    {item.candidateName}
-                                  </p>
-                                </div>
+                                <p className="text-[14px] font-semibold text-[#1a1c1c]">
+                                  {item.candidateName}
+                                </p>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-[14px] text-[#5d3f3c]">
+                            <td className="px-5 py-3.5 text-[14px] text-[#5f5e5e]">
                               {item.applied}
                             </td>
-                            <td className="px-6 py-4">
-                              <span
-                                className={`rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getApplicationStatusBadgeClass(item.status)}`}
-                              >
+                            <td className="px-5 py-3.5">
+                              <span className={`badge ${getApplicationStatusBadgeClass(item.status)}`}>
                                 {item.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="px-5 py-3.5">
                               <div className="flex items-center gap-1">
                                 <span className="text-[14px] font-bold text-[#1a1c1c]">
                                   {item.score}
@@ -956,25 +971,25 @@ function JobDetailScreen() {
 
             <div className="flex flex-col gap-6 lg:col-span-4">
               <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_STATISTICS}>
-                <section className="border border-[#e2dfde] bg-white p-6">
-                  <h3 className="mb-6 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
+                <section className="card p-6">
+                  <h3 className="section-title mb-5">
                     Hiring Funnel
                   </h3>
 
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     {hiringFunnel.map((stage) => (
                       <div key={stage.label}>
                         <div className="mb-2 flex items-center justify-between">
-                          <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+                          <span className="eyebrow">
                             {stage.label}
                           </span>
                           <span className="text-[14px] font-bold text-[#1a1c1c]">
                             {stage.count}
                           </span>
                         </div>
-                        <div className="h-2 w-full overflow-hidden bg-[#eeeeee]">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-[#f0eceb]">
                           <div
-                            className="h-full bg-[#b90014]"
+                            className="h-full rounded-full bg-gradient-to-r from-[#e8242c] to-[#b90014]"
                             style={{
                               width: `${Math.max(
                                 5,
@@ -996,45 +1011,40 @@ function JobDetailScreen() {
                 </section>
               </PermissionGuard>
 
-              <section className="border border-[#e2dfde] bg-[#f3f3f3] p-6">
-                <h3 className="mb-4 text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+              <section className="card p-6 lg:sticky lg:top-6">
+                <h3 className="eyebrow mb-5">
                   Thông tin đăng tuyển
                 </h3>
 
                 <div className="space-y-4">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Mức lương
-                    </p>
-                    <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                      {jobSummary.salaryRange}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">payments</span>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Mức lương</p>
+                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{jobSummary.salaryRange}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Department
-                    </p>
-                    <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                      {jobSummary.department}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">apartment</span>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Department</p>
+                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{jobSummary.department}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Loại hình
-                    </p>
-                    <p className="text-[14px] font-semibold text-[#1a1c1c]">
-                      {jobSummary.jobType}
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">work</span>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Loại hình</p>
+                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{jobSummary.jobType}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase text-[#c8c6c5]">
-                      Kỹ năng
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="border-t border-[#f0eceb] pt-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Kỹ năng</p>
+                    <div className="mt-2.5 flex flex-wrap gap-2">
                       {(detail.skills ?? []).map((skill) => (
                         <span
                           key={skill.skill.id}
-                          className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#5f5e5e]"
+                          className="badge bg-[#f2efed] text-[#5f5e5e]"
                         >
                           {skill.skill.name}
                         </span>
@@ -1044,13 +1054,14 @@ function JobDetailScreen() {
                 </div>
 
                 <PermissionGuard permissions={PERMISSIONS.JOB_SHARE}>
-                  <div className="mt-8 border-t border-[#e2dfde] pt-6">
+                  <div className="mt-6 border-t border-[#f0eceb] pt-5">
                     <button
                       type="button"
-                      className="w-full border border-black bg-white py-3 text-[12px] font-bold tracking-[0.05em] text-[#1a1c1c] transition-all hover:bg-black hover:text-white"
+                      className="btn btn-secondary w-full"
                       disabled={!canShareJob}
                       onClick={() => void handleCopyShareLink()}
                     >
+                      <span className="material-symbols-outlined text-[18px]">link</span>
                       Copy Shareable Link
                     </button>
                   </div>

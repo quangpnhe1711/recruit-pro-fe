@@ -151,94 +151,95 @@ function CandidateLoginScreen() {
         </section>
 
         {/* Right Side: Form */}
-        <section className="flex flex-1 items-center justify-center bg-[#f9f9f9] p-4 md:w-1/2 md:p-10">
-          <div className="w-full max-w-md">
+        <section className="flex flex-1 items-center justify-center bg-[#f9f9f9] p-5 md:w-1/2 md:p-10">
+          <div className="animate-fade-in-up w-full max-w-md">
             {/* Mobile Logo */}
-            <div className="mb-12 flex justify-center md:hidden">
-              <span className="text-[48px] font-black leading-[56px] tracking-[-0.02em] text-[#b90014]">
+            <div className="mb-10 flex items-center justify-center gap-2.5 md:hidden">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#f0353d] to-[#b90014] text-white">
+                <span className="material-symbols-outlined">hub</span>
+              </span>
+              <span className="text-[24px] font-bold tracking-[-0.01em] text-[#1a1c1c]">
                 RecruitPro
               </span>
             </div>
 
-            <div className="mb-10 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="mb-2 text-[32px] font-semibold leading-[40px] tracking-[-0.01em] text-[#1a1c1c]">
-                  Chào mừng bạn quay lại
-                </h2>
-                <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
-                  Nhập thông tin đăng nhập để vào cổng ứng viên.
-                </p>
-              </div>
+            <div className="mb-8">
+              <h2 className="mb-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1c1c] md:text-[32px]">
+                Chào mừng bạn quay lại
+              </h2>
+              <p className="text-[14px] leading-6 text-[#5f5e5e]">
+                Nhập thông tin đăng nhập để vào cổng ứng viên.
+              </p>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
               {/* Tên đăng nhập */}
-              <div className="space-y-2">
-                <label
-                  className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
-                  htmlFor="username"
-                >
+              <div>
+                <label className="field-label" htmlFor="username">
                   Tên đăng nhập
                 </label>
-                <input
-                  id="username"
-                  {...register("username")}
-                  type="text"
-                  autoComplete="username"
-                  placeholder="ten.dangnhap"
-                  className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
-                />
+                <div className="relative">
+                  <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+                    person
+                  </span>
+                  <input
+                    id="username"
+                    {...register("username")}
+                    type="text"
+                    autoComplete="username"
+                    placeholder="ten.dangnhap"
+                    className="input-field h-12 pl-10"
+                  />
+                </div>
                 {errors.username ? (
-                  <p className="text-[12px] text-[#ba1a1a]">
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
                     {errors.username.message}
                   </p>
                 ) : null}
               </div>
 
               {/* Password */}
-              <div className="space-y-2">
+              <div>
                 <div className="flex items-center justify-between">
-                  <label
-                    className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
-                    htmlFor="password"
-                  >
+                  <label className="field-label" htmlFor="password">
                     Mật khẩu
                   </label>
                   <button
                     type="button"
-                    className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] transition-colors hover:underline"
+                    className="text-[12px] font-semibold text-[#b90014] transition-colors hover:underline"
                     onClick={() => setForgotPasswordOpen(true)}
                   >
                     Quên mật khẩu?
                   </button>
                 </div>
                 <div className="relative">
+                  <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+                    lock
+                  </span>
                   <input
                     id="password"
                     {...register("password")}
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     placeholder="••••••••"
-                    className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 pr-12 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
+                    className="input-field h-12 pl-10 pr-12"
                   />
-                  {errors.password ? (
-                    <p className="text-[12px] text-[#ba1a1a]">
-                      {errors.password.message}
-                    </p>
-                  ) : null}
                   <button
                     type="button"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5d3f3c] transition-colors hover:text-[#1a1c1c]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8786] transition-colors hover:text-[#1a1c1c]"
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={
-                      showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
-                    }
+                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       {showPassword ? "visibility_off" : "visibility"}
                     </span>
                   </button>
                 </div>
+                {errors.password ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                    {errors.password.message}
+                  </p>
+                ) : null}
               </div>
 
               {/* Remember */}
@@ -247,55 +248,56 @@ function CandidateLoginScreen() {
                   id="remember"
                   {...register("remember")}
                   type="checkbox"
-                  className="h-4 w-4 rounded-none border-[#926e6b] text-[#b90014] focus:ring-[#b90014]"
+                  className="h-4 w-4 rounded border-[#cbc6c4] text-[#b90014] accent-[#b90014] focus:ring-[#b90014]"
                 />
                 <label
                   htmlFor="remember"
-                  className="ml-3 select-none text-[14px] leading-[20px] text-[#5d3f3c]"
+                  className="ml-2.5 select-none text-[14px] text-[#5f5e5e]"
                 >
                   Ghi nhớ đăng nhập trong 30 ngày
                 </label>
               </div>
 
+              {loginError && (
+                <div className="flex items-center gap-2 rounded-[10px] border border-rose-200 bg-rose-50 px-3.5 py-3">
+                  <span className="material-symbols-outlined text-[18px] text-rose-600">error</span>
+                  <p className="text-[13px] font-medium text-rose-700">{loginError}</p>
+                </div>
+              )}
+
               {/* Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="h-14 w-full bg-[#b90014] text-[12px] font-bold uppercase tracking-[0.25em] text-white transition-colors hover:bg-[#93000d] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn btn-primary h-12 w-full text-[14px]"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center">
-                    <LoadingIndicator label="Đang đăng nhập..." size="sm" tone="light" />
-                  </div>
+                  <LoadingIndicator label="Đang đăng nhập..." size="sm" tone="light" />
                 ) : (
-                  "Đăng nhập"
+                  <>
+                    Đăng nhập
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </>
                 )}
               </button>
-              {loginError && (
-                <div className="rounded border border-red-300 bg-red-50 p-3">
-                  <p className="text-sm text-red-700">{loginError}</p>
-                </div>
-              )}
 
               {/* Create account */}
-              <div className="border-t border-[#e7bdb8] pt-6 text-center">
-                <p className="text-[14px] leading-[20px] text-[#5d3f3c]">
+              <div className="border-t border-[#ececec] pt-5 text-center">
+                <p className="text-[14px] text-[#5f5e5e]">
                   Chưa có tài khoản?
-                  <Link
-                    to="/register"
-                    className="ml-1 font-bold text-[#b90014] hover:underline"
-                  >
+                  <Link to="/register" className="ml-1 font-semibold text-[#b90014] hover:underline">
                     Tạo tài khoản
                   </Link>
                 </p>
               </div>
             </form>
 
-            <div className="mt-4 flex justify-center">
+            <div className="mt-5 flex justify-center">
               <Link
-                className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
+                className="inline-flex items-center gap-1 text-[13px] font-medium text-[#8a8786] transition-colors hover:text-[#1a1c1c]"
                 to="/home"
               >
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                 Quay lại trang chủ
               </Link>
             </div>

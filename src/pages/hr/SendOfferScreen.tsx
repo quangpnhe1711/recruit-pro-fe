@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
+import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { Skeleton, SkeletonText } from "../../common/components/Skeleton";
 import type { OfferEditorDto, UpsertOfferRequest } from "../../modules/jobs/jobsSchema";
 import { hrService } from "../../services/hr/hrService";
 
@@ -231,21 +232,34 @@ function SendOfferScreen() {
 
   if (loading || !editor || !form) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Đang tải màn hình tạo offer..." />
+      <div className="app-container space-y-6 py-8">
+        <Skeleton className="h-4 w-64" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-80" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-11 w-48 rounded-[10px]" />
+        </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_420px]">
+          <div className="card p-8">
+            <SkeletonText lines={10} />
+          </div>
+          <div className="card p-6">
+            <SkeletonText lines={8} />
+          </div>
+        </div>
       </div>
     );
   }
 
   const offerStatusTone =
-    editor.offer.status.toLowerCase() === "sent"
-      ? "bg-[#cde5ff] text-[#004b74]"
-      : "bg-[#ffdad6] text-[#93000d]";
+    editor.offer.status.toLowerCase() === "sent" ? "info" : "brand";
 
   return (
-    <div className="w-full px-4 py-8 md:px-10">
-      <div className="mb-8">
-        <nav className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
+    <div className="app-container animate-fade-in space-y-6 py-8">
+      <div>
+        <nav className="mb-3 flex flex-wrap items-center gap-2 text-[12px] font-semibold text-[#8a8786]">
           <Link className="hover:text-[#b90014]" to="/hr/applications">
             Hồ sơ ứng tuyển
           </Link>
@@ -260,31 +274,27 @@ function SendOfferScreen() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-3">
-              <span className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${offerStatusTone}`}>
-                Offer {editor.offer.status}
-              </span>
-              <span className="text-sm text-[#5f5e5e]">{editor.application.referenceCode}</span>
+              <Badge tone={offerStatusTone}>Offer {editor.offer.status}</Badge>
+              <span className="text-[13px] font-semibold text-[#8a8786]">{editor.application.referenceCode}</span>
             </div>
-            <h1 className="page-title">
-              Tạo và gửi thư mời nhận việc
-            </h1>
-            <p className="mt-2 text-lg text-[#5f5e5e]">
+            <h1 className="page-title">Tạo và gửi thư mời nhận việc</h1>
+            <p className="page-subtitle">
               Hoàn tất bước cuối của quy trình tuyển dụng cho {editor.application.candidateName}.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             <button
               type="button"
-              className="inline-flex items-center gap-2 border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+              className="btn btn-secondary"
               onClick={() => navigate(`/hr/applications/${applicationId}`)}
             >
-              <span className="material-symbols-outlined text-base">arrow_back</span>
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
               Quay lại đánh giá
             </button>
             <AsyncActionButton
               type="button"
-              className="border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] disabled:opacity-60"
+              className="btn btn-secondary disabled:opacity-60"
               disabled={saving || sending}
               loading={saving}
               loadingText="Đang lưu nháp..."
@@ -295,13 +305,13 @@ function SendOfferScreen() {
             </AsyncActionButton>
             <AsyncActionButton
               type="button"
-              className="inline-flex items-center gap-2 bg-[#b90014] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#93000d] disabled:opacity-60"
+              className="btn btn-primary disabled:opacity-60"
               disabled={sending || saving}
               loading={sending}
               loadingText="Đang gửi offer..."
               onClick={handleSendOffer}
             >
-              <span className="material-symbols-outlined text-base">send</span>
+              <span className="material-symbols-outlined text-[18px]">send</span>
               Gửi offer qua email
             </AsyncActionButton>
           </div>
@@ -310,9 +320,10 @@ function SendOfferScreen() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_420px]">
         <div className="space-y-6">
-          <section className="flex items-center justify-between border border-[#e7bdb8] bg-white p-6">
+          {/* HERO SUMMARY */}
+          <section className="card flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#f3f3f3]">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
                 {editor.application.candidateAvatarUrl ? (
                   <img
                     alt={editor.application.candidateName}
@@ -320,40 +331,38 @@ function SendOfferScreen() {
                     src={editor.application.candidateAvatarUrl}
                   />
                 ) : (
-                  <span className="material-symbols-outlined text-[28px] text-[#5f5e5e]">person</span>
+                  <span className="material-symbols-outlined text-[28px]">person</span>
                 )}
               </div>
-              <div>
-                <h2 className="text-[24px] font-semibold text-[#1a1c1c]">
+              <div className="min-w-0">
+                <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">
                   {editor.application.candidateName}
                 </h2>
-                <p className="text-sm text-[#5f5e5e]">
+                <p className="text-[13px] text-[#5f5e5e]">
                   {editor.application.jobTitle} • {editor.application.departmentName}
                 </p>
-                <p className="mt-1 text-sm text-[#5f5e5e]">{editor.application.candidateEmail}</p>
+                <p className="mt-1 text-[13px] text-[#8a8786]">{editor.application.candidateEmail}</p>
               </div>
             </div>
 
-            <div className="text-right">
-              <span className="rounded-full bg-[#cde5ff] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#004b74]">
-                Stage: {editor.application.stageLabel}
-              </span>
-              <p className="mt-2 text-[11px] text-[#5f5e5e]">
+            <div className="text-left sm:text-right">
+              <Badge tone="info">Stage: {editor.application.stageLabel}</Badge>
+              <p className="mt-2 text-[11px] text-[#8a8786]">
                 Cập nhật lần cuối {formatDateDisplay(editor.offer.updatedAt)}
               </p>
             </div>
           </section>
 
-          <section className="space-y-8 border border-[#e7bdb8] bg-white p-8">
+          <section className="card space-y-8 p-6 md:p-8">
             <div>
-              <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.12em] text-[#1a1c1c]">
+              <h3 className="section-title mb-6 border-b border-[#f0eceb] pb-4">
                 Gói lương thưởng
               </h3>
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Lương cơ bản</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Lương cơ bản</span>
                   <input
-                    className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                    className="input-field font-medium"
                     type="number"
                     value={form.baseSalary}
                     onChange={(event) => updateForm("baseSalary", event.target.value)}
@@ -361,20 +370,20 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Tiền tệ</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Tiền tệ</span>
                   <CommonSelect
                     value={form.currencyCode}
                     options={currencyOptions(editor.masterData.currencies)}
                     onValueChange={(value) => updateForm("currencyCode", value)}
-                    className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
-                    menuClassName="border-[#e7bdb8]"
+                    className="input-field h-11 font-medium"
+                    menuClassName="border-[#ececec]"
                   />
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Thưởng bổ sung</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Thưởng bổ sung</span>
                   <input
-                    className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                    className="input-field font-medium"
                     type="text"
                     value={form.bonusDescription}
                     onChange={(event) => updateForm("bonusDescription", event.target.value)}
@@ -382,9 +391,9 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Cổ phần / Quyền chọn cổ phiếu</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Cổ phần / Quyền chọn cổ phiếu</span>
                   <input
-                    className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                    className="input-field font-medium"
                     type="text"
                     value={form.equityNotes}
                     onChange={(event) => updateForm("equityNotes", event.target.value)}
@@ -394,25 +403,25 @@ function SendOfferScreen() {
             </div>
 
             <div>
-              <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.12em] text-[#1a1c1c]">
+              <h3 className="section-title mb-6 border-b border-[#f0eceb] pb-4">
                 Điều khoản làm việc
               </h3>
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Loại hình làm việc</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Loại hình làm việc</span>
                   <CommonSelect
                     value={form.employmentType}
                     options={employmentTypeOptions(editor.masterData.employmentTypes)}
                     onValueChange={(value) => updateForm("employmentType", value)}
-                    className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
-                    menuClassName="border-[#e7bdb8]"
+                    className="input-field h-11 font-medium"
+                    menuClassName="border-[#ececec]"
                   />
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Ngày bắt đầu đề xuất</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Ngày bắt đầu đề xuất</span>
                   <input
-                    className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                    className="input-field font-medium"
                     type="date"
                     value={form.proposedStartDate}
                     onChange={(event) => updateForm("proposedStartDate", event.target.value)}
@@ -420,9 +429,9 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Thời gian thử việc</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Thời gian thử việc</span>
                   <input
-                    className="w-full border border-[#e7bdb8] px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-[#1a1c1c]"
+                    className="input-field font-medium"
                     type="text"
                     value={form.probationPeriod}
                     onChange={(event) => updateForm("probationPeriod", event.target.value)}
@@ -430,20 +439,20 @@ function SendOfferScreen() {
                 </label>
 
                 <label className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Quản lý trực tiếp</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Quản lý trực tiếp</span>
                   <CommonSelect
                     value={form.reportingManagerId}
                     options={reportingManagerOptions(editor.masterData.reportingManagers)}
                     onValueChange={(value) => updateForm("reportingManagerId", value)}
-                    className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
-                    menuClassName="border-[#e7bdb8]"
+                    className="input-field h-11 font-medium"
+                    menuClassName="border-[#ececec]"
                   />
                 </label>
               </div>
             </div>
 
             <div>
-              <h3 className="mb-6 text-sm font-bold uppercase tracking-[0.12em] text-[#1a1c1c]">
+              <h3 className="section-title mb-6 border-b border-[#f0eceb] pb-4">
                 Gói phúc lợi
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -452,7 +461,7 @@ function SendOfferScreen() {
                   return (
                     <label
                       key={benefit.id}
-                      className={`flex cursor-pointer items-center gap-3 border p-3 transition-colors ${selected ? "border-[#1a1c1c] bg-[#f3f3f3]" : "border-[#e7bdb8] bg-white hover:bg-[#f9f9f9]"}`}
+                      className={`flex cursor-pointer items-center gap-3 rounded-[12px] border p-3.5 transition-all ${selected ? "border-[#b90014] bg-[#fff1f0]" : "border-[#ececec] bg-white hover:border-[#e0d4d2] hover:bg-[#faf9f8]"}`}
                     >
                       <input
                         checked={selected}
@@ -475,34 +484,34 @@ function SendOfferScreen() {
         </div>
 
         <div className="space-y-6">
-          <section className="border border-[#e7bdb8] bg-white p-6 xl:sticky xl:top-24">
+          <section className="card p-6 xl:sticky xl:top-24">
             <label className="mb-5 block space-y-2">
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Chọn mẫu offer</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Chọn mẫu offer</span>
               <CommonSelect
                 value={form.offerTemplateId}
                 options={templateOptions(editor.masterData.templates)}
                 onValueChange={(value) => updateForm("offerTemplateId", value)}
-                className="h-12 border border-[#e7bdb8] bg-white text-sm font-semibold shadow-none focus:border-[#1a1c1c]"
-                menuClassName="border-[#e7bdb8]"
+                className="input-field h-11 font-medium"
+                menuClassName="border-[#ececec]"
               />
               {selectedTemplate?.description ? (
                 <span className="block text-xs text-[#5f5e5e]">{selectedTemplate.description}</span>
               ) : null}
             </label>
 
-            <label className="mb-6 block space-y-2 border-t border-[#e7bdb8] pt-6">
-              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Lời nhắn cá nhân</span>
+            <label className="mb-6 block space-y-2 border-t border-[#f0eceb] pt-6">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Lời nhắn cá nhân</span>
               <textarea
-                className="min-h-28 w-full border border-[#e7bdb8] px-4 py-3 text-sm outline-none transition-all focus:border-[#1a1c1c]"
+                className="input-field min-h-28"
                 placeholder={`Thêm lời nhắn gửi tới ${editor.application.candidateName}...`}
                 value={form.personalMessage}
                 onChange={(event) => updateForm("personalMessage", event.target.value)}
               />
             </label>
 
-            <div className="bg-[#f3f3f3] p-2">
+            <div className="rounded-[12px] bg-[#faf9f8] p-2">
               <div className="mb-3 flex items-center justify-between px-2 pt-1">
-                <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Xem trước tài liệu</span>
+                <span className="eyebrow">Xem trước tài liệu</span>
                 <button
                   type="button"
                   className="text-sm font-semibold text-[#1a1c1c] hover:text-[#b90014]"
@@ -512,7 +521,7 @@ function SendOfferScreen() {
                 </button>
               </div>
 
-              <div className="max-h-[680px] overflow-y-auto border border-[#e7bdb8] bg-white p-8">
+              <div className="max-h-[680px] overflow-y-auto rounded-[10px] border border-[#ececec] bg-white p-8">
                 <div className="mb-8 h-1 w-14 bg-[#b90014]" />
                 <div className="mb-8 text-right text-[11px] leading-5 text-[#5f5e5e]">
                   RecruitPro Internal

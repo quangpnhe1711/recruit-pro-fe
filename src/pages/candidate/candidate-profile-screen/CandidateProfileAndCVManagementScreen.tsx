@@ -19,9 +19,9 @@ function CandidateProfileAndCVManagementScreen() {
 
   if (state.loading) {
     return (
-      <main className="py-6">
-        <div className="w-full px-4 md:px-10">
-          <div className="rounded-xl border border-[#e2dfde] bg-white px-6 py-5">
+      <main className="py-6 md:py-8">
+        <div className="app-container">
+          <div className="card px-6 py-5">
             <LoadingIndicator label="Đang tải hồ sơ ứng viên..." />
           </div>
         </div>
@@ -30,12 +30,11 @@ function CandidateProfileAndCVManagementScreen() {
   }
 
   return (
-    <main className="py-6">
-      <div className="w-full px-4 md:px-10">
-        <nav className="mb-6 flex items-center gap-2">
-          <span className="text-[32px] font-bold text-[#1a1c1c]">
-            Hồ sơ của tôi
-          </span>
+    <main className="animate-fade-in py-6 md:py-8">
+      <div className="app-container">
+        <nav className="mb-6">
+          <p className="eyebrow">Hồ sơ ứng viên</p>
+          <h1 className="page-title mt-1">Hồ sơ của tôi</h1>
         </nav>
 
         <ProfileHeaderSection
@@ -54,7 +53,7 @@ function CandidateProfileAndCVManagementScreen() {
         />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="space-y-6 lg:col-span-4">
+          <div className="stagger space-y-6 lg:col-span-4">
             <PersonalInfoSection
               profile={state.profile}
               isEditingProfile={state.isEditingProfile}
@@ -72,7 +71,7 @@ function CandidateProfileAndCVManagementScreen() {
             />
           </div>
 
-          <div className="space-y-6 lg:col-span-8">
+          <div className="stagger space-y-6 lg:col-span-8">
             <ResumeSection
               canManageResume={permissions.canManageResume}
               resumeMeta={state.resumeMeta}
@@ -110,7 +109,7 @@ function CandidateProfileAndCVManagementScreen() {
               onRemoveEntry={actions.handleRemoveEntry}
             />
 
-            <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
+            <section className="card animate-fade-in-up p-5 md:p-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <ProjectsSection
                   canEditProfile={permissions.canEditProfile}

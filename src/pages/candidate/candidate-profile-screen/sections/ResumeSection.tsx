@@ -30,17 +30,19 @@ function ResumeSection({
   onOpenResumeHistoryItem,
 }: ResumeSectionProps) {
   return (
-    <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          CV &amp; Phân tích hồ sơ
-        </h2>
+    <section className="card p-5 md:p-6">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[#f0eceb] pb-4">
+        <div>
+          <h2 className="section-title">CV &amp; Phân tích hồ sơ</h2>
+          <p className="page-subtitle">Tải CV và để hệ thống phân tích thành hồ sơ cấu trúc.</p>
+        </div>
         {resumeFile ? (
           <button
-            className="rounded-full border border-[#b90014]/20 bg-[#fff4f6] px-4 py-2 text-[12px] font-semibold text-[#b90014] transition-colors hover:bg-[#ffe7ec]"
+            className="badge bg-[#fff4f6] text-[#b90014] hover:bg-[#ffe7ec]"
             type="button"
             onClick={onClearSelectedResumeFile}
           >
+            <span className="material-symbols-outlined text-[14px]">close</span>
             Bỏ file đã chọn
           </button>
         ) : null}
@@ -159,13 +161,11 @@ function ResumeSection({
 
       {resumeHistory.length ? (
         <div className="mt-6 space-y-3">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-            Lịch sử CV
-          </p>
+          <p className="eyebrow">Lịch sử CV</p>
           {resumeHistory.map((resume) => (
             <button
               key={resume.id}
-              className="flex w-full items-center justify-between rounded border border-[#e2dfde] bg-white px-4 py-3 text-left hover:border-[#b90014]"
+              className="flex w-full items-center justify-between gap-3 rounded-[12px] border border-[#ececec] bg-white px-4 py-3 text-left transition-all hover:border-[#b90014] hover:bg-[#fffafa]"
               type="button"
               onClick={() => onOpenResumeHistoryItem(resume.id, resume.fileUrl)}
             >

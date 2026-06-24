@@ -14,51 +14,45 @@ function PersonalInfoSection({
   onProfileChange,
 }: PersonalInfoSectionProps) {
   return (
-    <section
-      id="resume"
-      className="rounded-lg border border-[#e2dfde] bg-white p-6"
-    >
-      <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-        Thông tin cá nhân
-      </h2>
+    <section id="resume" className="card p-5 md:p-6">
+      <div className="border-b border-[#f0eceb] pb-4">
+        <h2 className="section-title">Thông tin cá nhân</h2>
+        <p className="page-subtitle">Giới thiệu và các liên kết nghề nghiệp của bạn.</p>
+      </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-5 space-y-5">
         <div>
-          <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-            Giới thiệu
-          </label>
+          <label className="field-label">Giới thiệu</label>
           {isEditingProfile && canEditProfile ? (
             <textarea
-              className="min-h-[120px] w-full resize-none rounded-none border border-[#e2dfde] bg-[#f3f3f3] p-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+              className="input-field min-h-[120px] resize-none"
               value={profile.bio}
               onChange={(e) => onProfileChange("bio", e.target.value)}
             />
           ) : (
-            <p className="rounded border border-[#e2dfde] bg-[#f3f3f3] p-3 text-[14px] leading-6 text-[#5f5e5e]">
+            <p className="rounded-[12px] bg-[#f7f6f5] p-4 text-[14px] leading-6 text-[#5f5e5e]">
               {profile.bio}
             </p>
           )}
         </div>
 
         <div>
-          <label className="mb-2 block text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-            Liên kết
-          </label>
+          <label className="field-label">Liên kết</label>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 rounded border border-[#e2dfde] bg-white px-3 py-2">
-              <span className="material-symbols-outlined text-[#5f5e5e]">link</span>
+            <div className="flex h-11 items-center gap-3 rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 transition-all focus-within:border-[#b90014] focus-within:ring-4 focus-within:ring-[#b90014]/10">
+              <span className="material-symbols-outlined text-[20px] text-[#8a8786]">link</span>
               <input
-                className="flex-1 border-none bg-transparent p-0 text-[14px] outline-none"
+                className="flex-1 border-none bg-transparent p-0 text-[14px] text-[#1a1c1c] outline-none placeholder:text-[#a8a4a2]"
                 value={profile.github}
                 onChange={(e) => onProfileChange("github", e.target.value)}
                 type="text"
                 disabled={!canEditProfile}
               />
             </div>
-            <div className="flex items-center gap-3 rounded border border-[#e2dfde] bg-white px-3 py-2">
-              <span className="material-symbols-outlined text-[#5f5e5e]">group</span>
+            <div className="flex h-11 items-center gap-3 rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 transition-all focus-within:border-[#b90014] focus-within:ring-4 focus-within:ring-[#b90014]/10">
+              <span className="material-symbols-outlined text-[20px] text-[#8a8786]">group</span>
               <input
-                className="flex-1 border-none bg-transparent p-0 text-[14px] outline-none"
+                className="flex-1 border-none bg-transparent p-0 text-[14px] text-[#1a1c1c] outline-none placeholder:text-[#a8a4a2]"
                 value={profile.linkedin}
                 onChange={(e) => onProfileChange("linkedin", e.target.value)}
                 type="text"

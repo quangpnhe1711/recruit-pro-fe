@@ -33,131 +33,153 @@ function ProfileHeaderSection({
   return (
     <section
       id="profile"
-      className="relative mb-6 overflow-hidden rounded-xl border border-[#e2dfde] bg-white p-6 md:p-8"
+      className="card animate-fade-in-up relative mb-6 overflow-hidden p-5 md:p-8"
     >
-      <div className="mb-6 flex flex-col gap-3 md:absolute md:right-6 md:top-6 md:flex-row">
-        {canEditProfile ? (
-          <button
-            className="inline-flex items-center justify-center gap-2 rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-            type="button"
-            onClick={onSave}
-            disabled={isSavingProfile || (!isProfileDirty && !hasPendingResumeUpload)}
-          >
-            <span className="material-symbols-outlined text-[18px]">save</span>
-            {isSavingProfile ? "Đang lưu..." : "Lưu thay đổi"}
-          </button>
-        ) : null}
-        {canEditProfile ? (
-          <button
-            className="rounded border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-            type="button"
-            onClick={() => setIsEditingProfile((value) => !value)}
-          >
-            {isEditingProfile ? "Xong" : "Chỉnh sửa hồ sơ"}
-          </button>
-        ) : null}
-      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(232,36,44,0.10),transparent_70%)]"
+      />
 
-      <div className="flex flex-col gap-8 md:flex-row md:items-start">
-        <div className="relative">
-          {displayAvatarUrl ? (
-            <img
-              alt={profile.name}
-              className="h-32 w-32 rounded-lg border-2 border-[#b90014] object-cover"
-              src={displayAvatarUrl}
-            />
-          ) : (
-            <div className="flex h-32 w-32 items-center justify-center rounded-lg border-2 border-[#b90014] bg-[#b90014]/10 text-[32px] font-bold text-[#b90014]">
-              {profileInitials}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            {isEditingProfile && canEditProfile ? (
-              <input
-                className="w-full max-w-2xl rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[32px] font-semibold leading-10 tracking-[-0.01em] outline-none focus:border-[#1a1c1c]"
-                value={profile.name}
-                onChange={(e) => onProfileChange("name", e.target.value)}
+      <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          <div className="relative shrink-0">
+            {displayAvatarUrl ? (
+              <img
+                alt={profile.name}
+                className="h-24 w-24 rounded-[20px] object-cover ring-2 ring-white shadow-[0_10px_30px_-10px_rgba(185,0,20,0.35)] md:h-28 md:w-28"
+                src={displayAvatarUrl}
               />
             ) : (
-              <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                {profile.name}
-              </h1>
-            )}
-            <div className="mt-2 inline-flex rounded-full bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]">
-              Hoàn thiện hồ sơ {completionScore}%
-            </div>
-            {isEditingProfile && canEditProfile ? (
-              <input
-                className="mt-1 w-full max-w-2xl rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[20px] font-semibold text-[#b90014] outline-none focus:border-[#1a1c1c]"
-                value={profile.headline}
-                onChange={(e) => onProfileChange("headline", e.target.value)}
-              />
-            ) : (
-              <p className="mt-1 text-[20px] font-semibold text-[#b90014]">
-                {profile.headline}
-              </p>
+              <div className="flex h-24 w-24 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,#e8242c_0%,#c50f1b_100%)] text-[30px] font-bold text-white shadow-[0_10px_30px_-10px_rgba(185,0,20,0.45)] md:h-28 md:w-28 md:text-[34px]">
+                {profileInitials}
+              </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="min-w-0 space-y-3">
+            <div className="space-y-2">
+              {isEditingProfile && canEditProfile ? (
+                <input
+                  className="input-field max-w-xl text-[24px] font-semibold leading-tight tracking-[-0.01em] md:text-[28px]"
+                  value={profile.name}
+                  onChange={(e) => onProfileChange("name", e.target.value)}
+                />
+              ) : (
+                <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1c1c] md:text-[30px]">
+                  {profile.name}
+                </h2>
+              )}
+              {isEditingProfile && canEditProfile ? (
+                <input
+                  className="input-field max-w-xl text-[16px] font-semibold text-[#b90014]"
+                  value={profile.headline}
+                  onChange={(e) => onProfileChange("headline", e.target.value)}
+                />
+              ) : (
+                <p className="text-[16px] font-semibold text-[#b90014] md:text-[18px]">
+                  {profile.headline}
+                </p>
+              )}
+              <span className="badge bg-[#b90014]/10 text-[#b90014]">
+                <span className="badge-dot bg-[#b90014]" />
+                Hoàn thiện hồ sơ {completionScore}%
+              </span>
+            </div>
+
             {isEditingProfile && canEditProfile ? (
-              <>
-                <input
-                  className="rounded-none border border-[#e2dfde] bg-[#f3f3f3] px-3 py-2 text-[14px] text-[#5f5e5e] outline-none"
-                  value={profile.username}
-                  readOnly
-                  disabled
-                />
-                <input
-                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                  value={profile.email}
-                  onChange={(e) => onProfileChange("email", e.target.value)}
-                />
-                <input
-                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                  value={profile.phone}
-                  onChange={(e) => onProfileChange("phone", e.target.value)}
-                />
-                <input
-                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                  value={profile.location}
-                  onChange={(e) => onProfileChange("location", e.target.value)}
-                />
-                <input
-                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-                  value={profile.memberSince}
-                  onChange={(e) => onProfileChange("memberSince", e.target.value)}
-                />
-              </>
+              <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">Tên đăng nhập</label>
+                  <input
+                    className="input-field bg-[#f7f6f5] text-[#5f5e5e]"
+                    value={profile.username}
+                    readOnly
+                    disabled
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Email</label>
+                  <input
+                    className="input-field"
+                    value={profile.email}
+                    onChange={(e) => onProfileChange("email", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Số điện thoại</label>
+                  <input
+                    className="input-field"
+                    value={profile.phone}
+                    onChange={(e) => onProfileChange("phone", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Địa điểm</label>
+                  <input
+                    className="input-field"
+                    value={profile.location}
+                    onChange={(e) => onProfileChange("location", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Thành viên từ</label>
+                  <input
+                    className="input-field"
+                    value={profile.memberSince}
+                    onChange={(e) => onProfileChange("memberSince", e.target.value)}
+                  />
+                </div>
+              </div>
             ) : (
-              <>
-                <div className="flex items-center gap-2 text-[#5f5e5e]">
-                  <span className="material-symbols-outlined text-[20px]">alternate_email</span>
-                  <span className="text-[14px]">{profile.username}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#5f5e5e]">
-                  <span className="material-symbols-outlined text-[20px]">mail</span>
-                  <span className="text-[14px]">{profile.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#5f5e5e]">
-                  <span className="material-symbols-outlined text-[20px]">call</span>
-                  <span className="text-[14px]">{profile.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#5f5e5e]">
-                  <span className="material-symbols-outlined text-[20px]">location_on</span>
-                  <span className="text-[14px]">{profile.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[#5f5e5e]">
-                  <span className="material-symbols-outlined text-[20px]">schedule</span>
-                  <span className="text-[14px]">{profile.memberSince}</span>
-                </div>
-              </>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[14px] text-[#5f5e5e]">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-[#8a8786]">alternate_email</span>
+                  {profile.username}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-[#8a8786]">mail</span>
+                  {profile.email}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-[#8a8786]">call</span>
+                  {profile.phone}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-[#8a8786]">location_on</span>
+                  {profile.location}
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-[#8a8786]">schedule</span>
+                  {profile.memberSince}
+                </span>
+              </div>
             )}
           </div>
         </div>
+
+        {canEditProfile ? (
+          <div className="flex shrink-0 flex-col gap-2.5 sm:flex-row md:flex-col lg:flex-row">
+            <button
+              className="btn btn-primary h-11"
+              type="button"
+              onClick={onSave}
+              disabled={isSavingProfile || (!isProfileDirty && !hasPendingResumeUpload)}
+            >
+              <span className="material-symbols-outlined text-[18px]">save</span>
+              {isSavingProfile ? "Đang lưu..." : "Lưu thay đổi"}
+            </button>
+            <button
+              className="btn btn-secondary h-11"
+              type="button"
+              onClick={() => setIsEditingProfile((value) => !value)}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {isEditingProfile ? "check" : "edit"}
+              </span>
+              {isEditingProfile ? "Xong" : "Chỉnh sửa hồ sơ"}
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );

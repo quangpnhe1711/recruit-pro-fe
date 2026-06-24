@@ -4,7 +4,8 @@ import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import PageHeader from "../../common/components/PageHeader";
+import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -141,11 +142,11 @@ function buildInterviewTableColumns(
       header: "Ứng viên",
       renderCell: (item) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e2dfde] text-[12px] font-bold text-[#5f5e5e]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[12px] font-bold text-[#b90014]">
             {item.initials}
           </div>
           <div>
-            <p className="font-bold">{item.candidateName}</p>
+            <p className="font-semibold text-[#1a1c1c]">{item.candidateName}</p>
             <p className="text-[12px] text-[#5f5e5e]">{item.candidateEmail}</p>
           </div>
         </div>
@@ -183,17 +184,11 @@ function buildInterviewTableColumns(
 
         return (
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${statusChipFn(
-                item.status,
-              )}`}
-            >
+            <span className={`badge ${statusChipFn(item.status)}`}>
               {item.status}
             </span>
             {timingStatus ? (
-              <span
-                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px] font-semibold ${timingStatus.className}`}
-              >
+              <span className={`badge ${timingStatus.className}`}>
                 {timingStatus.label}
               </span>
             ) : null}
@@ -218,7 +213,7 @@ function buildInterviewTableColumns(
             {canOpenActionsMenu ? (
               <button
                 type="button"
-                className="p-1 text-[#5f5e5e] hover:text-[#b90014]"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f7f6f5] hover:text-[#b90014]"
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpenMenuId(openMenuId === item.id ? null : item.id);
@@ -232,7 +227,7 @@ function buildInterviewTableColumns(
             {canOpenActionsMenu && openMenuId === item.id ? (
               <div
                 ref={menuRef}
-                className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded border border-[#e2dfde] bg-white shadow"
+                className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded-[12px] border border-[#ececec] bg-white shadow-lg"
                 onClick={(e) => e.stopPropagation()}
               >
                 {actions.canViewInterviews ? (
@@ -583,195 +578,189 @@ function JobInterviewListScreen() {
     ],
   );
 
+  const statCards = [
+    {
+      label: "Tổng trong kỳ",
+      value: String(stats.total),
+      helper: "Buổi phỏng vấn",
+      icon: "event",
+      iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]",
+    },
+    {
+      label: "Chờ xác nhận",
+      value: stats.actionNeeded.toString().padStart(2, "0"),
+      helper: "Cần xử lý",
+      icon: "pending_actions",
+      iconWrap: "from-amber-50 to-amber-100 text-amber-600",
+    },
+    {
+      label: "Tỷ lệ hoàn tất",
+      value: `${stats.completionRate}%`,
+      helper: "Đã hoàn tất",
+      icon: "task_alt",
+      iconWrap: "from-emerald-50 to-emerald-100 text-emerald-600",
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Đang tải lịch phỏng vấn..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <div className="surface-card h-96" />
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 py-6 md:px-10">
-      {/* Page header (title + local search) */}
-      <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-6">
-          <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Danh sách Lịch phỏng vấn
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2" />
-      </div>
-
-      {/* Filters & Stats */}
-      <div className="mb-10 flex flex-col gap-6 md:flex-row">
-        {/* Stats bento */}
-        <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-3">
-          <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-              Tổng trong kỳ
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                {stats.total}
-              </span>
-              <span className="text-[12px] font-bold text-[#b90014]">+12%</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
-            <span className="text-[12px] font-semibold text-[#5f5e5e]">
-              Chờ xác nhận
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#b90014]">
-                {stats.actionNeeded.toString().padStart(2, "0")}
-              </span>
-              <span className="text-[12px] font-bold text-[#5f5e5e]">
-                Cần xử lý
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col justify-between rounded-lg border border-[#e2dfde] bg-white p-6">
-            <span className="text-[12px] font-semibold text-[#5f5e5e]">
-              Tỷ lệ hoàn tất
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-                {stats.completionRate}%
-              </span>
-              <span className="text-[12px] font-bold text-[#005f93]">Tốt</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick filters */}
-        <div className="w-full space-y-4 rounded-lg border border-[#e2dfde] bg-white p-6 md:w-80">
-          <h3 className="border-b border-[#e2dfde] pb-2 text-[16px] font-bold">
-            Bộ lọc nhanh
-          </h3>
-
-          <div className="space-y-3">
-            <div>
-              <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                Trạng thái
-              </label>
-              <CommonSelect
-                value={statusFilter}
-                options={interviewStatusOptions}
-                onValueChange={setStatusFilter}
-                className="h-10 rounded border border-[#e7bdb8] bg-[#f3f3f3] text-[14px] shadow-none focus:border-[#1a1c1c] focus:ring-0"
-                menuClassName="border-[#e7bdb8]"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                Thời gian
-              </label>
-              <CommonSelect
-                value={timeframe}
-                options={timeframeOptions}
-                onValueChange={(value) => setTimeframe(value as Timeframe)}
-                className="h-10 rounded border border-[#e7bdb8] bg-[#f3f3f3] text-[14px] shadow-none focus:border-[#1a1c1c] focus:ring-0"
-                menuClassName="border-[#e7bdb8]"
-              />
-            </div>
-
-            {timeframe === "Custom Range" ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                    Từ ngày
-                  </label>
-                  <input
-                    type="date"
-                    value={customRange.start}
-                    onChange={(e) =>
-                      setCustomRange((prev) => ({
-                        ...prev,
-                        start: e.target.value,
-                      }))
-                    }
-                    className="w-full rounded border border-[#e7bdb8] bg-[#f3f3f3] p-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[12px] font-semibold text-[#5f5e5e]">
-                    Đến ngày
-                  </label>
-                  <input
-                    type="date"
-                    value={customRange.end}
-                    onChange={(e) =>
-                      setCustomRange((prev) => ({
-                        ...prev,
-                        end: e.target.value,
-                      }))
-                    }
-                    className="w-full rounded border border-[#e7bdb8] bg-[#f3f3f3] p-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="mb-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-[20px] font-bold text-[#1a1c1c]">
-            Lịch phỏng vấn
-          </h3>
-          <div className="flex items-center gap-3">
+    <div className="app-container animate-fade-in py-8">
+      {/* Page header */}
+      <PageHeader
+        eyebrow="Phỏng vấn"
+        icon="event"
+        title="Danh sách lịch phỏng vấn"
+        subtitle="Theo dõi, cập nhật và xuất lịch phỏng vấn trên toàn hệ thống."
+        className="mb-7"
+        actions={
+          <>
             {canCreateInterviews ? (
               <button
                 type="button"
-                className="rounded border border-[#b90014] bg-white px-4 py-2 text-[12px] font-semibold text-[#b90014] transition-colors hover:bg-[#fff3f2]"
+                className="btn btn-primary"
                 onClick={() => {
                   toast.info("Đang mở form tạo lịch phỏng vấn");
                   navigate("/hr/interviews/schedule");
                 }}
               >
-                Tạo lịch phỏng vấn
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                <span>Tạo lịch phỏng vấn</span>
               </button>
             ) : null}
             <button
               type="button"
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#93000d]"
+              className="btn btn-secondary"
               onClick={exportCsv}
               disabled={!canExportInterviews}
             >
-              Xuất CSV
+              <span className="material-symbols-outlined text-[18px]">download</span>
+              <span>Xuất CSV</span>
             </button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        <CommonTable
-          columns={columns}
-          data={pageSlice}
-          keyExtractor={(item) => item.id}
-          loading={false}
-          emptyMessage="Không có lịch phỏng vấn phù hợp."
-          zebra
-          hover
-          onRowClick={openDetails}
-          showPagination
-          pagination={{
-            enabled: true,
-            currentPage,
-            totalPages,
-            totalItems,
-            rangeStart,
-            rangeEnd,
-            onPageChange: goTo,
-          }}
-          tableWrapperClassName="overflow-hidden rounded-lg border border-[#e2dfde] bg-white"
-        />
+      {/* Stats */}
+      <div className="stagger mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {statCards.map((card) => (
+          <div key={card.label} className="stat-card group">
+            <div className="flex items-start gap-4">
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br ${card.iconWrap} transition-transform duration-200 group-hover:scale-105`}
+              >
+                <span className="material-symbols-outlined text-[24px]">
+                  {card.icon}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="eyebrow">{card.label}</p>
+                <h3 className="mt-2 text-[30px] font-bold leading-none tracking-[-0.02em] text-[#1a1c1c]">
+                  {card.value}
+                </h3>
+                <p className="mt-2 text-[13px] leading-5 text-[#5f5e5e]">
+                  {card.helper}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Filter / toolbar row */}
+      <div className="card mb-4 flex flex-col gap-3 p-4 lg:flex-row lg:items-end">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-row lg:items-end">
+          <div className="w-full lg:w-56">
+            <label className="field-label">Trạng thái</label>
+            <CommonSelect
+              value={statusFilter}
+              options={interviewStatusOptions}
+              onValueChange={setStatusFilter}
+              className="h-[42px] text-sm"
+            />
+          </div>
+
+          <div className="w-full lg:w-56">
+            <label className="field-label">Thời gian</label>
+            <CommonSelect
+              value={timeframe}
+              options={timeframeOptions}
+              onValueChange={(value) => setTimeframe(value as Timeframe)}
+              className="h-[42px] text-sm"
+            />
+          </div>
+
+          {timeframe === "Custom Range" ? (
+            <div className="grid w-full grid-cols-2 gap-3 lg:w-auto">
+              <div>
+                <label className="field-label">Từ ngày</label>
+                <input
+                  type="date"
+                  value={customRange.start}
+                  onChange={(e) =>
+                    setCustomRange((prev) => ({
+                      ...prev,
+                      start: e.target.value,
+                    }))
+                  }
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <label className="field-label">Đến ngày</label>
+                <input
+                  type="date"
+                  value={customRange.end}
+                  onChange={(e) =>
+                    setCustomRange((prev) => ({
+                      ...prev,
+                      end: e.target.value,
+                    }))
+                  }
+                  className="input-field"
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Table */}
+      <CommonTable
+        columns={columns}
+        data={pageSlice}
+        keyExtractor={(item) => item.id}
+        loading={false}
+        emptyMessage="Không có lịch phỏng vấn phù hợp."
+        emptyIcon="event_busy"
+        hover
+        onRowClick={openDetails}
+        showPagination
+        pagination={{
+          enabled: true,
+          currentPage,
+          totalPages,
+          totalItems,
+          rangeStart,
+          rangeEnd,
+          onPageChange: goTo,
+        }}
+      />
     </div>
   );
 }

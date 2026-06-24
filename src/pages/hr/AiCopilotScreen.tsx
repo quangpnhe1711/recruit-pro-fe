@@ -596,12 +596,13 @@ function AiCopilotScreen() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-88px)] w-full max-w-[100vw] flex-col overflow-hidden border border-[#e2dfde] bg-white xl:flex-row">
+    <div className="flex h-[calc(100vh-88px)] w-full max-w-[100vw] flex-col overflow-hidden rounded-[16px] border border-[#ececec] bg-white shadow-[var(--shadow-sm)] xl:flex-row">
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f9f9f9]">
-        <header className="border-b border-[#e2dfde] bg-white px-6 py-5">
+        <header className="border-b border-[#ececec] bg-white px-6 py-5">
           <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#b90014]">
+              <p className="eyebrow flex items-center gap-1.5 text-[#b90014]">
+                <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
                 AI Recruitment Copilot
               </p>
               <h1 className="page-title mt-2">
@@ -611,7 +612,7 @@ function AiCopilotScreen() {
 
             <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <CommonSelect
-                className="w-full min-w-0 border-[#e7bdb8] bg-white sm:min-w-[280px]"
+                className="w-full min-w-0 sm:min-w-[280px]"
                 options={jobs.map((job) => ({
                   label: `${job.title} (${job.applicationCount})`,
                   value: job.jobId,
@@ -621,7 +622,7 @@ function AiCopilotScreen() {
               />
               <button
                 type="button"
-                className="inline-flex items-center gap-2 border border-[#1a1c1c] bg-white px-4 py-2 text-[12px] font-semibold text-[#1a1c1c] hover:bg-[#f3f3f3]"
+                className="btn btn-secondary h-11 shrink-0"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   download
@@ -640,7 +641,7 @@ function AiCopilotScreen() {
           ) : (
             <div className="overflow-x-auto scrollbar-hide">
               <table className="min-w-[1100px] w-full border-collapse text-left">
-              <thead className="sticky top-0 z-10 bg-[#1a1c1c] text-white">
+              <thead className="sticky top-0 z-10 bg-[#1a1c1c] text-white/90">
                 <tr>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
                     Ứng viên
@@ -694,7 +695,7 @@ function AiCopilotScreen() {
                           {candidate.skills.slice(0, 4).map((skill) => (
                             <span
                               key={skill}
-                              className="bg-[#eeeeee] px-2 py-1 text-[11px] font-semibold text-[#5f5e5e]"
+                              className="rounded-full bg-[#f1eeed] px-2.5 py-1 text-[11px] font-semibold text-[#5f5e5e]"
                             >
                               {skill}
                             </span>
@@ -711,7 +712,7 @@ function AiCopilotScreen() {
                               {result.strengths.slice(0, 2).map((strength) => (
                                 <span
                                   key={strength}
-                                  className="bg-[#f3f3f3] px-2 py-1 text-[10px] font-semibold text-[#5f5e5e]"
+                                  className="rounded-full bg-[#f1eeed] px-2.5 py-1 text-[10px] font-semibold text-[#5f5e5e]"
                                 >
                                   {strength}
                                 </span>
@@ -723,7 +724,7 @@ function AiCopilotScreen() {
                       <td className="px-6 py-4">
                         {result ? (
                           <span
-                            className={`inline-flex border px-3 py-1 text-[12px] font-bold ${scoreTone(result.totalScore)}`}
+                            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-bold ${scoreTone(result.totalScore)}`}
                           >
                             {result.isAutoRejected
                               ? "Rejected"
@@ -755,22 +756,27 @@ function AiCopilotScreen() {
         </div>
       </section>
 
-      <aside className="flex w-full min-w-0 flex-col border-t border-[#e2dfde] bg-white xl:w-[440px] xl:max-w-[440px] xl:border-l xl:border-t-0">
-        <div className="flex items-center justify-between border-b border-[#e2dfde] px-6 py-5">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <h2 className="text-[16px] font-semibold text-[#1a1c1c]">
-              AI Copilot
-            </h2>
+      <aside className="flex w-full min-w-0 flex-col border-t border-[#ececec] bg-white xl:w-[440px] xl:max-w-[440px] xl:border-l xl:border-t-0">
+        <div className="flex items-center justify-between border-b border-[#ececec] px-6 py-5">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white">
+              <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+            </span>
+            <div>
+              <h2 className="text-[15px] font-semibold leading-tight text-[#1a1c1c]">
+                AI Copilot
+              </h2>
+              <p className="flex items-center gap-1 text-[11px] text-[#8a8786]">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Trực tuyến
+              </p>
+            </div>
           </div>
-          <span className="material-symbols-outlined text-[#5f5e5e]">
-            smart_toy
-          </span>
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-auto p-6">
           {chat.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#e2dfde] bg-[#f9f9f9] p-4 text-[14px] text-[#5f5e5e]">
+            <div className="rounded-2xl border border-dashed border-[#ececec] bg-[#faf9f8] p-4 text-[14px] text-[#5f5e5e]">
               Bắt đầu chat hoặc áp dụng bộ tiêu chí để xếp hạng ứng viên.
             </div>
           ) : null}
@@ -778,17 +784,20 @@ function AiCopilotScreen() {
           {chat.map((message, index) => (
             <div
               key={`${message.role}-${index}`}
-              className={
-                message.role === "user"
-                  ? "flex justify-end"
-                  : "flex justify-start"
-              }
+              className={`flex items-end gap-2 ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
+              {message.role === "assistant" ? (
+                <span className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fff1ef] text-[#b90014]">
+                  <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                </span>
+              ) : null}
               <div
-                className={`max-w-[92%] ${
+                className={`max-w-[86%] ${
                   message.role === "user"
-                    ? "rounded-2xl bg-[#1a1c1c] px-4 py-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
-                    : "rounded-3xl border border-[#ffdad6] bg-[#fffaf9] px-4 py-4 text-[#1a1c1c] shadow-[0_10px_24px_rgba(185,0,20,0.05)]"
+                    ? "rounded-[18px] rounded-br-[6px] bg-[#1a1c1c] px-4 py-3 text-white shadow-[0_8px_20px_rgba(0,0,0,0.14)]"
+                    : "rounded-[18px] rounded-bl-[6px] border border-[#ececec] bg-[#faf9f8] px-4 py-3.5 text-[#1a1c1c] shadow-[var(--shadow-xs)]"
                 }`}
               >
                 {message.content ? (
@@ -800,9 +809,10 @@ function AiCopilotScreen() {
                     </div>
                   )
                 ) : (
-                  <div className="flex items-center gap-2 text-[#5f5e5e]">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-[#b90014]" />
-                    <span>AI is thinking...</span>
+                  <div className="flex items-center gap-1.5 text-[#8a8786]">
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#b90014] [animation-delay:-0.2s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#b90014] [animation-delay:-0.1s]" />
+                    <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#b90014]" />
                   </div>
                 )}
               </div>
@@ -810,8 +820,8 @@ function AiCopilotScreen() {
           ))}
 
           {ranking ? (
-            <div className="rounded-3xl bg-[#1a1c1c] p-4 text-white shadow-[0_16px_32px_rgba(0,0,0,0.22)]">
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
+            <div className="rounded-[16px] bg-[#1a1c1c] p-5 text-white shadow-[0_16px_32px_rgba(0,0,0,0.22)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
                 Tác động lọc
               </p>
               <div className="mt-4 grid grid-cols-3 divide-x divide-white/20 text-center">
@@ -844,7 +854,7 @@ function AiCopilotScreen() {
           ) : null}
         </div>
 
-        <div className="border-t border-[#e2dfde] p-4">
+        <div className="border-t border-[#ececec] bg-white p-4">
             <div className="relative">
               {hasStructuredCriteria ? (
               <div className="mb-3 flex flex-wrap gap-2">
@@ -906,10 +916,10 @@ function AiCopilotScreen() {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className={`inline-flex items-center gap-2 border px-3 py-2 text-[12px] font-semibold ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors ${
                     rankingEnabled
                       ? "border-[#b90014] bg-[#fff1ef] text-[#b90014]"
-                      : "border-[#1a1c1c] bg-white text-[#1a1c1c]"
+                      : "border-[#dcd7d5] bg-white text-[#5f5e5e] hover:border-[#c8c2c0]"
                   }`}
                   onClick={() => setRankingEnabled((current) => !current)}
                 >
@@ -920,7 +930,7 @@ function AiCopilotScreen() {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c] disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#dcd7d5] bg-white px-3 py-1.5 text-[12px] font-semibold text-[#5f5e5e] transition-colors hover:border-[#c8c2c0] disabled:opacity-50"
                   disabled={!rankingEnabled}
                   onClick={() => setShowCriteriaBuilder((current) => !current)}
                 >
@@ -948,14 +958,14 @@ function AiCopilotScreen() {
             </div>
 
             {rankingLoading ? (
-              <div className="mb-3 flex items-center gap-2 border border-[#ffdad6] bg-[#fff8f7] px-3 py-2 text-[12px] text-[#8a2d1d]">
+              <div className="mb-3 flex items-center gap-2 rounded-[10px] border border-[#ffdad6] bg-[#fff8f7] px-3 py-2 text-[12px] text-[#8a2d1d]">
                 <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#e7bdb8] border-t-[#b90014]" />
                 <span>{loadingStatus || "AI đang đánh giá ứng viên..."}</span>
               </div>
             ) : null}
 
             <textarea
-              className="h-24 w-full resize-none rounded-2xl border border-[#e2dfde] bg-[#f3f3f3] p-4 pr-12 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="h-24 w-full resize-none rounded-2xl border border-[#dcd7d5] bg-[#faf9f8] p-4 pr-14 text-[14px] outline-none transition-all focus:border-[#b90014] focus:bg-white focus:ring-4 focus:ring-[#b90014]/10"
               placeholder={
                 rankingEnabled
                   ? "Yêu cầu xếp hạng, hoặc để trống để xếp hạng theo tiêu chí đang bật..."
@@ -966,7 +976,7 @@ function AiCopilotScreen() {
             />
             <button
               type="button"
-              className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#b90014] text-white shadow-[0_8px_20px_rgba(185,0,20,0.24)] disabled:opacity-50"
+              className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_8px_20px_rgba(185,0,20,0.24)] transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
               disabled={
                 rankingLoading ||
                 !conversation ||
@@ -987,27 +997,26 @@ function AiCopilotScreen() {
       </aside>
 
       {showCriteriaBuilder ? (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#1a1c1c]/35 px-4 backdrop-blur-sm">
-          <div className="max-h-[85vh] w-full max-w-[760px] overflow-auto rounded-[28px] border border-[#e2dfde] bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)]">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#1a1c1c]/40 px-4 backdrop-blur-sm">
+          <div className="animate-scale-in max-h-[85vh] w-full max-w-[760px] overflow-auto rounded-[20px] border border-[#ececec] bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.22)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Trình tạo tiêu chí
-                </p>
-                <h3 className="mt-2 text-[24px] font-semibold text-[#1a1c1c]">
+                <p className="eyebrow">Trình tạo tiêu chí</p>
+                <h3 className="mt-2 text-[22px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">
                   Tinh chỉnh tiêu chí đánh giá AI
                 </h3>
               </div>
               <button
                 type="button"
-                className="border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
+                className="btn btn-secondary h-9 px-3"
                 onClick={() => setShowCriteriaBuilder(false)}
               >
+                <span className="material-symbols-outlined text-[18px]">close</span>
                 Đóng
               </button>
             </div>
 
-            <div className="mt-4 border border-[#e2dfde] bg-[#faf7f6] p-4">
+            <div className="mt-4 rounded-[12px] border border-[#ececec] bg-[#faf9f8] p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
                   Tiêu chí hiện tại
@@ -1076,10 +1085,8 @@ function AiCopilotScreen() {
             </div>
 
             <div className="mt-6 grid gap-6 lg:grid-cols-2">
-              <div className="border border-[#e2dfde] p-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Tiêu chí ưu tiên
-                </p>
+              <div className="rounded-[12px] border border-[#ececec] p-4">
+                <p className="eyebrow text-emerald-700">Tiêu chí ưu tiên</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <CommonSelect
                     options={[
@@ -1111,7 +1118,7 @@ function AiCopilotScreen() {
                     }
                   />
                   <input
-                    className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
+                    className="input-field col-span-2 h-10 py-2 text-[13px]"
                     placeholder="Nhãn, ví dụ: Nền tảng .NET vững"
                     value={priorityDraft.label}
                     onChange={(event) =>
@@ -1122,7 +1129,7 @@ function AiCopilotScreen() {
                     }
                   />
                   <input
-                    className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
+                    className="input-field col-span-2 h-10 py-2 text-[13px]"
                     placeholder="Giá trị, ví dụ: .NET hoặc 3"
                     value={priorityDraft.value}
                     onChange={(event) =>
@@ -1135,9 +1142,10 @@ function AiCopilotScreen() {
                 </div>
                 <button
                   type="button"
-                  className="mt-3 border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
+                  className="btn btn-secondary mt-3 h-10"
                   onClick={addPriorityCriterion}
                 >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
                   Thêm tiêu chí ưu tiên
                 </button>
 
@@ -1161,10 +1169,8 @@ function AiCopilotScreen() {
                 ) : null}
               </div>
 
-              <div className="border border-[#e2dfde] p-4">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c]">
-                  Tiêu chí loại trừ
-                </p>
+              <div className="rounded-[12px] border border-[#ececec] p-4">
+                <p className="eyebrow text-[#ba1a1a]">Tiêu chí loại trừ</p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <CommonSelect
                     options={[
@@ -1194,7 +1200,7 @@ function AiCopilotScreen() {
                     }
                   />
                   <input
-                    className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
+                    className="input-field col-span-2 h-10 py-2 text-[13px]"
                     placeholder="Nhãn, ví dụ: Loại ứng viên thiếu bằng cấp"
                     value={negativeDraft.label}
                     onChange={(event) =>
@@ -1205,7 +1211,7 @@ function AiCopilotScreen() {
                     }
                   />
                   <input
-                    className="col-span-2 border border-[#e2dfde] px-3 py-2 text-[13px] outline-none focus:border-[#1a1c1c]"
+                    className="input-field col-span-2 h-10 py-2 text-[13px]"
                     placeholder="Giá trị, ví dụ: FPT"
                     value={negativeDraft.value}
                     onChange={(event) =>
@@ -1218,9 +1224,10 @@ function AiCopilotScreen() {
                 </div>
                 <button
                   type="button"
-                  className="mt-3 border border-[#1a1c1c] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
+                  className="btn btn-secondary mt-3 h-10"
                   onClick={addNegativeCriterion}
                 >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
                   Thêm tiêu chí loại trừ
                 </button>
 
@@ -1246,11 +1253,9 @@ function AiCopilotScreen() {
               </div>
             </div>
 
-            <div className="mt-6 border border-[#e2dfde] p-4">
+            <div className="mt-6 rounded-[12px] border border-[#ececec] p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8a2d1d]">
-                  Preset đã lưu
-                </p>
+                <p className="eyebrow text-[#8a2d1d]">Preset đã lưu</p>
                 <span className="text-[11px] text-[#5f5e5e]">Áp dụng hoặc xóa</span>
               </div>
               {savedRules.length === 0 ? (

@@ -2,7 +2,8 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import Badge from "../../common/components/Badge";
+import { Skeleton, SkeletonText } from "../../common/components/Skeleton";
 import {
   downloadProtectedFile,
   fetchProtectedFileBlob,
@@ -163,11 +164,9 @@ function SectionCard({
   action?: ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-[#e2dfde] bg-white shadow-sm">
-      <div className="flex items-center justify-between gap-4 border-b border-[#e2dfde] px-5 py-4">
-        <h2 className="text-[14px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
-          {title}
-        </h2>
+    <section className="card overflow-hidden">
+      <div className="flex items-center justify-between gap-4 border-b border-[#f0eceb] px-5 py-4">
+        <h2 className="section-title">{title}</h2>
         {action}
       </div>
       <div className="p-5">{children}</div>
@@ -184,10 +183,10 @@ function InfoItem({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7a7472]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
         {label}
       </p>
-      <div className="mt-1 break-words text-[14px] font-semibold text-[#1a1c1c]">
+      <div className="mt-1 break-words text-[14px] font-medium text-[#1a1c1c]">
         {value || "Chưa cập nhật"}
       </div>
     </div>
@@ -205,8 +204,8 @@ function SkillPill({
     <span
       className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
         tone === "brand"
-          ? "bg-[#b90014]/5 text-[#b90014]"
-          : "bg-[#005f93]/10 text-[#005f93]"
+          ? "bg-[#fff1f0] text-[#b90014]"
+          : "bg-sky-50 text-sky-700"
       }`}
     >
       {children}
@@ -372,17 +371,36 @@ function CandidateReviewDetailScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Đang tải chi tiết hồ sơ..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="flex items-center justify-between gap-4">
+          <Skeleton className="h-10 w-40 rounded-[10px]" />
+          <Skeleton className="h-10 w-32 rounded-[10px]" />
+        </div>
+        <div className="card space-y-4 p-6">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="card p-6">
+            <SkeletonText lines={8} />
+          </div>
+          <div className="card p-6">
+            <SkeletonText lines={6} />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!detail) {
     return (
-      <div className="w-full px-4 py-10 md:px-10">
-        <div className="rounded-[28px] border border-[#e2dfde] bg-white p-8 shadow-[0_24px_80px_rgba(26,28,28,0.08)]">
-          <h1 className="page-title">
+      <div className="app-container py-10">
+        <div className="surface-card p-10 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
+            <span className="material-symbols-outlined text-[32px]">folder_off</span>
+          </div>
+          <h1 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">
             Không tìm thấy chi tiết hồ sơ
           </h1>
           <p className="mt-2 text-sm text-[#5f5e5e]">
@@ -390,12 +408,10 @@ function CandidateReviewDetailScreen() {
           </p>
           <button
             type="button"
-            className="mt-6 inline-flex items-center gap-2 bg-[#1a1c1c] px-5 py-3 text-sm font-semibold text-white"
+            className="btn btn-dark mt-6"
             onClick={() => navigate(reviewRoutePrefix)}
           >
-            <span className="material-symbols-outlined text-base">
-              arrow_back
-            </span>
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Quay lại danh sách hồ sơ
           </button>
         </div>
@@ -415,114 +431,123 @@ function CandidateReviewDetailScreen() {
     ? buildPdfViewerUrl(resumePreviewBlobUrl)
     : null;
 
+  const candidateInitials = detail.candidate.fullName
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <div className="min-h-screen w-full bg-[#f9f9f9] px-4 py-8 md:px-10">
-      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="app-container animate-fade-in space-y-6 py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
-          className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#d6d1cf] bg-white px-4 py-2 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+          className="btn btn-secondary w-fit"
           onClick={() => navigate(reviewRoutePrefix)}
         >
-          <span className="material-symbols-outlined text-[18px]">
-            arrow_back
-          </span>
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Danh sách hồ sơ
         </button>
-        <div className="flex flex-wrap gap-2">
-          {canViewCv && resumeFile ? (
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#d6d1cf] bg-white px-4 py-2 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-              onClick={() => {
-                if (!resumeDownloadPath) return;
-                void downloadProtectedFile(
-                  resumeDownloadPath,
-                  resumeFile.fileName,
-                ).catch(() => toast.error("Không thể tải CV."));
-              }}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                download
-              </span>
-              Tải CV
-            </button>
-          ) : null}
-          {canSendOffer && detail.status.toLowerCase() === "offer" ? (
-            <Link
-              className="inline-flex items-center gap-2 rounded-lg bg-[#b90014] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#93000d]"
-              to={`/hr/applications/${detail.applicationId}/send-offer`}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {detail.offerStatus?.toLowerCase() === "sent"
-                  ? "edit_document"
-                  : "send"}
-              </span>
-              {detail.offerStatus ? "Quản lý offer" : "Tạo offer"}
-            </Link>
-          ) : null}
-        </div>
       </div>
 
-      <section className="mb-6 rounded-lg border border-[#e2dfde] bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-full border px-3 py-1 text-[12px] font-semibold ${getApplicationStatusBadgeClass(detail.status, "detail")}`}
-              >
-                {formatApplicationStatusVi(detail.status)}
-              </span>
-              <span className="rounded-full bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]">
-                {detail.stageLabel}
-              </span>
-              <span className="text-[13px] font-semibold text-[#5f5e5e]">
-                {detail.referenceCode}
-              </span>
+      {/* HERO SUMMARY */}
+      <section className="card animate-fade-in-up p-6">
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[18px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[22px] font-bold text-[#b90014]">
+              {candidateInitials}
             </div>
-            <h1 className="page-title">
-              <Link
-                className="transition-colors hover:text-[#b90014]"
-                to={`${candidateRoutePrefix}/${detail.candidate.id}`}
-              >
-                {detail.candidate.fullName}
-              </Link>
-            </h1>
-            <p className="page-subtitle">
-              <Link
-                className="font-semibold text-[#b90014] hover:underline"
-                to={`/jobs/${detail.job.id}`}
-              >
-                {detail.job.title}
-              </Link>{" "}
-              tại {detail.job.departmentName}
-            </p>
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span
+                  className={`badge border ${getApplicationStatusBadgeClass(detail.status, "detail")}`}
+                >
+                  {formatApplicationStatusVi(detail.status)}
+                </span>
+                <Badge tone="info">{detail.stageLabel}</Badge>
+                <span className="text-[12px] font-semibold text-[#8a8786]">
+                  {detail.referenceCode}
+                </span>
+              </div>
+              <h1 className="page-title">
+                <Link
+                  className="transition-colors hover:text-[#b90014]"
+                  to={`${candidateRoutePrefix}/${detail.candidate.id}`}
+                >
+                  {detail.candidate.fullName}
+                </Link>
+              </h1>
+              <p className="page-subtitle">
+                <Link
+                  className="font-semibold text-[#b90014] hover:underline"
+                  to={`/jobs/${detail.job.id}`}
+                >
+                  {detail.job.title}
+                </Link>{" "}
+                tại {detail.job.departmentName}
+              </p>
+            </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 xl:w-[520px]">
-            <div className="rounded-lg bg-[#f3f3f3] px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7a7472]">
-                Ngày nộp
-              </p>
-              <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
-                {formatDateLabel(detail.appliedAt)}
-              </p>
-            </div>
-            <div className="rounded-lg bg-[#f3f3f3] px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7a7472]">
-                Match
-              </p>
-              <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
-                {detail.insights.skillsMatchPercent}%
-              </p>
-            </div>
-            <div className="rounded-lg bg-[#f3f3f3] px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7a7472]">
-                Offer
-              </p>
-              <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
-                {formatOfferStatusVi(detail.offerStatus)}
-              </p>
-            </div>
+          <div className="flex flex-wrap gap-2.5 xl:shrink-0">
+            {canViewCv && resumeFile ? (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  if (!resumeDownloadPath) return;
+                  void downloadProtectedFile(
+                    resumeDownloadPath,
+                    resumeFile.fileName,
+                  ).catch(() => toast.error("Không thể tải CV."));
+                }}
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Tải CV
+              </button>
+            ) : null}
+            {canSendOffer && detail.status.toLowerCase() === "offer" ? (
+              <Link
+                className="btn btn-primary"
+                to={`/hr/applications/${detail.applicationId}/send-offer`}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {detail.offerStatus?.toLowerCase() === "sent"
+                    ? "edit_document"
+                    : "send"}
+                </span>
+                {detail.offerStatus ? "Quản lý offer" : "Tạo offer"}
+              </Link>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-3 border-t border-[#f0eceb] pt-6 sm:grid-cols-3">
+          <div className="rounded-[12px] bg-[#faf9f8] px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+              Ngày nộp
+            </p>
+            <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
+              {formatDateLabel(detail.appliedAt)}
+            </p>
+          </div>
+          <div className="rounded-[12px] bg-[#faf9f8] px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+              Match
+            </p>
+            <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
+              {detail.insights.skillsMatchPercent}%
+            </p>
+          </div>
+          <div className="rounded-[12px] bg-[#faf9f8] px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+              Offer
+            </p>
+            <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
+              {formatOfferStatusVi(detail.offerStatus)}
+            </p>
           </div>
         </div>
       </section>
@@ -771,11 +796,9 @@ function CandidateReviewDetailScreen() {
         </div>
 
         <aside className="space-y-6">
-          <section className="rounded-lg border border-[#e2dfde] bg-white p-5 shadow-sm xl:sticky xl:top-24">
+          <section className="card p-5 xl:sticky xl:top-24">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                Trạng thái hiện tại
-              </p>
+              <p className="eyebrow">Trạng thái hiện tại</p>
               <h2 className="mt-2 text-[22px] font-semibold text-[#1a1c1c]">
                 {formatApplicationStatusVi(detail.status)}
               </h2>
@@ -784,10 +807,8 @@ function CandidateReviewDetailScreen() {
               </p>
             </div>
 
-            <div className="mt-5 border-t border-[#e2dfde] pt-5">
-              <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                Hành động
-              </h3>
+            <div className="mt-5 border-t border-[#f0eceb] pt-5">
+              <h3 className="eyebrow">Hành động</h3>
               {availableDecisions.length ? (
                 <>
                   <PermissionGuard permissions={PERMISSIONS.APPLICATION_APPROVE}>
@@ -850,10 +871,8 @@ function CandidateReviewDetailScreen() {
               )}
             </div>
 
-            <div className="mt-5 border-t border-[#e2dfde] pt-5">
-              <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                Tóm tắt xử lý
-              </h3>
+            <div className="mt-5 border-t border-[#f0eceb] pt-5">
+              <h3 className="eyebrow">Tóm tắt xử lý</h3>
               <div className="mt-4 space-y-4">
                 <InfoItem
                   label="Người phụ trách"
@@ -867,16 +886,14 @@ function CandidateReviewDetailScreen() {
               </div>
             </div>
 
-            <div className="mt-5 border-t border-[#e2dfde] pt-5">
-              <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                Ghi chú gần đây
-              </h3>
+            <div className="mt-5 border-t border-[#f0eceb] pt-5">
+              <h3 className="eyebrow">Ghi chú gần đây</h3>
               <div className="mt-4 space-y-3">
                 {interviewNotes.length ? (
                   interviewNotes.slice(0, 2).map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-lg bg-[#f3f3f3] p-4 text-sm"
+                      className="rounded-[12px] bg-[#faf9f8] p-4 text-sm"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="font-semibold text-[#1a1c1c]">

@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
+import PageHeader from "../../common/components/PageHeader";
+import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -114,9 +115,7 @@ function buildJobTableColumns(
       renderCell: (job) => {
         const chip = approvalChip(job.approvalStatus);
         return (
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-[0.05em] ${chip.wrapper}`}
-          >
+          <span className={`badge ${chip.wrapper}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
             {job.approvalStatus}
           </span>
@@ -346,179 +345,177 @@ function JobManagementScreen() {
     setPage(safe);
   }
 
+  const statCards = [
+    {
+      label: "Job đang mở",
+      value: String(stats.activeJobs),
+      helper: "Đang mở trên hệ thống",
+      icon: "work",
+      iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]",
+    },
+    {
+      label: "Chờ duyệt",
+      value: String(stats.pendingApproval),
+      helper: "Cần xử lý",
+      icon: "pending_actions",
+      iconWrap: "from-amber-50 to-amber-100 text-amber-600",
+    },
+    {
+      label: "Tổng hồ sơ ứng tuyển",
+      value: String(stats.totalApplications),
+      helper: "Toàn bộ vị trí",
+      icon: "description",
+      iconWrap: "from-sky-50 to-sky-100 text-sky-600",
+    },
+    {
+      label: "Thời gian tuyển",
+      value: `${stats.timeToHireDays}d`,
+      helper: "Trung bình",
+      icon: "timelapse",
+      iconWrap: "from-emerald-50 to-emerald-100 text-emerald-600",
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Đang tải danh sách job..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <div className="surface-card h-96" />
       </div>
     );
   }
 
   return (
-    <div className="w-full flex-grow px-4 py-6 md:px-10">
+    <div className="app-container animate-fade-in flex-grow py-8">
       {/* Header section */}
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-            Quản lý job
-          </h2>
-        </div>
-
-        <button
-          type="button"
-          className="flex items-center gap-2 bg-[#b90014] px-6 py-3 text-[14px] font-semibold text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
-          onClick={openNewJobModal}
-          disabled={!canCreateJobs}
-        >
-          <span className="material-symbols-outlined">add</span>
-          Đăng job mới
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Tuyển dụng"
+        icon="work"
+        title="Quản lý job"
+        subtitle="Quản lý tin tuyển dụng, theo dõi trạng thái duyệt và lượng hồ sơ ứng tuyển."
+        className="mb-7"
+        actions={
+          <PermissionGuard permissions={PERMISSIONS.JOB_CREATE}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={openNewJobModal}
+              disabled={!canCreateJobs}
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              <span>Đăng job mới</span>
+            </button>
+          </PermissionGuard>
+        }
+      />
 
       {/* Stats summary */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Job đang mở
-          </p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-              {stats.activeJobs}
-            </span>
+      <div className="stagger mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((card) => (
+          <div key={card.label} className="stat-card group">
+            <div className="flex items-start gap-4">
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br ${card.iconWrap} transition-transform duration-200 group-hover:scale-105`}
+              >
+                <span className="material-symbols-outlined text-[24px]">
+                  {card.icon}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="eyebrow">{card.label}</p>
+                <h3 className="mt-2 text-[30px] font-bold leading-none tracking-[-0.02em] text-[#1a1c1c]">
+                  {card.value}
+                </h3>
+                <p className="mt-2 text-[13px] leading-5 text-[#5f5e5e]">
+                  {card.helper}
+                </p>
+              </div>
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* Filter / toolbar row */}
+      <div className="card mb-4 flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-row lg:items-center">
+          <CommonSelect
+            className="h-[42px] min-w-[180px] text-sm"
+            wrapperClassName="w-full lg:w-auto"
+            options={departmentOptions.map((department) => ({
+              label: department,
+              value: department,
+            }))}
+            value={departmentFilter}
+            onChange={(e) => {
+              setDepartmentFilter(e.target.value);
+              resetToFirstPage();
+            }}
+          />
+          <CommonSelect
+            className="h-[42px] min-w-[180px] text-sm"
+            wrapperClassName="w-full lg:w-auto"
+            options={creatorOptions}
+            value={creatorFilter}
+            onChange={(e) => {
+              setCreatorFilter(e.target.value);
+              resetToFirstPage();
+            }}
+          />
+          <CommonSelect
+            className="h-[42px] min-w-[170px] text-sm"
+            wrapperClassName="w-full lg:w-auto"
+            options={statusOptions.map((s) => ({ label: s, value: s }))}
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              resetToFirstPage();
+            }}
+          />
         </div>
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Chờ duyệt
-          </p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-              {stats.pendingApproval}
-            </span>
-            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">
-              Cần xử lý
-            </span>
-          </div>
-        </div>
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Tổng hồ sơ ứng tuyển
-          </p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-              {stats.totalApplications}
-            </span>
-            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-              Toàn bộ vị trí
-            </span>
-          </div>
-        </div>
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Thời gian tuyển
-          </p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-              {stats.timeToHireDays}d
-            </span>
-            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#004b74]">
-              Trung bình
-            </span>
-          </div>
+
+        <div className="shrink-0 text-[12px] font-semibold tracking-[0.04em] text-[#5f5e5e]">
+          Hiển thị{" "}
+          <span className="font-bold text-[#1a1c1c]">
+            {rangeStart}-{rangeEnd}
+          </span>{" "}
+          trên tổng{" "}
+          <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
         </div>
       </div>
 
-      {/* Table container */}
-      <section className="overflow-hidden border border-[#e7bdb8] bg-[#f9f9f9]">
-        <div className="flex flex-col gap-4 border-b border-[#e7bdb8] bg-white px-6 py-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
-              <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                Lọc theo:
-              </span>
-              <CommonSelect
-                className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
-                wrapperClassName="min-w-[190px]"
-                options={departmentOptions.map((department) => ({
-                  label: department,
-                  value: department,
-                }))}
-                value={departmentFilter}
-                onChange={(e) => {
-                  setDepartmentFilter(e.target.value);
-                  resetToFirstPage();
-                }}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
-              <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                Người tạo:
-              </span>
-              <CommonSelect
-                className="h-9 min-w-[190px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
-                wrapperClassName="min-w-[190px]"
-                options={creatorOptions}
-                value={creatorFilter}
-                onChange={(e) => {
-                  setCreatorFilter(e.target.value);
-                  resetToFirstPage();
-                }}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 border border-[#e7bdb8] bg-[#f9f9f9] px-3 py-1">
-              <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                Trạng thái:
-              </span>
-              <CommonSelect
-                className="h-9 min-w-[170px] border-none bg-transparent px-0 pr-8 text-[12px] font-semibold tracking-[0.05em] shadow-none focus:ring-0"
-                wrapperClassName="min-w-[170px]"
-                options={statusOptions.map((s) => ({ label: s, value: s }))}
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  resetToFirstPage();
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-            Hiển thị{" "}
-            <span className="font-bold text-[#1a1c1c]">
-              {rangeStart}-{rangeEnd}
-            </span>{" "}
-            trên tổng{" "}
-            <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
-          </div>
-        </div>
-
-        <CommonTable
-          columns={buildJobTableColumns(openJobDetail, openEdit, deleteJob, {
-            canDeleteJobs,
-            canEditJobs,
-            canViewApplications,
-          })}
-          data={pageSlice}
-          keyExtractor={(item) => item.id}
-          loading={loading}
-          emptyMessage="Không tìm thấy job phù hợp bộ lọc hiện tại."
-          zebra
-          hover
-          tableWrapperClassName="border border-[#e7bdb8] bg-white"
-          pagination={{
-            enabled: true,
-            currentPage,
-            totalPages,
-            totalItems,
-            rangeStart,
-            rangeEnd,
-            onPageChange: goToPage,
-          }}
-          showPagination
-        />
-      </section>
+      {/* Job table */}
+      <CommonTable
+        columns={buildJobTableColumns(openJobDetail, openEdit, deleteJob, {
+          canDeleteJobs,
+          canEditJobs,
+          canViewApplications,
+        })}
+        data={pageSlice}
+        keyExtractor={(item) => item.id}
+        loading={loading}
+        emptyMessage="Không tìm thấy job phù hợp bộ lọc hiện tại."
+        emptyIcon="work_off"
+        hover
+        onRowClick={(item) => openJobDetail(item)}
+        pagination={{
+          enabled: true,
+          currentPage,
+          totalPages,
+          totalItems,
+          rangeStart,
+          rangeEnd,
+          onPageChange: goToPage,
+        }}
+        showPagination
+      />
     </div>
   );
 }

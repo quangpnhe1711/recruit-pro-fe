@@ -66,8 +66,9 @@ function LandingPageScreen() {
           </div>
 
           <div className="relative z-10 w-full px-4 md:px-[40px]  ">
-            <div className="max-w-3xl">
-              <span className="inline-block px-4 py-1 bg-[#b90014] text-white text-[12px] font-semibold tracking-[0.05em] mb-6">
+            <div className="max-w-3xl animate-fade-in-up">
+              <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[12px] font-semibold tracking-[0.05em] text-white backdrop-blur-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#ff857c]" />
                 CỔNG NỘI BỘ
               </span>
               <h1 className="text-white text-[44px] md:text-[64px] leading-[1.1] font-extrabold tracking-tight mb-8">
@@ -85,17 +86,19 @@ function LandingPageScreen() {
                 {hero?.subtitle ??
                   "Khám phá các cơ hội nội bộ nổi bật và tiến thêm một bước trong hành trình nghề nghiệp cùng đội ngũ bạn đã hiểu và tin tưởng."}
               </p>
-              <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/candidate/jobs"
-                  className="px-8 py-4 bg-[#b90014] text-white font-bold text-[12px] tracking-[0.05em] hover:scale-[1.02] transition-transform active:scale-95 text-center"
+                  className="premium-action inline-flex items-center justify-center gap-2 rounded-[12px] bg-gradient-to-b from-[#e8242c] to-[#c50f1b] px-7 py-4 text-[14px] font-bold text-white shadow-[0_16px_36px_-10px_rgba(227,27,35,0.6)] transition-all hover:from-[#f0353d] hover:to-[#d11420]"
                 >
                   Xem vị trí đang tuyển
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Link>
                 <Link
                   to="/internal/login"
-                  className="px-8 py-4 bg-white text-[#1A1A1A] font-bold text-[12px] tracking-[0.05em] border border-[#1A1A1A] hover:bg-gray-100 transition-colors text-center"
+                  className="premium-action inline-flex items-center justify-center gap-2 rounded-[12px] border border-white/30 bg-white/10 px-7 py-4 text-[14px] font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20"
                 >
+                  <span className="material-symbols-outlined text-[18px]">lock</span>
                   Cổng nội bộ
                 </Link>
               </div>
@@ -157,47 +160,40 @@ function LandingPageScreen() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="stagger grid grid-cols-1 gap-6 md:grid-cols-3">
               {featuredJobs.map((job, index) => (
-                <div
-                  key={job.id}
-                  className="bg-white border border-[#e2dfde] p-8 hover:border-[#b90014] transition-colors group"
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="bg-[#eeeeee] p-3">
-                      <span className="material-symbols-outlined text-[#b90014]">
+                <div key={job.id} className="card-interactive group flex flex-col p-7">
+                  <div className="mb-6 flex items-start justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+                      <span className="material-symbols-outlined">
                         {index % 3 === 0 ? "engineering" : index % 3 === 1 ? "campaign" : "monitoring"}
                       </span>
                     </div>
                     <span
-                      className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                        job.tag === "Mới" ? "bg-[#b90014]/10 text-[#b90014]" : "bg-[#eeeeee] text-[#5f5e5e]"
+                      className={`badge ${
+                        job.tag === "Mới" ? "bg-[#fff1f0] text-[#b90014]" : "bg-[#f2efed] text-[#5f5e5e]"
                       }`}
                     >
                       {job.tag}
                     </span>
                   </div>
-                  <h3 className="text-[20px] leading-7 font-semibold text-[#1a1c1c] mb-2 group-hover:text-[#b90014] transition-colors">
+                  <h3 className="mb-1.5 text-[19px] font-semibold leading-snug tracking-[-0.01em] text-[#1a1c1c] transition-colors group-hover:text-[#b90014]">
                     {job.title}
                   </h3>
-                  <p className="text-[#5f5e5e] text-[14px] leading-5 mb-6">
-                    {job.department} | {job.location}
+                  <p className="mb-5 flex items-center gap-1.5 text-[13px] text-[#5f5e5e]">
+                    <span className="material-symbols-outlined text-[16px]">apartment</span>
+                    {job.department} · {job.location}
                   </p>
-                  <div className="flex flex-wrap gap-2 mb-8">
+                  <div className="mb-7 flex flex-wrap gap-2">
                     {[job.workMode, job.employmentType].map((chip) => (
-                      <span
-                        key={chip}
-                        className="bg-[#f3f3f3] px-2 py-1 text-[11px] font-bold text-[#5d3f3c] uppercase"
-                      >
+                      <span key={chip} className="badge bg-[#f2efed] text-[#5f5e5e]">
                         {chip}
                       </span>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    className="w-full py-3 border border-[#1A1A1A] font-bold text-[12px] cursor-pointer tracking-[0.05em] hover:bg-[#1A1A1A] hover:text-white transition-all"
-                  >
+                  <button type="button" className="btn btn-secondary mt-auto w-full">
                     Ứng tuyển ngay
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                   </button>
                 </div>
               ))}

@@ -3,7 +3,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import PageHeader from "../../common/components/PageHeader";
+import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import {
   formatApplicationStatus,
   getApplicationStatusBadgeClass,
@@ -208,8 +209,16 @@ function ManagerCandidateReviewListScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Đang tải hàng chờ review..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <div className="card h-96" />
       </div>
     );
   }
@@ -243,87 +252,85 @@ function ManagerCandidateReviewListScreen() {
   }
 
   return (
-    <div className="w-full px-4 py-10 md:px-10">
-      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Hàng chờ review cuối
-          </h1>
-          <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Các ứng viên đã đủ ngữ cảnh phỏng vấn và sẵn sàng cho bước review cuối của quản lý.
-          </p>
-        </div>
+    <div className="app-container animate-fade-in space-y-6 py-8">
+      <PageHeader
+        eyebrow="Quản lý tuyển dụng"
+        icon="how_to_reg"
+        title="Hàng chờ review cuối"
+        subtitle="Các ứng viên đã đủ ngữ cảnh phỏng vấn và sẵn sàng cho bước review cuối của quản lý."
+        actions={
+          <>
+            <div className="relative w-full sm:w-auto">
+              <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+                search
+              </span>
+              <input
+                className="input-field min-w-[260px] pl-10"
+                placeholder="Tìm theo ứng viên hoặc tiêu đề job..."
+                type="text"
+                value={keyword}
+                onChange={(event) => {
+                  setPage(1);
+                  setKeyword(event.target.value);
+                }}
+              />
+            </div>
+            <button type="button" className="btn btn-secondary" onClick={exportCurrentPage}>
+              <span className="material-symbols-outlined text-[18px]">download</span>
+              Xuất CSV
+            </button>
+          </>
+        }
+      />
 
-        <div className="flex flex-wrap gap-3">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f5e5e]">
-              search
-            </span>
-            <input
-              className="w-full min-w-[280px] rounded-lg border border-[#e2dfde] bg-white py-3 pl-10 pr-4 text-sm outline-none transition-colors focus:border-[#1a1c1c]"
-              placeholder="Tìm theo ứng viên hoặc tiêu đề job..."
-              type="text"
-              value={keyword}
-              onChange={(event) => {
-                setPage(1);
-                setKeyword(event.target.value);
-              }}
-            />
-          </div>
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#e2dfde] bg-white px-4 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-            onClick={exportCurrentPage}
-          >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Xuất CSV
-          </button>
-        </div>
-      </div>
-
-      <div className="mb-10 grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
-        <div className="flex items-center justify-between rounded-xl border border-[#e2dfde] bg-white p-6">
+      <div className="stagger grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+        <div className="card flex flex-col items-start justify-between gap-6 p-6 sm:flex-row sm:items-center">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-              Trạng thái xử lý
-            </p>
-            <p className="mt-3 text-[48px] font-bold leading-[56px] tracking-[-0.02em] text-[#b90014]">
+            <p className="eyebrow">Trạng thái xử lý</p>
+            <p className="mt-3 text-[48px] font-bold leading-none tracking-[-0.02em] text-[#b90014]">
               {summary.pendingFinalApprovals}
             </p>
-            <p className="mt-2 text-sm text-[#5d3f3c]">
+            <p className="mt-2.5 text-[13px] leading-5 text-[#5f5e5e]">
               Số hồ sơ đang chờ quyết định cuối trong hàng chờ hiện tại.
             </p>
           </div>
 
-          <div className="flex gap-8 border-l border-[#e2dfde] pl-8">
+          <div className="flex gap-8 border-t border-[#f0eceb] pt-4 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
             <div className="text-center">
-              <p className="text-[20px] font-semibold text-[#005f93]">{summary.recommendedCount}</p>
-              <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
+              <p className="text-[24px] font-bold text-sky-600">{summary.recommendedCount}</p>
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8786]">
                 Đề xuất
               </p>
             </div>
             <div className="text-center">
-              <p className="text-[20px] font-semibold text-[#ba1a1a]">{summary.flaggedCount}</p>
-              <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
+              <p className="text-[24px] font-bold text-[#ba1a1a]">{summary.flaggedCount}</p>
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8786]">
                 Cần lưu ý
               </p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl bg-[#1a1a1a] p-6 text-white">
-          <div className="flex items-start justify-between">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">
-              Điểm trung bình
+        <div className="relative overflow-hidden rounded-[16px] bg-gradient-to-br from-[#232525] to-[#161718] p-6 text-white">
+          <div className="relative z-10">
+            <div className="flex items-start justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
+                Điểm trung bình
+              </p>
+              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/10">
+                <span className="material-symbols-outlined">trending_up</span>
+              </div>
+            </div>
+            <p className="mt-8 text-[34px] font-bold leading-none tracking-[-0.01em]">
+              {summary.averageScore.toFixed(1)} / 5.0
             </p>
-            <span className="material-symbols-outlined text-[#b90014]">trending_up</span>
+            <p className="mt-2.5 text-[13px] leading-5 text-white/70">
+              Tính từ mức độ phù hợp kỹ năng, số vòng đã hoàn tất và độ đầy đủ ghi chú.
+            </p>
           </div>
-          <p className="mt-8 text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-            {summary.averageScore.toFixed(1)} / 5.0
-          </p>
-          <p className="mt-2 text-sm text-white/70">
-            Tính từ mức độ phù hợp kỹ năng, số vòng đã hoàn tất và độ đầy đủ ghi chú.
-          </p>
+          <div className="absolute bottom-[-24px] right-[-24px] opacity-[0.07]">
+            <span className="material-symbols-outlined text-[140px]">trending_up</span>
+          </div>
         </div>
       </div>
 
@@ -333,10 +340,11 @@ function ManagerCandidateReviewListScreen() {
         keyExtractor={(item) => item.applicationId}
         loading={loading}
         emptyMessage="Hiện chưa có ứng viên chờ quản lý review."
+        emptyIcon="how_to_reg"
         zebra
         hover
         onRowClick={(item) => navigate(`/manager/applications/${item.applicationId}`)}
-        tableWrapperClassName="overflow-hidden rounded-xl border border-[#e2dfde] bg-white"
+        tableWrapperClassName="overflow-hidden rounded-[16px] border border-[#ececec] bg-white"
         pagination={{
           enabled: true,
           currentPage: page,

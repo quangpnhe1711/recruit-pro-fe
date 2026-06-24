@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { Skeleton } from "../../common/components/Skeleton";
+import EmptyState from "../../common/components/EmptyState";
 import { openProtectedFileInNewTab } from "../../common/utils/protectedFile";
 import { buildResumePreviewPath } from "../../common/utils/resumeLinks";
 import type { ApplyJobResponseDto, ApplyJobScreenDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
-
-function Icon({ name }: { name: string }) {
-  return <span className="material-symbols-outlined">{name}</span>;
-}
 
 function formatUploadedAt(value?: string | null) {
   if (!value) return "Hãy tải lên CV mới nhất";
@@ -103,27 +100,41 @@ function ApplyJobScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Đang tải form ứng tuyển..." />
-      </div>
+      <section className="app-container animate-fade-in py-8">
+        <Skeleton className="h-5 w-44" />
+        <div className="mt-6 grid gap-6 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-8">
+            <Skeleton className="h-32 w-full rounded-[16px]" />
+            <Skeleton className="h-56 w-full rounded-[16px]" />
+            <Skeleton className="h-40 w-full rounded-[16px]" />
+          </div>
+          <div className="space-y-6 lg:col-span-4">
+            <Skeleton className="h-96 w-full rounded-[16px]" />
+          </div>
+        </div>
+      </section>
     );
   }
 
   if (!screenData) {
     return (
-      <section className="w-full px-4 py-10 md:px-10">
-        <div className="border border-[#e2dfde] bg-white p-8 text-center">
-          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Không thể ứng tuyển</h1>
-          <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Hiện chưa thể tải màn hình ứng tuyển này.
-          </p>
-          <button
-            type="button"
-            className="mt-6 bg-[#b90014] px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.05em] text-white"
-            onClick={() => navigate(`/jobs/${jobId}`)}
-          >
-            Quay lại tin tuyển dụng
-          </button>
+      <section className="app-container animate-fade-in py-8">
+        <div className="card">
+          <EmptyState
+            icon="error"
+            title="Không thể ứng tuyển"
+            description="Hiện chưa thể tải màn hình ứng tuyển này."
+            action={
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => navigate(`/jobs/${jobId}`)}
+              >
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                Quay lại tin tuyển dụng
+              </button>
+            }
+          />
         </div>
       </section>
     );
@@ -133,60 +144,71 @@ function ApplyJobScreen() {
 
   return (
     <>
-      <section className="w-full px-4 py-8 md:px-10">
+      <section className="app-container animate-fade-in py-8">
         <button
           type="button"
-          className="mb-6 inline-flex items-center gap-2 text-[14px] text-[#5d3f3c] transition-colors hover:text-[#b90014]"
+          className="btn btn-ghost mb-5 px-3 py-2"
           onClick={() => navigate(`/jobs/${jobId}`)}
         >
-          <Icon name="arrow_back" />
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Quay lại tin tuyển dụng
         </button>
 
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-8">
-            <section className="border border-[#e7bdb8] bg-white p-8">
-              <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-                Ứng tuyển vị trí {job.title}
-              </h1>
-              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-[14px] text-[#5d3f3c]">
-                <div className="flex items-center gap-2">
-                  <Icon name="corporate_fare" />
-                  <span>{job.departmentName}</span>
+            <section className="card overflow-hidden">
+              <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-7">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[16px] bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[var(--shadow-brand)]">
+                  <span className="material-symbols-outlined text-[34px]">work</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="location_on" />
-                  <span>{job.location} ({job.workMode})</span>
+                <div className="min-w-0">
+                  <p className="eyebrow mb-1.5">Đơn ứng tuyển</p>
+                  <h1 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1c] md:text-[28px]">
+                    Ứng tuyển vị trí {job.title}
+                  </h1>
+                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[14px] text-[#5f5e5e]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-[#b90014]">corporate_fare</span>
+                      <span>{job.departmentName}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-[#b90014]">location_on</span>
+                      <span>{job.location} ({job.workMode})</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
 
             {!eligibility.canApply ? (
-              <section className="border border-[#ffdad6] bg-[#fff5f4] p-6">
+              <section className="rounded-[16px] border border-[#ffdad6] bg-[#fff1f0] p-5 sm:p-6">
                 <div className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-[#ba1a1a]">error</span>
-                  <div>
-                    <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Không thể ứng tuyển</h2>
-                    <p className="mt-2 text-[14px] text-[#5d3f3c]">{eligibility.guidanceMessage}</p>
-                    <ul className="mt-4 space-y-2 text-[14px] text-[#5d3f3c]">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[#ba1a1a]">
+                    <span className="material-symbols-outlined">error</span>
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Không thể ứng tuyển</h2>
+                    <p className="mt-1.5 text-[14px] text-[#5f5e5e]">{eligibility.guidanceMessage}</p>
+                    <ul className="mt-4 space-y-2 text-[14px] text-[#1a1c1c]">
                       {eligibility.blockers.map((blocker) => (
                         <li key={blocker} className="flex items-start gap-2">
-                          <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#b90014]" />
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b90014]" />
                           <span>{blocker}</span>
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-5 flex flex-wrap gap-3">
+                    <div className="mt-5 flex flex-wrap gap-2.5">
                       <Link
                         to={candidateProfile.editProfilePath}
-                        className="bg-[#b90014] px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.05em] text-white"
+                        className="btn btn-primary"
                       >
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
                         Cập nhật hồ sơ
                       </Link>
                       {eligibility.alreadyApplied ? (
                         <button
                           type="button"
-                          className="border border-[#1a1c1c] bg-white px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c]"
+                          className="btn btn-secondary"
                           onClick={() => navigate("/candidate/my-applications")}
                         >
                           Xem đơn ứng tuyển
@@ -198,9 +220,9 @@ function ApplyJobScreen() {
               </section>
             ) : null}
 
-            <section className="border border-[#e7bdb8] bg-white p-6">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Hồ sơ của bạn</h2>
+            <section className="card p-5 sm:p-6">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="section-title">Hồ sơ của bạn</h2>
                 <Link
                   to={candidateProfile.editProfilePath}
                   className="text-[14px] font-semibold text-[#b90014] hover:underline"
@@ -209,86 +231,80 @@ function ApplyJobScreen() {
                 </Link>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                    Họ và tên
-                  </label>
-                  <div className="mt-2 border border-[#e7bdb8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
+                  <label className="field-label">Họ và tên</label>
+                  <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
                     {candidateProfile.fullName}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                    Email
-                  </label>
-                  <div className="mt-2 border border-[#e7bdb8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
+                  <label className="field-label">Email</label>
+                  <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
                     {candidateProfile.email}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                    Số điện thoại
-                  </label>
-                  <div className="mt-2 border border-[#e7bdb8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
+                  <label className="field-label">Số điện thoại</label>
+                  <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
                     {candidateProfile.phone || "Bổ sung số điện thoại"}
                   </div>
                 </div>
                 <div>
-                  <label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">
-                    Vị trí hiện tại
-                  </label>
-                  <div className="mt-2 border border-[#e7bdb8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
+                  <label className="field-label">Vị trí hiện tại</label>
+                  <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
                     {candidateProfile.currentPosition || "Cập nhật tiêu đề nghề nghiệp"}
                   </div>
                 </div>
               </div>
             </section>
 
-            <section className="border border-[#e7bdb8] bg-white p-6">
-              <h2 className="text-[20px] font-semibold text-[#1a1c1c]">CV / Hồ sơ</h2>
+            <section className="card p-5 sm:p-6">
+              <h2 className="section-title">CV / Hồ sơ</h2>
               {resume ? (
-                <div className="mt-4 flex flex-col gap-4 border border-dashed border-[#926e6b] bg-[#f9f9f9] p-4 md:flex-row md:items-center md:justify-between">
+                <div className="mt-4 flex flex-col gap-4 rounded-[12px] border border-[#ececec] bg-[#faf8f8] p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="rounded bg-[#ffdad6] p-2 text-[#b90014]">
-                      <Icon name="description" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+                      <span className="material-symbols-outlined text-[24px]">description</span>
                     </div>
-                    <div>
-                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{resume.fileName}</p>
-                      <p className="text-[12px] text-[#5f5e5e]">{formatUploadedAt(resume.uploadedAt)}</p>
+                    <div className="min-w-0">
+                      <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">{resume.fileName}</p>
+                      <p className="text-[12px] text-[#8a8786]">{formatUploadedAt(resume.uploadedAt)}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
-                      className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c] hover:text-[#b90014]"
+                      className="btn btn-secondary px-3 py-2 text-[13px]"
                       onClick={() => {
                         void openProtectedFileInNewTab(
                           buildResumePreviewPath(resume.resumeId, resume.fileUrl),
                         ).catch(() => toast.error("Không thể mở CV."));
                       }}
                     >
+                      <span className="material-symbols-outlined text-[18px]">visibility</span>
                       Xem trước
                     </button>
                     <Link
                       to={candidateProfile.editProfilePath}
-                      className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#b90014] hover:underline"
+                      className="btn btn-ghost px-3 py-2 text-[13px]"
                     >
                       Đổi file
                     </Link>
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 border border-dashed border-[#ba1a1a] bg-[#fff5f4] p-4 text-[14px] text-[#5d3f3c]">
-                  Bạn chưa tải CV lên. Hãy cập nhật hồ sơ trước khi ứng tuyển.
+                <div className="mt-4 flex items-start gap-3 rounded-[12px] border border-dashed border-[#ffb3ac] bg-[#fff1f0] p-4 text-[14px] text-[#1a1c1c]">
+                  <span className="material-symbols-outlined text-[20px] text-[#ba1a1a]">upload_file</span>
+                  <span>Bạn chưa tải CV lên. Hãy cập nhật hồ sơ trước khi ứng tuyển.</span>
                 </div>
               )}
             </section>
 
-            <section className="border border-[#e7bdb8] bg-white p-6">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Thư giới thiệu / Ghi chú cho tuyển dụng</h2>
-                <span className="text-[12px] text-[#5f5e5e]">Không bắt buộc</span>
+            <section className="card p-5 sm:p-6">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="section-title">Thư giới thiệu / Ghi chú cho tuyển dụng</h2>
+                <span className="badge bg-[#f2efed] text-[#8a8786]">Không bắt buộc</span>
               </div>
               <textarea
                 value={coverLetter}
@@ -296,49 +312,51 @@ function ApplyJobScreen() {
                 rows={5}
                 maxLength={2000}
                 placeholder="Chia sẻ vì sao bạn phù hợp với vị trí này..."
-                className="w-full resize-none border border-[#926e6b] bg-white px-4 py-3 text-[14px] text-[#1a1c1c] outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
+                className="input-field resize-none"
               />
-              <p className="mt-2 text-[12px] text-[#5f5e5e]">
-                Ghi chú này là tùy chọn. Hiện schema database chưa lưu cover letter.
-              </p>
-              <p className="mt-2 text-right text-[12px] text-[#5f5e5e]">{coverLetter.length}/2000</p>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[12px] text-[#8a8786]">
+                  Ghi chú này là tùy chọn. Hiện schema database chưa lưu cover letter.
+                </p>
+                <p className="text-[12px] text-[#8a8786]">{coverLetter.length}/2000</p>
+              </div>
             </section>
           </div>
 
           <div className="space-y-6 lg:col-span-4">
-            <section className="overflow-hidden border border-[#e7bdb8] bg-white">
-              <div className="flex h-32 items-center justify-center bg-[#b90014] text-white">
-                <span className="material-symbols-outlined text-[56px]">terminal</span>
+            <section className="card overflow-hidden lg:sticky lg:top-24">
+              <div className="flex h-28 items-center justify-center bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white">
+                <span className="material-symbols-outlined text-[52px]">terminal</span>
               </div>
 
               <div className="p-6">
-                <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Tóm tắt công việc</h2>
-                <div className="mt-6 space-y-5">
-                  <div className="flex items-start gap-4">
-                    <Icon name="payments" />
+                <h2 className="section-title">Tóm tắt công việc</h2>
+                <div className="mt-5 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[20px] text-[#b90014]">payments</span>
                     <div>
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">Mức lương</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">Mức lương</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.salaryLabel}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Icon name="schedule" />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[20px] text-[#b90014]">schedule</span>
                     <div>
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">Loại hình</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">Loại hình</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.employmentType}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Icon name="groups" />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[20px] text-[#b90014]">groups</span>
                     <div>
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">Số lượng tuyển</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">Số lượng tuyển</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.vacancyCount} vị trí</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <Icon name="event" />
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[20px] text-[#b90014]">event</span>
                     <div>
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5d3f3c]">Hạn nộp</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">Hạn nộp</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{formatDeadline(job.deadline)}</p>
                     </div>
                   </div>
@@ -347,7 +365,7 @@ function ApplyJobScreen() {
                 <AsyncActionButton
                   type="button"
                   disabled={!eligibility.canApply || submitting}
-                  className="mt-8 w-full bg-[#b90014] px-4 py-4 text-[16px] font-bold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="btn btn-primary mt-6 w-full py-3.5 text-[15px]"
                   onClick={handleSubmit}
                   loading={submitting}
                   loadingText="Đang nộp..."
@@ -356,7 +374,7 @@ function ApplyJobScreen() {
                 </AsyncActionButton>
                 <button
                   type="button"
-                  className="mt-4 w-full text-center text-[14px] font-semibold text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+                  className="btn btn-ghost mt-2 w-full"
                   onClick={() => navigate(`/jobs/${jobId}`)}
                 >
                   Hủy
@@ -364,11 +382,11 @@ function ApplyJobScreen() {
               </div>
             </section>
 
-            <section className="flex items-start gap-4 border border-[#e2dfde] bg-[#cde5ff] p-5">
+            <section className="flex items-start gap-3 rounded-[16px] border border-[#cde5ff] bg-[#eaf4ff] p-5">
               <span className="material-symbols-outlined text-[#005f93]">info</span>
               <div>
                 <p className="text-[14px] font-semibold text-[#001d32]">Cần hỗ trợ?</p>
-                <p className="mt-1 text-[12px] leading-5 text-[#004b74]">
+                <p className="mt-1 text-[13px] leading-5 text-[#004b74]">
                   {eligibility.guidanceMessage || "Đội ngũ tuyển dụng thường xem xét hồ sơ trong 3-5 ngày làm việc."}
                 </p>
               </div>
@@ -378,28 +396,28 @@ function ApplyJobScreen() {
       </section>
 
       {successResult ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm">
-          <div className="w-full max-w-md border border-[#e2dfde] bg-white p-8 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1c1c]/40 p-6 backdrop-blur-sm animate-fade-in">
+          <div className="animate-scale-in w-full max-w-md rounded-[16px] border border-[#ececec] bg-white p-8 text-center shadow-[var(--shadow-lg)]">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
               <span className="material-symbols-outlined text-[40px]">check_circle</span>
             </div>
-            <h2 className="mt-6 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+            <h2 className="mt-6 text-[26px] font-semibold leading-9 tracking-[-0.01em] text-[#1a1c1c]">
               Đã nộp đơn!
             </h2>
-            <p className="mt-4 text-[14px] leading-6 text-[#5d3f3c]">
+            <p className="mt-3 text-[14px] leading-6 text-[#5f5e5e]">
               Đơn ứng tuyển cho vị trí {job.title} đã được gửi thành công.
             </p>
-            <div className="mt-8 space-y-3">
+            <div className="mt-7 space-y-2.5">
               <button
                 type="button"
-                className="w-full bg-[#1a1c1c] px-4 py-3 text-[14px] font-semibold text-white"
+                className="btn btn-dark w-full py-3"
                 onClick={() => navigate("/candidate/my-applications")}
               >
                 Xem đơn ứng tuyển
               </button>
               <button
                 type="button"
-                className="w-full border border-[#1a1c1c] bg-white px-4 py-3 text-[14px] font-semibold text-[#1a1c1c]"
+                className="btn btn-secondary w-full py-3"
                 onClick={() => navigate("/jobs")}
               >
                 Xem thêm việc làm

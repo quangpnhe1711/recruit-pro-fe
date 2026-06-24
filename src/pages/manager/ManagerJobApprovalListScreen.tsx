@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import CommonTable, { type TableColumn } from "../../common/components/CommonTable";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import PageHeader from "../../common/components/PageHeader";
+import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 
@@ -23,13 +24,13 @@ function formatDateLabel(value: string | null) {
 function statusBadge(status: string) {
   switch (status.toLowerCase()) {
     case "pendingapproval":
-      return "bg-[#cde5ff] text-[#004b74]";
+      return "bg-sky-50 text-sky-700";
     case "approved":
       return "bg-emerald-50 text-emerald-700";
     case "rejected":
-      return "bg-red-50 text-red-700";
+      return "bg-rose-50 text-rose-700";
     default:
-      return "bg-[#f3f3f3] text-[#5f5e5e]";
+      return "bg-[#f2efed] text-[#5f5e5e]";
   }
 }
 
@@ -81,10 +82,11 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
       header: "Trạng thái",
       renderCell: (item) => (
         <div className="space-y-2">
-          <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${statusBadge(item.status)}`}>
+          <span className={`badge ${statusBadge(item.status)}`}>
             {item.status === "PendingApproval" ? "Chờ duyệt" : item.status === "Approved" ? "Đã duyệt" : item.status === "Rejected" ? "Từ chối" : item.status}
           </span>
-          <p className={`text-[12px] font-semibold ${item.isOverdue ? "text-[#ba1a1a]" : "text-[#5f5e5e]"}`}>
+          <p className={`flex items-center gap-1 text-[12px] font-semibold ${item.isOverdue ? "text-[#ba1a1a]" : "text-[#5f5e5e]"}`}>
+            <span className="material-symbols-outlined text-[15px]">{item.isOverdue ? "priority_high" : "schedule"}</span>
             {item.isOverdue ? "Cần ưu tiên xử lý" : "Trong thời hạn duyệt"}
           </p>
         </div>
@@ -98,13 +100,14 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
       renderCell: (item) => (
         <button
           type="button"
-          className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#b90014] transition-colors hover:text-[#93000d]"
+          className="inline-flex items-center gap-1 text-[12px] font-bold text-[#b90014] transition-colors hover:underline"
           onClick={(event) => {
             event.stopPropagation();
             onOpen(item);
           }}
         >
           Xem bản nháp
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
         </button>
       ),
     },
@@ -187,78 +190,83 @@ function ManagerJobApprovalListScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-8 md:px-10">
-        <LoadingIndicator label="Đang tải hàng chờ duyệt..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <div className="surface-card h-96" />
       </div>
     );
   }
 
+  const summaryCards = [
+    { label: "Job chờ duyệt", value: summary.pendingApprovals, helper: "Số lượng đang chờ quản lý quyết định", icon: "pending_actions", wrap: "from-sky-50 to-sky-100 text-sky-600", helperTone: "text-sky-700" },
+    { label: "Gửi hôm nay", value: summary.submittedToday, helper: "Bản nháp mới của HR đi vào luồng duyệt", icon: "outbox", wrap: "from-[#f2efed] to-[#e8e4e1] text-[#5f5e5e]", helperTone: "text-[#5f5e5e]" },
+    { label: "Quá hạn duyệt", value: summary.overdueReviews, helper: "Chờ quá 3 ngày", icon: "schedule", wrap: "from-rose-50 to-rose-100 text-rose-600", helperTone: "text-[#ba1a1a]", valueTone: "text-[#ba1a1a]" },
+    { label: "Phòng ban đang chờ", value: summary.departmentsWaiting, helper: "Đơn vị đang có yêu cầu nhân sự chờ duyệt", icon: "domain", wrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]", helperTone: "text-[#5f5e5e]" },
+  ];
+
   return (
-    <div className="w-full px-4 py-8 md:px-10">
-      <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-            Quy trình duyệt tuyển dụng
-          </p>
-          <h1 className="page-title mt-2">
-            Duyệt tin tuyển dụng
-          </h1>
-          <p className="page-subtitle max-w-3xl">
-            Xem lại các job HR đã gửi lên, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa.
-          </p>
-        </div>
+    <div className="app-container animate-fade-in py-8">
+      <PageHeader
+        className="mb-7"
+        eyebrow="Quy trình duyệt tuyển dụng"
+        icon="approval"
+        title="Duyệt tin tuyển dụng"
+        subtitle="Xem lại các job HR đã gửi lên, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa."
+        actions={
+          <div className="relative w-full sm:w-72">
+            <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+              search
+            </span>
+            <input
+              className="input-field pl-10"
+              placeholder="Tìm theo tiêu đề, phòng ban, kỹ năng..."
+              type="text"
+              value={keyword}
+              onChange={(event) => {
+                setPage(1);
+                setKeyword(event.target.value);
+              }}
+            />
+          </div>
+        }
+      />
 
-        <div className="relative w-full max-w-sm">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f5e5e]">
-            search
-          </span>
-          <input
-            className="h-12 w-full rounded-lg border border-[#e7bdb8] bg-white pl-10 pr-4 text-sm outline-none transition-colors focus:border-[#1a1c1c]"
-            placeholder="Tìm theo tiêu đề, phòng ban, kỹ năng, HR..."
-            type="text"
-            value={keyword}
-            onChange={(event) => {
-              setPage(1);
-              setKeyword(event.target.value);
-            }}
-          />
-        </div>
+      <div className="stagger mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map((card) => (
+          <div key={card.label} className="stat-card group">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="eyebrow">{card.label}</p>
+                <h3 className={`mt-3 text-[34px] font-bold leading-none tracking-[-0.02em] ${card.valueTone ?? "text-[#1a1c1c]"}`}>
+                  {card.value}
+                </h3>
+                <p className={`mt-2.5 text-[12px] leading-5 ${card.helperTone}`}>{card.helper}</p>
+              </div>
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br ${card.wrap} transition-transform duration-200 group-hover:scale-105`}>
+                <span className="material-symbols-outlined">{card.icon}</span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Job chờ duyệt</p>
-          <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">{summary.pendingApprovals}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#005f93]">Số lượng đang chờ quản lý quyết định</p>
-        </div>
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Gửi hôm nay</p>
-          <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">{summary.submittedToday}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">Bản nháp mới của HR đi vào luồng duyệt</p>
-        </div>
-        <div className="border border-[#e7bdb8] bg-[#f3f3f3] p-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">Quá hạn duyệt</p>
-          <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#ba1a1a]">{summary.overdueReviews}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-[#ba1a1a]">Chờ quá 3 ngày</p>
-        </div>
-        <div className="border border-[#e7bdb8] bg-[#1a1a1a] p-5 text-white">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">Phòng ban đang chờ</p>
-          <p className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em]">{summary.departmentsWaiting}</p>
-          <p className="mt-2 text-[12px] font-semibold tracking-[0.05em] text-white/70">Đơn vị đang có yêu cầu nhân sự chờ duyệt</p>
-        </div>
-      </div>
-
-      <section className="overflow-hidden rounded-lg border border-[#e7bdb8] bg-white">
-        <div className="flex flex-col gap-3 border-b border-[#e7bdb8] bg-[#f9f9f9] px-6 py-4 md:flex-row md:items-center md:justify-between">
+      <section className="card overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-[#f0eceb] px-5 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
-              Hàng chờ duyệt
-            </p>
-            <p className="mt-1 text-sm text-[#5d3f3c]">
+            <h4 className="section-title">Hàng chờ duyệt</h4>
+            <p className="mt-1 text-[13px] text-[#5f5e5e]">
               Mở bản nháp để kiểm tra bối cảnh phòng ban, kỹ năng và tác động luồng tuyển trước khi đăng.
             </p>
           </div>
-          <p className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
+          <p className="shrink-0 text-[12px] font-semibold text-[#5f5e5e]">
             Hiển thị <span className="text-[#1a1c1c]">{rangeStart}-{rangeEnd}</span> trên tổng <span className="text-[#1a1c1c]">{totalItems}</span>
           </p>
         </div>
@@ -269,6 +277,7 @@ function ManagerJobApprovalListScreen() {
           keyExtractor={(item) => item.jobId}
           loading={loading}
           emptyMessage="Không có job nào đang chờ quản lý duyệt."
+          emptyIcon="approval"
           hover
           zebra
           onRowClick={(item) => navigate(`/manager/jobs/${item.jobId}/approval`)}

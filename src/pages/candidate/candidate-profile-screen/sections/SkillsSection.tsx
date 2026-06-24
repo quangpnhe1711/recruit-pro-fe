@@ -19,11 +19,10 @@ function SkillsSection({
   onSkillYearsChange,
 }: SkillsSectionProps) {
   return (
-    <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Skills
-        </h2>
+    <section className="card p-5 md:p-6">
+      <div className="mb-5 border-b border-[#f0eceb] pb-4">
+        <h2 className="section-title">Skills</h2>
+        <p className="page-subtitle">Kỹ năng và số năm kinh nghiệm tương ứng.</p>
       </div>
 
       {canManageSkills ? (
@@ -51,18 +50,18 @@ function SkillsSection({
                 .map((skill) => (
                   <div
                     key={skill.id}
-                    className="flex flex-col gap-3 rounded border border-[#e2dfde] bg-[#f9f9f9] px-4 py-3 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] px-4 py-3 md:flex-row md:items-center md:justify-between"
                   >
                     <div>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">
                         {skill.label}
                       </p>
-                      <p className="text-[12px] text-[#5f5e5e]">
+                      <p className="text-[12px] text-[#8a8786]">
                         Số năm kinh nghiệm cho kỹ năng này
                       </p>
                     </div>
                     <input
-                      className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c] md:w-[180px]"
+                      className="input-field h-11 md:w-[180px]"
                       inputMode="decimal"
                       placeholder="VD: 1.5"
                       type="text"
@@ -79,10 +78,7 @@ function SkillsSection({
           {skills
             .filter((skill) => skill.active)
             .map((skill) => (
-              <span
-                key={skill.id}
-                className="inline-flex items-center gap-2 rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
-              >
+              <span key={skill.id} className="badge bg-[#b90014]/10 text-[#b90014]">
                 {skill.label}
                 {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
               </span>

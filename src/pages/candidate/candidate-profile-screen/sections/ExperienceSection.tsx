@@ -25,28 +25,29 @@ function ExperienceSection({
   onRemoveEntry,
 }: ExperienceSectionProps) {
   return (
-    <section className="rounded-lg border border-[#e2dfde] bg-white p-6">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Kinh nghiệm làm việc
-        </h2>
+    <section className="card p-5 md:p-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#f0eceb] pb-4">
+        <div>
+          <h2 className="section-title">Kinh nghiệm làm việc</h2>
+          <p className="page-subtitle">Lịch sử công việc theo dòng thời gian.</p>
+        </div>
         {canManageExperience ? (
           <button
-            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
+            className="btn btn-secondary h-11"
             type="button"
             onClick={() => setShowEntryComposer((value) => !value)}
           >
-            <span className="material-symbols-outlined text-[16px]">add_circle</span>
+            <span className="material-symbols-outlined text-[18px]">add_circle</span>
             Thêm mục
           </button>
         ) : null}
       </div>
 
       {showEntryComposer && canManageExperience ? (
-        <div className="mb-8 space-y-3 rounded border border-[#e2dfde] bg-[#f3f3f3] p-4">
+        <div className="animate-scale-in mb-6 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               placeholder="Chức danh"
               value={entryDraft.title}
               onChange={(e) =>
@@ -57,7 +58,7 @@ function ExperienceSection({
               }
             />
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               placeholder="Công ty / Trường"
               value={entryDraft.company}
               onChange={(e) =>
@@ -81,11 +82,11 @@ function ExperienceSection({
                   startMonth: Number(value),
                 }))
               }
-              className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
-              menuClassName="border-[#e2dfde]"
+              className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
+              menuClassName="border-[#ececec]"
             />
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               min={2000}
               max={new Date().getFullYear() + 1}
               placeholder="Năm bắt đầu"
@@ -98,7 +99,7 @@ function ExperienceSection({
                 }))
               }
             />
-            <label className="col-span-2 flex items-center gap-2 rounded border border-[#e2dfde] bg-white px-3 py-2 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
+            <label className="col-span-2 flex h-11 items-center gap-2 rounded-[10px] border border-[#dcd7d5] bg-white px-3 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
               <input
                 checked={entryDraft.isCurrent}
                 className="h-4 w-4 accent-[#b90014]"
@@ -126,11 +127,11 @@ function ExperienceSection({
                       endMonth: Number(value),
                     }))
                   }
-                  className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
-                  menuClassName="border-[#e2dfde]"
+                  className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
+                  menuClassName="border-[#ececec]"
                 />
                 <input
-                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                  className="input-field h-11"
                   min={2000}
                   max={new Date().getFullYear() + 1}
                   placeholder="Năm kết thúc"
@@ -147,7 +148,7 @@ function ExperienceSection({
             )}
           </div>
           <textarea
-            className="min-h-[96px] w-full rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field min-h-[96px] resize-none"
             placeholder="Mỗi ý một dòng"
             value={entryDraft.bullets}
             onChange={(e) =>
@@ -157,16 +158,16 @@ function ExperienceSection({
               }))
             }
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
-              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+              className="btn btn-secondary h-11"
               type="button"
               onClick={() => setShowEntryComposer(false)}
             >
               Hủy
             </button>
             <button
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+              className="btn btn-primary h-11"
               type="button"
               onClick={onAddEntry}
             >
@@ -176,28 +177,20 @@ function ExperienceSection({
         </div>
       ) : null}
 
-      <div className="relative space-y-12 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-[#e2dfde]">
-        {experienceEntries.map((entry, index) => (
-          <div key={entry.id} className="relative pl-10">
-            <div
-              className={`absolute left-0 top-1 z-10 h-6 w-6 rounded-full border-4 border-[#f9f9f9] ${
-                index === experienceEntries.length - 1
-                  ? "bg-[#c8c6c5]"
-                  : index === 1
-                    ? "bg-[#1a1c1c]"
-                    : "bg-[#b90014]"
-              }`}
-            />
-            <div className="mb-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div className="stagger relative space-y-8 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-[#ececec]">
+        {experienceEntries.map((entry) => (
+          <div key={entry.id} className="relative pl-7">
+            <div className="absolute left-0 top-1.5 z-10 h-4 w-4 rounded-full border-4 border-white bg-[#b90014] shadow-[0_0_0_1px_#ececec]" />
+            <div className="mb-1.5 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
               <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-                <h3 className="text-[16px] font-bold text-[#1a1c1c]">{entry.title}</h3>
-                <span className="rounded bg-[#e2dfde] px-2 py-1 text-[12px] font-semibold text-[#636262]">
+                <h3 className="text-[16px] font-semibold text-[#1a1c1c]">{entry.title}</h3>
+                <span className="badge bg-[#f1eeed] text-[#5f5e5e]">
                   {formatPeriod(entry.period)}
                 </span>
               </div>
               {canManageExperience ? (
                 <button
-                  className="text-[12px] font-semibold text-[#b90014] hover:underline"
+                  className="self-start text-[12px] font-semibold text-[#b90014] hover:underline"
                   type="button"
                   onClick={() => onRemoveEntry(entry.id)}
                 >
@@ -206,9 +199,12 @@ function ExperienceSection({
               ) : null}
             </div>
             <p className="mb-2 text-[14px] font-semibold text-[#b90014]">{entry.company}</p>
-            <ul className="list-inside list-disc space-y-1 text-[14px] text-[#5f5e5e]">
+            <ul className="space-y-1.5 text-[14px] leading-6 text-[#5f5e5e]">
               {entry.bullets.map((bullet) => (
-                <li key={bullet}>{bullet}</li>
+                <li key={bullet} className="flex gap-2.5">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b90014]/40" />
+                  <span>{bullet}</span>
+                </li>
               ))}
             </ul>
           </div>

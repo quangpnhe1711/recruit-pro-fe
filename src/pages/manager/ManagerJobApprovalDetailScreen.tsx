@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import EmptyState from "../../common/components/EmptyState";
+import { Skeleton } from "../../common/components/Skeleton";
 
 import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -40,8 +41,8 @@ function formatMoneyRange(min: number | null, max: number | null) {
 
 function toneForSkill(required: boolean) {
   return required
-    ? "bg-[#b90014]/5 text-[#b90014] border-[#e7bdb8]"
-    : "bg-[#f3f3f3] text-[#1a1c1c] border-[#e2dfde]";
+    ? "bg-[#fff1f0] text-[#b90014]"
+    : "bg-[#f2efed] text-[#5f5e5e]";
 }
 
 function actionStyles(action: "approve" | "changes" | "reject") {
@@ -49,9 +50,9 @@ function actionStyles(action: "approve" | "changes" | "reject") {
     case "approve":
       return "bg-[#1a1c1c] text-white hover:bg-[#2f3131]";
     case "changes":
-      return "border border-[#1a1c1c] bg-white text-[#1a1c1c] hover:bg-[#f3f3f3]";
+      return "border border-[#ececec] bg-white text-[#1a1c1c] hover:bg-[#faf9f8]";
     case "reject":
-      return "bg-[#b90014] text-white hover:bg-[#93000d]";
+      return "bg-gradient-to-r from-[#e8242c] to-[#b90014] text-white hover:brightness-105";
   }
 }
 
@@ -114,134 +115,132 @@ function ManagerJobApprovalDetailScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-8 md:px-10">
-        <LoadingIndicator label="Đang tải bản nháp phê duyệt..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-9 w-96" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="surface-card h-[480px] lg:col-span-8" />
+          <div className="surface-card h-[480px] lg:col-span-4" />
+        </div>
       </div>
     );
   }
 
   if (!detail) {
     return (
-      <div className="w-full px-4 py-8 md:px-10">
-        <div className="border border-[#e7bdb8] bg-white p-8">
-          <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Không tìm thấy bản nháp phê duyệt
-          </h1>
-          <p className="mt-2 text-sm text-[#5f5e5e]">
-            Không thể tải job đã chọn từ luồng phê duyệt hiện tại.
-          </p>
-          <button
-            type="button"
-            className="mt-6 inline-flex items-center gap-2 bg-[#1a1c1c] px-5 py-3 text-sm font-semibold text-white"
-            onClick={() => navigate("/jobs")}
-          >
-            <span className="material-symbols-outlined text-base">arrow_back</span>
-            Quay lại hàng chờ duyệt
-          </button>
+      <div className="app-container py-10">
+        <div className="surface-card p-10">
+          <EmptyState
+            icon="search_off"
+            title="Không tìm thấy bản nháp phê duyệt"
+            description="Không thể tải job đã chọn từ luồng phê duyệt hiện tại."
+            action={
+              <button type="button" className="btn btn-dark" onClick={() => navigate("/jobs")}>
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                Quay lại hàng chờ duyệt
+              </button>
+            }
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 py-8 md:px-10">
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="app-container animate-fade-in py-8">
+      <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="mb-3 flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-[#cde5ff] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.08em] text-[#004b74]">
-              {detail.referenceCode}
-            </span>
-            <span className="text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-              {detail.submittedAgoLabel}
-            </span>
-            <span className="rounded-full bg-[#f3f3f3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1a1c1c]">
-              {statusText}
-            </span>
+          <div className="mb-3 flex flex-wrap items-center gap-2.5">
+            <span className="badge bg-sky-50 text-sky-700">{detail.referenceCode}</span>
+            <span className="text-[12px] font-semibold text-[#5f5e5e]">{detail.submittedAgoLabel}</span>
+            <span className="badge bg-[#f2efed] text-[#5f5e5e]">{statusText}</span>
           </div>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            {detail.title}
-          </h1>
-          <p className="mt-2 text-[16px] leading-6 text-[#5f5e5e]">
-            Được gửi bởi <span className="font-bold text-[#1a1c1c]">{detail.hrOwner.fullName} (HR)</span> cho {detail.department.name}.
+          <h1 className="page-title">{detail.title}</h1>
+          <p className="page-subtitle">
+            Được gửi bởi <span className="font-semibold text-[#1a1c1c]">{detail.hrOwner.fullName} (HR)</span> cho {detail.department.name}.
           </p>
         </div>
 
         <button
           type="button"
-          className="inline-flex items-center gap-2 border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+          className="btn btn-secondary shrink-0"
           onClick={() => navigate("/jobs")}
         >
-          <span className="material-symbols-outlined text-base">arrow_back</span>
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Quay lại hàng chờ
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="grid grid-cols-1 gap-4 lg:col-span-8 md:grid-cols-2">
-          <section className="col-span-2 rounded-lg border border-[#e7bdb8] bg-white p-6">
-            <div className="mb-4 flex items-center gap-2 border-b border-[#e8e8e8] pb-4">
+        <div className="grid grid-cols-1 gap-6 lg:col-span-8 md:grid-cols-2">
+          <section className="card col-span-1 p-6 md:col-span-2">
+            <div className="mb-5 flex items-center gap-2 border-b border-[#f0eceb] pb-4">
               <span className="material-symbols-outlined text-[#b90014]">info</span>
-              <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Thông số chính</h2>
+              <h2 className="section-title">Thông số chính</h2>
             </div>
-            <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Phòng ban</p>
-                <p className="mt-1 text-[16px] font-semibold text-[#1a1c1c]">{detail.department.name}</p>
+                <p className="eyebrow">Phòng ban</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.department.name}</p>
               </div>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Địa điểm</p>
-                <p className="mt-1 text-[16px] font-semibold text-[#1a1c1c]">{detail.location} ({detail.workMode})</p>
+                <p className="eyebrow">Địa điểm</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.location} ({detail.workMode})</p>
               </div>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Mức lương</p>
-                <p className="mt-1 text-[16px] font-semibold text-[#1a1c1c]">{formatMoneyRange(detail.salaryMin, detail.salaryMax)}</p>
+                <p className="eyebrow">Mức lương</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{formatMoneyRange(detail.salaryMin, detail.salaryMax)}</p>
               </div>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Loại hình</p>
-                <p className="mt-1 text-[16px] font-semibold text-[#1a1c1c]">{detail.employmentType}</p>
+                <p className="eyebrow">Loại hình</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.employmentType}</p>
               </div>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Số lượng tuyển</p>
-                <p className="mt-1 text-[16px] font-semibold text-[#1a1c1c]">{detail.vacancyCount}</p>
+                <p className="eyebrow">Số lượng tuyển</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.vacancyCount}</p>
               </div>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Hạn nộp</p>
-                <p className="mt-1 text-[16px] font-semibold text-[#1a1c1c]">{formatDateLabel(detail.deadline)}</p>
+                <p className="eyebrow">Hạn nộp</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{formatDateLabel(detail.deadline)}</p>
               </div>
             </div>
           </section>
 
-          <section className="rounded-lg border border-[#e7bdb8] bg-white p-6">
-            <div className="mb-4 flex items-center gap-2">
+          <section className="card p-6">
+            <div className="mb-5 flex items-center gap-2">
               <span className="material-symbols-outlined text-[#b90014]">terminal</span>
-              <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Công nghệ / Kỹ năng</h2>
+              <h2 className="section-title">Công nghệ / Kỹ năng</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               {detail.skills.length ? detail.skills.map((skill) => (
                 <span
                   key={skill.skillId}
-                  className={`rounded border px-2 py-1 text-[12px] font-semibold ${toneForSkill(skill.isRequired)}`}
+                  className={`badge ${toneForSkill(skill.isRequired)}`}
                 >
+                  {skill.isRequired ? <span className="material-symbols-outlined text-[14px] leading-none">star</span> : null}
                   {skill.name}
                 </span>
               )) : (
-                <p className="text-sm text-[#5f5e5e]">Chưa cấu hình kỹ năng cho job này.</p>
+                <p className="text-[13px] text-[#5f5e5e]">Chưa cấu hình kỹ năng cho job này.</p>
               )}
             </div>
           </section>
 
-          <section className="rounded-lg border border-[#e7bdb8] bg-white p-6">
-            <div className="mb-4 flex items-center gap-2">
+          <section className="card p-6">
+            <div className="mb-5 flex items-center gap-2">
               <span className="material-symbols-outlined text-[#b90014]">schema</span>
-              <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Luồng phỏng vấn</h2>
+              <h2 className="section-title">Luồng phỏng vấn</h2>
             </div>
-            <ol className="space-y-3">
+            <ol className="space-y-4">
               {detail.interviewFlow.map((step) => (
                 <li key={step.order} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1a1a1a] text-[12px] font-bold text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1a1c1c] text-[12px] font-bold text-white">
                     {step.order}
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[14px] font-semibold text-[#1a1c1c]">{step.label}</p>
                     <p className="text-[12px] leading-5 text-[#5f5e5e]">{step.description}</p>
                   </div>
@@ -250,34 +249,44 @@ function ManagerJobApprovalDetailScreen() {
             </ol>
           </section>
 
-          <section className="col-span-2 rounded-lg border border-[#e7bdb8] bg-white p-6">
-            <div className="mb-4 flex items-center gap-2">
+          <section className="card col-span-1 p-6 md:col-span-2">
+            <div className="mb-5 flex items-center gap-2">
               <span className="material-symbols-outlined text-[#b90014]">description</span>
-              <h2 className="text-[20px] font-semibold text-[#1a1c1c]">Tổng quan vị trí</h2>
+              <h2 className="section-title">Tổng quan vị trí</h2>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Mô tả</p>
-                <ul className="mt-3 space-y-2 text-[14px] leading-6 text-[#1a1c1c]">
-                  {detail.description.length ? detail.description.map((item) => <li key={item}>• {item}</li>) : <li>Chưa có mô tả.</li>}
+                <p className="eyebrow mb-3">Mô tả</p>
+                <ul className="space-y-2.5 text-[14px] leading-6 text-[#1a1c1c]">
+                  {detail.description.length ? detail.description.map((item) => (
+                    <li key={item} className="flex gap-2.5">
+                      <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#b90014]">chevron_right</span>
+                      <span>{item}</span>
+                    </li>
+                  )) : <li>Chưa có mô tả.</li>}
                 </ul>
               </div>
               <div>
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Yêu cầu</p>
-                <ul className="mt-3 space-y-2 text-[14px] leading-6 text-[#1a1c1c]">
-                  {detail.requirements.length ? detail.requirements.map((item) => <li key={item}>• {item}</li>) : <li>Chưa có yêu cầu.</li>}
+                <p className="eyebrow mb-3">Yêu cầu</p>
+                <ul className="space-y-2.5 text-[14px] leading-6 text-[#1a1c1c]">
+                  {detail.requirements.length ? detail.requirements.map((item) => (
+                    <li key={item} className="flex gap-2.5">
+                      <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#b90014]">check_circle</span>
+                      <span>{item}</span>
+                    </li>
+                  )) : <li>Chưa có yêu cầu.</li>}
                 </ul>
               </div>
             </div>
-            <div className="mt-6 border-t border-[#e8e8e8] pt-6">
-              <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Quyền lợi</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-6 border-t border-[#f0eceb] pt-6">
+              <p className="eyebrow mb-3">Quyền lợi</p>
+              <div className="flex flex-wrap gap-2">
                 {detail.benefits.length ? detail.benefits.map((item) => (
-                  <span key={item} className="rounded-full bg-[#f3f3f3] px-3 py-1.5 text-[12px] font-semibold text-[#1a1c1c]">
+                  <span key={item} className="badge bg-[#f2efed] text-[#5f5e5e]">
                     {item}
                   </span>
                 )) : (
-                  <span className="text-sm text-[#5f5e5e]">Chưa cấu hình quyền lợi.</span>
+                  <span className="text-[13px] text-[#5f5e5e]">Chưa cấu hình quyền lợi.</span>
                 )}
               </div>
             </div>
@@ -285,11 +294,9 @@ function ManagerJobApprovalDetailScreen() {
         </div>
 
         <div className="space-y-6 lg:col-span-4">
-          <section className="rounded-lg border-2 border-[#5d3f3c] bg-white p-6">
-            <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-              Hành động phê duyệt
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-[#5d3f3c]">
+          <section className="card border-[#e7bdb8] p-6 lg:sticky lg:top-6">
+            <h2 className="section-title text-[20px]">Hành động phê duyệt</h2>
+            <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">
               Khi quản lý phê duyệt, job sẽ đi tiếp trong luồng đăng tuyển. Yêu cầu chỉnh sửa sẽ trả bản nháp về cho HR cập nhật.
             </p>
 
@@ -339,9 +346,9 @@ function ManagerJobApprovalDetailScreen() {
               </AsyncActionButton>
             </div>
 
-            <div className="mt-6 border-t border-[#e7bdb8] pt-6">
-              <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Tóm tắt phê duyệt</p>
-              <p className="mt-3 text-sm leading-6 text-[#1a1c1c]">{detail.approvalSnapshot?.summary ?? "Chưa có dữ liệu tóm tắt phê duyệt."}</p>
+            <div className="mt-6 border-t border-[#f0eceb] pt-6">
+              <p className="eyebrow">Tóm tắt phê duyệt</p>
+              <p className="mt-3 text-[13px] leading-6 text-[#1a1c1c]">{detail.approvalSnapshot?.summary ?? "Chưa có dữ liệu tóm tắt phê duyệt."}</p>
               {detail.approvalSnapshot?.approvedByName ? (
                 <p className="mt-2 text-[12px] font-semibold text-[#5f5e5e]">
                   Người duyệt gần nhất: {detail.approvalSnapshot.approvedByName}
@@ -350,36 +357,49 @@ function ManagerJobApprovalDetailScreen() {
             </div>
           </section>
 
-          <section className="rounded-lg bg-[#1a1a1a] p-6 text-white">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-white/70">Ngữ cảnh phê duyệt</p>
-            <div className="mt-5 grid grid-cols-2 gap-4">
+          <section className="relative overflow-hidden rounded-[16px] bg-gradient-to-br from-[#232525] to-[#161718] p-6 text-white">
+            <p className="eyebrow text-white/60">Ngữ cảnh phê duyệt</p>
+            <div className="relative z-10 mt-5 grid grid-cols-2 gap-5">
               <div>
-                <p className="text-[28px] font-semibold leading-8">{detail.insights.applicationsCount}</p>
+                <p className="text-[28px] font-bold leading-8">{detail.insights.applicationsCount}</p>
                 <p className="mt-1 text-[12px] text-white/70">Hồ sơ ứng tuyển</p>
               </div>
               <div>
-                <p className="text-[28px] font-semibold leading-8">{detail.insights.activePipelineCount}</p>
+                <p className="text-[28px] font-bold leading-8">{detail.insights.activePipelineCount}</p>
                 <p className="mt-1 text-[12px] text-white/70">Pipeline đang chạy</p>
               </div>
               <div>
-                <p className="text-[28px] font-semibold leading-8">{detail.insights.requiredSkillsCount}</p>
+                <p className="text-[28px] font-bold leading-8">{detail.insights.requiredSkillsCount}</p>
                 <p className="mt-1 text-[12px] text-white/70">Kỹ năng yêu cầu</p>
               </div>
               <div>
-                <p className="text-[28px] font-semibold leading-8">{detail.minExperienceYears ?? 0}y</p>
+                <p className="text-[28px] font-bold leading-8">{detail.minExperienceYears ?? 0}y</p>
                 <p className="mt-1 text-[12px] text-white/70">Kinh nghiệm tối thiểu</p>
               </div>
             </div>
+            <div className="absolute bottom-[-24px] right-[-24px] opacity-[0.06]">
+              <span className="material-symbols-outlined text-[140px] text-white">insights</span>
+            </div>
           </section>
 
-          <section className="rounded-lg border border-[#e7bdb8] bg-white p-6">
-            <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">HR phụ trách</p>
-            <p className="mt-3 text-[20px] font-semibold text-[#1a1c1c]">{detail.hrOwner.fullName}</p>
-            <p className="mt-1 text-sm text-[#5f5e5e]">{detail.hrOwner.email}</p>
-            <p className="mt-1 text-sm text-[#5f5e5e]">{detail.hrOwner.phone || "Chưa có số điện thoại"}</p>
-            <div className="mt-6 border-t border-[#e8e8e8] pt-4">
-              <p className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">Bối cảnh phòng ban</p>
-              <p className="mt-2 text-sm leading-6 text-[#1a1c1c]">{detail.department.description || "Hiện chưa có mô tả phòng ban trong bộ dữ liệu seed."}</p>
+          <section className="card p-6">
+            <p className="eyebrow">HR phụ trách</p>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[14px] font-bold text-[#b90014]">
+                {detail.hrOwner.fullName.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[16px] font-semibold text-[#1a1c1c]">{detail.hrOwner.fullName}</p>
+                <p className="truncate text-[13px] text-[#5f5e5e]">{detail.hrOwner.email}</p>
+              </div>
+            </div>
+            <p className="mt-2 flex items-center gap-1.5 text-[13px] text-[#5f5e5e]">
+              <span className="material-symbols-outlined text-[16px]">call</span>
+              {detail.hrOwner.phone || "Chưa có số điện thoại"}
+            </p>
+            <div className="mt-6 border-t border-[#f0eceb] pt-4">
+              <p className="eyebrow">Bối cảnh phòng ban</p>
+              <p className="mt-2 text-[13px] leading-6 text-[#1a1c1c]">{detail.department.description || "Hiện chưa có mô tả phòng ban trong bộ dữ liệu seed."}</p>
             </div>
           </section>
         </div>

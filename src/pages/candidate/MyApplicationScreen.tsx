@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonPagination from "../../common/components/CommonPagination";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { Skeleton, SkeletonRows } from "../../common/components/Skeleton";
 import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
@@ -91,13 +92,13 @@ function buildApplicationTableColumns(
       header: "Vị trí & phòng ban",
       renderCell: (item) => (
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-[#e2dfde] bg-white">
-            <span className="material-symbols-outlined text-[#b90014]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+            <span className="material-symbols-outlined text-[24px]">
               {item.icon}
             </span>
           </div>
-          <div>
-            <h3 className="text-[20px] font-semibold leading-7 hover:text-[#b90014]">
+          <div className="min-w-0">
+            <h3 className="text-[15px] font-semibold leading-6 text-[#1a1c1c]">
               {item.title}
             </h3>
             <p className="text-[14px] leading-5 text-[#5f5e5e]">
@@ -118,20 +119,14 @@ function buildApplicationTableColumns(
       key: "status",
       header: "Trạng thái",
       renderCell: (item) => (
-        <span
-          className={`inline-flex px-3 py-1 text-[10px] font-bold uppercase tracking-[0.05em] ${item.statusClass}`}
-        >
-          {item.status}
-        </span>
+        <span className={`badge ${item.statusClass}`}>{item.status}</span>
       ),
     },
     {
       key: "nextStep",
       header: "Bước tiếp theo",
       renderCell: (item) => (
-        <span className="text-[14px] italic text-[#5f5e5e]">
-          {item.nextStep}
-        </span>
+        <span className="text-[14px] text-[#5f5e5e]">{item.nextStep}</span>
       ),
     },
     {
@@ -151,9 +146,9 @@ function buildApplicationTableColumns(
         const isLoading = actionLoadingId === item.id;
 
         return (
-          <div className="flex flex-wrap justify-end gap-3">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
-              className="border-b-2 border-transparent text-[12px] font-bold text-[#1a1c1c] transition-colors hover:border-[#b90014] disabled:cursor-not-allowed disabled:text-[#8f8a88]"
+              className="btn btn-ghost px-3 py-2 text-[13px]"
               type="button"
               disabled={!canViewApplications}
               onClick={(event) => {
@@ -165,7 +160,7 @@ function buildApplicationTableColumns(
             </button>
 
             <button
-              className="border-b-2 border-transparent text-[12px] font-bold text-[#005f93] transition-colors hover:border-[#005f93] disabled:cursor-not-allowed disabled:text-[#8f8a88]"
+              className="btn btn-ghost px-3 py-2 text-[13px] text-[#005f93]"
               type="button"
               disabled={!canViewInterviewSchedule}
               onClick={(event) => {
@@ -178,7 +173,7 @@ function buildApplicationTableColumns(
 
             {item.availableActions.includes("acceptOffer") ? (
               <button
-                className="bg-[#b90014] px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-white transition-colors hover:bg-[#93000d] disabled:cursor-not-allowed disabled:bg-[#d8b4b7]"
+                className="btn btn-primary px-3 py-2 text-[13px]"
                 type="button"
                 disabled={!canAcceptThisApplication || isLoading}
                 onClick={(event) => {
@@ -192,7 +187,7 @@ function buildApplicationTableColumns(
 
             {item.availableActions.includes("declineOffer") ? (
               <button
-                className="border border-[#ba1a1a] px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-[#ba1a1a] transition-colors hover:bg-[#fff1ef] disabled:cursor-not-allowed disabled:border-[#d8b4b7] disabled:text-[#c59b9b]"
+                className="btn btn-secondary px-3 py-2 text-[13px] !text-[#ba1a1a]"
                 type="button"
                 disabled={!canDeclineThisApplication || isLoading}
                 onClick={(event) => {
@@ -206,7 +201,7 @@ function buildApplicationTableColumns(
 
             {item.availableActions.includes("withdraw") ? (
               <button
-                className="text-[12px] font-bold text-[#ba1a1a] transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:text-[#c59b9b]"
+                className="btn btn-ghost px-3 py-2 text-[13px] !text-[#ba1a1a]"
                 type="button"
                 disabled={!canWithdrawThisApplication || isLoading}
                 onClick={(event) => {
@@ -435,33 +430,37 @@ function MyApplicationScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-6 md:px-10">
-        <LoadingIndicator label="Đang tải đơn ứng tuyển..." />
+      <div className="app-container animate-fade-in py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-9 w-72" />
+          <Skeleton className="h-5 w-96 max-w-full" />
+        </div>
+        <div className="mt-6 card overflow-hidden">
+          <SkeletonRows rows={4} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 py-6 md:px-10 md:py-10">
-      <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+    <div className="app-container animate-fade-in py-8">
+      <div className="mb-8 flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-end">
         <div>
+          <p className="eyebrow mb-1.5">Hành trình ứng tuyển</p>
           <h1 className="page-title">Đơn ứng tuyển của tôi</h1>
-          <p className="text-[14px] leading-5 text-[#5f5e5e]">
+          <p className="page-subtitle">
             Theo dõi, xem chi tiết và quản lý toàn bộ quá trình ứng tuyển của
             bạn.
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid w-full grid-cols-3 gap-3 sm:w-auto">
           {summary.map((card) => (
-            <div
-              key={card.label}
-              className="min-w-[120px] border border-[#e2dfde] bg-white p-4 text-center"
-            >
-              <span className="block text-[32px] font-bold text-[#b90014]">
+            <div key={card.label} className="surface-card px-4 py-3 text-center sm:min-w-[110px]">
+              <span className="block text-[28px] font-bold leading-none text-[#b90014]">
                 {card.value}
               </span>
-              <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
+              <span className="mt-1.5 block text-[12px] font-semibold text-[#5f5e5e]">
                 {card.label}
               </span>
             </div>
@@ -469,37 +468,33 @@ function MyApplicationScreen() {
         </div>
       </div>
 
-      <div className="mb-8 flex flex-wrap items-center gap-4 bg-[#f3f3f3] p-4">
-        <div className="flex w-full flex-col gap-4 xl:flex-row xl:items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#1a1c1c]">
-              Lọc theo:
-            </span>
-          </div>
-          <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
-            <CommonSelect
-              className="h-11 min-w-[220px]"
-              options={applicationStatusFilterOptions}
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            />
-            <CommonSelect
-              className="h-11 min-w-[220px]"
-              options={[
-                { label: "Sắp xếp: ngày ứng tuyển", value: "applied-date" },
-                { label: "Sắp xếp: tên vị trí", value: "job-title" },
-                { label: "Sắp xếp: phòng ban", value: "company" },
-                { label: "Sắp xếp: trạng thái", value: "status" },
-              ]}
-              value={sortBy}
-              onValueChange={setSortBy}
-            />
-          </div>
+      <div className="mb-6 flex flex-col gap-3 rounded-[16px] border border-[#ececec] bg-white p-4 shadow-[var(--shadow-sm)] xl:flex-row xl:items-center">
+        <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
+          <CommonSelect
+            className="h-11 min-w-[200px]"
+            options={applicationStatusFilterOptions}
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          />
+          <CommonSelect
+            className="h-11 min-w-[200px]"
+            options={[
+              { label: "Sắp xếp: ngày ứng tuyển", value: "applied-date" },
+              { label: "Sắp xếp: tên vị trí", value: "job-title" },
+              { label: "Sắp xếp: phòng ban", value: "company" },
+              { label: "Sắp xếp: trạng thái", value: "status" },
+            ]}
+            value={sortBy}
+            onValueChange={setSortBy}
+          />
         </div>
-        <div className="flex-1" />
-        <div className="relative w-full md:w-72">
+        <div className="hidden flex-1 xl:block" />
+        <div className="relative w-full xl:w-72">
+          <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+            search
+          </span>
           <input
-            className="w-full border border-[#e2dfde] bg-white px-4 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11 pl-10"
             placeholder="Tìm kiếm đơn ứng tuyển..."
             type="text"
             value={keyword}
@@ -508,7 +503,7 @@ function MyApplicationScreen() {
         </div>
       </div>
 
-      <section className="overflow-hidden border border-[#e2dfde] bg-white">
+      <section className="card overflow-hidden">
         <CommonTable
           columns={buildApplicationTableColumns(
             canViewApplications,
@@ -541,81 +536,72 @@ function MyApplicationScreen() {
       />
 
       {selectedApplication ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-[#1a1c1c]/35">
-          <div className="h-full w-full max-w-2xl overflow-y-auto bg-white p-6 shadow-2xl md:p-8">
+        <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-[#1a1c1c]/40 backdrop-blur-sm animate-fade-in">
+          <div className="animate-slide-in-right h-full w-full max-w-2xl overflow-y-auto bg-[#f7f6f5] p-5 shadow-[var(--shadow-lg)] md:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#b90014]">
-                  Chi tiết đơn ứng tuyển
-                </p>
-                <h2 className="mt-2 text-[28px] font-semibold leading-9 text-[#1a1c1c]">
+              <div className="min-w-0">
+                <p className="eyebrow mb-1.5">Chi tiết đơn ứng tuyển</p>
+                <h2 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1c]">
                   {selectedApplication.title}
                 </h2>
-                <p className="mt-2 text-[14px] text-[#5f5e5e]">
+                <p className="mt-1.5 text-[14px] text-[#5f5e5e]">
                   {selectedApplication.department}
                 </p>
-              </div>
-
-              <button
-                className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-                type="button"
-                onClick={() => setSelectedApplicationId(null)}
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="border border-[#e2dfde] bg-[#faf8f8] p-4">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                  Trạng thái
-                </p>
-                <span
-                  className={`mt-3 inline-flex px-3 py-1 text-[10px] font-bold uppercase tracking-[0.05em] ${selectedApplication.statusClass}`}
-                >
+                <span className={`badge mt-3 ${selectedApplication.statusClass}`}>
                   {selectedApplication.status}
                 </span>
               </div>
-              <div className="border border-[#e2dfde] bg-[#faf8f8] p-4">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                  Ngày ứng tuyển
-                </p>
-                <p className="mt-3 text-[18px] font-semibold text-[#1a1c1c]">
-                  {selectedApplication.appliedDate}
-                </p>
+
+              <button
+                className="btn btn-secondary h-10 w-10 shrink-0 !px-0"
+                type="button"
+                onClick={() => setSelectedApplicationId(null)}
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="card flex items-center gap-3 p-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+                  <span className="material-symbols-outlined text-[24px]">event_available</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold text-[#8a8786]">Ngày ứng tuyển</p>
+                  <p className="mt-0.5 text-[16px] font-semibold text-[#1a1c1c]">
+                    {selectedApplication.appliedDate}
+                  </p>
+                </div>
               </div>
-              <div className="border border-[#e2dfde] bg-[#faf8f8] p-4">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                  Lịch phỏng vấn
-                </p>
-                <p className="mt-3 text-[18px] font-semibold text-[#1a1c1c]">
-                  {selectedApplication.relatedInterviewCount}
-                </p>
+              <div className="card flex items-center gap-3 p-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+                  <span className="material-symbols-outlined text-[24px]">event</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold text-[#8a8786]">Lịch phỏng vấn</p>
+                  <p className="mt-0.5 text-[16px] font-semibold text-[#1a1c1c]">
+                    {selectedApplication.relatedInterviewCount}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 border border-[#e2dfde] p-5">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                Bước tiếp theo
-              </p>
-              <p className="mt-3 text-[16px] leading-7 text-[#1a1c1c]">
+            <div className="card mt-4 p-5">
+              <p className="eyebrow">Bước tiếp theo</p>
+              <p className="mt-2 text-[15px] leading-7 text-[#1a1c1c]">
                 {selectedApplication.nextStep}
               </p>
             </div>
 
-            <div className="mt-6 border border-[#e2dfde] p-5">
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-                    Lịch phỏng vấn liên quan
-                  </p>
-                </div>
-
+            <div className="card mt-4 p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="section-title">Lịch phỏng vấn liên quan</p>
                 <button
-                  className="border border-[#1a1c1c] px-4 py-2 text-[12px] font-bold uppercase tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#1a1c1c] hover:text-white"
+                  className="btn btn-secondary px-3 py-2 text-[13px]"
                   type="button"
                   onClick={() => handleViewInterviews(selectedApplication)}
                 >
+                  <span className="material-symbols-outlined text-[18px]">event</span>
                   Xem lịch phỏng vấn
                 </button>
               </div>
@@ -637,7 +623,7 @@ function MyApplicationScreen() {
                       return (
                         <div
                           key={interview.id}
-                          className="flex flex-col gap-2 border border-[#efe9e8] bg-[#faf8f8] p-4 md:flex-row md:items-center md:justify-between"
+                          className="flex flex-col gap-2 rounded-[12px] border border-[#ececec] bg-[#faf8f8] p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
                           <div>
                             <p className="font-semibold text-[#1a1c1c]">
@@ -648,12 +634,10 @@ function MyApplicationScreen() {
                             </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#005f93]">
-                              {interview.status}
-                            </span>
+                            <Badge tone="info">{interview.status}</Badge>
                             {timingStatus ? (
                               <span
-                                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${timingStatus.className}`}
+                                className={`badge ${timingStatus.className}`}
                               >
                                 {timingStatus.label}
                               </span>
@@ -667,10 +651,10 @@ function MyApplicationScreen() {
               )}
             </div>
 
-            <div className="mt-8 flex flex-wrap justify-end gap-3">
+            <div className="mt-6 flex flex-wrap justify-end gap-2.5">
               {selectedApplication.availableActions.includes("acceptOffer") ? (
                 <button
-                  className="bg-[#b90014] px-5 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#93000d] disabled:cursor-not-allowed disabled:bg-[#d8b4b7]"
+                  className="btn btn-primary"
                   type="button"
                   disabled={
                     !canAcceptOffer ||
@@ -684,7 +668,7 @@ function MyApplicationScreen() {
 
               {selectedApplication.availableActions.includes("declineOffer") ? (
                 <button
-                  className="border border-[#ba1a1a] px-5 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-[#ba1a1a] transition-colors hover:bg-[#fff1ef] disabled:cursor-not-allowed disabled:border-[#d8b4b7] disabled:text-[#d8b4b7]"
+                  className="btn btn-secondary text-[#ba1a1a]!"
                   type="button"
                   disabled={
                     !canDeclineOffer ||
@@ -698,7 +682,7 @@ function MyApplicationScreen() {
 
               {selectedApplication.availableActions.includes("withdraw") ? (
                 <button
-                  className="border border-[#ba1a1a] px-5 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-[#ba1a1a] transition-colors hover:bg-[#fff1ef] disabled:cursor-not-allowed disabled:border-[#d8b4b7] disabled:text-[#d8b4b7]"
+                  className="btn btn-ghost text-[#ba1a1a]!"
                   type="button"
                   disabled={
                     !canWithdrawApplications ||

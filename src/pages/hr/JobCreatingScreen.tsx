@@ -556,43 +556,47 @@ function JobCreatingScreen() {
   }
 
   const stepper = (
-    <div className="relative mb-12 flex items-center justify-between">
-      <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#e2dfde]" />
+    <div className="relative flex items-center justify-between">
+      <div className="absolute left-5 right-5 top-5 h-[2px] bg-[#ececec]" />
 
       {(
         [
-          { n: 1, label: "Basic Info" },
-          { n: 2, label: "Description" },
-          { n: 3, label: "Skills & Pay" },
-          { n: 4, label: "Review" },
+          { n: 1, label: "Thông tin cơ bản" },
+          { n: 2, label: "Mô tả" },
+          { n: 3, label: "Kỹ năng & Lương" },
+          { n: 4, label: "Rà soát" },
         ] as const
       ).map((s) => {
         const active = step === s.n;
         const completed = step > s.n;
 
         const circleClass = completed
-          ? "bg-[#0079b9] text-white"
+          ? "bg-[#1a1c1c] text-white"
           : active
-            ? "bg-[#b90014] text-white"
-            : "bg-[#eeeeee] text-[#5f5e5e]";
+            ? "bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_8px_18px_rgba(185,0,20,0.28)]"
+            : "bg-white text-[#8a8786] border border-[#ececec]";
 
-        const labelClass = completed
-          ? "text-[#0079b9]"
-          : active
-            ? "text-[#b90014]"
-            : "text-[#5f5e5e]";
+        const labelClass = active
+          ? "text-[#1a1c1c]"
+          : completed
+            ? "text-[#1a1c1c]"
+            : "text-[#8a8786]";
 
         return (
           <div
             key={s.n}
-            className="relative z-10 flex flex-col items-center gap-2 bg-[#f9f9f9] px-4"
+            className="relative z-10 flex flex-1 flex-col items-center gap-2 px-1 text-center"
           >
             <div
-              className={`flex h-10 w-10 items-center justify-center rounded-full border-4 border-[#f9f9f9] text-[14px] font-bold ${circleClass}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-[14px] font-semibold transition-all ${circleClass}`}
             >
-              {s.n}
+              {completed ? (
+                <span className="material-symbols-outlined text-[20px]">check</span>
+              ) : (
+                s.n
+              )}
             </div>
-            <span className={`text-[12px] font-bold ${labelClass}`}>
+            <span className={`text-[11px] font-semibold leading-tight md:text-[12px] ${labelClass}`}>
               {s.label}
             </span>
           </div>
@@ -602,41 +606,48 @@ function JobCreatingScreen() {
   );
 
   return (
-    <div className="w-full px-4 py-12 md:px-10">
-      {stepper}
+    <div className="app-container animate-fade-in py-8 md:py-10">
+      <div className="mb-8">
+        <p className="eyebrow">Tuyển dụng</p>
+        <h1 className="page-title mt-1.5">Tạo tin tuyển dụng mới</h1>
+        <p className="page-subtitle">
+          Điền các thông tin chính để bắt đầu tạo chiến dịch tuyển dụng nội bộ.
+        </p>
+      </div>
+
+      <div className="card mb-6 p-5 md:p-6">{stepper}</div>
 
       {/* Content Card */}
-      <section className="rounded-lg border border-[#e2dfde] bg-white p-4 shadow-sm md:p-8">
-        <div className="mb-8">
-          <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
-            Tạo tin tuyển dụng mới
-          </h2>
-          <p className="mt-2 text-[16px] leading-6 text-[#5f5e5e]">
-            Điền các thông tin chính để bắt đầu tạo chiến dịch tuyển dụng nội
-            bộ.
-          </p>
-        </div>
+      <section className="card p-5 md:p-7">
 
         {step === 1 ? (
-          <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Chức danh công việc
-                </label>
+          <form className="animate-fade-in space-y-7" onSubmit={(e) => e.preventDefault()}>
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                <span className="material-symbols-outlined text-[20px]">info</span>
+              </span>
+              <div>
+                <h2 className="section-title">Thông tin cơ bản</h2>
+                <p className="text-[12px] text-[#8a8786]">
+                  Tiêu đề, phòng ban và hình thức làm việc của vị trí.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="field-label">Chức danh công việc</label>
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                  className="input-field h-11"
                   placeholder="Ví dụ: Kỹ sư phần mềm cấp cao"
                   type="text"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Phòng ban
-                </label>
+              <div>
+                <label className="field-label">Phòng ban</label>
                 <CommonSelect
                   options={departments.map((d) => ({ label: d, value: d }))}
                   value={department}
@@ -644,10 +655,8 @@ function JobCreatingScreen() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Loại hình công việc
-                </label>
+              <div>
+                <label className="field-label">Loại hình công việc</label>
                 <CommonSelect
                   options={employmentTypeOptions}
                   placeholder="Chọn loại hình công việc"
@@ -658,23 +667,19 @@ function JobCreatingScreen() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Địa điểm
-                </label>
+              <div>
+                <label className="field-label">Địa điểm</label>
                 <input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                  className="input-field h-11"
                   placeholder="Ví dụ: TP. Ho Chi Minh"
                   type="text"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Hình thức làm việc
-                </label>
+              <div>
+                <label className="field-label">Hình thức làm việc</label>
                 <CommonSelect
                   options={workModeOptions}
                   placeholder="Chọn hình thức làm việc"
@@ -682,34 +687,36 @@ function JobCreatingScreen() {
                   onChange={(e) => setWorkMode(e.target.value as WorkMode | "")}
                 />
               </div>
+
+              <div className="md:col-span-2">
+                <label className="field-label">Mô tả ngắn</label>
+                <textarea
+                  value={shortPitch}
+                  onChange={(e) => setShortPitch(e.target.value)}
+                  className="input-field min-h-[88px] resize-y"
+                  placeholder="Tóm tắt ngắn để hiển thị trên trang việc làm..."
+                  rows={3}
+                />
+                <p className="mt-1.5 text-[12px] text-[#8a8786]">
+                  Một câu súc tích thu hút ứng viên ngay từ danh sách việc làm.
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Mô tả ngắn
-              </label>
-              <textarea
-                value={shortPitch}
-                onChange={(e) => setShortPitch(e.target.value)}
-                className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                placeholder="Tóm tắt ngắn để hiển thị trên trang việc làm..."
-                rows={3}
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
+            <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
               <button
                 type="button"
-                className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                className="btn btn-secondary h-11 w-full sm:w-auto"
                 onClick={() => persistDraft(1)}
                 disabled={!canCreateJob}
               >
+                <span className="material-symbols-outlined text-[18px]">save</span>
                 Lưu nháp
               </button>
 
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
+                className="btn btn-primary h-11 w-full sm:w-auto"
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
@@ -723,35 +730,43 @@ function JobCreatingScreen() {
         ) : null}
 
         {step === 2 ? (
-          <div className="space-y-8">
-            <div className="space-y-2">
-              <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Mô tả công việc
-              </label>
+          <div className="animate-fade-in space-y-7">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                <span className="material-symbols-outlined text-[20px]">description</span>
+              </span>
+              <div>
+                <h2 className="section-title">Mô tả công việc</h2>
+                <p className="text-[12px] text-[#8a8786]">
+                  Mô tả chi tiết, trách nhiệm và yêu cầu của vị trí.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="field-label">Mô tả công việc</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                className="input-field min-h-[160px] resize-y"
                 placeholder="Mô tả vai trò, phạm vi công việc và kỳ vọng..."
                 rows={6}
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              <div className="space-y-3">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Trách nhiệm
-                </p>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="space-y-3 rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-4">
+                <p className="field-label mb-0">Trách nhiệm</p>
                 <div className="flex gap-2">
                   <input
                     value={responsibilityInput}
                     onChange={(e) => setResponsibilityInput(e.target.value)}
-                    className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                    className="input-field h-11"
                     placeholder="Thêm một trách nhiệm"
                   />
                   <button
                     type="button"
-                    className="rounded-none bg-[#f3f3f3] px-4 py-3 text-[12px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#e8e8e8]"
+                    className="btn btn-dark h-11 shrink-0"
                     onClick={() => {
                       addListItem(responsibilityInput, setResponsibilities);
                       setResponsibilityInput("");
@@ -764,12 +779,12 @@ function JobCreatingScreen() {
                   {responsibilities.map((r, idx) => (
                     <li
                       key={`${r}-${idx.toString()}`}
-                      className="flex items-start justify-between gap-3 border border-[#e2dfde] bg-[#f9f9f9] px-4 py-3"
+                      className="flex items-start justify-between gap-3 rounded-[10px] border border-[#ececec] bg-white px-3.5 py-2.5"
                     >
                       <span className="text-[14px] text-[#1a1c1c]">{r}</span>
                       <button
                         type="button"
-                        className="text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                        className="text-[#8a8786] transition-colors hover:text-[#b90014]"
                         onClick={() => removeListItem(idx, setResponsibilities)}
                         aria-label="Xóa trách nhiệm"
                       >
@@ -782,20 +797,18 @@ function JobCreatingScreen() {
                 </ul>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Yêu cầu
-                </p>
+              <div className="space-y-3 rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-4">
+                <p className="field-label mb-0">Yêu cầu</p>
                 <div className="flex gap-2">
                   <input
                     value={requirementInput}
                     onChange={(e) => setRequirementInput(e.target.value)}
-                    className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                    className="input-field h-11"
                     placeholder="Thêm một yêu cầu"
                   />
                   <button
                     type="button"
-                    className="rounded-none bg-[#f3f3f3] px-4 py-3 text-[12px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#e8e8e8]"
+                    className="btn btn-dark h-11 shrink-0"
                     onClick={() => {
                       addListItem(requirementInput, setRequirements);
                       setRequirementInput("");
@@ -808,12 +821,12 @@ function JobCreatingScreen() {
                   {requirements.map((r, idx) => (
                     <li
                       key={`${r}-${idx.toString()}`}
-                      className="flex items-start justify-between gap-3 border border-[#e2dfde] bg-[#f9f9f9] px-4 py-3"
+                      className="flex items-start justify-between gap-3 rounded-[10px] border border-[#ececec] bg-white px-3.5 py-2.5"
                     >
                       <span className="text-[14px] text-[#1a1c1c]">{r}</span>
                       <button
                         type="button"
-                        className="text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                        className="text-[#8a8786] transition-colors hover:text-[#b90014]"
                         onClick={() => removeListItem(idx, setRequirements)}
                         aria-label="Xóa yêu cầu"
                       >
@@ -827,28 +840,30 @@ function JobCreatingScreen() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
-              <div className="flex items-center gap-3">
+            <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   type="button"
-                  className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                  className="btn btn-secondary h-11 w-full sm:w-auto"
                   onClick={goBack}
                 >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                   Quay lại
                 </button>
                 <button
                   type="button"
-                  className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                  className="btn btn-ghost h-11 w-full sm:w-auto"
                   onClick={() => persistDraft(2)}
                   disabled={!canCreateJob}
                 >
+                  <span className="material-symbols-outlined text-[18px]">save</span>
                   Lưu nháp
                 </button>
               </div>
 
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
+                className="btn btn-primary h-11 w-full sm:w-auto"
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
@@ -862,13 +877,23 @@ function JobCreatingScreen() {
         ) : null}
 
         {step === 3 ? (
-          <div className="space-y-8">
+          <div className="animate-fade-in space-y-7">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                <span className="material-symbols-outlined text-[20px]">workspace_premium</span>
+              </span>
+              <div>
+                <h2 className="section-title">Kỹ năng &amp; Lương</h2>
+                <p className="text-[12px] text-[#8a8786]">
+                  Kỹ năng yêu cầu và khoảng lương cho vị trí này.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Kỹ năng bắt buộc
-              </label>
+              <label className="field-label">Kỹ năng bắt buộc</label>
               {skillsLoading ? (
-                <div className="rounded-xl border border-[#e2dfde] bg-white px-4 py-3">
+                <div className="rounded-[10px] border border-[#ececec] bg-white px-4 py-3">
                   <LoadingIndicator label="Đang tải kỹ năng..." size="sm" />
                 </div>
               ) : (
@@ -887,19 +912,19 @@ function JobCreatingScreen() {
                       {skills.map((skill) => (
                         <div
                           key={skill.skillName}
-                          className="grid gap-3 border border-[#e2dfde] bg-[#f9f9f9] px-4 py-3 md:grid-cols-[minmax(0,1fr)_200px]"
+                          className="grid items-center gap-3 rounded-[12px] border border-[#ececec] bg-[#faf9f8] px-4 py-3 md:grid-cols-[minmax(0,1fr)_200px]"
                         >
                           <div>
                             <p className="text-[14px] font-semibold text-[#1a1c1c]">
                               {skill.skillName}
                             </p>
-                            <p className="mt-1 text-[12px] text-[#5f5e5e]">
+                            <p className="mt-1 text-[12px] text-[#8a8786]">
                               Có thể để trống nếu chỉ cần ứng viên có kỹ năng này.
                             </p>
                           </div>
 
-                          <div className="space-y-2">
-                            <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
+                          <div>
+                            <label className="mb-1 block text-[11px] font-semibold text-[#8a8786]">
                               Số năm tối thiểu
                             </label>
                             <input
@@ -911,7 +936,7 @@ function JobCreatingScreen() {
                                   setSkills,
                                 )
                               }
-                              className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                              className="input-field h-10 py-2"
                               inputMode="decimal"
                               placeholder="VD: 1.5"
                               type="text"
@@ -922,10 +947,8 @@ function JobCreatingScreen() {
                     </div>
                   ) : null}
 
-                  <div className="space-y-2">
-                    <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                      Kỹ năng cộng điểm
-                    </label>
+                  <div className="space-y-2 border-t border-[#ececec] pt-4">
+                    <label className="field-label">Kỹ năng cộng điểm</label>
                     <SkillPicker
                       emptyLabel="Kỹ năng không bắt buộc nhưng giúp ứng viên được đánh giá tốt hơn."
                       options={skillOptions}
@@ -940,7 +963,7 @@ function JobCreatingScreen() {
                         {niceToHaveSkills.map((skill) => (
                           <div
                             key={skill.skillName}
-                            className="grid gap-3 border border-[#cfe1eb] bg-[#f7fbfd] px-4 py-3 md:grid-cols-[minmax(0,1fr)_200px]"
+                            className="grid items-center gap-3 rounded-[12px] border border-[#cfe1eb] bg-[#f7fbfd] px-4 py-3 md:grid-cols-[minmax(0,1fr)_200px]"
                           >
                             <div>
                               <p className="text-[14px] font-semibold text-[#005f93]">
@@ -951,8 +974,8 @@ function JobCreatingScreen() {
                               </p>
                             </div>
 
-                            <div className="space-y-2">
-                              <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
+                            <div>
+                              <label className="mb-1 block text-[11px] font-semibold text-[#5f5e5e]">
                                 Số năm tối thiểu
                               </label>
                               <input
@@ -964,7 +987,7 @@ function JobCreatingScreen() {
                                     setNiceToHaveSkills,
                                   )
                                 }
-                                className="w-full rounded-none border border-[#cfe1eb] bg-white px-3 py-2 text-[14px] focus:border-[#005f93] focus:ring-0"
+                                className="h-10 w-full rounded-[10px] border border-[#cfe1eb] bg-white px-3 py-2 text-[14px] transition-all focus:border-[#005f93] focus:outline-none focus:ring-4 focus:ring-[#005f93]/10"
                                 inputMode="decimal"
                                 placeholder="VD: 0.5"
                                 type="text"
@@ -979,67 +1002,63 @@ function JobCreatingScreen() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Lương tối thiểu (VND/tháng)
-                </label>
+            <div className="grid grid-cols-1 gap-x-5 gap-y-4 border-t border-[#ececec] pt-6 md:grid-cols-3">
+              <div>
+                <label className="field-label">Lương tối thiểu (VND/tháng)</label>
                 <input
                   value={salaryMin}
                   onChange={(e) => setSalaryMin(e.target.value)}
-                  className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                  className="input-field h-11"
                   placeholder="Ví dụ: 20000000"
                   inputMode="numeric"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Lương tối đa (VND/tháng)
-                </label>
+              <div>
+                <label className="field-label">Lương tối đa (VND/tháng)</label>
                 <input
                   value={salaryMax}
                   onChange={(e) => setSalaryMax(e.target.value)}
-                  className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
+                  className="input-field h-11"
                   placeholder="Ví dụ: 35000000"
                   inputMode="numeric"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Tiền tệ
-                </label>
+              <div>
+                <label className="field-label">Tiền tệ</label>
                 <input
                   value="VND"
                   readOnly
-                  className="w-full rounded-none border border-[#e2dfde] bg-[#f3f3f3] px-4 py-3 text-[14px] text-[#5f5e5e]"
+                  className="input-field h-11 cursor-not-allowed bg-[#f6f3f2] text-[#8a8786]"
                 />
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
-              <div className="flex items-center gap-3">
+            <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   type="button"
-                  className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                  className="btn btn-secondary h-11 w-full sm:w-auto"
                   onClick={goBack}
                 >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                   Quay lại
                 </button>
                 <button
                   type="button"
-                  className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                  className="btn btn-ghost h-11 w-full sm:w-auto"
                   onClick={() => persistDraft(3)}
                   disabled={!canCreateJob}
                 >
+                  <span className="material-symbols-outlined text-[18px]">save</span>
                   Lưu nháp
                 </button>
               </div>
 
               <button
                 type="button"
-                className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
+                className="btn btn-primary h-11 w-full sm:w-auto"
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
@@ -1053,13 +1072,25 @@ function JobCreatingScreen() {
         ) : null}
 
         {step === 4 ? (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="border border-[#e2dfde] bg-[#f9f9f9] p-6">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Basic Info
+          <div className="animate-fade-in space-y-7">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff1ef] text-[#b90014]">
+                <span className="material-symbols-outlined text-[20px]">fact_check</span>
+              </span>
+              <div>
+                <h2 className="section-title">Rà soát tin tuyển dụng</h2>
+                <p className="text-[12px] text-[#8a8786]">
+                  Kiểm tra lại thông tin trước khi gửi phê duyệt.
                 </p>
-                <p className="mt-3 text-[16px] font-semibold">{title || "—"}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-5">
+                <p className="eyebrow">Thông tin cơ bản</p>
+                <p className="mt-3 text-[16px] font-semibold text-[#1a1c1c]">
+                  {title || "—"}
+                </p>
                 <p className="mt-1 text-[14px] text-[#5f5e5e]">
                   {department} · {location || "—"} · {employmentType || "—"} ·{" "}
                   {workMode || "—"}
@@ -1069,16 +1100,14 @@ function JobCreatingScreen() {
                 </p>
               </div>
 
-              <div className="border border-[#e2dfde] bg-[#f9f9f9] p-6">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                  Skills & Pay
-                </p>
+              <div className="rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-5">
+                <p className="eyebrow">Kỹ năng &amp; Lương</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {skills.length ? (
                     skills.map((skill) => (
                       <span
                         key={skill.skillName}
-                        className="border border-[#e2dfde] bg-white px-3 py-1 text-[12px] font-semibold"
+                        className="badge bg-white text-[#1a1c1c] ring-1 ring-inset ring-[#ececec]"
                       >
                         {skill.skillName}
                         {skill.minimumYearsOfExperience
@@ -1095,7 +1124,7 @@ function JobCreatingScreen() {
                     {niceToHaveSkills.map((skill) => (
                       <span
                         key={skill.skillName}
-                        className="border border-[#005f93]/20 bg-[#005f93]/10 px-3 py-1 text-[12px] font-semibold text-[#005f93]"
+                        className="badge bg-[#005f93]/10 text-[#005f93]"
                       >
                         {skill.skillName}
                         {skill.minimumYearsOfExperience
@@ -1105,7 +1134,7 @@ function JobCreatingScreen() {
                     ))}
                   </div>
                 ) : null}
-                <p className="mt-4 text-[14px] text-[#1a1c1c]">
+                <p className="mt-4 text-[14px] font-semibold text-[#1a1c1c]">
                   {salaryMin && salaryMax
                     ? `${Number(salaryMin).toLocaleString("vi-VN")} - ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
                     : salaryMin
@@ -1117,19 +1146,15 @@ function JobCreatingScreen() {
               </div>
             </div>
 
-            <div className="border border-[#e2dfde] bg-[#f9f9f9] p-6">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                Description
-              </p>
-              <p className="mt-3 whitespace-pre-wrap text-[14px] text-[#1a1c1c]">
+            <div className="rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-5">
+              <p className="eyebrow">Mô tả</p>
+              <p className="mt-3 whitespace-pre-wrap text-[14px] leading-6 text-[#1a1c1c]">
                 {description || "—"}
               </p>
 
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                    Trách nhiệm
-                  </p>
+                  <p className="eyebrow">Trách nhiệm</p>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] text-[#1a1c1c]">
                     {responsibilities.length ? (
                       responsibilities.map((r, i) => (
@@ -1141,9 +1166,7 @@ function JobCreatingScreen() {
                   </ul>
                 </div>
                 <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                    Yêu cầu
-                  </p>
+                  <p className="eyebrow">Yêu cầu</p>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] text-[#1a1c1c]">
                     {requirements.length ? (
                       requirements.map((r, i) => (
@@ -1157,28 +1180,30 @@ function JobCreatingScreen() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
-              <div className="flex items-center gap-3">
+            <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <button
                   type="button"
-                  className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                  className="btn btn-secondary h-11 w-full sm:w-auto"
                   onClick={goBack}
                 >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                   Quay lại
                 </button>
                 <button
                   type="button"
-                  className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                  className="btn btn-ghost h-11 w-full sm:w-auto"
                   onClick={() => persistDraft(4)}
                   disabled={!canCreateJob}
                 >
+                  <span className="material-symbols-outlined text-[18px]">save</span>
                   Lưu nháp
                 </button>
               </div>
 
               <AsyncActionButton
                 type="button"
-                className="flex items-center gap-2 rounded-none bg-[#b90014] px-8 py-3 text-[12px] font-bold text-white transition-transform active:scale-95"
+                className="btn btn-primary h-11 w-full sm:w-auto"
                 onClick={publishJob}
                 disabled={!canCreateJob || publishing}
                 loading={publishing}
@@ -1186,7 +1211,7 @@ function JobCreatingScreen() {
               >
                 Gửi job chờ duyệt
                 <span className="material-symbols-outlined text-[18px]">
-                  arrow_forward
+                  send
                 </span>
               </AsyncActionButton>
             </div>
@@ -1195,33 +1220,36 @@ function JobCreatingScreen() {
       </section>
 
       {/* Tip Bento Grid */}
-      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="relative overflow-hidden rounded-lg bg-[#0079b9] p-6 text-white md:col-span-2">
+      <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="relative overflow-hidden rounded-[16px] bg-[#1a1c1c] p-6 text-white md:col-span-2">
           <div className="relative z-10">
-            <h4 className="text-[20px] font-bold">Recruitment Tip</h4>
-            <p className="mt-2 text-[14px] opacity-90">
-              Detailed job descriptions with clear salary ranges see 30% higher
-              application quality within the first 48 hours of posting.
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
+              Mẹo tuyển dụng
+            </p>
+            <h4 className="mt-2 text-[18px] font-semibold">
+              Mô tả rõ ràng thu hút ứng viên tốt hơn
+            </h4>
+            <p className="mt-2 max-w-xl text-[14px] leading-6 text-white/75">
+              Tin tuyển dụng có mô tả chi tiết kèm khoảng lương rõ ràng nhận được
+              chất lượng ứng tuyển cao hơn 30% trong 48 giờ đầu đăng tin.
             </p>
           </div>
-          <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-10">
+          <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] text-white/5">
             lightbulb
           </span>
         </div>
 
         <button
           type="button"
-          className="flex flex-col items-center justify-center rounded-lg bg-[#e8e8e8] p-6 text-center transition-colors hover:bg-[#e2e2e2]"
+          className="card-interactive flex flex-col items-center justify-center p-6 text-center disabled:pointer-events-none disabled:opacity-50"
           onClick={applyEngineeringTemplate}
           disabled={!canUseTemplate}
         >
-          <span className="material-symbols-outlined mb-2 text-[32px] text-[#b90014]">
-            history
+          <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff1ef] text-[#b90014]">
+            <span className="material-symbols-outlined text-[24px]">history</span>
           </span>
-          <p className="text-[12px] font-bold uppercase tracking-[0.05em]">
-            Recent Templates
-          </p>
-          <p className="mt-1 text-[14px] text-[#5f5e5e]">
+          <p className="eyebrow">Mẫu gần đây</p>
+          <p className="mt-1 text-[14px] font-medium text-[#1a1c1c]">
             Dùng mẫu Engineering L4
           </p>
         </button>

@@ -40,24 +40,25 @@ export function ProjectsSection({
 }: ProjectsSectionProps) {
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Dự án
-        </h2>
+      <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
+        <h2 className="section-title">Dự án</h2>
         {canEditProfile ? (
           <button
-            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
             type="button"
             onClick={() => setShowProjectComposer((value) => !value)}
           >
+            <span className="material-symbols-outlined text-[16px]">
+              {showProjectComposer ? "close" : "add"}
+            </span>
             {showProjectComposer ? "Đóng" : "Thêm mục"}
           </button>
         ) : null}
       </div>
       {showProjectComposer && canEditProfile ? (
-        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+        <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Tên dự án"
             value={projectDraft.name}
             onChange={(e) =>
@@ -65,7 +66,7 @@ export function ProjectsSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Vai trò"
             value={projectDraft.role}
             onChange={(e) =>
@@ -73,7 +74,7 @@ export function ProjectsSection({
             }
           />
           <textarea
-            className="min-h-[90px] w-full rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field min-h-[90px] resize-none"
             placeholder="Mô tả dự án"
             value={projectDraft.description}
             onChange={(e) =>
@@ -81,7 +82,7 @@ export function ProjectsSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Công nghệ, phân tách bằng dấu phẩy"
             value={projectDraft.technologies}
             onChange={(e) =>
@@ -98,18 +99,18 @@ export function ProjectsSection({
               onValueChange={(value) =>
                 setProjectDraft((prev) => ({ ...prev, startMonth: Number(value) }))
               }
-              className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
-              menuClassName="border-[#e2dfde]"
+              className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
+              menuClassName="border-[#ececec]"
             />
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               type="number"
               value={projectDraft.startYear}
               onChange={(e) =>
                 setProjectDraft((prev) => ({ ...prev, startYear: Number(e.target.value) }))
               }
             />
-            <label className="col-span-2 flex items-center gap-2 rounded border border-[#e2dfde] bg-white px-3 py-2 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
+            <label className="col-span-2 flex h-11 items-center gap-2 rounded-[10px] border border-[#dcd7d5] bg-white px-3 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
               <input
                 checked={projectDraft.isCurrent}
                 className="h-4 w-4 accent-[#b90014]"
@@ -131,11 +132,11 @@ export function ProjectsSection({
                   onValueChange={(value) =>
                     setProjectDraft((prev) => ({ ...prev, endMonth: Number(value) }))
                   }
-                  className="h-11 rounded-none border border-[#e2dfde] bg-white text-[14px] shadow-none focus:border-[#1a1c1c]"
-                  menuClassName="border-[#e2dfde]"
+                  className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
+                  menuClassName="border-[#ececec]"
                 />
                 <input
-                  className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                  className="input-field h-11"
                   type="number"
                   value={projectDraft.endYear}
                   onChange={(e) =>
@@ -145,16 +146,16 @@ export function ProjectsSection({
               </>
             )}
           </div>
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
-              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+              className="btn btn-secondary h-11"
               type="button"
               onClick={() => setShowProjectComposer(false)}
             >
               Hủy
             </button>
             <button
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+              className="btn btn-primary h-11"
               type="button"
               onClick={onAddProject}
             >
@@ -166,7 +167,7 @@ export function ProjectsSection({
       <div className="mt-4 space-y-3">
         {projects.length ? (
           projects.map((project) => (
-            <div key={project.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
+            <div key={project.id} className="rounded-[12px] border border-[#ececec] bg-[#fbfafa] p-4 transition-all hover:border-[#e0d4d2]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[15px] font-semibold text-[#1a1c1c]">{project.name}</p>
@@ -192,7 +193,7 @@ export function ProjectsSection({
                   {project.technologies.map((technology) => (
                     <span
                       key={technology}
-                      className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#1a1c1c]"
+                      className="badge border border-[#ececec] bg-white text-[#5f5e5e]"
                     >
                       {technology}
                     </span>
@@ -231,24 +232,25 @@ export function EducationSection({
 }: EducationSectionProps) {
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Học vấn
-        </h2>
+      <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
+        <h2 className="section-title">Học vấn</h2>
         {canEditProfile ? (
           <button
-            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
             type="button"
             onClick={() => setShowEducationComposer((value) => !value)}
           >
+            <span className="material-symbols-outlined text-[16px]">
+              {showEducationComposer ? "close" : "add"}
+            </span>
             {showEducationComposer ? "Đóng" : "Thêm mục"}
           </button>
         ) : null}
       </div>
       {showEducationComposer && canEditProfile ? (
-        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+        <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Trường học"
             value={educationDraft.school}
             onChange={(e) =>
@@ -256,7 +258,7 @@ export function EducationSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Bằng cấp"
             value={educationDraft.degree}
             onChange={(e) =>
@@ -264,7 +266,7 @@ export function EducationSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Chuyên ngành"
             value={educationDraft.fieldOfStudy}
             onChange={(e) =>
@@ -273,7 +275,7 @@ export function EducationSection({
           />
           <div className="grid grid-cols-2 gap-3">
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               placeholder="Năm bắt đầu"
               value={educationDraft.startYear}
               onChange={(e) =>
@@ -281,7 +283,7 @@ export function EducationSection({
               }
             />
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               placeholder="Năm kết thúc"
               value={educationDraft.endYear}
               onChange={(e) =>
@@ -290,23 +292,23 @@ export function EducationSection({
             />
           </div>
           <textarea
-            className="min-h-[90px] w-full rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field min-h-[90px] resize-none"
             placeholder="Mô tả thêm"
             value={educationDraft.description}
             onChange={(e) =>
               setEducationDraft((prev) => ({ ...prev, description: e.target.value }))
             }
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
-              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+              className="btn btn-secondary h-11"
               type="button"
               onClick={() => setShowEducationComposer(false)}
             >
               Hủy
             </button>
             <button
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+              className="btn btn-primary h-11"
               type="button"
               onClick={onAddEducation}
             >
@@ -318,7 +320,7 @@ export function EducationSection({
       <div className="mt-4 space-y-3">
         {educations.length ? (
           educations.map((education) => (
-            <div key={education.id} className="rounded p-4">
+            <div key={education.id} className="rounded-[12px] border border-[#ececec] bg-[#fbfafa] p-4 transition-all hover:border-[#e0d4d2]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[15px] font-semibold text-[#1a1c1c]">{education.school}</p>
@@ -392,24 +394,25 @@ export function CertificationsSection({
 }: CertificationsSectionProps) {
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Chứng chỉ
-        </h2>
+      <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
+        <h2 className="section-title">Chứng chỉ</h2>
         {canEditProfile ? (
           <button
-            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
             type="button"
             onClick={() => setShowCertificationComposer((value) => !value)}
           >
+            <span className="material-symbols-outlined text-[16px]">
+              {showCertificationComposer ? "close" : "add"}
+            </span>
             {showCertificationComposer ? "Đóng" : "Thêm mục"}
           </button>
         ) : null}
       </div>
       {showCertificationComposer && canEditProfile ? (
-        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+        <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Tên chứng chỉ"
             value={certificationDraft.name}
             onChange={(e) =>
@@ -417,7 +420,7 @@ export function CertificationsSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Đơn vị cấp"
             value={certificationDraft.issuer}
             onChange={(e) =>
@@ -426,7 +429,7 @@ export function CertificationsSection({
           />
           <div className="grid grid-cols-2 gap-3">
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               type="date"
               value={certificationDraft.issuedOn}
               onChange={(e) =>
@@ -434,7 +437,7 @@ export function CertificationsSection({
               }
             />
             <input
-              className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+              className="input-field h-11"
               type="date"
               value={certificationDraft.expiresOn}
               onChange={(e) =>
@@ -443,7 +446,7 @@ export function CertificationsSection({
             />
           </div>
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Mã chứng chỉ"
             value={certificationDraft.credentialId}
             onChange={(e) =>
@@ -451,23 +454,23 @@ export function CertificationsSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Liên kết chứng chỉ"
             value={certificationDraft.credentialUrl}
             onChange={(e) =>
               setCertificationDraft((prev) => ({ ...prev, credentialUrl: e.target.value }))
             }
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
-              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+              className="btn btn-secondary h-11"
               type="button"
               onClick={() => setShowCertificationComposer(false)}
             >
               Hủy
             </button>
             <button
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+              className="btn btn-primary h-11"
               type="button"
               onClick={onAddCertification}
             >
@@ -479,7 +482,7 @@ export function CertificationsSection({
       <div className="mt-4 space-y-3">
         {certifications.length ? (
           certifications.map((certification) => (
-            <div key={certification.id} className="rounded border border-[#e2dfde] bg-[#f9f9f9] p-4">
+            <div key={certification.id} className="rounded-[12px] border border-[#ececec] bg-[#fbfafa] p-4 transition-all hover:border-[#e0d4d2]">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[15px] font-semibold text-[#1a1c1c]">{certification.name}</p>
@@ -529,24 +532,25 @@ export function LanguagesSection({
 }: LanguagesSectionProps) {
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Ngoại ngữ
-        </h2>
+      <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
+        <h2 className="section-title">Ngoại ngữ</h2>
         {canEditProfile ? (
           <button
-            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
             type="button"
             onClick={() => setShowLanguageComposer((value) => !value)}
           >
+            <span className="material-symbols-outlined text-[16px]">
+              {showLanguageComposer ? "close" : "add"}
+            </span>
             {showLanguageComposer ? "Đóng" : "Thêm mục"}
           </button>
         ) : null}
       </div>
       {showLanguageComposer && canEditProfile ? (
-        <div className="mt-4 space-y-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4">
+        <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Ngôn ngữ"
             value={languageDraft.name}
             onChange={(e) =>
@@ -554,23 +558,23 @@ export function LanguagesSection({
             }
           />
           <input
-            className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Trình độ"
             value={languageDraft.proficiency}
             onChange={(e) =>
               setLanguageDraft((prev) => ({ ...prev, proficiency: e.target.value }))
             }
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
-              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+              className="btn btn-secondary h-11"
               type="button"
               onClick={() => setShowLanguageComposer(false)}
             >
               Hủy
             </button>
             <button
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+              className="btn btn-primary h-11"
               type="button"
               onClick={onAddLanguage}
             >
@@ -582,20 +586,18 @@ export function LanguagesSection({
       <div className="mt-4 flex flex-wrap gap-2">
         {languages.length ? (
           languages.map((language) => (
-            <div
-              key={language.id}
-              className="flex items-center gap-2 rounded-full border border-[#b90014]/20 bg-[#b90014]/10 px-3 py-1 text-[12px] font-semibold text-[#b90014]"
-            >
+            <div key={language.id} className="badge bg-[#b90014]/10 text-[#b90014]">
               <span>
                 {language.name} • {language.proficiency}
               </span>
               {canEditProfile ? (
                 <button
-                  className="text-[#b90014] hover:underline"
+                  className="material-symbols-outlined text-[14px] text-[#b90014] hover:text-[#8a1020]"
                   type="button"
+                  aria-label="Xóa"
                   onClick={() => onRemoveLanguage(language.id)}
                 >
-                  Xóa
+                  close
                 </button>
               ) : null}
             </div>
@@ -645,26 +647,27 @@ export function CustomSectionsSection({
   onRemoveCustomSectionItem,
 }: CustomSectionsSectionProps) {
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="border-l-4 border-[#b90014] pl-4 text-[20px] font-semibold">
-          Mục linh hoạt
-        </h2>
+    <div className="mt-8 border-t border-[#f0eceb] pt-8">
+      <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
+        <h2 className="section-title">Mục linh hoạt</h2>
         {canEditProfile ? (
           <button
-            className="text-[12px] font-semibold text-[#b90014] hover:underline"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
             type="button"
             onClick={() => setShowCustomSectionComposer((value) => !value)}
           >
+            <span className="material-symbols-outlined text-[16px]">
+              {showCustomSectionComposer ? "close" : "add"}
+            </span>
             {showCustomSectionComposer ? "Đóng" : "Thêm đầu mục lớn"}
           </button>
         ) : null}
       </div>
 
       {showCustomSectionComposer && canEditProfile ? (
-        <div className="mt-4 grid gap-3 rounded border border-[#e2dfde] bg-[#f9f4f4] p-4 md:grid-cols-2">
+        <div className="animate-scale-in mt-4 grid gap-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4 md:grid-cols-2">
           <input
-            className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Ví dụ: Vinh danh"
             value={customSectionDraft.title}
             onChange={(e) =>
@@ -672,7 +675,7 @@ export function CustomSectionsSection({
             }
           />
           <input
-            className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+            className="input-field h-11"
             placeholder="Ví dụ: Thành tích"
             value={customSectionDraft.sectionType}
             onChange={(e) =>
@@ -681,14 +684,14 @@ export function CustomSectionsSection({
           />
           <div className="md:col-span-2 flex justify-end gap-2">
             <button
-              className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+              className="btn btn-secondary h-11"
               type="button"
               onClick={() => setShowCustomSectionComposer(false)}
             >
               Hủy
             </button>
             <button
-              className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+              className="btn btn-primary h-11"
               type="button"
               onClick={onAddCustomSection}
             >
@@ -705,18 +708,16 @@ export function CustomSectionsSection({
             const composerOpen = openCustomSectionItemComposerId === section.id;
 
             return (
-              <div key={section.id} className="rounded border border-[#e2dfde] bg-[#fcfcfc] p-4">
+              <div key={section.id} className="rounded-[12px] border border-[#ececec] bg-[#fcfcfc] p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
-                    <p className="text-[18px] font-semibold text-[#1a1c1c]">{section.title}</p>
-                    <p className="mt-1 text-[12px] uppercase tracking-[0.06em] text-[#7a4b53]">
-                      {section.sectionType}
-                    </p>
+                    <p className="text-[16px] font-semibold text-[#1a1c1c]">{section.title}</p>
+                    <p className="eyebrow mt-1">{section.sectionType}</p>
                   </div>
                   {canEditProfile ? (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        className="rounded border border-[#e2dfde] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c]"
+                        className="btn btn-secondary h-9 px-3 py-0 text-[12px]"
                         type="button"
                         onClick={() =>
                           setOpenCustomSectionItemComposerId((prev) =>
@@ -727,7 +728,7 @@ export function CustomSectionsSection({
                         {composerOpen ? "Đóng mục con" : "Thêm mục con"}
                       </button>
                       <button
-                        className="rounded border border-[#f0c9cf] bg-[#fff5f6] px-3 py-2 text-[12px] font-semibold text-[#b90014]"
+                        className="btn h-9 border border-[#f0c9cf] bg-[#fff5f6] px-3 py-0 text-[12px] text-[#b90014] hover:bg-[#ffe7ec]"
                         type="button"
                         onClick={() => onRemoveCustomSection(section.id)}
                       >
@@ -738,59 +739,59 @@ export function CustomSectionsSection({
                 </div>
 
                 {composerOpen && canEditProfile ? (
-                  <div className="mt-4 grid gap-3 rounded border border-[#efe3e5] bg-white p-4 md:grid-cols-2">
+                  <div className="animate-scale-in mt-4 grid gap-3 rounded-[12px] border border-[#ececec] bg-white p-4 md:grid-cols-2">
                     <input
-                      className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                      className="input-field h-11"
                       placeholder="Tiêu đề"
                       value={itemDraft.title}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "title", e.target.value)}
                     />
                     <input
-                      className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                      className="input-field h-11"
                       placeholder="Phụ đề / vai trò"
                       value={itemDraft.subtitle}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "subtitle", e.target.value)}
                     />
                     <input
-                      className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                      className="input-field h-11"
                       placeholder="Tổ chức"
                       value={itemDraft.organization}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "organization", e.target.value)}
                     />
                     <input
-                      className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                      className="input-field h-11"
                       placeholder="Mốc thời gian hiển thị"
                       value={itemDraft.dateLabel}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "dateLabel", e.target.value)}
                     />
                     <input
-                      className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                      className="input-field h-11"
                       placeholder="Địa điểm"
                       value={itemDraft.location}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "location", e.target.value)}
                     />
                     <input
-                      className="rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
+                      className="input-field h-11"
                       placeholder="Tags, phân tách bằng dấu phẩy"
                       value={itemDraft.tags}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "tags", e.target.value)}
                     />
                     <textarea
-                      className="min-h-[100px] rounded-none border border-[#e2dfde] bg-white p-3 text-[14px] outline-none focus:border-[#1a1c1c] md:col-span-2"
+                      className="input-field min-h-[100px] resize-none md:col-span-2"
                       placeholder="Mô tả"
                       value={itemDraft.description}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "description", e.target.value)}
                     />
-                    <div className="md:col-span-2 flex justify-end gap-2">
+                    <div className="md:col-span-2 flex flex-wrap justify-end gap-2">
                       <button
-                        className="rounded border border-[#1a1c1c] px-4 py-2 text-[12px] font-semibold"
+                        className="btn btn-secondary h-11"
                         type="button"
                         onClick={() => setOpenCustomSectionItemComposerId(null)}
                       >
                         Hủy
                       </button>
                       <button
-                        className="rounded bg-[#b90014] px-4 py-2 text-[12px] font-semibold text-white"
+                        className="btn btn-primary h-11"
                         type="button"
                         onClick={() => onAddCustomSectionItem(section.id)}
                       >
@@ -803,7 +804,7 @@ export function CustomSectionsSection({
                 <div className="mt-4 space-y-3">
                   {section.items.length ? (
                     section.items.map((item) => (
-                      <div key={item.id} className="rounded border border-[#e2dfde] bg-white p-4">
+                      <div key={item.id} className="rounded-[12px] border border-[#ececec] bg-white p-4">
                         <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                           <div>
                             <p className="text-[15px] font-semibold text-[#1a1c1c]">{item.title}</p>
@@ -834,7 +835,7 @@ export function CustomSectionsSection({
                             {item.tags.map((tag) => (
                               <span
                                 key={`${item.id}-${tag}`}
-                                className="rounded-full bg-[#f7f1f2] px-3 py-1 text-[12px] font-semibold text-[#7a4b53]"
+                                className="badge bg-[#f7f1f2] text-[#7a4b53]"
                               >
                                 {tag}
                               </span>

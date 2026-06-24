@@ -218,9 +218,7 @@ function buildApplicationTableColumns(
       key: "department",
       header: "Phòng ban",
       renderCell: (app) => (
-        <span
-          className={`inline-flex rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${getDepartmentBadgeClass(app.department)}`}
-        >
+        <span className={`badge ${getDepartmentBadgeClass(app.department)}`}>
           {app.department}
         </span>
       ),
@@ -248,9 +246,7 @@ function buildApplicationTableColumns(
       key: "status",
       header: "Trạng thái",
       renderCell: (app) => (
-        <span
-          className={`rounded-full px-3 py-1 text-[11px] font-black uppercase border ${getApplicationStatusBadgeClass(app.status)}`}
-        >
+        <span className={`badge ${getApplicationStatusBadgeClass(app.status)}`}>
           {app.status}
         </span>
       ),
@@ -266,7 +262,7 @@ function buildApplicationTableColumns(
           {options.canReviewApplication ? (
             <button
               type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#1a1c1c] bg-white text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[#ececec] bg-white text-[#5f5e5e] transition-colors hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
               onClick={() => onReviewApplication(app)}
               title="Đánh giá hồ sơ"
             >
@@ -276,18 +272,14 @@ function buildApplicationTableColumns(
             </button>
           ) : null}
           {options.canSendEmail ? (
-            <div className="group relative shrink-0">
-              <button
-                type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#e31b23] text-white transition-all hover:bg-[#b90014]"
-                onClick={() => onOpenEmailComposer(app, "Interview Invitation")}
-                title="Soạn email"
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  mail
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
+              onClick={() => onOpenEmailComposer(app, "Interview Invitation")}
+              title="Soạn email"
+            >
+              <span className="material-symbols-outlined text-[20px]">mail</span>
+            </button>
           ) : null}
         </div>
       ),
@@ -551,114 +543,93 @@ function CandidateApplicationScreen() {
   }
 
   return (
-    <div className="w-full flex-grow px-4 py-10 md:px-10">
+    <div className="app-container animate-fade-in flex-grow py-8">
       {/* Page Header */}
-      <div className="mb-12">
-        <h1 className="page-title">
-          {filteredJobTitle
+      <PageHeader
+        eyebrow="Tuyển dụng"
+        icon="contact_page"
+        title={
+          filteredJobTitle
             ? `Hồ sơ ứng tuyển - ${filteredJobTitle}`
-            : "Danh sách hồ sơ ứng tuyển"}
-        </h1>
-        <p className="page-subtitle">
-          {filteredJobTitle
+            : "Danh sách hồ sơ ứng tuyển"
+        }
+        subtitle={
+          filteredJobTitle
             ? "Theo dõi các hồ sơ ứng tuyển cho job đang chọn."
-            : "Theo dõi và xử lý hồ sơ ứng tuyển trên toàn bộ phòng ban."}
-        </p>
-      </div>
+            : "Theo dõi và xử lý hồ sơ ứng tuyển trên toàn bộ phòng ban."
+        }
+        className="mb-7"
+      />
 
       {/* Filters Area */}
-      <div className="mb-10 rounded-xl border border-[#e7bdb8] bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end">
-          <div className="w-full space-y-2 xl:flex-1">
-            <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Tìm kiếm
-            </label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f5e5e]">
-                search
-              </span>
-              <input
-                className="w-full rounded-lg border border-[#e7bdb8] py-3 pl-10 pr-4 text-body-md outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
-                placeholder="Tìm ứng viên, tiêu đề job, mã job hoặc người phụ trách..."
-                type="text"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  resetToFirstPage();
-                }}
-              />
-            </div>
-          </div>
+      <div className="card mb-4 flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
+        <div className="relative w-full lg:max-w-xs">
+          <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
+            search
+          </span>
+          <input
+            className="input-field pl-10"
+            placeholder="Tìm ứng viên, tiêu đề job, mã job hoặc người phụ trách..."
+            type="text"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              resetToFirstPage();
+            }}
+          />
+        </div>
 
-          <div className="w-full space-y-2 xl:w-64">
-            <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Công việc
-            </label>
-            <CommonSelect
-              className="h-[52px] text-body-md"
-              options={jobOptions}
-              value={jobFilter}
-              onChange={(event) => {
-                setJobFilter(event.target.value);
-                resetToFirstPage();
-              }}
-            />
-          </div>
-
-          <div className="w-full space-y-2 xl:w-64">
-            <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Phòng ban
-            </label>
-            <CommonSelect
-              className="h-[52px] text-body-md"
-              options={departmentOptions.map((department) => ({
-                label: department,
-                value: department,
-              }))}
-              value={departmentFilter}
-              onChange={(event) => {
-                setDepartmentFilter(event.target.value as Department);
-                resetToFirstPage();
-              }}
-            />
-          </div>
-
-          <div className="w-full space-y-2 xl:w-64">
-            <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Trạng thái
-            </label>
-            <CommonSelect
-              className="h-[52px] text-body-md"
-              options={statusOptions.map((status) => ({
-                label: status,
-                value:
-                  status === "Tất cả trạng thái" ? STATUS_FILTER_ALL : status,
-              }))}
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value);
-                resetToFirstPage();
-              }}
-            />
-          </div>
-
-          <div className="w-full space-y-2 xl:w-64">
-            <label className="text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-              Khoảng thời gian
-            </label>
-            <CommonSelect
-              className="h-[52px] text-body-md"
-              options={dateRanges.map((range) => ({
-                label: DATE_RANGE_LABELS[range],
-                value: range,
-              }))}
-              value={dateRangeFilter}
-              onChange={(event) => {
-                setDateRangeFilter(event.target.value as DateRange);
-                resetToFirstPage();
-              }}
-            />
-          </div>
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-row lg:items-center">
+          <CommonSelect
+            className="h-[42px] text-sm"
+            wrapperClassName="w-full lg:flex-1 lg:min-w-[160px]"
+            options={jobOptions}
+            value={jobFilter}
+            onChange={(event) => {
+              setJobFilter(event.target.value);
+              resetToFirstPage();
+            }}
+          />
+          <CommonSelect
+            className="h-[42px] text-sm"
+            wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
+            options={departmentOptions.map((department) => ({
+              label: department,
+              value: department,
+            }))}
+            value={departmentFilter}
+            onChange={(event) => {
+              setDepartmentFilter(event.target.value as Department);
+              resetToFirstPage();
+            }}
+          />
+          <CommonSelect
+            className="h-[42px] text-sm"
+            wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
+            options={statusOptions.map((status) => ({
+              label: status,
+              value:
+                status === "Tất cả trạng thái" ? STATUS_FILTER_ALL : status,
+            }))}
+            value={statusFilter}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              resetToFirstPage();
+            }}
+          />
+          <CommonSelect
+            className="h-[42px] text-sm"
+            wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
+            options={dateRanges.map((range) => ({
+              label: DATE_RANGE_LABELS[range],
+              value: range,
+            }))}
+            value={dateRangeFilter}
+            onChange={(event) => {
+              setDateRangeFilter(event.target.value as DateRange);
+              resetToFirstPage();
+            }}
+          />
         </div>
       </div>
 
@@ -679,9 +650,8 @@ function CandidateApplicationScreen() {
         keyExtractor={(item) => item.id}
         loading={false}
         emptyMessage="Không có dữ liệu"
-        zebra
+        emptyIcon="person_search"
         hover
-        tableWrapperClassName="border border-[#e7bdb8] bg-white rounded-xl overflow-hidden shadow-sm"
         pagination={{
           enabled: true,
           currentPage,
@@ -695,22 +665,27 @@ function CandidateApplicationScreen() {
       />
 
       {emailComposer ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 px-4 py-8">
-          <div className="w-full max-w-3xl rounded-2xl border border-[#e7bdb8] bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-[#e7bdb8] px-6 py-5">
-              <div>
-                <h2 className="text-[24px] font-bold text-[#1a1c1c]">
-                  Soạn email
-                </h2>
-                <p className="mt-1 text-sm text-[#5f5e5e]">
-                  {emailComposer.application.candidateFirstName}{" "}
-                  {emailComposer.application.candidateLastName} ·{" "}
-                  {emailComposer.application.jobTitle}
-                </p>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#1a1c1c]/45 px-4 py-8 backdrop-blur-sm">
+          <div className="animate-scale-in w-full max-w-3xl overflow-hidden rounded-[18px] border border-[#ececec] bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-[#f0eceb] px-6 py-5">
+              <div className="flex items-start gap-3">
+                <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014] sm:flex">
+                  <span className="material-symbols-outlined">mail</span>
+                </div>
+                <div>
+                  <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">
+                    Soạn email
+                  </h2>
+                  <p className="mt-1 text-sm text-[#5f5e5e]">
+                    {emailComposer.application.candidateFirstName}{" "}
+                    {emailComposer.application.candidateLastName} ·{" "}
+                    {emailComposer.application.jobTitle}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5f5e5e] hover:bg-[#f3f3f3] hover:text-[#1a1c1c]"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f7f6f5] hover:text-[#1a1c1c]"
                 onClick={closeEmailComposer}
                 title="Đóng"
               >
@@ -721,11 +696,9 @@ function CandidateApplicationScreen() {
             <div className="grid gap-5 px-6 py-6">
               <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                    Loại email
-                  </label>
+                  <label className="field-label">Loại email</label>
                   <CommonSelect
-                    className="h-12 text-sm"
+                    className="h-[42px] text-sm"
                     options={emailTemplateOptions}
                     value={emailComposer.templateType}
                     onChange={(event) =>
@@ -736,11 +709,9 @@ function CandidateApplicationScreen() {
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                    Tiêu đề
-                  </label>
+                  <label className="field-label">Tiêu đề</label>
                   <input
-                    className="h-12 w-full rounded-lg border border-[#e7bdb8] px-4 text-sm outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
+                    className="input-field"
                     value={emailComposer.subject}
                     onChange={(event) =>
                       updateEmailComposer({ subject: event.target.value })
@@ -751,20 +722,16 @@ function CandidateApplicationScreen() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                  Người nhận
-                </label>
-                <div className="rounded-lg border border-[#e7bdb8] bg-[#f9f9f9] px-4 py-3 text-sm text-[#1a1c1c]">
+                <label className="field-label">Người nhận</label>
+                <div className="rounded-[10px] border border-[#ececec] bg-[#f7f6f5] px-4 py-3 text-sm text-[#1a1c1c]">
                   {emailComposer.application.candidateEmail}
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-[0.1em] text-[#5f5e5e]">
-                  Nội dung
-                </label>
+                <label className="field-label">Nội dung</label>
                 <textarea
-                  className="min-h-[260px] w-full rounded-lg border border-[#e7bdb8] px-4 py-3 text-sm leading-6 outline-none transition-all focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/10"
+                  className="input-field min-h-[260px] leading-6"
                   value={emailComposer.body}
                   onChange={(event) =>
                     updateEmailComposer({ body: event.target.value })
@@ -774,10 +741,10 @@ function CandidateApplicationScreen() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[#e7bdb8] px-6 py-5">
+            <div className="flex items-center justify-end gap-3 border-t border-[#f0eceb] px-6 py-5">
               <button
                 type="button"
-                className="rounded-lg border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] hover:bg-[#f3f3f3]"
+                className="btn btn-secondary"
                 onClick={closeEmailComposer}
                 disabled={sendingEmail}
               >
@@ -785,7 +752,7 @@ function CandidateApplicationScreen() {
               </button>
               <AsyncActionButton
                 type="button"
-                className="rounded-lg bg-[#b90014] px-5 py-3 text-sm font-semibold text-white hover:bg-[#93000d] disabled:opacity-60"
+                className="btn btn-primary disabled:opacity-60"
                 onClick={submitEmailComposer}
                 disabled={
                   sendingEmail ||
@@ -795,6 +762,7 @@ function CandidateApplicationScreen() {
                 loading={sendingEmail}
                 loadingText="Đang gửi email..."
               >
+                <span className="material-symbols-outlined text-[18px]">send</span>
                 Gửi email
               </AsyncActionButton>
             </div>

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import EmptyState from "../../common/components/EmptyState";
+import PageHeader from "../../common/components/PageHeader";
+import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 
 import {
   managerService,
@@ -8,9 +10,9 @@ import {
 } from "../../services/manager/managerService";
 
 function metricTone(value: number) {
-  if (value > 0) return "text-[#b90014] bg-[#ffdad6]";
-  if (value < 0) return "text-green-700 bg-green-50";
-  return "text-[#5f5e5e] bg-[#f3f3f3]";
+  if (value > 0) return "text-[#b90014] bg-[#fff1f0]";
+  if (value < 0) return "text-emerald-700 bg-emerald-50";
+  return "text-[#5f5e5e] bg-[#f2efed]";
 }
 
 function distributionColor(colorToken: string) {
@@ -119,82 +121,95 @@ function ManagerRecruitmentAnalyticsScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Đang tải phân tích tuyển dụng..." />
+      <div className="app-container space-y-6 py-8">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <div className="grid grid-cols-12 gap-6">
+          <div className="surface-card col-span-12 h-96 lg:col-span-8" />
+          <div className="surface-card col-span-12 h-96 lg:col-span-4" />
+        </div>
       </div>
     );
   }
 
   if (!analytics) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <div className="w-full max-w-xl border border-[#e2dfde] bg-white p-8 text-center">
-          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">
-            Phân tích tuyển dụng
-          </h1>
-          <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Không thể tải dữ liệu phân tích. Vui lòng thử lại.
-          </p>
+      <div className="app-container py-10">
+        <div className="surface-card p-10">
+          <EmptyState
+            icon="bar_chart"
+            title="Phân tích tuyển dụng"
+            description="Không thể tải dữ liệu phân tích. Vui lòng thử lại."
+          />
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="w-full px-4 pb-12 pt-10 md:px-10">
-      <section className="flex flex-col justify-between gap-6 pb-10 lg:flex-row lg:items-end">
-        <div>
-          <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Phân tích tuyển dụng
-          </h1>
-          <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Theo dõi hiệu suất tuyển dụng từ job, hồ sơ, phỏng vấn và tải công việc theo phòng ban.
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            className="flex items-center gap-2 border border-[#e7bdb8] bg-white px-4 py-2 text-[12px] font-bold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-          >
-            <span className="material-symbols-outlined text-[18px]">calendar_month</span>
-            Dữ liệu hiện tại
-          </button>
-          <button
-            type="button"
-            className="flex items-center gap-2 border border-[#e7bdb8] bg-white px-4 py-2 text-[12px] font-bold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
-            onClick={() => navigate("/manager/dashboard")}
-          >
-            <span className="material-symbols-outlined text-[18px]">dashboard</span>
-            Về bảng điều khiển
-          </button>
-        </div>
-      </section>
+  const cardIcons = ["schedule", "groups", "event", "verified"];
+  const cardWraps = [
+    "from-sky-50 to-sky-100 text-sky-600",
+    "from-[#fff1f0] to-[#ffdad6] text-[#b90014]",
+    "from-[#f2efed] to-[#e8e4e1] text-[#5f5e5e]",
+    "from-emerald-50 to-emerald-100 text-emerald-600",
+  ];
 
-      <section className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-4">
+  return (
+    <div className="app-container animate-fade-in py-8">
+      <PageHeader
+        className="mb-7"
+        eyebrow="Phân tích"
+        icon="monitoring"
+        title="Phân tích tuyển dụng"
+        subtitle="Theo dõi hiệu suất tuyển dụng từ job, hồ sơ, phỏng vấn và tải công việc theo phòng ban."
+        actions={
+          <>
+            <button type="button" className="btn btn-secondary">
+              <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+              Dữ liệu hiện tại
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => navigate("/manager/dashboard")}
+            >
+              <span className="material-symbols-outlined text-[18px]">dashboard</span>
+              Về bảng điều khiển
+            </button>
+          </>
+        }
+      />
+
+      <section className="stagger mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {summaryCards.map((card, index) => (
-          <div key={card.label} className="border border-[#e2dfde] bg-white p-6">
+          <div key={card.label} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
-              <span className={`rounded px-2 py-2 ${index === 0 ? "bg-[#cde5ff] text-[#005f93]" : index === 1 ? "bg-[#ffdad6] text-[#b90014]" : index === 2 ? "bg-[#e2dfde] text-[#5f5e5e]" : "bg-green-100 text-green-700"}`}>
-                <span className="material-symbols-outlined">
-                  {index === 0 ? "schedule" : index === 1 ? "groups" : index === 2 ? "event" : "check_circle"}
-                </span>
-              </span>
-              <span className={`px-2 py-1 text-[12px] font-bold ${metricTone(card.delta)}`}>
+              <div className={`flex h-12 w-12 items-center justify-center rounded-[14px] bg-gradient-to-br ${cardWraps[index]} transition-transform duration-200 group-hover:scale-105`}>
+                <span className="material-symbols-outlined">{cardIcons[index]}</span>
+              </div>
+              <span className={`badge ${metricTone(card.delta)}`}>
                 {formatSigned(card.delta, card.suffix)}
               </span>
             </div>
-            <h3 className="text-[12px] font-bold uppercase tracking-[0.08em] text-[#5f5e5e]">{card.label}</h3>
-            <p className="mt-2 text-[48px] font-bold leading-[56px] tracking-[-0.02em] text-[#1a1c1c]">{card.value}</p>
-            <p className="mt-2 text-[12px] text-[#5f5e5e]">{card.helper}</p>
+            <p className="eyebrow">{card.label}</p>
+            <p className="mt-2 text-[40px] font-bold leading-none tracking-[-0.02em] text-[#1a1c1c]">{card.value}</p>
+            <p className="mt-2 text-[12px] leading-5 text-[#5f5e5e]">{card.helper}</p>
           </div>
         ))}
       </section>
 
       <section className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 flex min-h-[400px] flex-col border border-[#e2dfde] bg-white p-8 lg:col-span-8">
+        <div className="card col-span-12 flex min-h-[400px] flex-col p-6 lg:col-span-8">
           <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Application vs Completed Interview Trend</h2>
+              <h2 className="section-title">Application vs Completed Interview Trend</h2>
               <p className="text-[14px] text-[#5f5e5e]">Monthly movement across the current six-month operating window.</p>
             </div>
             <div className="flex gap-4">
@@ -226,8 +241,8 @@ function ManagerRecruitmentAnalyticsScreen() {
           </div>
         </div>
 
-        <div className="col-span-12 flex flex-col border border-[#e2dfde] bg-white p-8 lg:col-span-4">
-          <h2 className="mb-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">Conversion Funnel</h2>
+        <div className="card col-span-12 flex flex-col p-6 lg:col-span-4">
+          <h2 className="section-title mb-2">Conversion Funnel</h2>
           <p className="mb-8 text-[14px] text-[#5f5e5e]">Pipeline conversion based on actual application statuses.</p>
           <div className="space-y-6">
             {funnel.map((item, index) => (
@@ -248,35 +263,37 @@ function ManagerRecruitmentAnalyticsScreen() {
           </div>
         </div>
 
-        <div className="col-span-12 border border-[#e2dfde] bg-white p-8 lg:col-span-6">
-          <h2 className="mb-6 text-[20px] font-semibold leading-7 text-[#1a1c1c]">Department Pipeline Performance</h2>
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#1a1a1a] text-white">
-                <th className="px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em]">Department</th>
-                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Active</th>
-                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Offer</th>
-                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Hired</th>
-                <th className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Conv %</th>
-              </tr>
-            </thead>
-            <tbody className="text-[14px]">
-              {performance.map((item, index) => (
-                <tr key={item.departmentName} className={index % 2 === 1 ? "bg-[#f9f9f9]" : "bg-white"}>
-                  <td className="px-4 py-4 font-bold text-[#1a1c1c]">{item.departmentName}</td>
-                  <td className="px-4 py-4 text-right font-bold">{item.activeApplications}</td>
-                  <td className="px-4 py-4 text-right">{item.offeredCandidates}</td>
-                  <td className="px-4 py-4 text-right">{item.acceptedCandidates}</td>
-                  <td className="px-4 py-4 text-right font-bold text-[#b90014]">{item.conversionPercent}%</td>
+        <div className="card col-span-12 overflow-hidden p-6 lg:col-span-6">
+          <h2 className="section-title mb-5">Department Pipeline Performance</h2>
+          <div className="-mx-2 overflow-x-auto">
+            <table className="w-full min-w-[440px]">
+              <thead>
+                <tr className="border-b border-[#ececec] text-left">
+                  <th className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Department</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Active</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Offer</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Hired</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Conv %</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-[14px]">
+                {performance.map((item) => (
+                  <tr key={item.departmentName} className="border-b border-[#f0eceb] last:border-0 transition-colors hover:bg-[#faf9f8]">
+                    <td className="px-2 py-3.5 font-semibold text-[#1a1c1c]">{item.departmentName}</td>
+                    <td className="px-2 py-3.5 text-right font-bold text-[#1a1c1c]">{item.activeApplications}</td>
+                    <td className="px-2 py-3.5 text-right text-[#5f5e5e]">{item.offeredCandidates}</td>
+                    <td className="px-2 py-3.5 text-right text-[#5f5e5e]">{item.acceptedCandidates}</td>
+                    <td className="px-2 py-3.5 text-right font-bold text-[#b90014]">{item.conversionPercent}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="col-span-12 flex flex-col border border-[#e2dfde] bg-white p-8 lg:col-span-6">
+        <div className="card col-span-12 flex flex-col p-6 lg:col-span-6">
           <div className="mb-6">
-            <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Pipeline Status Distribution</h2>
+            <h2 className="section-title">Pipeline Status Distribution</h2>
             <p className="text-[14px] text-[#5f5e5e]">Status mix across HR screening, manager review, interview, offer, and hired stages.</p>
           </div>
           <div className="flex flex-1 items-center gap-12">
@@ -302,12 +319,12 @@ function ManagerRecruitmentAnalyticsScreen() {
       </section>
 
       <section className="mt-6">
-        <div className="border border-[#e2dfde] bg-white">
-          <div className="flex items-center justify-between border-b border-[#e2dfde] px-8 py-6">
-            <h2 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">Departmental Breakdown</h2>
+        <div className="card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[#f0eceb] px-5 py-4">
+            <h2 className="section-title">Departmental Breakdown</h2>
             <button
               type="button"
-              className="flex items-center gap-1 text-[12px] font-bold uppercase tracking-[0.05em] text-[#b90014] hover:underline"
+              className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] transition-colors hover:gap-1.5"
               onClick={() => navigate("/manager/dashboard")}
             >
               Open Dashboard
@@ -315,33 +332,33 @@ function ManagerRecruitmentAnalyticsScreen() {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="bg-[#1a1a1a] text-white">
-                  <th className="px-8 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em]">Department</th>
-                  <th className="px-8 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Open Roles</th>
-                  <th className="px-8 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Avg Review Cycle</th>
-                  <th className="px-8 py-3 text-right text-[12px] font-semibold uppercase tracking-[0.05em]">Active Pipeline</th>
-                  <th className="px-8 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.05em]">Recruiter</th>
+                <tr className="border-b border-[#ececec] text-left">
+                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Department</th>
+                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Open Roles</th>
+                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Avg Review Cycle</th>
+                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Active Pipeline</th>
+                  <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Recruiter</th>
                 </tr>
               </thead>
               <tbody className="text-[14px]">
-                {breakdown.map((item, index) => (
-                  <tr key={item.departmentName} className={index % 2 === 1 ? "bg-[#f9f9f9]" : "bg-white"}>
-                    <td className="px-8 py-4 font-bold">{item.departmentName}</td>
-                    <td className="px-8 py-4 text-right">{item.openRoles}</td>
-                    <td className={`px-8 py-4 text-right font-bold ${item.averageReviewCycleDays >= 20 ? "text-[#b90014]" : "text-green-700"}`}>
+                {breakdown.map((item) => (
+                  <tr key={item.departmentName} className="border-b border-[#f0eceb] last:border-0 transition-colors hover:bg-[#faf9f8]">
+                    <td className="px-5 py-3.5 font-semibold text-[#1a1c1c]">{item.departmentName}</td>
+                    <td className="px-5 py-3.5 text-right text-[#5f5e5e]">{item.openRoles}</td>
+                    <td className={`px-5 py-3.5 text-right font-bold ${item.averageReviewCycleDays >= 20 ? "text-[#b90014]" : "text-emerald-700"}`}>
                       {item.averageReviewCycleDays > 0 ? `${item.averageReviewCycleDays} Days` : "N/A"}
                     </td>
-                    <td className="px-8 py-4 text-right">
+                    <td className="px-5 py-3.5 text-right text-[#1a1c1c]">
                       <div className="flex items-center justify-end gap-1">
-                        <span className="material-symbols-outlined text-[18px] text-[#005f93]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                        <span className="material-symbols-outlined text-[18px] text-sky-600" style={{ fontVariationSettings: "'FILL' 1" }}>
                           groups
                         </span>
                         {item.activePipeline}
                       </div>
                     </td>
-                    <td className="px-8 py-4">{item.recruiterName}</td>
+                    <td className="px-5 py-3.5 text-[#5f5e5e]">{item.recruiterName}</td>
                   </tr>
                 ))}
               </tbody>

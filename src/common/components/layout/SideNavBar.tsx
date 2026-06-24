@@ -28,158 +28,50 @@ type SideNavBarProps = {
   initials?: string;
   isOpen?: boolean;
   onClose?: () => void;
+  /** When true, the sidebar is desktop-only (never shown as a mobile drawer). */
+  desktopOnly?: boolean;
 };
 
 const hrItems: SideNavItem[] = [
-  {
-    icon: "dashboard",
-    label: "Tổng quan",
-    to: "/hr/dashboard",
-  },
-  {
-    icon: "work",
-    label: "Tin tuyển dụng",
-    to: "/jobs",
-  },
-  {
-    icon: "group",
-    label: "Ứng viên",
-    to: "/hr/candidates",
-  },
-  {
-    icon: "description",
-    label: "Hồ sơ ứng tuyển",
-    to: "/hr/applications",
-  },
-  {
-    icon: "smart_toy",
-    label: "AI Copilot",
-    to: "/hr/ai-copilot",
-  },
-  {
-    icon: "schedule",
-    label: "Phỏng vấn",
-    to: "/hr/interviews",
-  },
-  {
-    icon: "person",
-    label: "Hồ sơ",
-    to: "/internal/profile",
-  },
+  { icon: "dashboard", label: "Tổng quan", to: "/hr/dashboard" },
+  { icon: "work", label: "Tin tuyển dụng", to: "/jobs" },
+  { icon: "group", label: "Ứng viên", to: "/hr/candidates" },
+  { icon: "description", label: "Hồ sơ ứng tuyển", to: "/hr/applications" },
+  { icon: "smart_toy", label: "AI Copilot", to: "/hr/ai-copilot" },
+  { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
+  { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
 ];
 
 const managerItems: SideNavItem[] = [
-  {
-    icon: "dashboard",
-    label: "Tổng quan",
-    to: "/manager/dashboard",
-  },
-  {
-    icon: "approval",
-    label: "Duyệt tuyển dụng",
-    to: "/jobs",
-  },
-  {
-    icon: "description",
-    label: "Hồ sơ ứng tuyển",
-    to: "/manager/applications",
-  },
-  {
-    icon: "smart_toy",
-    label: "AI Copilot",
-    to: "/hr/ai-copilot",
-  },
-  {
-    icon: "schedule",
-    label: "Phỏng vấn",
-    to: "/hr/interviews",
-  },
-  {
-    icon: "analytics",
-    label: "Báo cáo",
-    to: "/manager/reports",
-  },
-  {
-    icon: "person",
-    label: "Hồ sơ",
-    to: "/internal/profile",
-  },
+  { icon: "dashboard", label: "Tổng quan", to: "/manager/dashboard" },
+  { icon: "approval", label: "Duyệt tuyển dụng", to: "/jobs" },
+  { icon: "description", label: "Hồ sơ ứng tuyển", to: "/manager/applications" },
+  { icon: "smart_toy", label: "AI Copilot", to: "/hr/ai-copilot" },
+  { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
+  { icon: "analytics", label: "Báo cáo", to: "/manager/reports" },
+  { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
 ];
 
 const headDepartmentItems: SideNavItem[] = [
-  {
-    icon: "dashboard",
-    label: "Tổng quan",
-    to: "/hr/dashboard",
-  },
-  {
-    icon: "schedule",
-    label: "Phỏng vấn",
-    to: "/hr/interviews",
-  },
-  {
-    icon: "person",
-    label: "Hồ sơ",
-    to: "/internal/profile",
-  },
+  { icon: "dashboard", label: "Tổng quan", to: "/hr/dashboard" },
+  { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
+  { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
 ];
 
 const adminItems: SideNavItem[] = [
-  {
-    icon: "dashboard",
-    label: "Tổng quan",
-    to: "/system-admin/dashboard",
-  },
-  {
-    icon: "group",
-    label: "Người dùng",
-    to: "/system-admin/users",
-  },
-  {
-    icon: "shield_person",
-    label: "Vai trò",
-    to: "/system-admin/roles",
-  },
-  {
-    icon: "admin_panel_settings",
-    label: "Quyền hạn",
-    to: "/system-admin/permissions",
-  },
-  {
-    icon: "history",
-    label: "Nhật ký hệ thống",
-    to: "/system-admin/audit-logs",
-  },
+  { icon: "dashboard", label: "Tổng quan", to: "/system-admin/dashboard" },
+  { icon: "group", label: "Người dùng", to: "/system-admin/users" },
+  { icon: "shield_person", label: "Vai trò", to: "/system-admin/roles" },
+  { icon: "admin_panel_settings", label: "Quyền hạn", to: "/system-admin/permissions" },
+  { icon: "history", label: "Nhật ký hệ thống", to: "/system-admin/audit-logs" },
 ];
 
-const internalBottomItems: SideNavItem[] = [];
-
 const candidateItems: SideNavItem[] = [
-  {
-    icon: "dashboard",
-    label: "Tổng quan",
-    to: "/candidate/dashboard",
-  },
-  {
-    icon: "work",
-    label: "Việc làm",
-    to: "/jobs",
-  },
-  {
-    icon: "description",
-    label: "Đơn ứng tuyển",
-    to: "/candidate/my-applications",
-  },
-  {
-    icon: "schedule",
-    label: "Phỏng vấn",
-    to: "/candidate/interviews",
-  },
-  {
-    icon: "person",
-    label: "Hồ sơ",
-    to: "/candidate/profile",
-  },
+  { icon: "dashboard", label: "Tổng quan", to: "/candidate/dashboard" },
+  { icon: "work", label: "Việc làm", to: "/jobs" },
+  { icon: "description", label: "Đơn ứng tuyển", to: "/candidate/my-applications" },
+  { icon: "schedule", label: "Phỏng vấn", to: "/candidate/interviews" },
+  { icon: "person", label: "Hồ sơ", to: "/candidate/profile" },
 ];
 
 function getInitials(name: string) {
@@ -214,6 +106,7 @@ function SideNavBar({
   userAvatarSrc,
   isOpen = false,
   onClose,
+  desktopOnly = false,
 }: SideNavBarProps) {
   const navigate = useNavigate();
   const authState = useSelector((state: RootState) => state.auth);
@@ -226,15 +119,12 @@ function SideNavBar({
       ? adminItems
       : primaryRole === ROLE_NAMES.HEAD_DEPARTMENT
         ? headDepartmentItems
-      : primaryRole === ROLE_NAMES.MANAGER
-        ? managerItems
-        : hrItems;
+        : primaryRole === ROLE_NAMES.MANAGER
+          ? managerItems
+          : hrItems;
 
   const resolvedItems =
     portalVariant === "candidate" ? candidateItems : internalItems;
-
-  const resolvedBottomItems =
-    portalVariant === "candidate" ? [] : internalBottomItems;
 
   const resolvedBrand = {
     title: "RecruitPro",
@@ -245,70 +135,65 @@ function SideNavBar({
           ? "Quản trị hệ thống"
           : primaryRole === ROLE_NAMES.HEAD_DEPARTMENT
             ? "Điều phối phỏng vấn"
-          : primaryRole === ROLE_NAMES.MANAGER
-            ? "Phê duyệt tuyển dụng"
-            : "Vận hành tuyển dụng",
+            : primaryRole === ROLE_NAMES.MANAGER
+              ? "Phê duyệt tuyển dụng"
+              : "Vận hành tuyển dụng",
     to: defaultPath,
   };
 
   const resolvedUserName =
-    authUser?.fullName ?? (portalVariant === "candidate" ? "Ứng viên" : "Người dùng nội bộ");
+    authUser?.fullName ??
+    (portalVariant === "candidate" ? "Ứng viên" : "Người dùng nội bộ");
   const resolvedUserAvatarSrc = userAvatarSrc ?? authUser?.avatarUrl ?? undefined;
   const resolvedUserRole =
-    portalVariant === "candidate"
-      ? "Ứng viên"
-      : formatRoleLabel(primaryRole);
+    portalVariant === "candidate" ? "Ứng viên" : formatRoleLabel(primaryRole);
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
   const resolvedCta =
-    portalVariant === "internal"
-      && primaryRole === ROLE_NAMES.HR
+    portalVariant === "internal" && primaryRole === ROLE_NAMES.HR
       ? { label: "Đăng tin mới" }
       : null;
 
-  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-white/10 bg-[#18191a] shadow-[18px_0_60px_rgba(26,28,28,0.18)] transition-transform duration-200 ease-out`;
-
-  const brandTitleClassName = "text-[20px] font-bold leading-7 text-white";
-
-  const brandSubtitleClassName =
-    "text-[12px] font-semibold uppercase tracking-[0.05em] text-[#c8c6c5]";
-
-  const userCardClassName =
-    "flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";
-
-  const userNameClassName = "truncate text-[12px] font-semibold text-white";
-
-  const userRoleClassName = "truncate text-[12px] text-[#c8c6c5]";
+  const visibilityClass = desktopOnly
+    ? "hidden lg:flex lg:translate-x-0"
+    : `flex ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`;
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) => {
     const common =
-      "group flex items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-[12px] font-semibold tracking-[0.03em] transition-all duration-150";
+      "group relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-all duration-150";
 
     return `${common} ${
       isActive
-        ? "border-white/10 bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-        : "text-[#c8c6c5] hover:border-white/10 hover:bg-white/[0.05] hover:text-white"
+        ? "bg-white/[0.09] text-white"
+        : "text-[#b9b6b5] hover:bg-white/[0.05] hover:text-white"
     }`;
   };
 
-  const bottomLinkClassName = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-3 text-[12px] font-semibold tracking-[0.05em] transition-colors ${
-      isActive
-        ? "text-white"
-        : "text-[#c8c6c5] hover:text-white"
-    }`;
-
   return (
-    <aside className={`${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"} ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-      <div className="flex items-start justify-between px-6 pb-6 pt-8">
-        <NavLink to={resolvedBrand.to} className="block" onClick={onClose}>
-          <h1 className={brandTitleClassName}>{resolvedBrand.title}</h1>
-          <p className={brandSubtitleClassName}>{resolvedBrand.subtitle}</p>
+    <aside
+      className={`fixed left-0 top-0 z-50 h-screen w-[260px] flex-col bg-[#161718] shadow-[12px_0_48px_rgba(26,28,28,0.16)] transition-transform duration-300 ease-out ${
+        authState.isAuthenticated ? "" : "hidden"
+      } ${visibilityClass}`}
+    >
+      {/* Brand */}
+      <div className="flex items-center justify-between px-5 pb-5 pt-6">
+        <NavLink to={resolvedBrand.to} className="flex items-center gap-3" onClick={onClose}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#f0353d] to-[#b90014] text-white shadow-[0_8px_20px_-6px_rgba(227,27,35,0.6)]">
+            <span className="material-symbols-outlined text-[22px]">hub</span>
+          </span>
+          <span className="leading-tight">
+            <span className="block text-[17px] font-bold tracking-[-0.01em] text-white">
+              {resolvedBrand.title}
+            </span>
+            <span className="block text-[11px] font-medium text-[#8a8786]">
+              {resolvedBrand.subtitle}
+            </span>
+          </span>
         </NavLink>
-        {onClose ? (
+        {!desktopOnly && onClose ? (
           <button
             type="button"
-            className="mt-1 text-[#c8c6c5] transition-colors hover:text-white lg:hidden"
+            className="premium-action -mr-1 text-[#b9b6b5] transition-colors hover:text-white lg:hidden"
             aria-label="Đóng menu"
             onClick={onClose}
           >
@@ -317,61 +202,85 @@ function SideNavBar({
         ) : null}
       </div>
 
-      <nav className="flex-1 space-y-1 px-3">
+      <div className="mx-5 h-px bg-white/[0.06]" />
+
+      {/* Primary nav */}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-hide">
+        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6b6a]">
+          Điều hướng
+        </p>
         {resolvedItems.map((item) => (
-          <NavLink key={item.label} className={navLinkClassName} to={item.to} onClick={onClose}>
-            <span className="material-symbols-outlined text-[20px] transition-transform duration-150 group-hover:scale-105">
-              {item.icon}
-            </span>
-            {item.label}
+          <NavLink
+            key={item.label}
+            className={navLinkClassName}
+            to={item.to}
+            onClick={onClose}
+            end={item.to === resolvedBrand.to}
+          >
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-[#f0353d] transition-opacity duration-150 ${
+                    isActive ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+                <span
+                  className={`material-symbols-outlined text-[21px] transition-transform duration-150 group-hover:scale-105 ${
+                    isActive ? "text-white" : "text-[#9a9695]"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="mt-auto px-4 pb-6">
+      {/* Footer area */}
+      <div className="mt-auto px-4 pb-5">
         {resolvedCta ? (
           <button
             type="button"
-            className="premium-action mb-6 w-full rounded-lg bg-[#e31b23] px-4 py-3 text-[14px] font-semibold text-white shadow-[0_12px_30px_rgba(227,27,35,0.22)] transition-colors hover:bg-[#b90014]"
+            className="premium-action mb-4 flex w-full items-center justify-center gap-2 rounded-[10px] bg-gradient-to-b from-[#e8242c] to-[#c50f1b] px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(227,27,35,0.5)] transition-all hover:from-[#f0353d] hover:to-[#d11420]"
             onClick={() => {
+              onClose?.();
               navigate("/hr/jobs/create");
             }}
           >
+            <span className="material-symbols-outlined text-[18px]">add</span>
             {resolvedCta.label}
           </button>
         ) : null}
 
-        {resolvedBottomItems.length ? (
-          <nav className="mb-6 space-y-1">
-            {resolvedBottomItems.map((item) => (
-              <NavLink key={item.label} className={bottomLinkClassName} to={item.to}>
-                <span className="material-symbols-outlined text-[20px]">
-                  {item.icon}
-                </span>
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-        ) : null}
-
         {showUserCard ? (
-          <div className={userCardClassName}>
+          <NavLink
+            to="/internal/profile"
+            onClick={onClose}
+            className="flex items-center gap-3 rounded-[12px] border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 transition-colors hover:bg-white/[0.07]"
+          >
             {resolvedUserAvatarSrc ? (
               <img
                 alt={resolvedUserName}
-                className="h-10 w-10 rounded-full object-cover ring-2 ring-[#b90014]"
+                className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10"
                 src={resolvedUserAvatarSrc}
               />
             ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#b90014] text-[12px] font-bold text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f0353d] to-[#b90014] text-[12px] font-bold text-white">
                 {resolvedInitials}
               </div>
             )}
-            <div className="min-w-0">
-              <p className={userNameClassName}>{resolvedUserName}</p>
-              <p className={userRoleClassName}>{resolvedUserRole}</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-semibold text-white">
+                {resolvedUserName}
+              </p>
+              <p className="truncate text-[11px] text-[#8a8786]">{resolvedUserRole}</p>
             </div>
-          </div>
+            <span className="material-symbols-outlined text-[18px] text-[#6f6b6a]">
+              chevron_right
+            </span>
+          </NavLink>
         ) : null}
       </div>
     </aside>

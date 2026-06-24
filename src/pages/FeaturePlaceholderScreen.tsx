@@ -8,15 +8,16 @@ function FeaturePlaceholderScreen({
   description,
 }: FeaturePlaceholderScreenProps) {
   return (
-    <div className="w-full px-4 py-10 md:px-10">
-      <section className="rounded-lg border border-dashed border-[#d6d1cf] bg-white p-8 shadow-sm">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#b90014]">
-          Chưa hỗ trợ
-        </p>
-        <h1 className="mt-3 text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
+    <div className="app-container animate-fade-in py-10">
+      <section className="card flex flex-col items-center px-6 py-16 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
+          <span className="material-symbols-outlined text-[32px]">construction</span>
+        </div>
+        <p className="eyebrow mt-5 text-[#b90014]">Sắp ra mắt</p>
+        <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em] text-[#1a1c1c] md:text-[30px]">
           {title}
         </h1>
-        <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#5f5e5e]">
+        <p className="mt-3 max-w-xl text-[15px] leading-7 text-[#5f5e5e]">
           {description}
         </p>
       </section>

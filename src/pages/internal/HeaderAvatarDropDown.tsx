@@ -132,7 +132,7 @@ function HeaderAvatarDropDown({
         aria-controls={open ? menuId : undefined}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex items-center gap-3 rounded-full border border-[#e2dfde] bg-white px-2 py-1 text-left transition-colors hover:border-[#b90014]"
+        className="premium-action flex items-center gap-2.5 rounded-full border border-[#ececec] bg-white py-1 pl-1 pr-2 text-left transition-all hover:border-[#e0d4d2] hover:shadow-[var(--shadow-sm)] sm:pr-3"
         id={buttonId}
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -144,15 +144,15 @@ function HeaderAvatarDropDown({
             src={avatarSrc}
           />
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#b90014] text-[12px] font-bold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f0353d] to-[#b90014] text-[12px] font-bold text-white">
             {initials}
           </div>
         )}
-        <div className="hidden sm:block">
-          <p className="text-[12px] font-semibold text-[#1a1c1c]">{name}</p>
-          {role ? <p className="text-[12px] text-[#5f5e5e]">{role}</p> : null}
+        <div className="hidden text-left sm:block">
+          <p className="text-[13px] font-semibold leading-tight text-[#1a1c1c]">{name}</p>
+          {role ? <p className="text-[11px] leading-tight text-[#8a8786]">{role}</p> : null}
         </div>
-        <span className="material-symbols-outlined text-[20px] text-[#5f5e5e]">
+        <span className="material-symbols-outlined hidden text-[20px] text-[#8a8786] transition-transform duration-200 sm:block" style={open ? { transform: "rotate(180deg)" } : undefined}>
           expand_more
         </span>
       </button>
@@ -162,7 +162,7 @@ function HeaderAvatarDropDown({
             <div
               ref={menuRef}
               aria-labelledby={buttonId}
-              className="fixed z-[9999] w-64 overflow-hidden rounded-lg border border-[#e2dfde] bg-white shadow-[0_24px_60px_rgba(26,28,28,0.18)]"
+              className="animate-scale-in fixed z-[9999] w-64 origin-top-right overflow-hidden rounded-2xl border border-[#ececec] bg-white shadow-[0_24px_60px_rgba(26,28,28,0.18)]"
               id={menuId}
               role="menu"
               style={{
@@ -170,15 +170,15 @@ function HeaderAvatarDropDown({
                 left: `${menuPosition.left}px`,
               }}
             >
-              <div className="border-b border-[#e2dfde] px-4 py-3">
-                <p className="text-[12px] font-semibold text-[#1a1c1c]">{name}</p>
-                {role ? <p className="text-[12px] text-[#5f5e5e]">{role}</p> : null}
+              <div className="border-b border-[#f0eceb] bg-[#faf9f8] px-4 py-3.5">
+                <p className="text-[13px] font-semibold text-[#1a1c1c]">{name}</p>
+                {role ? <p className="text-[11px] text-[#8a8786]">{role}</p> : null}
               </div>
-              <div className="py-2">
+              <div className="p-1.5">
                 {items.map((item) => (
                   <Link
                     key={item.label}
-                    className="flex items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
+                    className="flex items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-[13px] font-medium text-[#3a3a3a] transition-colors hover:bg-[#f6f1f1] hover:text-[#b90014]"
                     role="menuitem"
                     to={item.to}
                     onClick={() => setOpen(false)}
@@ -186,12 +186,14 @@ function HeaderAvatarDropDown({
                     {item.label}
                   </Link>
                 ))}
+                <div className="my-1.5 h-px bg-[#f0eceb]" />
                 <button
-                  className="flex w-full items-center px-4 py-3 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3] hover:text-[#b90014]"
+                  className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-[13px] font-medium text-[#b90014] transition-colors hover:bg-[#fdeceb]"
                   role="menuitem"
                   type="button"
                   onClick={handleLogout}
                 >
+                  <span className="material-symbols-outlined text-[18px]">logout</span>
                   Đăng xuất
                 </button>
               </div>

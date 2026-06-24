@@ -189,7 +189,7 @@ function CommonSelect({
         {...props}
         aria-controls={`${fallbackId}-menu`}
         aria-expanded={open}
-        className={`group flex h-11 w-full items-center rounded-xl border border-[#e7bdb8] bg-[linear-gradient(180deg,#fffaf9_0%,#ffffff_100%)] px-4 pr-11 text-left text-[14px] text-[#1a1c1c] shadow-[0_12px_30px_rgba(185,0,20,0.08)] outline-none transition-all hover:border-[#d7a8a2] hover:shadow-[0_16px_34px_rgba(185,0,20,0.12)] focus:border-[#b90014] focus:ring-2 focus:ring-[#b90014]/15 disabled:cursor-not-allowed disabled:border-[#ece7e5] disabled:bg-[#f6f3f2] disabled:text-[#8f8a88] ${open ? "border-[#b90014] ring-2 ring-[#b90014]/15" : ""} ${className}`.trim()}
+        className={`group flex h-11 w-full items-center rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 pr-11 text-left text-[14px] text-[#1a1c1c] outline-none transition-all hover:border-[#c8c2c0] focus:border-[#b90014] focus:ring-4 focus:ring-[#b90014]/10 disabled:cursor-not-allowed disabled:border-[#ece7e5] disabled:bg-[#f6f3f2] disabled:text-[#8f8a88] ${open ? "border-[#b90014] ring-4 ring-[#b90014]/10" : ""} ${className}`.trim()}
         disabled={disabled}
         name={name}
         type="button"

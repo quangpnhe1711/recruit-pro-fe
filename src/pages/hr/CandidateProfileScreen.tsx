@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import LoadingIndicator from "../../common/components/LoadingIndicator";
+import Badge from "../../common/components/Badge";
+import { Skeleton, SkeletonCard, SkeletonText } from "../../common/components/Skeleton";
 import { formatApplicationStatus } from "../../common/utils/applicationPresentation";
 import {
   downloadProtectedFile,
@@ -89,26 +90,49 @@ function CandidateProfileScreen() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Đang tải hồ sơ ứng viên..." />
+      <div className="app-container space-y-6 py-8">
+        <Skeleton className="h-4 w-32" />
+        <div className="card flex flex-col gap-5 p-6 sm:flex-row sm:items-center">
+          <Skeleton className="h-20 w-20 rounded-full" />
+          <div className="flex-1 space-y-3">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="card p-6">
+            <SkeletonText lines={6} />
+          </div>
+          <div className="card p-6">
+            <SkeletonText lines={5} />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!detail) {
     return (
-      <div className="w-full px-4 py-10 md:px-10">
-        <div className="border border-[#e7bdb8] bg-white p-8">
-          <h1 className="text-[32px] font-semibold text-[#1a1c1c]">Không tìm thấy ứng viên</h1>
+      <div className="app-container py-10">
+        <div className="surface-card p-10 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
+            <span className="material-symbols-outlined text-[32px]">person_off</span>
+          </div>
+          <h1 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">Không tìm thấy ứng viên</h1>
           <p className="mt-2 text-sm text-[#5f5e5e]">
             Hồ sơ ứng viên chưa sẵn sàng trong quy trình hiện tại.
           </p>
           <button
             type="button"
-            className="mt-6 inline-flex items-center gap-2 bg-[#1a1c1c] px-5 py-3 text-sm font-semibold text-white"
+            className="btn btn-dark mt-6"
             onClick={() => navigate(backPath)}
           >
-            <span className="material-symbols-outlined text-base">arrow_back</span>
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             Quay lại danh sách
           </button>
         </div>
@@ -116,157 +140,159 @@ function CandidateProfileScreen() {
     );
   }
 
+  const initials = detail.profile.name
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const profileStats = [
+    { label: "Hồ sơ ứng tuyển", value: stats.applications, icon: "description", iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]" },
+    { label: "Đang xử lý", value: stats.activeApplications, icon: "pending_actions", iconWrap: "from-amber-50 to-amber-100 text-amber-600" },
+    { label: "Phỏng vấn", value: stats.interviews, icon: "groups", iconWrap: "from-sky-50 to-sky-100 text-sky-600" },
+  ];
+
   return (
-    <div className="w-full px-4 py-8 md:px-10">
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <button
-            type="button"
-            className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[#5f5e5e] hover:text-[#b90014]"
-            onClick={() => navigate(backPath)}
-          >
-            <span className="material-symbols-outlined text-base">arrow_back</span>
-            Quay lại danh sách
-          </button>
-          <div className="flex items-center gap-4">
+    <div className="app-container animate-fade-in space-y-6 py-8">
+      <button
+        type="button"
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+        onClick={() => navigate(backPath)}
+      >
+        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+        Quay lại danh sách
+      </button>
+
+      {/* HERO SUMMARY */}
+      <section className="card animate-fade-in-up p-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             {detail.profile.avatarUrl ? (
               <img
                 alt={detail.profile.name}
-                className="h-20 w-20 rounded-full border border-[#e7bdb8] object-cover"
+                className="h-20 w-20 shrink-0 rounded-full border border-[#ececec] object-cover"
                 src={detail.profile.avatarUrl}
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#ffdad6] text-2xl font-bold text-[#b90014]">
-                {detail.profile.name
-                  .split(" ")
-                  .filter(Boolean)
-                  .map((part) => part[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-2xl font-bold text-[#b90014]">
+                {initials}
               </div>
             )}
-            <div>
-              <h1 className="text-[36px] font-bold text-[#1a1c1c]">{detail.profile.name}</h1>
-              <p className="mt-1 text-lg text-[#5f5e5e]">
-                {detail.profile.headline || "Hồ sơ ứng viên"}
-              </p>
-              <p className="mt-2 text-sm text-[#5f5e5e]">
+            <div className="min-w-0">
+              <p className="eyebrow mb-1.5">Hồ sơ ứng viên</p>
+              <h1 className="page-title">{detail.profile.name}</h1>
+              <p className="page-subtitle">{detail.profile.headline || "Hồ sơ ứng viên"}</p>
+              <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-[#8a8786]">
+                <span className="material-symbols-outlined text-[16px]">calendar_today</span>
                 Tham gia từ {formatDate(detail.profile.memberSince)}
               </p>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-3">
-          {detail.resume ? (
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 bg-[#b90014] px-5 py-3 text-sm font-semibold text-white hover:bg-[#93000d]"
-              onClick={() => {
-                if (!currentResumeDownloadPath || !detail.resume) return;
-                void downloadProtectedFile(
-                  currentResumeDownloadPath,
-                  detail.resume.fileName,
-                ).catch(() => toast.error("Không thể tải CV."));
-              }}
-            >
-              <span className="material-symbols-outlined text-base">download</span>
-              Tải CV
-            </button>
-          ) : null}
-          <a
-            className="inline-flex items-center gap-2 border border-[#1a1c1c] bg-white px-5 py-3 text-sm font-semibold text-[#1a1c1c] hover:bg-[#f3f3f3]"
-            href={`mailto:${detail.profile.email}`}
-          >
-            <span className="material-symbols-outlined text-base">mail</span>
-            Liên hệ ứng viên
-          </a>
+          <div className="flex flex-wrap gap-2.5">
+            {detail.resume ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  if (!currentResumeDownloadPath || !detail.resume) return;
+                  void downloadProtectedFile(
+                    currentResumeDownloadPath,
+                    detail.resume.fileName,
+                  ).catch(() => toast.error("Không thể tải CV."));
+                }}
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Tải CV
+              </button>
+            ) : null}
+            <a className="btn btn-secondary" href={`mailto:${detail.profile.email}`}>
+              <span className="material-symbols-outlined text-[18px]">mail</span>
+              Liên hệ ứng viên
+            </a>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="mb-8 grid gap-6 md:grid-cols-3">
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Hồ sơ ứng tuyển
-          </p>
-          <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.applications}</p>
-        </div>
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Đang xử lý
-          </p>
-          <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.activeApplications}</p>
-        </div>
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Phỏng vấn
-          </p>
-          <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.interviews}</p>
-        </div>
+      <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {profileStats.map((card) => (
+          <div key={card.label} className="stat-card group">
+            <div className="flex items-start gap-4">
+              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br ${card.iconWrap} transition-transform duration-200 group-hover:scale-105`}>
+                <span className="material-symbols-outlined text-[24px]">{card.icon}</span>
+              </div>
+              <div>
+                <p className="eyebrow">{card.label}</p>
+                <h3 className="mt-2 text-[30px] font-bold leading-none tracking-[-0.02em] text-[#1a1c1c]">
+                  {card.value}
+                </h3>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Lịch sử ứng tuyển</h2>
-            <div className="mt-4 space-y-4">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Lịch sử ứng tuyển</h2>
+            <div className="mt-4 space-y-3">
               {detail.applicationHistory.length ? (
                 detail.applicationHistory.map((item) => (
-                  <div key={item.applicationId} className="border border-[#f0d7d3] p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
+                  <div key={item.applicationId} className="card-interactive p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="min-w-0">
                         <Link
-                          className="text-base font-semibold text-[#b90014] hover:underline"
+                          className="text-[15px] font-semibold text-[#b90014] hover:underline"
                           to={`/jobs/${item.jobId}`}
                         >
                           {item.jobTitle}
                         </Link>
-                        <p className="text-sm text-[#5f5e5e]">{item.departmentName}</p>
+                        <p className="text-[13px] text-[#5f5e5e]">{item.departmentName}</p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-[#5f5e5e]">
+                      <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#8a8786]">
                         <span>Nộp ngày {formatDate(item.appliedAt)}</span>
+                        <span className="text-[#d6d1cf]">•</span>
                         <span>{item.interviewCount} phỏng vấn</span>
-                        <span className="rounded-full bg-[#f3f3f3] px-3 py-1 font-semibold text-[#1a1c1c]">
-                          {formatApplicationStatus(item.status)}
-                        </span>
+                        <Badge tone="neutral">{formatApplicationStatus(item.status)}</Badge>
                       </div>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-3 border-t border-[#f0eceb] pt-3">
                       <Link
-                        className="text-sm font-semibold text-[#1a1c1c] hover:text-[#b90014]"
+                        className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#1a1c1c] transition-colors hover:text-[#b90014]"
                         to={`${applicationRoutePrefix}/${item.applicationId}`}
                       >
                         Mở hồ sơ ứng tuyển
+                        <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                       </Link>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-[#5f5e5e]">Chưa có lịch sử ứng tuyển.</p>
+                <p className="text-[13px] text-[#8a8786]">Chưa có lịch sử ứng tuyển.</p>
               )}
             </div>
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Lịch sử phỏng vấn</h2>
-            <div className="mt-4 space-y-4">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Lịch sử phỏng vấn</h2>
+            <div className="mt-4 space-y-3">
               {detail.interviewHistory.length ? (
                 detail.interviewHistory.map((item) => (
-                  <div key={item.interviewId} className="border border-[#f0d7d3] p-4">
+                  <div key={item.interviewId} className="card-interactive p-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-semibold text-[#1a1c1c]">{item.jobTitle}</p>
-                        <p className="text-sm text-[#5f5e5e]">{item.departmentName}</p>
+                        <p className="text-[13px] text-[#5f5e5e]">{item.departmentName}</p>
                       </div>
-                      <div className="text-sm text-[#5f5e5e]">
+                      <div className="text-[13px] text-[#8a8786]">
                         {formatDateTime(item.interviewDate)}
                       </div>
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                      <span className="rounded-full bg-[#f3f3f3] px-3 py-1 font-semibold text-[#1a1c1c]">
-                        {item.status || "Chưa cập nhật"}
-                      </span>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-[13px]">
+                      <Badge tone="neutral">{item.status || "Chưa cập nhật"}</Badge>
                       <Link
                         className="font-semibold text-[#b90014] hover:underline"
                         to={`${applicationRoutePrefix}/${item.applicationId}`}
@@ -275,84 +301,96 @@ function CandidateProfileScreen() {
                       </Link>
                     </div>
                     {item.notes ? (
-                      <p className="mt-3 text-sm italic leading-6 text-[#5d3f3c]">{item.notes}</p>
+                      <p className="mt-3 rounded-[10px] bg-[#faf9f8] p-3 text-[13px] italic leading-6 text-[#5f5e5e]">{item.notes}</p>
                     ) : null}
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-[#5f5e5e]">Chưa có lịch sử phỏng vấn.</p>
+                <p className="text-[13px] text-[#8a8786]">Chưa có lịch sử phỏng vấn.</p>
               )}
             </div>
           </section>
         </div>
 
         <div className="space-y-6">
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Tóm tắt hồ sơ</h2>
-            <div className="mt-4 space-y-3 text-sm text-[#1a1c1c]">
-              <p><span className="font-semibold">Email:</span> {detail.profile.email}</p>
-              <p><span className="font-semibold">SĐT:</span> {detail.profile.phone || "Chưa cập nhật"}</p>
-              <p><span className="font-semibold">Địa điểm:</span> {detail.profile.location || "Chưa cập nhật"}</p>
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Tóm tắt hồ sơ</h2>
+            <dl className="mt-4 space-y-4">
+              <div>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Email</dt>
+                <dd className="mt-1 break-words text-[14px] font-medium text-[#1a1c1c]">{detail.profile.email}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">SĐT</dt>
+                <dd className="mt-1 text-[14px] font-medium text-[#1a1c1c]">{detail.profile.phone || "Chưa cập nhật"}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Địa điểm</dt>
+                <dd className="mt-1 text-[14px] font-medium text-[#1a1c1c]">{detail.profile.location || "Chưa cập nhật"}</dd>
+              </div>
               {detail.profile.bio ? (
-                <p><span className="font-semibold">Giới thiệu:</span> {detail.profile.bio}</p>
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Giới thiệu</dt>
+                  <dd className="mt-1 text-[14px] leading-6 text-[#1a1c1c]">{detail.profile.bio}</dd>
+                </div>
               ) : null}
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {detail.profile.linkedin ? (
-                <a
-                  className="rounded-full border border-[#e7bdb8] px-3 py-1.5 text-xs font-semibold text-[#1a1c1c] hover:bg-[#f9f9f9]"
-                  href={detail.profile.linkedin}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  LinkedIn
-                </a>
-              ) : null}
-              {detail.profile.github ? (
-                <a
-                  className="rounded-full border border-[#e7bdb8] px-3 py-1.5 text-xs font-semibold text-[#1a1c1c] hover:bg-[#f9f9f9]"
-                  href={detail.profile.github}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  GitHub
-                </a>
-              ) : null}
-            </div>
+            </dl>
+            {detail.profile.linkedin || detail.profile.github ? (
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-[#f0eceb] pt-4">
+                {detail.profile.linkedin ? (
+                  <a
+                    className="btn btn-secondary px-3 py-2 text-[12px]"
+                    href={detail.profile.linkedin}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    LinkedIn
+                  </a>
+                ) : null}
+                {detail.profile.github ? (
+                  <a
+                    className="btn btn-secondary px-3 py-2 text-[12px]"
+                    href={detail.profile.github}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    GitHub
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Kỹ năng</h2>
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Kỹ năng</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {detail.skills.length ? (
                 detail.skills.map((skill) => (
                   <span
                     key={skill.id}
-                    className="rounded-full bg-[#005f93]/10 px-3 py-1.5 text-xs font-semibold text-[#005f93]"
+                    className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700"
                   >
                     {skill.label}
                     {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
                   </span>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">Chưa có kỹ năng trong hồ sơ.</span>
+                <span className="text-[13px] text-[#8a8786]">Chưa có kỹ năng trong hồ sơ.</span>
               )}
             </div>
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Kinh nghiệm</h2>
-            <div className="mt-4 space-y-4">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Kinh nghiệm</h2>
+            <div className="mt-4 space-y-3">
               {detail.experienceEntries.length ? (
                 detail.experienceEntries.map((entry) => (
-                  <div key={entry.id} className="border border-[#f0d7d3] p-4">
+                  <div key={entry.id} className="rounded-[12px] border border-[#ececec] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{entry.title}</p>
-                    <p className="text-sm text-[#5f5e5e]">{entry.company}</p>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
-                      {formatExperiencePeriod(entry.period)}
-                    </p>
+                    <p className="text-[13px] text-[#5f5e5e]">{entry.company}</p>
+                    <p className="eyebrow mt-1">{formatExperiencePeriod(entry.period)}</p>
                     {entry.bullets.length ? (
-                      <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-[#5d3f3c]">
+                      <ul className="mt-3 list-disc space-y-2 pl-5 text-[13px] leading-6 text-[#5f5e5e]">
                         {entry.bullets.map((bullet) => (
                           <li key={bullet}>{bullet}</li>
                         ))}
@@ -361,31 +399,29 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">Chưa có kinh nghiệm làm việc.</span>
+                <span className="text-[13px] text-[#8a8786]">Chưa có kinh nghiệm làm việc.</span>
               )}
             </div>
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Dự án</h2>
-            <div className="mt-4 space-y-4">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Dự án</h2>
+            <div className="mt-4 space-y-3">
               {detail.projects.length ? (
                 detail.projects.map((project) => (
-                  <div key={project.id} className="border border-[#f0d7d3] p-4">
+                  <div key={project.id} className="rounded-[12px] border border-[#ececec] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{project.name}</p>
-                    <p className="text-sm text-[#5f5e5e]">{project.role || "Dự án"}</p>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
-                      {formatExperiencePeriod(project.period)}
-                    </p>
+                    <p className="text-[13px] text-[#5f5e5e]">{project.role || "Dự án"}</p>
+                    <p className="eyebrow mt-1">{formatExperiencePeriod(project.period)}</p>
                     {project.description ? (
-                      <p className="mt-3 text-sm leading-6 text-[#5d3f3c]">{project.description}</p>
+                      <p className="mt-3 text-[13px] leading-6 text-[#5f5e5e]">{project.description}</p>
                     ) : null}
                     {project.technologies.length ? (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {project.technologies.map((technology) => (
                           <span
                             key={technology}
-                            className="rounded-full bg-[#f3f3f3] px-3 py-1 text-xs font-semibold text-[#1a1c1c]"
+                            className="rounded-full bg-[#f2efed] px-3 py-1 text-xs font-semibold text-[#5f5e5e]"
                           >
                             {technology}
                           </span>
@@ -395,44 +431,44 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">Chưa có dự án.</span>
+                <span className="text-[13px] text-[#8a8786]">Chưa có dự án.</span>
               )}
             </div>
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Học vấn</h2>
-            <div className="mt-4 space-y-4">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Học vấn</h2>
+            <div className="mt-4 space-y-3">
               {detail.educations.length ? (
                 detail.educations.map((education) => (
-                  <div key={education.id} className="border border-[#f0d7d3] p-4">
+                  <div key={education.id} className="rounded-[12px] border border-[#ececec] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{education.school}</p>
-                    <p className="text-sm text-[#5f5e5e]">
+                    <p className="text-[13px] text-[#5f5e5e]">
                       {education.degree}
                       {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
                     </p>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
+                    <p className="eyebrow mt-1">
                       {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "Chưa cập nhật"}
                     </p>
                     {education.description ? (
-                      <p className="mt-3 text-sm leading-6 text-[#5d3f3c]">{education.description}</p>
+                      <p className="mt-3 text-[13px] leading-6 text-[#5f5e5e]">{education.description}</p>
                     ) : null}
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">Chưa có học vấn.</span>
+                <span className="text-[13px] text-[#8a8786]">Chưa có học vấn.</span>
               )}
             </div>
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Chứng chỉ & ngôn ngữ</h2>
-            <div className="mt-4 space-y-4">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Chứng chỉ & ngôn ngữ</h2>
+            <div className="mt-4 space-y-3">
               {detail.certifications.length ? (
                 detail.certifications.map((certification) => (
-                  <div key={certification.id} className="border border-[#f0d7d3] p-4">
+                  <div key={certification.id} className="rounded-[12px] border border-[#ececec] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{certification.name}</p>
-                    <p className="text-sm text-[#5f5e5e]">{certification.issuer || "Chưa cập nhật đơn vị cấp"}</p>
+                    <p className="text-[13px] text-[#5f5e5e]">{certification.issuer || "Chưa cập nhật đơn vị cấp"}</p>
                   </div>
                 ))
               ) : null}
@@ -441,7 +477,7 @@ function CandidateProfileScreen() {
                   {detail.languages.map((language) => (
                     <span
                       key={language.id}
-                      className="rounded-full bg-[#ffdad6] px-3 py-1 text-xs font-semibold text-[#b90014]"
+                      className="rounded-full bg-[#fff1f0] px-3 py-1 text-xs font-semibold text-[#b90014]"
                     >
                       {language.name} • {language.proficiency}
                     </span>
@@ -449,19 +485,19 @@ function CandidateProfileScreen() {
                 </div>
               ) : null}
               {!detail.certifications.length && !detail.languages.length ? (
-                <span className="text-sm text-[#5f5e5e]">Chưa có chứng chỉ hoặc ngôn ngữ.</span>
+                <span className="text-[13px] text-[#8a8786]">Chưa có chứng chỉ hoặc ngôn ngữ.</span>
               ) : null}
             </div>
           </section>
 
-          <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Lịch sử CV</h2>
-            <div className="mt-4 space-y-3">
+          <section className="card p-6">
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">Lịch sử CV</h2>
+            <div className="mt-4 space-y-2.5">
               {detail.resumeHistory.length ? (
                 detail.resumeHistory.map((resume) => (
                   <button
                     key={resume.id}
-                    className="flex w-full items-center justify-between border border-[#f0d7d3] p-4 text-left hover:bg-[#fff8f7]"
+                    className="card-interactive flex w-full items-center justify-between gap-3 p-4 text-left"
                     type="button"
                     onClick={() => {
                       void openProtectedFileInNewTab(
@@ -469,19 +505,21 @@ function CandidateProfileScreen() {
                       ).catch(() => toast.error("Không thể mở CV."));
                     }}
                   >
-                    <div>
-                      <p className="font-semibold text-[#1a1c1c]">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-[#1a1c1c]">
                         v{resume.version} • {resume.fileName}
                       </p>
-                      <p className="text-sm text-[#5f5e5e]">{formatDateTime(resume.uploadedAt)}</p>
+                      <p className="text-[13px] text-[#8a8786]">{formatDateTime(resume.uploadedAt)}</p>
                     </div>
-                    <span className="text-sm font-semibold text-[#b90014]">
-                      {resume.isCurrent ? "Đang dùng" : "Mở"}
-                    </span>
+                    {resume.isCurrent ? (
+                      <Badge tone="brand">Đang dùng</Badge>
+                    ) : (
+                      <span className="text-[13px] font-semibold text-[#b90014]">Mở</span>
+                    )}
                   </button>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">Chưa có lịch sử CV.</span>
+                <span className="text-[13px] text-[#8a8786]">Chưa có lịch sử CV.</span>
               )}
             </div>
           </section>
