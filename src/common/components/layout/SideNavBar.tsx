@@ -26,6 +26,8 @@ type SideNavBarProps = {
   userRole?: string;
   userAvatarSrc?: string;
   initials?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 };
 
 const hrItems: SideNavItem[] = [
@@ -210,6 +212,8 @@ function formatRoleLabel(role: string | null | undefined) {
 function SideNavBar({
   showUserCard = true,
   userAvatarSrc,
+  isOpen = false,
+  onClose,
 }: SideNavBarProps) {
   const navigate = useNavigate();
   const authState = useSelector((state: RootState) => state.auth);
@@ -262,7 +266,7 @@ function SideNavBar({
       ? { label: "Đăng tin mới" }
       : null;
 
-  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A]`;
+  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A] transition-transform duration-300 ease-in-out`;
 
   const brandTitleClassName = "text-[20px] font-bold leading-7 text-white";
 
@@ -295,17 +299,27 @@ function SideNavBar({
     }`;
 
   return (
-    <aside className={` ${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"}`}>
-      <div className="px-6 py-8">
-        <NavLink to={resolvedBrand.to} className="block">
+    <aside className={`${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"} ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      <div className="flex items-start justify-between px-6 py-8">
+        <NavLink to={resolvedBrand.to} className="block" onClick={onClose}>
           <h1 className={brandTitleClassName}>{resolvedBrand.title}</h1>
           <p className={brandSubtitleClassName}>{resolvedBrand.subtitle}</p>
         </NavLink>
+        {onClose ? (
+          <button
+            type="button"
+            className="mt-1 text-[#c8c6c5] transition-colors hover:text-white lg:hidden"
+            aria-label="Đóng menu"
+            onClick={onClose}
+          >
+            <span className="material-symbols-outlined text-[22px]">close</span>
+          </button>
+        ) : null}
       </div>
 
       <nav className="flex-1 space-y-1 px-2">
         {resolvedItems.map((item) => (
-          <NavLink key={item.label} className={navLinkClassName} to={item.to}>
+          <NavLink key={item.label} className={navLinkClassName} to={item.to} onClick={onClose}>
             <span className="material-symbols-outlined text-[20px]">
               {item.icon}
             </span>

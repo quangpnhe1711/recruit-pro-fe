@@ -16,6 +16,7 @@ export type AppHeaderMenuItem = {
 type AppHeaderProps = {
   showNotifications?: boolean;
   menuItems?: AppHeaderMenuItem[];
+  onMenuToggle?: () => void;
 };
 
 function getInitials(name: string) {
@@ -54,7 +55,7 @@ function formatRoleLabel(
   }
 }
 
-function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
+function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHeaderProps) {
   const authUser = useSelector((state: RootState) => state.auth.user);
   const {
     notifications,
@@ -115,13 +116,22 @@ function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white">
       <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 md:px-10">
-        <div className="flex flex-1 items-center" />
+        <div className="flex flex-1 items-center">
+          <button
+            type="button"
+            className="p-1 text-[#5f5e5e] transition-colors hover:text-[#b90014] lg:hidden"
+            aria-label="Mở menu điều hướng"
+            onClick={onMenuToggle}
+          >
+            <span className="material-symbols-outlined text-[26px]">menu</span>
+          </button>
+        </div>
 
         <div className="flex items-center gap-4 md:gap-6">
           {showNotifications ? (
             <div
               ref={panelRef}
-              className="relative hidden items-center gap-4 border-r border-[#e2dfde] pr-6 md:flex"
+              className="relative flex items-center gap-4 border-r border-[#e2dfde] pr-4 md:pr-6"
             >
               <button
                 aria-controls={buttonId}
@@ -146,7 +156,7 @@ function AppHeader({ showNotifications = true, menuItems }: AppHeaderProps) {
               {open ? (
                 <div
                   id={buttonId}
-                  className="absolute right-0 top-[calc(100%+14px)] z-50 w-[360px] rounded-2xl border border-[#e2dfde] bg-white shadow-[0_20px_60px_rgba(26,28,28,0.12)]"
+                  className="absolute right-0 top-[calc(100%+14px)] z-50 w-[calc(100vw-2rem)] max-w-[360px] rounded-2xl border border-[#e2dfde] bg-white shadow-[0_20px_60px_rgba(26,28,28,0.12)]"
                 >
                   <div className="flex items-center justify-between border-b border-[#f0eceb] px-4 py-4">
                     <div>

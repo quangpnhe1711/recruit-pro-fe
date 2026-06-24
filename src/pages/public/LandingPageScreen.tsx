@@ -85,16 +85,16 @@ function LandingPageScreen() {
                 {hero?.subtitle ??
                   "Khám phá các cơ hội nội bộ nổi bật và tiến thêm một bước trong hành trình nghề nghiệp cùng đội ngũ bạn đã hiểu và tin tưởng."}
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
                 <Link
                   to="/candidate/jobs"
-                  className="px-8 py-4 bg-[#b90014] text-white font-bold text-[12px] tracking-[0.05em] hover:scale-[1.02] transition-transform active:scale-95"
+                  className="px-8 py-4 bg-[#b90014] text-white font-bold text-[12px] tracking-[0.05em] hover:scale-[1.02] transition-transform active:scale-95 text-center"
                 >
                   Xem vị trí đang tuyển
                 </Link>
                 <Link
                   to="/internal/login"
-                  className="px-8 py-4 bg-white text-[#1A1A1A] font-bold text-[12px] tracking-[0.05em] border border-[#1A1A1A] hover:bg-gray-100 transition-colors"
+                  className="px-8 py-4 bg-white text-[#1A1A1A] font-bold text-[12px] tracking-[0.05em] border border-[#1A1A1A] hover:bg-gray-100 transition-colors text-center"
                 >
                   Cổng nội bộ
                 </Link>

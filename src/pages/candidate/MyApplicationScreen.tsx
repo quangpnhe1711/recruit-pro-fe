@@ -343,8 +343,9 @@ function MyApplicationScreen() {
 
   const selectedApplication = useMemo(
     () =>
-      applications.find((application) => application.id === selectedApplicationId) ??
-      null,
+      applications.find(
+        (application) => application.id === selectedApplicationId,
+      ) ?? null,
     [applications, selectedApplicationId],
   );
 
@@ -444,9 +445,7 @@ function MyApplicationScreen() {
     <div className="w-full px-4 py-6 md:px-10 md:py-10">
       <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="page-title">
-            Đơn ứng tuyển của tôi
-          </h1>
+          <h1 className="page-title">Đơn ứng tuyển của tôi</h1>
           <p className="text-[14px] leading-5 text-[#5f5e5e]">
             Theo dõi, xem chi tiết và quản lý toàn bộ quá trình ứng tuyển của
             bạn.
@@ -610,9 +609,6 @@ function MyApplicationScreen() {
                   <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
                     Lịch phỏng vấn liên quan
                   </p>
-                  <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                    Xem nhanh các buổi phỏng vấn hiện có cho vị trí này.
-                  </p>
                 </div>
 
                 <button
@@ -630,7 +626,7 @@ function MyApplicationScreen() {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {selectedApplicationInterviews.map((interview) => (
+                  {selectedApplicationInterviews.map((interview) =>
                     (() => {
                       const timingStatus = getInterviewTimingStatus(
                         interview.startAt,
@@ -665,8 +661,8 @@ function MyApplicationScreen() {
                           </div>
                         </div>
                       );
-                    })()
-                  ))}
+                    })(),
+                  )}
                 </div>
               )}
             </div>
@@ -677,7 +673,8 @@ function MyApplicationScreen() {
                   className="bg-[#b90014] px-5 py-3 text-[12px] font-bold uppercase tracking-[0.08em] text-white transition-colors hover:bg-[#93000d] disabled:cursor-not-allowed disabled:bg-[#d8b4b7]"
                   type="button"
                   disabled={
-                    !canAcceptOffer || actionLoadingId === selectedApplication.id
+                    !canAcceptOffer ||
+                    actionLoadingId === selectedApplication.id
                   }
                   onClick={() => handleAcceptOffer(selectedApplication)}
                 >

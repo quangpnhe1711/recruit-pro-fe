@@ -1,24 +1,15 @@
-import { useLocation } from "react-router-dom";
 import { store } from "../../store";
 import { logout, type Variant } from "../../store/slices/authSlice";
 import { clearProfile } from "../../store/slices/userSlice";
-import { endpoints } from "../http/endpoints";
 
 let isRedirectingToLogin = false;
 
-function resolveLoginPath(variant: Variant | null | undefined) {
-  return variant === "internal" ? "/internal/login" : "/login";
-}
-
 export function forceLogoutAndRedirectToLogin() {
-  var location = useLocation();
-  const authRoutes = Object.values(endpoints.auth) as string[];
-  const publicRoutes = Object.values(endpoints.public) as string[];
+  const currentPath = window.location.pathname;
 
   if (
     isRedirectingToLogin ||
-    authRoutes.includes(location.pathname) ||
-    publicRoutes.includes(location.pathname)
+    currentPath === "/home"
   ) {
     return;
   }
@@ -28,12 +19,12 @@ export function forceLogoutAndRedirectToLogin() {
   const currentVariant = localStorage.getItem(
     "current_variant",
   ) as Variant | null;
-  const loginPath = resolveLoginPath(currentVariant);
+  const redirectPath = currentVariant === "internal" ? "/home" : "/home";
 
   store.dispatch(logout());
   store.dispatch(clearProfile());
 
-  window.location.replace(loginPath);
+  window.location.replace(redirectPath);
 }
 
 export function isBrokenJwtClaimError(error: unknown) {

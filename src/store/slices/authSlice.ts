@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import type { LoginResponseDto, UserDto } from "../../modules/auth/authSchema";
 import { resolvePortalVariantFromUser } from "../../permissions/rolePermissions";
+import { hasValidStoredSession } from "../../services/auth/authToken";
 
 export type Variant = "candidate" | "internal";
 
@@ -10,6 +11,7 @@ const readAuthFromStorage = () => {
   const refreshToken = localStorage.getItem("refresh_token");
   const variant = localStorage.getItem("current_variant") as Variant | null;
   const userRaw = localStorage.getItem("auth_user");
+  const isValidSession = hasValidStoredSession();
   let user: UserDto | null = null;
 
   if (userRaw) {
@@ -21,15 +23,22 @@ const readAuthFromStorage = () => {
   }
 
   return {
-    accessToken,
-    refreshToken,
-    user,
-    currentVariant: variant ?? undefined,
-    isAuthenticated: Boolean(accessToken && refreshToken),
+    accessToken: isValidSession ? accessToken : null,
+    refreshToken: isValidSession ? refreshToken : null,
+    user: isValidSession ? user : null,
+    currentVariant: isValidSession ? variant ?? undefined : undefined,
+    isAuthenticated: isValidSession,
   };
 };
 
 const persistedAuth = readAuthFromStorage();
+
+if (!persistedAuth.isAuthenticated) {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("current_variant");
+  localStorage.removeItem("auth_user");
+}
 
 export type AuthState = {
   accessToken: string | null;

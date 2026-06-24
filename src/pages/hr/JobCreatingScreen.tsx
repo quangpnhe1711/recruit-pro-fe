@@ -617,7 +617,7 @@ function JobCreatingScreen() {
       {stepper}
 
       {/* Content Card */}
-      <section className="rounded-lg border border-[#e2dfde] bg-white p-8 shadow-sm">
+      <section className="rounded-lg border border-[#e2dfde] bg-white p-4 shadow-sm md:p-8">
         <div className="mb-8">
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em]">
             Tạo tin tuyển dụng mới
@@ -708,7 +708,7 @@ function JobCreatingScreen() {
               />
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#e2dfde] pt-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
               <button
                 type="button"
                 className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
@@ -838,7 +838,7 @@ function JobCreatingScreen() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#e2dfde] pt-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -1029,7 +1029,7 @@ function JobCreatingScreen() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#e2dfde] pt-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -1168,7 +1168,7 @@ function JobCreatingScreen() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-[#e2dfde] pt-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e2dfde] pt-8">
               <div className="flex items-center gap-3">
                 <button
                   type="button"

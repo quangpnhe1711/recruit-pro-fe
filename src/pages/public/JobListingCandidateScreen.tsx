@@ -482,7 +482,7 @@ function JobListingCandidateScreen() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="relative">
               <input
-                className="w-[280px] border border-[#e2dfde] bg-white py-2 pl-10 pr-4 text-[14px] outline-none transition-colors focus:border-[#b90014]"
+                className="w-full border border-[#e2dfde] bg-white py-2 pl-10 pr-4 text-[14px] outline-none transition-colors focus:border-[#b90014] md:w-[280px]"
                 placeholder="Tìm kiếm việc làm..."
                 type="text"
                 value={search}
