@@ -266,7 +266,7 @@ function SideNavBar({
       ? { label: "Đăng tin mới" }
       : null;
 
-  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-[#2f3131] bg-[#1A1A1A] transition-transform duration-300 ease-in-out`;
+  const shellClassName = `fixed left-0 top-0 z-50 h-screen w-64 flex-col border-r border-white/10 bg-[#18191a] shadow-[18px_0_60px_rgba(26,28,28,0.18)] transition-transform duration-200 ease-out`;
 
   const brandTitleClassName = "text-[20px] font-bold leading-7 text-white";
 
@@ -274,7 +274,7 @@ function SideNavBar({
     "text-[12px] font-semibold uppercase tracking-[0.05em] text-[#c8c6c5]";
 
   const userCardClassName =
-    "flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-3";
+    "flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";
 
   const userNameClassName = "truncate text-[12px] font-semibold text-white";
 
@@ -282,12 +282,12 @@ function SideNavBar({
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) => {
     const common =
-      "flex items-center gap-3 border-l-4 px-4 py-3 text-[12px] font-semibold tracking-[0.05em] transition-colors";
+      "group flex items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-[12px] font-semibold tracking-[0.03em] transition-all duration-150";
 
     return `${common} ${
       isActive
-        ? "border-[#b90014] bg-white/5 text-white"
-        : "border-transparent text-[#c8c6c5] hover:bg-white/5 hover:text-white"
+        ? "border-white/10 bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+        : "text-[#c8c6c5] hover:border-white/10 hover:bg-white/[0.05] hover:text-white"
     }`;
   };
 
@@ -300,7 +300,7 @@ function SideNavBar({
 
   return (
     <aside className={`${shellClassName} ${authState.isAuthenticated ? "flex" : "hidden"} ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-      <div className="flex items-start justify-between px-6 py-8">
+      <div className="flex items-start justify-between px-6 pb-6 pt-8">
         <NavLink to={resolvedBrand.to} className="block" onClick={onClose}>
           <h1 className={brandTitleClassName}>{resolvedBrand.title}</h1>
           <p className={brandSubtitleClassName}>{resolvedBrand.subtitle}</p>
@@ -317,10 +317,10 @@ function SideNavBar({
         ) : null}
       </div>
 
-      <nav className="flex-1 space-y-1 px-2">
+      <nav className="flex-1 space-y-1 px-3">
         {resolvedItems.map((item) => (
           <NavLink key={item.label} className={navLinkClassName} to={item.to} onClick={onClose}>
-            <span className="material-symbols-outlined text-[20px]">
+            <span className="material-symbols-outlined text-[20px] transition-transform duration-150 group-hover:scale-105">
               {item.icon}
             </span>
             {item.label}
@@ -332,7 +332,7 @@ function SideNavBar({
         {resolvedCta ? (
           <button
             type="button"
-            className="mb-6 w-full rounded-none bg-[#e31b23] px-4 py-4 text-[16px] font-semibold text-white transition-colors hover:brightness-110"
+            className="premium-action mb-6 w-full rounded-lg bg-[#e31b23] px-4 py-3 text-[14px] font-semibold text-white shadow-[0_12px_30px_rgba(227,27,35,0.22)] transition-colors hover:bg-[#b90014]"
             onClick={() => {
               navigate("/hr/jobs/create");
             }}

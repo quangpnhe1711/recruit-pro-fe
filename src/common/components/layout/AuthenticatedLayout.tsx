@@ -12,12 +12,12 @@ function AuthenticatedLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen overflow-visible bg-[#f9f9f9] text-[#1a1c1c]">
+    <div className="min-h-screen overflow-visible bg-[#f7f6f5] text-[#1a1c1c]">
       <SideNavBar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {sidebarOpen ? (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] transition-opacity lg:hidden"
           aria-hidden="true"
           onClick={() => setSidebarOpen(false)}
         />

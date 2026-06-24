@@ -114,12 +114,12 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
         ]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e2dfde] bg-white">
+    <header className="sticky top-0 z-40 border-b border-[#e8e3e1] bg-white/85 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75">
       <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 md:px-10">
         <div className="flex flex-1 items-center">
           <button
             type="button"
-            className="p-1 text-[#5f5e5e] transition-colors hover:text-[#b90014] lg:hidden"
+            className="premium-action p-2 text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014] lg:hidden"
             aria-label="Mở menu điều hướng"
             onClick={onMenuToggle}
           >
@@ -136,7 +136,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
               <button
                 aria-controls={buttonId}
                 aria-expanded={open}
-                className="relative text-[#5f5e5e] transition-colors hover:text-[#b90014]"
+                className="premium-action relative flex h-10 w-10 items-center justify-center rounded-lg text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014]"
                 type="button"
                 onClick={() => {
                   setOpen((value) => !value);
@@ -156,7 +156,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
               {open ? (
                 <div
                   id={buttonId}
-                  className="absolute right-0 top-[calc(100%+14px)] z-50 w-[calc(100vw-2rem)] max-w-[360px] rounded-2xl border border-[#e2dfde] bg-white shadow-[0_20px_60px_rgba(26,28,28,0.12)]"
+                  className="absolute right-0 top-[calc(100%+14px)] z-50 w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden rounded-lg border border-[#e2dfde] bg-white shadow-[0_24px_70px_rgba(26,28,28,0.16)]"
                 >
                   <div className="flex items-center justify-between border-b border-[#f0eceb] px-4 py-4">
                     <div>
@@ -170,7 +170,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                       </p>
                     </div>
                     <button
-                      className="text-[12px] font-semibold text-[#b90014] disabled:text-[#c8b6b9]"
+                      className="premium-action rounded-md px-2 py-1 text-[12px] font-semibold text-[#b90014] hover:bg-[#fff1ef] disabled:text-[#c8b6b9]"
                       type="button"
                       disabled={!unreadCount}
                       onClick={() => void markAllAsRead()}
@@ -188,7 +188,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                       notifications.map((notification) => (
                         <button
                           key={notification.id}
-                          className={`block w-full border-b border-[#f7f2f1] px-4 py-4 text-left transition-colors hover:bg-[#fcf7f7] ${
+                          className={`block w-full border-b border-[#f7f2f1] px-4 py-4 text-left transition-colors duration-150 hover:bg-[#fcf7f7] ${
                             notification.isRead ? "bg-white" : "bg-[#fff7f8]"
                           }`}
                           type="button"
