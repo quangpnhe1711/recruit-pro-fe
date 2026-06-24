@@ -444,7 +444,7 @@ export function CertificationsSection({
           </div>
           <input
             className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-            placeholder="Credential ID"
+            placeholder="Mã chứng chỉ"
             value={certificationDraft.credentialId}
             onChange={(e) =>
               setCertificationDraft((prev) => ({ ...prev, credentialId: e.target.value }))
@@ -452,7 +452,7 @@ export function CertificationsSection({
           />
           <input
             className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#1a1c1c]"
-            placeholder="Credential URL"
+            placeholder="Liên kết chứng chỉ"
             value={certificationDraft.credentialUrl}
             onChange={(e) =>
               setCertificationDraft((prev) => ({ ...prev, credentialUrl: e.target.value }))

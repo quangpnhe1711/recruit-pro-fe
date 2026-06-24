@@ -79,16 +79,6 @@ const initialValues: RegisterValues = {
   resume: null,
 };
 
-// Định nghĩa các trường bắt buộc theo tầng dữ liệu
-const requiredByStep: Record<
-  number,
-  { group: "userInfo" | "candidateProfile"; fields: string[] }[]
-> = {
-  1: [{ group: "userInfo", fields: ["username", "fullName", "email", "password"] }],
-  2: [],
-  3: [],
-};
-
 const baseInputClass =
   "w-full h-11 px-4 border border-[#e2dfde] rounded bg-[#f9f9f9] text-[14px] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#b90014] focus:border-2";
 
@@ -101,36 +91,6 @@ function CandidateRegisterScreen() {
   const [values, setValues] = useState<RegisterValues>(initialValues);
   const [errors, setErrors] = useState<ErrorMap>({});
   const [submitState, setSubmitState] = useState("idle");
-
-  // Payload giả lập chuẩn chỉnh theo cấu trúc BE nhận được
-  const mockPayload = useMemo(() => {
-    return {
-      screen: "CandidateRegisterScreen",
-      payloadToBeSent: {
-        userInfo: values.userInfo,
-        profile: {
-          currentPosition: values.candidateProfile.position,
-          experienceYears: values.candidateProfile.experienceYears,
-          education: values.candidateProfile.education,
-          address: values.candidateProfile.address,
-          bio: values.candidateProfile.bio,
-          githubUrl: values.candidateProfile.github,
-          linkedInUrl: values.candidateProfile.linkedin,
-        },
-      },
-      fileMetadata: values.resume
-        ? {
-            fileName: values.resume.name,
-            mimeType: values.resume.type || "application/octet-stream",
-            size: values.resume.size,
-          }
-        : null,
-      notes: [
-        "Payload đã được map sang CandidateRegisterRequest thực tế của backend.",
-        "File CV được gửi cùng request qua multipart/form-data.",
-      ],
-    };
-  }, [values]);
 
   const stepConfig = steps[currentStep - 1];
   const stepIndicatorText = useMemo(() => {
@@ -173,7 +133,7 @@ function CandidateRegisterScreen() {
     };
   // 4. Cập nhật hàm Validate theo cấu trúc mới
   const validateCurrentStep = () => {
-    const schemas: Record<number, yup.ObjectSchema<any>> = {
+    const schemas: Record<number, yup.ObjectSchema<yup.AnyObject>> = {
       1: yup.object({
         userInfo: yup.object({
           username: yup
@@ -351,7 +311,7 @@ function CandidateRegisterScreen() {
             <span className="material-symbols-outlined text-[18px]">
               arrow_back
             </span>
-            Back to Home
+            Về trang chủ
           </Link>
 
           <div className="hidden md:block">
@@ -420,7 +380,7 @@ function CandidateRegisterScreen() {
                       className="text-[12px] tracking-[0.05em] font-semibold text-[#1a1c1c] group-focus-within:text-[#b90014]"
                       htmlFor="username"
                     >
-                      Username{" "}
+                      Tên đăng nhập{" "}
                       <span className="text-[#b90014] font-bold">*</span>
                     </label>
                     <input
@@ -448,7 +408,7 @@ function CandidateRegisterScreen() {
                         name="fullName"
                         required
                         className={`${baseInputClass} ${errorBorder("fullName")}`}
-                        placeholder="Jane Doe"
+                        placeholder="Nguyễn Văn A"
                         type="text"
                         value={values.userInfo.fullName}
                         onChange={setField("userInfo", "fullName")}
@@ -468,7 +428,7 @@ function CandidateRegisterScreen() {
                         name="email"
                         required
                         className={`${baseInputClass} ${errorBorder("email")}`}
-                        placeholder="jane@recruitpro.com"
+                        placeholder="email@example.com"
                         type="email"
                         value={values.userInfo.email}
                         onChange={setField("userInfo", "email")}
@@ -540,7 +500,7 @@ function CandidateRegisterScreen() {
                         id="position"
                         name="position"
                         className={baseInputClass}
-                        placeholder="Senior Talent Specialist"
+                        placeholder="Chuyên viên tuyển dụng cấp cao"
                         type="text"
                         value={values.candidateProfile.position}
                         onChange={setField("candidateProfile", "position")}
@@ -687,7 +647,7 @@ function CandidateRegisterScreen() {
                           id="github"
                           name="github"
                           className={`pl-10 pr-4 ${baseInputClass}`}
-                          placeholder="github.com/username"
+                          placeholder="github.com/ten-cua-ban"
                           type="url"
                           value={values.candidateProfile.github}
                           onChange={setField("candidateProfile", "github")}
@@ -710,7 +670,7 @@ function CandidateRegisterScreen() {
                           id="linkedin"
                           name="linkedin"
                           className={`pl-10 pr-4 ${baseInputClass}`}
-                          placeholder="linkedin.com/in/username"
+                          placeholder="linkedin.com/in/ten-cua-ban"
                           type="url"
                           value={values.candidateProfile.linkedin}
                           onChange={setField("candidateProfile", "linkedin")}

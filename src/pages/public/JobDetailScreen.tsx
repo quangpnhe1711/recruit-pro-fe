@@ -781,7 +781,7 @@ function JobDetailScreen() {
                     onChange={(event) =>
                       updateEditForm("skills", event.target.value)
                     }
-                    placeholder="Comma separated or one skill per line"
+                    placeholder="Phân tách bằng dấu phẩy hoặc mỗi dòng một kỹ năng"
                   />
                   {skills.length ? (
                     <p className="text-[12px] text-[#5f5e5e]">

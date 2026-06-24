@@ -48,7 +48,7 @@ const hrRoutes = (
           element={
             <FeaturePlaceholderScreen
               title="Internal Profile"
-              description="This internal profile area is reserved for HR and Manager self-service profile workflows during the current UI alignment phase."
+              description="Khu vực hồ sơ nội bộ đang chờ hỗ trợ từ backend."
             />
           }
         />
@@ -170,7 +170,7 @@ const hrRoutes = (
           element={
             <FeaturePlaceholderScreen
               title="System Admin Dashboard"
-              description="This admin dashboard is reserved for system-wide operations, visibility, and platform configuration workflows."
+              description="Bảng điều khiển quản trị hệ thống đang chờ hỗ trợ từ backend."
             />
           }
         />
@@ -179,7 +179,7 @@ const hrRoutes = (
           element={
             <FeaturePlaceholderScreen
               title="User Management"
-              description="This screen is reserved for system user administration during the current UI alignment phase."
+              description="Quản lý người dùng đang chờ hỗ trợ từ backend."
             />
           }
         />
@@ -188,7 +188,7 @@ const hrRoutes = (
           element={
             <FeaturePlaceholderScreen
               title="Role Management"
-              description="This screen is reserved for system role administration during the current UI alignment phase."
+              description="Quản lý vai trò đang chờ hỗ trợ từ backend."
             />
           }
         />
@@ -197,7 +197,7 @@ const hrRoutes = (
           element={
             <FeaturePlaceholderScreen
               title="Permission Management"
-              description="This screen is reserved for system permission administration during the current UI alignment phase."
+              description="Quản lý quyền đang chờ hỗ trợ từ backend."
             />
           }
         />
@@ -206,7 +206,7 @@ const hrRoutes = (
           element={
             <FeaturePlaceholderScreen
               title="Audit Logs"
-              description="This screen is reserved for platform audit visibility and traceability during the current UI alignment phase."
+              description="Nhật ký kiểm toán đang chờ hỗ trợ từ backend."
             />
           }
         />

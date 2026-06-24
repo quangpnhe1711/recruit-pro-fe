@@ -42,16 +42,6 @@ type SkillRequirementDraft = {
   minimumYearsOfExperience: string;
 };
 
-type CreatedJob = {
-  id: string;
-  title: string;
-  department: string;
-  createdDate: string;
-  createdAt: number;
-  approvalStatus: "Pending";
-  applicationsCount: number;
-};
-
 const departments = ["Engineering", "Product", "Design", "Marketing", "Sales"];
 const employmentTypeOptions = Object.entries(employmentTypeLabels).map(
   ([value, label]) => ({ value, label }),
@@ -164,7 +154,6 @@ function JobCreatingScreen() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const canCreateJob = hasPermission(PERMISSIONS.JOB_CREATE);
-  const canApproveJob = hasPermission(PERMISSIONS.JOB_APPROVE);
   const canUseTemplate = hasPermission(PERMISSIONS.JOB_USE_TEMPLATE);
 
   const initialDraft = useMemo(() => loadDraft(), []);
@@ -220,7 +209,7 @@ function JobCreatingScreen() {
   const [salaryMax, setSalaryMax] = useState<string>(
     () => initialDraft?.salaryMax ?? "",
   );
-  const [currency, setCurrency] = useState<string>(
+  const [currency] = useState<string>(
     () => "VND",
   );
   const [publishing, setPublishing] = useState(false);
@@ -324,7 +313,7 @@ function JobCreatingScreen() {
       requirements: yup
         .array()
         .of(yup.string())
-        .min(1, "Add at least one requirement."),
+        .min(1, "Hãy thêm ít nhất một yêu cầu."),
     });
 
     try {
@@ -358,7 +347,7 @@ function JobCreatingScreen() {
                 ),
             }),
           )
-          .min(1, "Add at least one required skill."),
+          .min(1, "Hãy chọn ít nhất một kỹ năng bắt buộc."),
         salaryMin: yup.number().nullable().transform((value, originalValue) =>
           originalValue === "" || originalValue == null ? null : value,
         ),
@@ -703,7 +692,7 @@ function JobCreatingScreen() {
                 value={shortPitch}
                 onChange={(e) => setShortPitch(e.target.value)}
                 className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                placeholder="A one-sentence summary for job boards..."
+                placeholder="Tóm tắt ngắn để hiển thị trên trang việc làm..."
                 rows={3}
               />
             </div>
@@ -737,13 +726,13 @@ function JobCreatingScreen() {
           <div className="space-y-8">
             <div className="space-y-2">
               <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Job Description
+                Mô tả công việc
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                placeholder="Describe the role, impact, and expectations..."
+                placeholder="Mô tả vai trò, phạm vi công việc và kỳ vọng..."
                 rows={6}
               />
             </div>
@@ -751,14 +740,14 @@ function JobCreatingScreen() {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               <div className="space-y-3">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Responsibilities
+                  Trách nhiệm
                 </p>
                 <div className="flex gap-2">
                   <input
                     value={responsibilityInput}
                     onChange={(e) => setResponsibilityInput(e.target.value)}
                     className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                    placeholder="Add a responsibility"
+                    placeholder="Thêm một trách nhiệm"
                   />
                   <button
                     type="button"
@@ -768,7 +757,7 @@ function JobCreatingScreen() {
                       setResponsibilityInput("");
                     }}
                   >
-                    Add
+                    Thêm
                   </button>
                 </div>
                 <ul className="space-y-2">
@@ -782,7 +771,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="text-[#5f5e5e] transition-colors hover:text-[#b90014]"
                         onClick={() => removeListItem(idx, setResponsibilities)}
-                        aria-label="Remove responsibility"
+                        aria-label="Xóa trách nhiệm"
                       >
                         <span className="material-symbols-outlined text-[20px]">
                           close
@@ -795,14 +784,14 @@ function JobCreatingScreen() {
 
               <div className="space-y-3">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.18em]">
-                  Requirements
+                  Yêu cầu
                 </p>
                 <div className="flex gap-2">
                   <input
                     value={requirementInput}
                     onChange={(e) => setRequirementInput(e.target.value)}
                     className="w-full rounded-none border border-[#e2dfde] px-4 py-3 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
-                    placeholder="Add a requirement"
+                    placeholder="Thêm một yêu cầu"
                   />
                   <button
                     type="button"
@@ -812,7 +801,7 @@ function JobCreatingScreen() {
                       setRequirementInput("");
                     }}
                   >
-                    Add
+                    Thêm
                   </button>
                 </div>
                 <ul className="space-y-2">
@@ -826,7 +815,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="text-[#5f5e5e] transition-colors hover:text-[#b90014]"
                         onClick={() => removeListItem(idx, setRequirements)}
-                        aria-label="Remove requirement"
+                        aria-label="Xóa yêu cầu"
                       >
                         <span className="material-symbols-outlined text-[20px]">
                           close
@@ -845,7 +834,7 @@ function JobCreatingScreen() {
                   className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                   onClick={goBack}
                 >
-                  Back
+                  Quay lại
                 </button>
                 <button
                   type="button"
@@ -876,18 +865,18 @@ function JobCreatingScreen() {
           <div className="space-y-8">
             <div className="space-y-2">
               <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                Required Skills
+                Kỹ năng bắt buộc
               </label>
               {skillsLoading ? (
                 <div className="rounded-xl border border-[#e2dfde] bg-white px-4 py-3">
-                  <LoadingIndicator label="Loading skills..." size="sm" />
+                  <LoadingIndicator label="Đang tải kỹ năng..." size="sm" />
                 </div>
               ) : (
                 <div className="space-y-4">
                   <SkillPicker
                     emptyLabel="Chọn kỹ năng yêu cầu từ danh sách kỹ năng hiện có."
                     options={skillOptions}
-                    placeholder="Choose a required skill"
+                    placeholder="Chọn kỹ năng bắt buộc"
                     selectedValues={skills.map((skill) => skill.skillName)}
                     onAdd={(value) => addSkillRequirement(value, setSkills)}
                     onRemove={(value) => removeSkillRequirement(value, setSkills)}
@@ -905,13 +894,13 @@ function JobCreatingScreen() {
                               {skill.skillName}
                             </p>
                             <p className="mt-1 text-[12px] text-[#5f5e5e]">
-                              Optional minimum experience. Leave blank if the role only needs this skill to be present.
+                              Có thể để trống nếu chỉ cần ứng viên có kỹ năng này.
                             </p>
                           </div>
 
                           <div className="space-y-2">
                             <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
-                              Minimum years
+                              Số năm tối thiểu
                             </label>
                             <input
                               value={skill.minimumYearsOfExperience}
@@ -924,7 +913,7 @@ function JobCreatingScreen() {
                               }
                               className="w-full rounded-none border border-[#e2dfde] bg-white px-3 py-2 text-[14px] focus:border-[#1a1c1c] focus:ring-0"
                               inputMode="decimal"
-                              placeholder="e.g. 1.5"
+                              placeholder="VD: 1.5"
                               type="text"
                             />
                           </div>
@@ -935,12 +924,12 @@ function JobCreatingScreen() {
 
                   <div className="space-y-2">
                     <label className="block text-[12px] font-semibold uppercase tracking-[0.18em]">
-                      Nice To Have Skills
+                      Kỹ năng cộng điểm
                     </label>
                     <SkillPicker
-                      emptyLabel="Optional skills that improve candidate ranking."
+                      emptyLabel="Kỹ năng không bắt buộc nhưng giúp ứng viên được đánh giá tốt hơn."
                       options={skillOptions}
-                      placeholder="Choose an optional skill"
+                      placeholder="Chọn kỹ năng cộng điểm"
                       selectedValues={niceToHaveSkills.map((skill) => skill.skillName)}
                       onAdd={(value) => addSkillRequirement(value, setNiceToHaveSkills)}
                       onRemove={(value) => removeSkillRequirement(value, setNiceToHaveSkills)}
@@ -958,13 +947,13 @@ function JobCreatingScreen() {
                                 {skill.skillName}
                               </p>
                               <p className="mt-1 text-[12px] text-[#5f5e5e]">
-                                Optional experience threshold used for bonus matching.
+                                Ngưỡng kinh nghiệm dùng để cộng điểm phù hợp.
                               </p>
                             </div>
 
                             <div className="space-y-2">
                               <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f5e5e]">
-                                Minimum years
+                                Số năm tối thiểu
                               </label>
                               <input
                                 value={skill.minimumYearsOfExperience}
@@ -977,7 +966,7 @@ function JobCreatingScreen() {
                                 }
                                 className="w-full rounded-none border border-[#cfe1eb] bg-white px-3 py-2 text-[14px] focus:border-[#005f93] focus:ring-0"
                                 inputMode="decimal"
-                                placeholder="e.g. 0.5"
+                                placeholder="VD: 0.5"
                                 type="text"
                               />
                             </div>
@@ -1036,7 +1025,7 @@ function JobCreatingScreen() {
                   className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                   onClick={goBack}
                 >
-                  Back
+                  Quay lại
                 </button>
                 <button
                   type="button"
@@ -1139,7 +1128,7 @@ function JobCreatingScreen() {
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                    Responsibilities
+                    Trách nhiệm
                   </p>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] text-[#1a1c1c]">
                     {responsibilities.length ? (
@@ -1153,7 +1142,7 @@ function JobCreatingScreen() {
                 </div>
                 <div>
                   <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
-                    Requirements
+                    Yêu cầu
                   </p>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] text-[#1a1c1c]">
                     {requirements.length ? (
@@ -1175,7 +1164,7 @@ function JobCreatingScreen() {
                   className="rounded-none border border-[#e2dfde] px-6 py-2 text-[12px] font-bold text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
                   onClick={goBack}
                 >
-                  Back
+                  Quay lại
                 </button>
                 <button
                   type="button"

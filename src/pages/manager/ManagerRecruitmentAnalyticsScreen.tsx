@@ -145,10 +145,10 @@ function ManagerRecruitmentAnalyticsScreen() {
       <section className="flex flex-col justify-between gap-6 pb-10 lg:flex-row lg:items-end">
         <div>
           <h1 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
-            Recruitment Analytics
+            Phân tích tuyển dụng
           </h1>
           <p className="mt-1 text-[16px] leading-6 text-[#5f5e5e]">
-            Operational recruiting metrics derived from active jobs, applications, interviews, and department workload.
+            Theo dõi hiệu suất tuyển dụng từ job, hồ sơ, phỏng vấn và tải công việc theo phòng ban.
           </p>
         </div>
         <div className="flex gap-3">
@@ -157,7 +157,7 @@ function ManagerRecruitmentAnalyticsScreen() {
             className="flex items-center gap-2 border border-[#e7bdb8] bg-white px-4 py-2 text-[12px] font-bold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
           >
             <span className="material-symbols-outlined text-[18px]">calendar_month</span>
-            Current Snapshot
+            Dữ liệu hiện tại
           </button>
           <button
             type="button"
@@ -165,7 +165,7 @@ function ManagerRecruitmentAnalyticsScreen() {
             onClick={() => navigate("/manager/dashboard")}
           >
             <span className="material-symbols-outlined text-[18px]">dashboard</span>
-            Back to Dashboard
+            Về bảng điều khiển
           </button>
         </div>
       </section>

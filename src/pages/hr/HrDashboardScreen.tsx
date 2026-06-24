@@ -82,7 +82,6 @@ function HrDashboardScreen() {
   useEffect(() => {
     let mounted = true;
 
-    setLoading(true);
     hrService
       .getDashboard()
       .then((res) => {
@@ -131,14 +130,14 @@ function HrDashboardScreen() {
     {
       label: "Tin đang tuyển",
       value: String(dashboard.stats.activePostings),
-      helper: "+2 so với tuần trước",
+      helper: "Đang mở trên hệ thống",
       helperClassName: "text-[#0079b9]",
       icon: "work",
     },
     {
       label: "Tổng ứng viên",
       value: String(dashboard.stats.totalApplicants),
-      helper: "Tỷ lệ chuyển đổi 15.2%",
+      helper: "Tổng hồ sơ đã ghi nhận",
       helperClassName: "text-[#0079b9]",
       icon: "group",
     },
@@ -168,7 +167,7 @@ function HrDashboardScreen() {
     })) ?? [];
 
   return (
-    <div className="w-full space-y-6 px-4 py-6 md:px-10">
+    <div className="w-full space-y-6 px-4 py-8 md:px-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
@@ -183,7 +182,7 @@ function HrDashboardScreen() {
           <PermissionGuard permissions={PERMISSIONS.DASHBOARD_EXPORT}>
             <button
               type="button"
-              className="flex items-center gap-2 bg-[#e2e2e2] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#e2dfde]"
+              className="flex items-center gap-2 rounded-lg border border-[#d6d1cf] bg-white px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-[#1a1c1c] transition-colors hover:bg-[#f3f3f3]"
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
               Xuất báo cáo
@@ -192,11 +191,11 @@ function HrDashboardScreen() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {statCardsData.map((card) => (
           <div
             key={card.label}
-            className="flex cursor-default items-center justify-between border border-[#e2dfde] bg-white p-6 transition-colors hover:border-[#b90014]"
+            className="flex cursor-default items-center justify-between rounded-lg border border-[#e2dfde] bg-white p-5 shadow-sm transition-colors hover:border-[#b90014]"
           >
             <div>
               <p className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
@@ -210,7 +209,7 @@ function HrDashboardScreen() {
               </p>
             </div>
 
-            <div className="flex h-12 w-12 items-center justify-center bg-[#ffdad6]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#ffdad6]">
               <span className="material-symbols-outlined text-[#b90014]">{card.icon}</span>
             </div>
           </div>
@@ -218,7 +217,7 @@ function HrDashboardScreen() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <section className="overflow-hidden border border-[#e2dfde] bg-white lg:col-span-2">
+        <section className="overflow-hidden rounded-lg border border-[#e2dfde] bg-white shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between border-b border-[#e2dfde] bg-white px-6 py-4">
             <h4 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
               Hồ sơ ứng tuyển gần đây
@@ -240,13 +239,13 @@ function HrDashboardScreen() {
               emptyMessage="Chưa có hồ sơ ứng tuyển gần đây."
               zebra
               hover
-              tableWrapperClassName="overflow-hidden border border-[#e2dfde] bg-white"
+              tableWrapperClassName="overflow-hidden bg-white"
             />
           </div>
         </section>
 
         <aside className="flex flex-col gap-6">
-          <section className="flex h-full flex-col border border-[#e2dfde] bg-white p-6">
+          <section className="flex h-full flex-col rounded-lg border border-[#e2dfde] bg-white p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
               <h4 className="text-[20px] font-semibold leading-7 text-[#1a1c1c]">
                 Chờ phê duyệt
@@ -260,7 +259,7 @@ function HrDashboardScreen() {
               {pendingApprovalsData.map((item) => (
                 <div
                   key={item.title}
-                  className="border border-[#e2dfde] bg-white p-4 transition-all hover:shadow-sm"
+                  className="rounded-lg border border-[#e2dfde] bg-white p-4 transition-all hover:shadow-sm"
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -299,7 +298,7 @@ function HrDashboardScreen() {
             <PermissionGuard permissions={PERMISSIONS.JOB_APPROVE}>
               <button
                 type="button"
-                className="mt-6 w-full border border-[#e2dfde] py-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
+                className="mt-6 w-full rounded-lg border border-[#e2dfde] py-2 text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e] transition-colors hover:bg-[#f3f3f3]"
               >
                 Xem tất cả phê duyệt
               </button>
@@ -309,13 +308,13 @@ function HrDashboardScreen() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <section className="relative overflow-hidden bg-[#1a1c1c] p-6 md:col-span-1">
+        <section className="relative overflow-hidden rounded-lg bg-[#1a1c1c] p-6 md:col-span-1">
           <div className="relative z-10">
             <h4 className="mb-2 text-[20px] font-semibold leading-7 text-white">
               Tốc độ tuyển dụng
             </h4>
             <p className="text-[14px] leading-5 text-[#c8c6c5]">
-              Thời gian tuyển trung bình đã giảm 12% trong kỳ này.
+              Trung bình {dashboard.hiringVelocity.averageTimeToHireDays} ngày để tuyển thành công.
             </p>
           </div>
           <div className="absolute bottom-[-20px] right-[-20px] opacity-10">
@@ -323,19 +322,18 @@ function HrDashboardScreen() {
           </div>
         </section>
 
-        <section className="flex flex-col items-start gap-6 border border-[#e2dfde] bg-[#f3f3f3] p-6 md:col-span-3 md:flex-row md:items-center">
+        <section className="flex flex-col items-start gap-6 rounded-lg border border-[#e2dfde] bg-[#f3f3f3] p-6 md:col-span-3 md:flex-row md:items-center">
           <div className="flex-1">
             <h4 className="mb-2 text-[20px] font-semibold leading-7 text-[#1a1c1c]">
               Báo cáo đa dạng & hòa nhập
             </h4>
             <p className="max-w-md text-[14px] leading-5 text-[#5f5e5e]">
-              Đội ngũ của bạn đã đạt 85% mục tiêu hòa nhập trong năm. Xem chi
-              tiết để tối ưu chiến lược tiếp cận ứng viên.
+              Mức hoàn thành mục tiêu hiện tại: {dashboard.diversityReport.targetCompletionPercent}%.
             </p>
             <PermissionGuard permissions={PERMISSIONS.DASHBOARD_VIEW_INTERNAL}>
               <button
                 type="button"
-                className="mt-4 bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-[#c8c6c5] hover:text-[#1a1c1c]"
+                className="mt-4 rounded-lg bg-[#1a1c1c] px-6 py-2 text-[12px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-[#c8c6c5] hover:text-[#1a1c1c]"
               >
                 Xem báo cáo đầy đủ
               </button>

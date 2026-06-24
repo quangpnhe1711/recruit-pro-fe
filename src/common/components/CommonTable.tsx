@@ -55,7 +55,7 @@ function CommonTable<T>({
   return (
     <section className={tableWrapperClassName}>
       <div className="overflow-x-auto scrollbar-hide">
-        <table className="w-full border-collapse text-left">
+        <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
             <tr className={`${headerClassName} ${tableHeaderBg}`}>
               {columns.map((col) => (
@@ -75,16 +75,25 @@ function CommonTable<T>({
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-10 text-center">
-                  <LoadingIndicator className="justify-center" label="Đang tải..." />
+                  <div className="flex min-h-32 items-center justify-center">
+                    <LoadingIndicator className="justify-center" label="Đang tải dữ liệu..." />
+                  </div>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-6 py-10 text-center text-[14px] text-[#5f5e5e]"
+                  className="px-6 py-12 text-center text-[14px] text-[#5f5e5e]"
                 >
-                  {emptyMessage || "Không có dữ liệu"}
+                  <div className="mx-auto flex max-w-sm flex-col items-center">
+                    <span className="material-symbols-outlined text-[36px] text-[#b90014]">
+                      inbox
+                    </span>
+                    <span className="mt-2 font-semibold text-[#1a1c1c]">
+                      {emptyMessage || "Chưa có dữ liệu"}
+                    </span>
+                  </div>
                 </td>
               </tr>
             ) : (

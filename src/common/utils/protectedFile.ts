@@ -15,7 +15,7 @@ function normalizeProtectedFileUrl(url: string) {
 export async function fetchProtectedFileBlob(url: string) {
   return apiClient.get<Blob>(normalizeProtectedFileUrl(url), {
     responseType: "blob",
-  });
+  }) as unknown as Promise<Blob>;
 }
 
 export async function openProtectedFileInNewTab(url: string) {

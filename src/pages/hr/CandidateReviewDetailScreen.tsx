@@ -54,26 +54,7 @@ function formatDateTimeLabel(value: string) {
 }
 
 function formatApplicationStatusVi(status: string) {
-  switch (formatApplicationStatus(status)) {
-    case "Applied":
-      return "Đã nộp";
-    case "Screening":
-      return "Sàng lọc";
-    case "Manager Review":
-      return "Quản lý đánh giá";
-    case "Interview":
-      return "Phỏng vấn";
-    case "Offer":
-      return "Đề nghị nhận việc";
-    case "Hired":
-      return "Đã nhận việc";
-    case "Rejected":
-      return "Từ chối";
-    case "Offer Declined":
-      return "Từ chối offer";
-    default:
-      return status;
-  }
+  return formatApplicationStatus(status);
 }
 
 function formatStatusDescriptionVi(status: string) {

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import { formatApplicationStatus } from "../../common/utils/applicationPresentation";
 import {
   downloadProtectedFile,
   openProtectedFileInNewTab,
@@ -11,28 +12,28 @@ import { buildResumeDownloadPath, buildResumePreviewPath } from "../../common/ut
 import { hrService, type HrCandidateDetailDto } from "../../services/hr/hrService";
 
 function formatDate(value?: string | null) {
-  if (!value) return "Not available";
+  if (!value) return "Chưa cập nhật";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleDateString();
+  return parsed.toLocaleDateString("vi-VN");
 }
 
 function formatDateTime(value?: string | null) {
-  if (!value) return "Not available";
+  if (!value) return "Chưa cập nhật";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleString();
+  return parsed.toLocaleString("vi-VN");
 }
 
 function formatExperiencePeriod(
   period: HrCandidateDetailDto["experienceEntries"][number]["period"],
 ) {
   const start = `${String(period.startMonth).padStart(2, "0")}/${period.startYear}`;
-  if (period.isCurrent) return `${start} - Present`;
+  if (period.isCurrent) return `${start} - Hiện tại`;
   if (!period.endMonth || !period.endYear) return start;
   return `${start} - ${String(period.endMonth).padStart(2, "0")}/${period.endYear}`;
 }
@@ -89,7 +90,7 @@ function CandidateProfileScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Loading candidate profile..." />
+        <LoadingIndicator label="Đang tải hồ sơ ứng viên..." />
       </div>
     );
   }
@@ -98,9 +99,9 @@ function CandidateProfileScreen() {
     return (
       <div className="w-full px-4 py-10 md:px-10">
         <div className="border border-[#e7bdb8] bg-white p-8">
-          <h1 className="text-[32px] font-semibold text-[#1a1c1c]">Candidate not found</h1>
+          <h1 className="text-[32px] font-semibold text-[#1a1c1c]">Không tìm thấy ứng viên</h1>
           <p className="mt-2 text-sm text-[#5f5e5e]">
-            This candidate profile is unavailable from the current workflow.
+            Hồ sơ ứng viên chưa sẵn sàng trong quy trình hiện tại.
           </p>
           <button
             type="button"
@@ -108,7 +109,7 @@ function CandidateProfileScreen() {
             onClick={() => navigate(backPath)}
           >
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            Back to Candidates
+            Quay lại danh sách
           </button>
         </div>
       </div>
@@ -125,7 +126,7 @@ function CandidateProfileScreen() {
             onClick={() => navigate(backPath)}
           >
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            Back to Candidates
+            Quay lại danh sách
           </button>
           <div className="flex items-center gap-4">
             {detail.profile.avatarUrl ? (
@@ -148,10 +149,10 @@ function CandidateProfileScreen() {
             <div>
               <h1 className="text-[36px] font-bold text-[#1a1c1c]">{detail.profile.name}</h1>
               <p className="mt-1 text-lg text-[#5f5e5e]">
-                {detail.profile.headline || "Candidate profile"}
+                {detail.profile.headline || "Hồ sơ ứng viên"}
               </p>
               <p className="mt-2 text-sm text-[#5f5e5e]">
-                Member since {formatDate(detail.profile.memberSince)}
+                Tham gia từ {formatDate(detail.profile.memberSince)}
               </p>
             </div>
           </div>
@@ -171,7 +172,7 @@ function CandidateProfileScreen() {
               }}
             >
               <span className="material-symbols-outlined text-base">download</span>
-              Download CV
+              Tải CV
             </button>
           ) : null}
           <a
@@ -179,7 +180,7 @@ function CandidateProfileScreen() {
             href={`mailto:${detail.profile.email}`}
           >
             <span className="material-symbols-outlined text-base">mail</span>
-            Contact Candidate
+            Liên hệ ứng viên
           </a>
         </div>
       </div>
@@ -187,36 +188,28 @@ function CandidateProfileScreen() {
       <div className="mb-8 grid gap-6 md:grid-cols-3">
         <div className="border border-[#e7bdb8] bg-white p-6">
           <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Applications
+            Hồ sơ ứng tuyển
           </p>
           <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.applications}</p>
         </div>
         <div className="border border-[#e7bdb8] bg-white p-6">
           <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Active Pipeline
+            Đang xử lý
           </p>
           <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.activeApplications}</p>
         </div>
         <div className="border border-[#e7bdb8] bg-white p-6">
           <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Interviews
+            Phỏng vấn
           </p>
           <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">{stats.interviews}</p>
-        </div>
-        <div className="border border-[#e7bdb8] bg-white p-6">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
-            Profile Completion
-          </p>
-          <p className="mt-3 text-[32px] font-semibold text-[#1a1c1c]">
-            {detail.profile.completionScore}%
-          </p>
         </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Application History</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Lịch sử ứng tuyển</h2>
             <div className="mt-4 space-y-4">
               {detail.applicationHistory.length ? (
                 detail.applicationHistory.map((item) => (
@@ -232,10 +225,10 @@ function CandidateProfileScreen() {
                         <p className="text-sm text-[#5f5e5e]">{item.departmentName}</p>
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-[#5f5e5e]">
-                        <span>Applied {formatDate(item.appliedAt)}</span>
-                        <span>{item.interviewCount} interviews</span>
+                        <span>Nộp ngày {formatDate(item.appliedAt)}</span>
+                        <span>{item.interviewCount} phỏng vấn</span>
                         <span className="rounded-full bg-[#f3f3f3] px-3 py-1 font-semibold text-[#1a1c1c]">
-                          {item.status}
+                          {formatApplicationStatus(item.status)}
                         </span>
                       </div>
                     </div>
@@ -244,19 +237,19 @@ function CandidateProfileScreen() {
                         className="text-sm font-semibold text-[#1a1c1c] hover:text-[#b90014]"
                         to={`${applicationRoutePrefix}/${item.applicationId}`}
                       >
-                        Open application review
+                        Mở hồ sơ ứng tuyển
                       </Link>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-[#5f5e5e]">No application history is available yet.</p>
+                <p className="text-sm text-[#5f5e5e]">Chưa có lịch sử ứng tuyển.</p>
               )}
             </div>
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Interview History</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Lịch sử phỏng vấn</h2>
             <div className="mt-4 space-y-4">
               {detail.interviewHistory.length ? (
                 detail.interviewHistory.map((item) => (
@@ -272,13 +265,13 @@ function CandidateProfileScreen() {
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                       <span className="rounded-full bg-[#f3f3f3] px-3 py-1 font-semibold text-[#1a1c1c]">
-                        {item.status}
+                        {item.status || "Chưa cập nhật"}
                       </span>
                       <Link
                         className="font-semibold text-[#b90014] hover:underline"
                         to={`${applicationRoutePrefix}/${item.applicationId}`}
                       >
-                        View linked application
+                        Xem hồ sơ liên quan
                       </Link>
                     </div>
                     {item.notes ? (
@@ -287,7 +280,7 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-[#5f5e5e]">No interview history is available yet.</p>
+                <p className="text-sm text-[#5f5e5e]">Chưa có lịch sử phỏng vấn.</p>
               )}
             </div>
           </section>
@@ -295,13 +288,13 @@ function CandidateProfileScreen() {
 
         <div className="space-y-6">
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Profile Summary</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Tóm tắt hồ sơ</h2>
             <div className="mt-4 space-y-3 text-sm text-[#1a1c1c]">
               <p><span className="font-semibold">Email:</span> {detail.profile.email}</p>
-              <p><span className="font-semibold">Phone:</span> {detail.profile.phone || "Not provided"}</p>
-              <p><span className="font-semibold">Location:</span> {detail.profile.location || "Not provided"}</p>
+              <p><span className="font-semibold">SĐT:</span> {detail.profile.phone || "Chưa cập nhật"}</p>
+              <p><span className="font-semibold">Địa điểm:</span> {detail.profile.location || "Chưa cập nhật"}</p>
               {detail.profile.bio ? (
-                <p><span className="font-semibold">Bio:</span> {detail.profile.bio}</p>
+                <p><span className="font-semibold">Giới thiệu:</span> {detail.profile.bio}</p>
               ) : null}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -329,7 +322,7 @@ function CandidateProfileScreen() {
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Skills</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Kỹ năng</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {detail.skills.length ? (
                 detail.skills.map((skill) => (
@@ -342,13 +335,13 @@ function CandidateProfileScreen() {
                   </span>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">No skills recorded yet.</span>
+                <span className="text-sm text-[#5f5e5e]">Chưa có kỹ năng trong hồ sơ.</span>
               )}
             </div>
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Experience</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Kinh nghiệm</h2>
             <div className="mt-4 space-y-4">
               {detail.experienceEntries.length ? (
                 detail.experienceEntries.map((entry) => (
@@ -368,19 +361,19 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">No experience entries recorded yet.</span>
+                <span className="text-sm text-[#5f5e5e]">Chưa có kinh nghiệm làm việc.</span>
               )}
             </div>
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Projects</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Dự án</h2>
             <div className="mt-4 space-y-4">
               {detail.projects.length ? (
                 detail.projects.map((project) => (
                   <div key={project.id} className="border border-[#f0d7d3] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{project.name}</p>
-                    <p className="text-sm text-[#5f5e5e]">{project.role || "Project"}</p>
+                    <p className="text-sm text-[#5f5e5e]">{project.role || "Dự án"}</p>
                     <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
                       {formatExperiencePeriod(project.period)}
                     </p>
@@ -402,13 +395,13 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">No projects recorded yet.</span>
+                <span className="text-sm text-[#5f5e5e]">Chưa có dự án.</span>
               )}
             </div>
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Education</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Học vấn</h2>
             <div className="mt-4 space-y-4">
               {detail.educations.length ? (
                 detail.educations.map((education) => (
@@ -419,7 +412,7 @@ function CandidateProfileScreen() {
                       {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
                     </p>
                     <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#5f5e5e]">
-                      {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "N/A"}
+                      {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "Chưa cập nhật"}
                     </p>
                     {education.description ? (
                       <p className="mt-3 text-sm leading-6 text-[#5d3f3c]">{education.description}</p>
@@ -427,19 +420,19 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">No education records yet.</span>
+                <span className="text-sm text-[#5f5e5e]">Chưa có học vấn.</span>
               )}
             </div>
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Certifications & Languages</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Chứng chỉ & ngôn ngữ</h2>
             <div className="mt-4 space-y-4">
               {detail.certifications.length ? (
                 detail.certifications.map((certification) => (
                   <div key={certification.id} className="border border-[#f0d7d3] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{certification.name}</p>
-                    <p className="text-sm text-[#5f5e5e]">{certification.issuer || "Unknown issuer"}</p>
+                    <p className="text-sm text-[#5f5e5e]">{certification.issuer || "Chưa cập nhật đơn vị cấp"}</p>
                   </div>
                 ))
               ) : null}
@@ -456,13 +449,13 @@ function CandidateProfileScreen() {
                 </div>
               ) : null}
               {!detail.certifications.length && !detail.languages.length ? (
-                <span className="text-sm text-[#5f5e5e]">No certifications or languages recorded yet.</span>
+                <span className="text-sm text-[#5f5e5e]">Chưa có chứng chỉ hoặc ngôn ngữ.</span>
               ) : null}
             </div>
           </section>
 
           <section className="border border-[#e7bdb8] bg-white p-6">
-            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Resume History</h2>
+            <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Lịch sử CV</h2>
             <div className="mt-4 space-y-3">
               {detail.resumeHistory.length ? (
                 detail.resumeHistory.map((resume) => (
@@ -483,12 +476,12 @@ function CandidateProfileScreen() {
                       <p className="text-sm text-[#5f5e5e]">{formatDateTime(resume.uploadedAt)}</p>
                     </div>
                     <span className="text-sm font-semibold text-[#b90014]">
-                      {resume.isCurrent ? "Current" : "Open"}
+                      {resume.isCurrent ? "Đang dùng" : "Mở"}
                     </span>
                   </button>
                 ))
               ) : (
-                <span className="text-sm text-[#5f5e5e]">No resume history is available yet.</span>
+                <span className="text-sm text-[#5f5e5e]">Chưa có lịch sử CV.</span>
               )}
             </div>
           </section>

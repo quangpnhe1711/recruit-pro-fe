@@ -87,7 +87,7 @@ function CandidateLoginScreen() {
         replace: true,
       });
     } catch {
-      setLoginError("Username hoặc mật khẩu không chính xác");
+      setLoginError("Tên đăng nhập hoặc mật khẩu không đúng");
       return;
     }
     toast.success("Đăng nhập thành công");
@@ -172,20 +172,20 @@ function CandidateLoginScreen() {
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              {/* Username */}
+              {/* Tên đăng nhập */}
               <div className="space-y-2">
                 <label
                   className="block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                   htmlFor="username"
                 >
-                  Username
+                  Tên đăng nhập
                 </label>
                 <input
                   id="username"
                   {...register("username")}
                   type="text"
                   autoComplete="username"
-                  placeholder="your.username"
+                  placeholder="ten.dangnhap"
                   className="h-12 w-full rounded-none border border-[#926e6b] bg-white px-4 outline-none transition-colors placeholder:text-[#926e6b] focus:border-[#1a1c1c]"
                 />
                 {errors.username ? (
@@ -304,8 +304,8 @@ function CandidateLoginScreen() {
       </main>
       <ForgotPasswordDialog
         title="Khôi phục mật khẩu ứng viên"
-        label="Username"
-        placeholder="your.username"
+        label="Tên đăng nhập"
+        placeholder="ten.dangnhap"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

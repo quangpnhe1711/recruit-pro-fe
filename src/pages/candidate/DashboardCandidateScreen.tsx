@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
@@ -6,14 +7,6 @@ import {
   candidateService,
   type CandidateDashboardDto,
 } from "../../services/candidate/candidateService";
-
-type StatCard = {
-  icon: string;
-  iconClassName: string;
-  label: string;
-  value: string;
-  helper: string;
-};
 
 function DashboardCandidateScreen() {
   const [dashboard, setDashboard] = useState<CandidateDashboardDto | null>(
@@ -25,7 +18,6 @@ function DashboardCandidateScreen() {
   useEffect(() => {
     let mounted = true;
 
-    setLoading(true);
     candidateService
       .getDashboard()
       .then((res) => {
@@ -101,7 +93,7 @@ function DashboardCandidateScreen() {
 
   return (
     <section className="w-full px-4 py-10 md:px-10">
-      <div className="mb-10">
+      <div className="mb-8">
         <h2 className="text-[32px] font-semibold leading-10 tracking-[-0.01em] text-[#1a1c1c]">
           Chào mừng quay lại,{" "}
           {dashboard?.greetingName ?? user?.fullName ?? "Ứng viên"}
@@ -113,11 +105,11 @@ function DashboardCandidateScreen() {
         </p>
       </div>
 
-      <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="cursor-pointer border border-[#e2dfde] bg-white p-6 transition-colors hover:border-[#b90014]"
+            className="rounded-lg border border-[#e2dfde] bg-white p-5 shadow-sm transition-colors hover:border-[#b90014]"
           >
             <div className="flex items-start justify-between">
               <span
@@ -125,13 +117,13 @@ function DashboardCandidateScreen() {
               >
                 {card.icon}
               </span>
-              <span className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#5f5e5e]">
+              <span className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#5f5e5e]">
                 {card.label}
               </span>
             </div>
 
             <div className="mt-4">
-              <p className="text-[56px] font-extrabold leading-none text-[#1a1c1c]">
+              <p className="text-[44px] font-bold leading-none text-[#1a1c1c]">
                 {card.value}
               </p>
               <p className="mt-2 flex items-center gap-2 text-[14px] text-[#5f5e5e]">
@@ -153,7 +145,7 @@ function DashboardCandidateScreen() {
             </h3>
           </div>
 
-          <div className="flex h-full flex-col border-l-4 border-[#b90014] bg-[#1A1A1A] p-6 text-white">
+          <div className="flex h-full flex-col rounded-lg border-l-4 border-[#b90014] bg-[#1A1A1A] p-6 text-white shadow-sm">
             <div className="mb-6">
               <span className="rounded-full bg-[#b90014] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
                 Hôm nay
@@ -189,7 +181,11 @@ function DashboardCandidateScreen() {
             </div>
 
             <a
-              className="mt-auto flex w-full items-center justify-center gap-2 bg-[#b90014] py-4 text-[12px] font-bold uppercase tracking-[0.18em] transition-colors hover:brightness-110"
+              className={`mt-auto flex w-full items-center justify-center gap-2 rounded-lg py-4 text-[12px] font-bold uppercase tracking-[0.14em] transition-colors ${
+                upcomingInterview?.meetingUrl
+                  ? "bg-[#b90014] hover:bg-[#93000d]"
+                  : "pointer-events-none bg-white/10 text-white/50"
+              }`}
               href={upcomingInterview?.meetingUrl ?? "#"}
             >
               <span className="material-symbols-outlined">video_call</span>
@@ -208,18 +204,18 @@ function DashboardCandidateScreen() {
                 Việc làm gợi ý
               </h3>
             </div>
-            <a
+            <Link
               className="text-[12px] font-semibold tracking-[0.05em] text-[#b90014] hover:underline"
-              href="#"
+              to="/jobs"
             >
               Xem tất cả tin tuyển dụng
-            </a>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {recommendedJobs.length === 0 ? (
-              <div className="border border-[#e2dfde] bg-white p-6 text-[14px] text-[#5f5e5e] md:col-span-2">
-                Không có dữ liệu
+              <div className="rounded-lg border border-dashed border-[#d6d1cf] bg-white p-8 text-center text-[14px] text-[#5f5e5e] md:col-span-2">
+                Chưa có việc làm gợi ý phù hợp.
               </div>
             ) : (
               recommendedJobs.map((job) => {
@@ -229,7 +225,7 @@ function DashboardCandidateScreen() {
                   return (
                     <div
                       key={job.id}
-                      className="border border-[#e2dfde] bg-white p-6 md:col-span-2"
+                      className="rounded-lg border border-[#e2dfde] bg-white p-6 shadow-sm md:col-span-2"
                     >
                       <div className="flex items-center gap-6">
                         <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center border border-[#e2dfde] bg-[#eeeeee]">
@@ -262,12 +258,12 @@ function DashboardCandidateScreen() {
                           </div>
                         </div>
 
-                        <button
-                          className="bg-[#e31b23] px-10 py-4 text-[12px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:brightness-110"
-                          type="button"
+                        <Link
+                          className="rounded-lg bg-[#e31b23] px-10 py-4 text-center text-[12px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#b90014]"
+                          to={`/jobs/${job.id}`}
                         >
                           {job.actionLabel ?? "Ứng tuyển ngay"}
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   );
@@ -276,7 +272,7 @@ function DashboardCandidateScreen() {
                 return (
                   <div
                     key={job.id}
-                    className="border border-[#e2dfde] bg-white p-6 transition-shadow hover:shadow-sm"
+                    className="rounded-lg border border-[#e2dfde] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                   >
                     <div className="mb-4 flex items-start justify-between">
                       <div className="flex h-12 w-12 items-center justify-center border border-[#e2dfde] bg-[#eeeeee]">
@@ -307,12 +303,12 @@ function DashboardCandidateScreen() {
                       ))}
                     </div>
 
-                    <button
-                      className="w-full border border-[#1a1c1c] py-3 text-[12px] font-bold uppercase tracking-[0.18em] text-[#1a1c1c] transition-colors hover:bg-[#1a1c1c] hover:text-white"
-                      type="button"
+                    <Link
+                      className="block w-full rounded-lg border border-[#1a1c1c] py-3 text-center text-[12px] font-bold uppercase tracking-[0.14em] text-[#1a1c1c] transition-colors hover:bg-[#1a1c1c] hover:text-white"
+                      to={`/jobs/${job.id}`}
                     >
                       {job.actionLabel ?? "Ứng tuyển nhanh"}
-                    </button>
+                    </Link>
                   </div>
                 );
               })

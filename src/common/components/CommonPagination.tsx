@@ -28,7 +28,7 @@ function CommonPagination({
     const pages: number[] = [];
     const half = Math.floor(windowSize / 2);
     let start = Math.max(1, currentPage - half);
-    let end = Math.min(totalPages, start + windowSize - 1);
+    const end = Math.min(totalPages, start + windowSize - 1);
 
     if (end - start + 1 < windowSize) {
       start = Math.max(1, end - windowSize + 1);
@@ -52,15 +52,17 @@ function CommonPagination({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-[#e2dfde] p-4 text-[12px] font-semibold text-[#5f5e5e] md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 border-t border-[#e2dfde] bg-white px-4 py-3 text-[12px] font-semibold text-[#5f5e5e] md:flex-row md:items-center md:justify-between">
       <span className="whitespace-nowrap">
-        Hiển thị {rangeStart} đến {rangeEnd} trên tổng {totalItems} mục
+        {totalItems > 0
+          ? `${rangeStart}-${rangeEnd} / ${totalItems} mục`
+          : "Chưa có dữ liệu"}
       </span>
 
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage <= 1 || disabled}
           aria-label="Trang trước"
@@ -71,7 +73,7 @@ function CommonPagination({
         {visiblePageNumbers[0] > 1 ? (
           <button
             type="button"
-            className={`flex h-10 min-w-10 items-center justify-center border px-3 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               currentPage === 1
                 ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
                 : "border-[#e2dfde] hover:bg-[#f3f3f3]"
@@ -84,7 +86,7 @@ function CommonPagination({
         ) : null}
 
         {showLeadingEllipsis ? (
-          <span className="flex h-10 min-w-10 items-center justify-center px-1 text-[#5f5e5e]">
+          <span className="flex h-9 min-w-9 items-center justify-center px-1 text-[#5f5e5e]">
             ...
           </span>
         ) : null}
@@ -93,7 +95,7 @@ function CommonPagination({
           <button
             key={p}
             type="button"
-            className={`flex h-10 min-w-10 items-center justify-center border px-3 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               p === currentPage
                 ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
                 : "border-[#e2dfde] hover:bg-[#f3f3f3]"
@@ -106,7 +108,7 @@ function CommonPagination({
         ))}
 
         {showTrailingEllipsis ? (
-          <span className="flex h-10 min-w-10 items-center justify-center px-1 text-[#5f5e5e]">
+          <span className="flex h-9 min-w-9 items-center justify-center px-1 text-[#5f5e5e]">
             ...
           </span>
         ) : null}
@@ -114,7 +116,7 @@ function CommonPagination({
         {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages ? (
           <button
             type="button"
-            className={`flex h-10 min-w-10 items-center justify-center border px-3 font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               currentPage === totalPages
                 ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
                 : "border-[#e2dfde] hover:bg-[#f3f3f3]"
@@ -128,7 +130,7 @@ function CommonPagination({
 
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:opacity-50 disabled:cursor-not-allowed "
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage >= totalPages || disabled}
           aria-label="Trang sau"

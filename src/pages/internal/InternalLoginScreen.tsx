@@ -47,7 +47,7 @@ function InternalLoginScreen() {
     },
   });
 
-  const usernamePlaceholder = useMemo(() => "your.username", []);
+  const usernamePlaceholder = useMemo(() => "ten.dangnhap", []);
 
   async function onSubmit(data: InternalLoginForm) {
     try {
@@ -125,7 +125,7 @@ function InternalLoginScreen() {
                   className="mb-2 block text-[12px] font-semibold tracking-[0.05em] text-[#5d3f3c]"
                   htmlFor="username"
                 >
-                  Username
+                  Tên đăng nhập
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-[#5d3f3c]">
@@ -217,8 +217,8 @@ function InternalLoginScreen() {
       </main>
       <ForgotPasswordDialog
         title="Khôi phục mật khẩu nội bộ"
-        label="Username"
-        placeholder="your.username"
+        label="Tên đăng nhập"
+        placeholder="ten.dangnhap"
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

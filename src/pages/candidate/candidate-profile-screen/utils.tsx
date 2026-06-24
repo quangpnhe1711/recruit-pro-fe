@@ -133,7 +133,7 @@ export function getInitials(name: string) {
 export function formatPeriod(period: ExperienceEntry["period"]) {
   const startLabel = `${monthOptions[period.startMonth - 1]} ${period.startYear}`;
 
-  if (period.isCurrent) return `${startLabel} - Present`;
+  if (period.isCurrent) return `${startLabel} - Hiện tại`;
 
   if (period.endMonth && period.endYear) {
     return `${startLabel} - ${monthOptions[period.endMonth - 1]} ${period.endYear}`;
