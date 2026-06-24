@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
@@ -21,9 +21,22 @@ function DashboardCandidateScreen() {
   );
   const [loading, setLoading] = useState(true);
   const [recommendedPage, setRecommendedPage] = useState(0);
+  const [recommendedPageSize, setRecommendedPageSize] = useState(() =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 639px)").matches
+      ? 1
+      : 2,
+  );
+  const [recommendedDirection, setRecommendedDirection] = useState<
+    "next" | "previous"
+  >("next");
+  const dashboardLoadedRef = useRef(false);
   const user = useSelector((state: RootState) => state.auth.user);
 
   useEffect(() => {
+    if (dashboardLoadedRef.current) return;
+
+    dashboardLoadedRef.current = true;
     let mounted = true;
 
     candidateService
@@ -40,6 +53,23 @@ function DashboardCandidateScreen() {
 
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const syncRecommendedPageSize = () => {
+      setRecommendedPageSize(mediaQuery.matches ? 1 : 2);
+      setRecommendedPage(0);
+    };
+
+    syncRecommendedPageSize();
+    mediaQuery.addEventListener("change", syncRecommendedPageSize);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncRecommendedPageSize);
     };
   }, []);
 
@@ -109,7 +139,6 @@ function DashboardCandidateScreen() {
   ];
 
   const recommendedJobs = dashboard.recommendedJobs ?? [];
-  const recommendedPageSize = 4;
   const recommendedPageCount = Math.max(
     1,
     Math.ceil(recommendedJobs.length / recommendedPageSize),
@@ -269,27 +298,18 @@ function DashboardCandidateScreen() {
               />
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-[#ececec] bg-white px-4 py-3 shadow-[var(--shadow-xs)]">
-                <p className="text-[13px] font-semibold text-[#5f5e5e]">
-                  Hiển thị{" "}
-                  <span className="font-bold text-[#1a1c1c]">
-                    {safeRecommendedPage * recommendedPageSize + 1}-
-                    {Math.min(
-                      (safeRecommendedPage + 1) * recommendedPageSize,
-                      recommendedJobs.length,
-                    )}
-                  </span>{" "}
-                  trong {recommendedJobs.length} gợi ý
-                </p>
-
-                <div className="flex items-center gap-2">
+            <div className="relative overflow-hidden rounded-[20px] border border-rose-200/80 bg-[linear-gradient(135deg,#fffafa_0%,#fff1f0_48%,#fff7ed_100%)] p-4 shadow-[0_22px_54px_-34px_rgba(185,0,20,0.62)] sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <button
                     type="button"
-                    className="premium-action flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#dcd7d5] bg-white text-[#5f5e5e] transition-colors hover:bg-[#faf9f8] hover:text-[#1a1c1c] disabled:cursor-not-allowed disabled:opacity-40"
-                    onClick={() =>
-                      setRecommendedPage((current) => Math.max(0, current - 1))
-                    }
+                    className="premium-action flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rose-200 bg-white text-[#b90014] shadow-[0_10px_24px_-18px_rgba(185,0,20,0.8)] transition-all hover:-translate-x-0.5 hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-x-0"
+                    onClick={() => {
+                      setRecommendedDirection("previous");
+                      setRecommendedPage((current) =>
+                        Math.max(0, current - 1),
+                      );
+                    }}
                     disabled={!canGoPreviousRecommended}
                     aria-label="Xem nhóm việc làm gợi ý trước"
                   >
@@ -297,17 +317,37 @@ function DashboardCandidateScreen() {
                       chevron_left
                     </span>
                   </button>
-                  <span className="min-w-12 text-center text-[12px] font-bold text-[#5f5e5e]">
+
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#b90014]">
+                      Gợi ý nổi bật
+                    </p>
+                    <p className="mt-1 text-[13px] font-semibold text-[#5f5e5e]">
+                      <span className="text-[#1a1c1c]">
+                        {safeRecommendedPage * recommendedPageSize + 1}-
+                        {Math.min(
+                          (safeRecommendedPage + 1) * recommendedPageSize,
+                          recommendedJobs.length,
+                        )}
+                      </span>{" "}
+                      trong {recommendedJobs.length} gợi ý phù hợp
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="hidden rounded-full border border-white/80 bg-white/70 px-3 py-1 text-[12px] font-bold text-[#7a4b53] shadow-[var(--shadow-xs)] sm:inline-flex">
                     {safeRecommendedPage + 1}/{recommendedPageCount}
                   </span>
                   <button
                     type="button"
-                    className="premium-action flex h-9 w-9 items-center justify-center rounded-[10px] border border-[#dcd7d5] bg-white text-[#5f5e5e] transition-colors hover:bg-[#faf9f8] hover:text-[#1a1c1c] disabled:cursor-not-allowed disabled:opacity-40"
-                    onClick={() =>
+                    className="premium-action flex h-10 w-10 items-center justify-center rounded-full border border-rose-200 bg-white text-[#b90014] shadow-[0_10px_24px_-18px_rgba(185,0,20,0.8)] transition-all hover:translate-x-0.5 hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-x-0"
+                    onClick={() => {
+                      setRecommendedDirection("next");
                       setRecommendedPage((current) =>
                         Math.min(recommendedPageCount - 1, current + 1),
-                      )
-                    }
+                      );
+                    }}
                     disabled={!canGoNextRecommended}
                     aria-label="Xem nhóm việc làm gợi ý tiếp theo"
                   >
@@ -318,101 +358,61 @@ function DashboardCandidateScreen() {
                 </div>
               </div>
 
-              <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {visibleRecommendedJobs.map((job) => {
-                  const isCompact = job.layout === "compact";
-
-                  if (isCompact) {
-                    return (
+              <div
+                key={`${safeRecommendedPage}-${recommendedPageSize}`}
+                className={`grid min-h-[292px] grid-cols-1 gap-4 sm:min-h-[316px] sm:grid-cols-2 ${
+                  recommendedDirection === "next"
+                    ? "animate-carousel-next"
+                    : "animate-carousel-previous"
+                }`}
+              >
+                {visibleRecommendedJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className={`${quickApplyCardClass} group flex h-full min-h-[292px] flex-col p-5`}
+                  >
+                    <div className="mb-4 flex items-start justify-between gap-3">
                       <div
-                        key={job.id}
-                        className={`${quickApplyCardClass} p-5 sm:col-span-2`}
+                        className={`${quickApplyIconClass} h-12 w-12 transition-transform duration-300 group-hover:rotate-[-3deg] group-hover:scale-105`}
                       >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                          <div className={`${quickApplyIconClass} h-14 w-14`}>
-                            <span className="material-symbols-outlined text-[28px]">
-                              work
-                            </span>
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="mb-1 flex flex-wrap items-center gap-2">
-                              <h3 className="text-[16px] font-semibold text-[#1a1c1c]">
-                                {job.title}
-                              </h3>
-                              <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
-                                {job.employmentType}
-                              </span>
-                            </div>
-                            <p className="mb-2.5 text-[14px] text-[#5f5e5e]">
-                              {job.meta}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {job.skills.map((chip) => (
-                                <span
-                                  key={chip}
-                                  className={getSkillChipClass(chip)}
-                                >
-                                  {chip}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <Link
-                            className="btn btn-primary w-full sm:w-auto"
-                            to={`/jobs/${job.id}`}
-                          >
-                            {job.actionLabel ?? "Ứng tuyển ngay"}
-                          </Link>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div
-                      key={job.id}
-                      className={`${quickApplyCardClass} flex flex-col p-5`}
-                    >
-                      <div className="mb-4 flex items-start justify-between gap-3">
-                        <div className={`${quickApplyIconClass} h-12 w-12`}>
-                          <span className="material-symbols-outlined text-[24px]">
-                            work
-                          </span>
-                        </div>
-                        <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
-                          {job.employmentType}
+                        <span className="material-symbols-outlined text-[24px]">
+                          work
                         </span>
                       </div>
-
-                      <h3 className="mb-1 text-[16px] font-semibold text-[#1a1c1c]">
-                        {job.title}
-                      </h3>
-                      <p className="mb-4 text-[14px] text-[#5f5e5e]">
-                        {job.meta}
-                      </p>
-
-                      <div className="mb-5 flex flex-wrap gap-1.5">
-                        {job.skills.map((chip) => (
-                          <span
-                            key={chip}
-                            className={getSkillChipClass(chip)}
-                          >
-                            {chip}
-                          </span>
-                        ))}
-                      </div>
-
-                      <Link
-                        className="btn btn-secondary mt-auto w-full"
-                        to={`/jobs/${job.id}`}
-                      >
-                        {job.actionLabel ?? "Ứng tuyển nhanh"}
-                      </Link>
+                      <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
+                        {job.employmentType}
+                      </span>
                     </div>
-                  );
-                })}
+
+                    <h3 className="mb-1 text-[17px] font-semibold leading-6 text-[#1a1c1c] transition-colors group-hover:text-[#b90014]">
+                      {job.title}
+                    </h3>
+                    <p className="mb-4 line-clamp-2 text-[14px] leading-6 text-[#5f5e5e]">
+                      {job.meta}
+                    </p>
+
+                    <div className="mb-5 flex flex-wrap gap-1.5">
+                      {job.skills.map((chip) => (
+                        <span
+                          key={chip}
+                          className={getSkillChipClass(chip)}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+
+                    <Link
+                      className="btn btn-secondary mt-auto w-full border-rose-200 bg-white/85 text-[#b90014] hover:border-rose-300 hover:bg-white hover:shadow-[0_12px_26px_-18px_rgba(185,0,20,0.75)]"
+                      to={`/jobs/${job.id}`}
+                    >
+                      {job.actionLabel ?? "Ứng tuyển nhanh"}
+                      <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-0.5">
+                        arrow_forward
+                      </span>
+                    </Link>
+                  </div>
+                ))}
               </div>
             </div>
           )}
