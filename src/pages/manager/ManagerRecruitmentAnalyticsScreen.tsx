@@ -120,7 +120,7 @@ function ManagerRecruitmentAnalyticsScreen() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
-        <LoadingIndicator label="Loading recruitment analytics..." />
+        <LoadingIndicator label="Đang tải phân tích tuyển dụng..." />
       </div>
     );
   }
@@ -129,9 +129,11 @@ function ManagerRecruitmentAnalyticsScreen() {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4 py-10 md:px-10">
         <div className="w-full max-w-xl border border-[#e2dfde] bg-white p-8 text-center">
-          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">Recruitment Analytics</h1>
+          <h1 className="text-[24px] font-semibold text-[#1a1c1c]">
+            Phân tích tuyển dụng
+          </h1>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Unable to load analytics data right now. Please refresh and try again.
+            Không thể tải dữ liệu phân tích. Vui lòng thử lại.
           </p>
         </div>
       </div>

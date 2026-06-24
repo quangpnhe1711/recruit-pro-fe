@@ -280,7 +280,7 @@ function JobCreatingScreen() {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    toast.success("Draft saved.");
+    toast.success("Đã lưu nháp.");
   }
 
   function applyEngineeringTemplate() {
@@ -557,10 +557,10 @@ function JobCreatingScreen() {
       });
 
       window.localStorage.removeItem(draftStorageKey);
-      toast.success("Job submitted for approval.");
+      toast.success("Đã gửi tin tuyển dụng để duyệt.");
       navigate("/jobs");
     } catch {
-      toast.error("Unable to submit job");
+      toast.error("Không thể gửi tin tuyển dụng.");
     } finally {
       setPublishing(false);
     }

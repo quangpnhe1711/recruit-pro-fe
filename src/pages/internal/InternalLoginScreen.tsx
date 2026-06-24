@@ -76,7 +76,7 @@ function InternalLoginScreen() {
         replace: true,
       });
     } catch {
-      toast.error("Username hoặc mật khẩu không chính xác");
+      toast.error("Tên đăng nhập hoặc mật khẩu không đúng");
     }
   }
 

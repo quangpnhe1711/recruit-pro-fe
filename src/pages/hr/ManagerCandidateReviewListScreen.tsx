@@ -183,7 +183,7 @@ function ManagerCandidateReviewListScreen() {
         });
         setTotalPages(1);
         setTotalItems(0);
-        toast.error("Unable to load the manager review queue.");
+        toast.error("Không thể tải hàng chờ đánh giá.");
       } finally {
         if (mounted) {
           setLoading(false);
@@ -216,7 +216,7 @@ function ManagerCandidateReviewListScreen() {
 
   function exportCurrentPage() {
     if (!items.length) {
-      toast.info("No review queue items available to export.");
+      toast.info("Chưa có hồ sơ để xuất.");
       return;
     }
 

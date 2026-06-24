@@ -15,7 +15,10 @@ import {
 import { openProtectedFileInNewTab } from "../../common/utils/protectedFile";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
-import { hrService } from "../../services/hr/hrService";
+import {
+  hrService,
+  type HrApplicationItemDto,
+} from "../../services/hr/hrService";
 
 type DateRange =
   | "Anytime"
@@ -33,7 +36,6 @@ type Department =
   | "Finance"
   | "Operations"
   | "Product";
-("Data & Analytics");
 
 type Application = {
   id: string;
@@ -130,23 +132,23 @@ function buildEmailDraft(
   switch (templateType) {
     case "Interview Invitation":
       return {
-        subject: `Interview Invitation - ${application.jobTitle}`,
-        body: `Hi ${candidateName},\n\nWe would like to invite you to the next interview round for the ${application.jobTitle} position.\n\nPlease reply to this email so we can confirm the schedule.\n\nBest regards,\nRecruitPro HR Team`,
+        subject: `Thư mời phỏng vấn - ${application.jobTitle}`,
+        body: `Chào ${candidateName},\n\nRecruitPro muốn mời bạn tham gia vòng phỏng vấn tiếp theo cho vị trí ${application.jobTitle}.\n\nBạn vui lòng phản hồi email này để chúng tôi xác nhận lịch phù hợp.\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
       };
     case "Job Offer":
       return {
-        subject: `Job Offer - ${application.jobTitle}`,
-        body: `Hi ${candidateName},\n\nWe are pleased to move forward with your application for the ${application.jobTitle} position.\n\nPlease review the offer details and let us know if you have any questions.\n\nBest regards,\nRecruitPro HR Team`,
+        subject: `Thư mời nhận việc - ${application.jobTitle}`,
+        body: `Chào ${candidateName},\n\nRecruitPro rất vui được gửi đến bạn đề nghị nhận việc cho vị trí ${application.jobTitle}.\n\nBạn vui lòng xem thông tin offer và phản hồi nếu cần trao đổi thêm.\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
       };
     case "Rejection Mail":
       return {
-        subject: `Application Update - ${application.jobTitle}`,
-        body: `Hi ${candidateName},\n\nThank you for your interest in the ${application.jobTitle} position.\n\nAfter careful consideration, we will not be moving forward with your application at this time.\n\nWe appreciate your time and wish you the best.\n\nBest regards,\nRecruitPro HR Team`,
+        subject: `Cập nhật hồ sơ ứng tuyển - ${application.jobTitle}`,
+        body: `Chào ${candidateName},\n\nCảm ơn bạn đã quan tâm đến vị trí ${application.jobTitle}.\n\nSau khi xem xét, RecruitPro rất tiếc chưa thể tiếp tục với hồ sơ của bạn ở thời điểm này.\n\nChúc bạn nhiều thành công trong hành trình sắp tới.\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
       };
     default:
       return {
-        subject: `${application.jobTitle} - Application Update`,
-        body: `Hi ${candidateName},\n\n\n\nBest regards,\nRecruitPro HR Team`,
+        subject: `${application.jobTitle} - Cập nhật hồ sơ`,
+        body: `Chào ${candidateName},\n\n\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
       };
   }
 }
@@ -302,6 +304,21 @@ function CandidateApplicationScreen() {
   const isManager = primaryRole === ROLE_NAMES.MANAGER;
   const filteredJobId = searchParams.get("jobId") ?? "";
   const filteredJobTitle = searchParams.get("jobTitle") ?? "";
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [jobFilter, setJobFilter] = useState<string>(
+    filteredJobId || JOB_FILTER_ALL,
+  );
+  const [departmentFilter, setDepartmentFilter] =
+    useState<Department>("Tất cả phòng ban");
+  const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTER_ALL);
+  const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>("Anytime");
+  const [page, setPage] = useState<number>(1);
+  const [currentTime] = useState(() => Date.now());
+  const [emailComposer, setEmailComposer] = useState<EmailComposerState | null>(
+    null,
+  );
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -314,7 +331,7 @@ function CandidateApplicationScreen() {
         const items = Array.isArray(res.data) ? res.data : [];
 
         setApplications(
-          items.map((item: any) => ({
+          items.map((item: HrApplicationItemDto) => ({
             id: item.id,
             jobId: item.job.id,
             candidateFirstName: item.candidate.firstName,
@@ -322,7 +339,7 @@ function CandidateApplicationScreen() {
             candidateEmail: item.candidate.email,
             candidateAvatar: item.candidate.avatarUrl,
             jobTitle: item.job.title,
-            department: item.job.department,
+            department: item.job.department as Department,
             appliedDate: item.appliedDate
               ? new Date(item.appliedDate).toLocaleDateString()
               : "",
@@ -343,22 +360,6 @@ function CandidateApplicationScreen() {
       mounted = false;
     };
   }, [filteredJobId]);
-
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [jobFilter, setJobFilter] = useState<string>(
-    filteredJobId || JOB_FILTER_ALL,
-  );
-  const [departmentFilter, setDepartmentFilter] =
-    useState<Department>("Tất cả phòng ban");
-  const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTER_ALL);
-  const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>("Anytime");
-  const [page, setPage] = useState<number>(1);
-  const [currentTime] = useState(() => Date.now());
-  const [emailComposer, setEmailComposer] = useState<EmailComposerState | null>(
-    null,
-  );
-  const [sendingEmail, setSendingEmail] = useState(false);
 
   const filtered = useMemo(() => {
     let result = applications;
@@ -455,13 +456,13 @@ function CandidateApplicationScreen() {
         const url = res.data?.fileUrl;
         if (url) {
           void openProtectedFileInNewTab(url).catch(() =>
-            toast.error("Unable to load CV"),
+            toast.error("Không thể tải CV"),
           );
           return;
         }
-        toast.info("CV not available");
+        toast.info("Ứng viên chưa có CV.");
       })
-      .catch(() => toast.error("Unable to load CV"));
+      .catch(() => toast.error("Không thể tải CV"));
   }
 
   function reviewApplication(application: Application) {

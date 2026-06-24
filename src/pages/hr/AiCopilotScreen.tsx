@@ -464,7 +464,7 @@ function AiCopilotScreen() {
       );
       if (!response.data) {
         setChat((current) => current.slice(0, -1));
-        toast.error("AI Copilot did not return a ranking.");
+        toast.error("AI Copilot chưa trả về bảng xếp hạng.");
         return;
       }
 
@@ -563,7 +563,7 @@ function AiCopilotScreen() {
       setSavedRules((current) => current.filter((rule) => rule.ruleId !== ruleId));
       toast.success("Đã xóa mẫu.");
     } catch {
-      toast.error("Unable to delete preset.");
+      toast.error("Không thể xóa mẫu.");
     } finally {
       setDeletingRuleId(null);
     }

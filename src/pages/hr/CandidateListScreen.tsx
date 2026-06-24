@@ -327,7 +327,7 @@ function CandidateListScreen() {
   }
 
   function handleAddCandidate() {
-    toast.info("Add new candidate functionality");
+    toast.info("Chức năng thêm ứng viên sẽ sớm được hỗ trợ.");
   }
 
   return (

@@ -524,7 +524,7 @@ function JobInterviewListScreen() {
   const reschedule = useCallback(
     (it: Interview) => {
       setOpenMenuForId(null);
-      toast.info("Rescheduling…");
+      toast.info("Đang mở lịch phỏng vấn...");
       navigate("/hr/interviews/schedule", {
         state: {
           candidateName: it.candidateName,

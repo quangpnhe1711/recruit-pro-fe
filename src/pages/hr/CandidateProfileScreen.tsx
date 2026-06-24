@@ -59,7 +59,7 @@ function CandidateProfileScreen() {
       .catch(() => {
         if (!mounted) return;
         setDetail(null);
-        toast.error("Unable to load candidate profile.");
+        toast.error("Không thể tải hồ sơ ứng viên.");
       })
       .finally(() => {
         if (mounted) {
@@ -167,7 +167,7 @@ function CandidateProfileScreen() {
                 void downloadProtectedFile(
                   currentResumeDownloadPath,
                   detail.resume.fileName,
-                ).catch(() => toast.error("Unable to download CV."));
+                ).catch(() => toast.error("Không thể tải CV."));
               }}
             >
               <span className="material-symbols-outlined text-base">download</span>
@@ -473,7 +473,7 @@ function CandidateProfileScreen() {
                     onClick={() => {
                       void openProtectedFileInNewTab(
                         buildResumePreviewPath(resume.id, resume.fileUrl),
-                      ).catch(() => toast.error("Unable to open CV."));
+                      ).catch(() => toast.error("Không thể mở CV."));
                     }}
                   >
                     <div>
