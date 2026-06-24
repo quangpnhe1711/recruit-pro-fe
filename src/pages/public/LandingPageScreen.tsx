@@ -6,99 +6,162 @@ import {
   getWorkModeChipClass,
 } from "../../common/utils/jobPresentation";
 import { jobsService } from "../../services/jobs/jobsService";
-import { publicService } from "../../services/public/publicService";
+import { publicService, type HomeResponseDto } from "../../services/public/publicService";
 
-type HomeResponseDto = {
-  hero?: {
-    title: string;
-    subtitle: string;
-    backgroundImageUrl: string;
-  };
-  stats?: {
-    internalHires: number;
-    departments: number;
-    avgEmployeeRating: number;
-  };
-  featuredJobs: Array<{
-    id: string;
-    title: string;
-    department: string;
-    location: string;
-    workMode: string;
-    employmentType: string;
-    tag: string;
-  }>;
+type FeaturedJobCardModel = {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  workMode: string;
+  employmentType: string;
+  tag: string;
+  summary?: string | null;
 };
 
-const platformBenefits = [
-  {
-    icon: "radar",
-    title: "Matching rõ ràng hơn",
-    description:
-      "Đề xuất vị trí theo kỹ năng, kinh nghiệm và ngữ cảnh nội bộ thay vì chỉ lọc từ khóa.",
-  },
-  {
-    icon: "timer",
-    title: "Ra quyết định nhanh hơn",
-    description:
-      "Tập trung vào các vị trí đang tuyển gấp, deadline gần và luồng ứng tuyển ít ma sát hơn.",
-  },
-  {
-    icon: "domain",
-    title: "Phối hợp đa phòng ban",
-    description:
-      "HR, quản lý tuyển dụng và ứng viên nhìn chung một bức tranh thay vì các bước rời rạc.",
-  },
-];
+const DEFAULT_HERO_IMAGE =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAUfygHMUT0GsF8YdHRd9UEVxo58r1qiqQeM2IrV2hyEJUH2b-2LnalysZVzgAhGj08lVHPyMbD9tQuCoSKhxC7wGBhphuSRszTThOpLPw2rDu9oQtx1JzHL29XhBtuNtuOziq4LiN7z_GGG4E-8YxjUvTJynJlVHSa6RlC2wzAOYEs_AgA_0Y0U1y78Du0RERP91aU49ys4MlHQpO2E-Hq7UEkEGSft9B6DZ-GRvqi9B-6bapAiEZyFAsKrmMPD3Gaq1LBtaeTzA";
 
-const workflowSteps = [
-  {
-    step: "01",
-    title: "Khám phá đúng cơ hội",
-    description:
-      "Từ trang chủ, nhân sự nội bộ có thể nhìn thấy ngay vị trí nổi bật, nhóm đang tuyển và ngữ cảnh phù hợp.",
-  },
-  {
-    step: "02",
-    title: "Ứng tuyển với ít thao tác",
-    description:
-      "Hồ sơ, kỹ năng và lịch sử ứng tuyển được tận dụng lại để rút ngắn thời gian nộp đơn.",
-  },
-  {
-    step: "03",
-    title: "Theo dõi tiến trình minh bạch",
-    description:
-      "Từ dashboard đến thông báo, mọi cập nhật được hiển thị theo một luồng rõ ràng và dễ hành động.",
-  },
-];
+const MISSION_IMAGE_TOP =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDRUVrGvDGI0wIaWBmj5VEmyuTikfSJ6Ffy0vS3uUm1ugzNjyqSi-cKUtCtsWuDVGjMu8bB0vub7c4MmdSpxAllxvb8zqlxj4yf5u6Gwoe-2X0ppnUshF9I2Gk8ox3BjzsHx7rYHwtrBpKkJKaOUrFtsvXflBNFIOilEOGiykir3FUly1N-h5ruxtVWnbYwdQ5EhJrKESvt2hcEhbe1fFRqyf4HucDbw9O9KJ2obwmmxp0W3Ii8bBy4URl_RwOh0mh85584L__Bxw";
 
-const successStories = [
+const MISSION_IMAGE_BOTTOM =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBNwKwKvx8QWCBWsgaeLzzMl4AhStc9WVkWEn_kVaXnA6sPLEj-kbsuTJ0h97Vu2enufLJIVXnts1zXbWhWmg7P9VR6QcFciQVbWMUgxIO69HGELN3dhKHAVcqkXH_isZw9qXLY0XwnXSRI-JJu9bONxCu3jlGsj6_9_VTYxe6RHEW9unLMZfZf8UDwD1V0Q7GkxwpDHXM5DbqXmnOZxpQK7tCQSs5jgqgHTOvTNopDfbXMZE8CGlz9ibNi40n3bXpCHG1LPxgy7Q";
+
+const missionHighlights = [
   {
-    quote:
-      "RecruitPro giúp chúng tôi đưa những vị trí nội bộ quan trọng ra đúng người nhanh hơn rất nhiều. Cảm giác như cả quy trình finally thở được.",
-    name: "Minh Chau",
-    role: "Talent Acquisition Lead",
+    title: "Guaranteed Feedback",
+    description: "Every internal applicant receives a 1-on-1 with the hiring manager.",
   },
   {
-    quote:
-      "Điểm mình thích nhất là sự gọn gàng. Không còn cảm giác phải đào trong nhiều màn hình để tìm việc phù hợp và theo dõi trạng thái.",
-    name: "Thanh Ha",
-    role: "Senior Product Designer",
-  },
-  {
-    quote:
-      "Landing page mới cho cảm giác đây là một sản phẩm thật sự được chăm chút, không phải một bản demo ghép nhanh.",
-    name: "Ngoc Huy",
-    role: "Engineering Manager",
+    title: "Shadowing Program",
+    description: "Test drive a new role for a week before you officially apply.",
   },
 ];
 
 function normalizeFeaturedJobs(data?: HomeResponseDto | null) {
-  return data?.featuredJobs ?? [];
+  if (!data?.featuredJobs?.length) {
+    return [];
+  }
+
+  return data.featuredJobs.map((job, index) => ({
+    ...job,
+    tag: job.tag || (index === 0 ? "New" : index === 1 ? "Hot" : "Urgent"),
+  }));
+}
+
+function getTagClass(tag: string) {
+  const normalized = tag.trim().toLowerCase();
+
+  if (normalized === "urgent") {
+    return "bg-[#b90014] text-white";
+  }
+
+  if (normalized === "hot") {
+    return "bg-[#ffebe8] text-[#c0382b]";
+  }
+
+  return "bg-[#fff1f0] text-[#b90014]";
+}
+
+function LandingMetricCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-5 rounded-[18px] px-4 py-4 transition-transform duration-200 hover:-translate-y-0.5">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[12px] bg-[#fff1f0] text-[#b90014]">
+        <span className="material-symbols-outlined text-[22px]">{icon}</span>
+      </div>
+      <div>
+        <p className="text-[19px] font-semibold tracking-[-0.02em] text-[#1a1c1c]">
+          {value}
+        </p>
+        <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6e6c6b]">
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function FeaturedJobCard({ job }: { job: FeaturedJobCardModel }) {
+  return (
+    <article className="group flex h-full flex-col rounded-[16px] border border-[#ebd7d4] bg-white p-6 shadow-[var(--shadow-xs)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
+          <span className={`badge ${getTagClass(job.tag)}`}>{job.tag}</span>
+          <span className={getWorkModeChipClass()}>{job.workMode}</span>
+        </div>
+        <button
+          type="button"
+          className="text-[#7f7c7b] transition-colors hover:text-[#b90014]"
+          aria-label={`Lưu vị trí ${job.title}`}
+        >
+          <span className="material-symbols-outlined text-[20px]">bookmark</span>
+        </button>
+      </div>
+
+      <h3 className="text-[18px] font-semibold tracking-[-0.02em] text-[#1a1c1c] transition-colors duration-200 group-hover:text-[#b90014]">
+        {job.title}
+      </h3>
+
+      <p className="mt-3 line-clamp-3 text-[14px] leading-6 text-[#5f5e5e]">
+        {job.summary?.trim()
+          ? job.summary
+          : `${job.department} đang tìm kiếm nhân sự nội bộ phù hợp để tăng tốc đội ngũ và mở rộng ảnh hưởng trong những dự án quan trọng.`}
+      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
+          {job.employmentType}
+        </span>
+      </div>
+
+      <div className="mt-auto flex items-center justify-between border-t border-[#efe3e1] pt-6">
+        <div className="flex min-w-0 items-center gap-2 text-[#6d6a69]">
+          <span className="material-symbols-outlined text-[18px]">location_on</span>
+          <span className="truncate text-[14px]">{job.location}</span>
+        </div>
+        <Link
+          className="text-[14px] font-bold text-[#b90014] transition-colors hover:text-[#930614]"
+          to={`/jobs/${job.id}`}
+        >
+          Apply Now
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+function HighlightItem({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex gap-4">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#5a232a] bg-[#2b1417] text-[#ffb4ac]">
+        <span className="material-symbols-outlined text-[18px]">check</span>
+      </div>
+      <div>
+        <h4 className="text-[20px] font-semibold text-white">{title}</h4>
+        <p className="mt-1 text-[14px] leading-6 text-white/62">{description}</p>
+      </div>
+    </div>
+  );
 }
 
 function LandingPageScreen() {
   const [homeData, setHomeData] = useState<HomeResponseDto | null>(null);
+  const [featuredJobs, setFeaturedJobs] = useState<FeaturedJobCardModel[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -106,41 +169,38 @@ function LandingPageScreen() {
 
     Promise.allSettled([
       publicService.getHome(),
-      jobsService.listPublicJobs({ page: 1, pageSize: 4, sortBy: "newest" }),
+      jobsService.listPublicJobs({ page: 1, pageSize: 3, sortBy: "newest" }),
     ])
       .then(([homeResult, jobsResult]) => {
         if (!mounted) return;
 
         const homePayload =
           homeResult.status === "fulfilled" ? homeResult.value.data ?? null : null;
+        const homeFeaturedJobs = normalizeFeaturedJobs(homePayload);
         const jobsPayload =
           jobsResult.status === "fulfilled" ? jobsResult.value.data?.items ?? [] : [];
 
-        const fallbackJobs = jobsPayload.slice(0, 4).map((job, index) => ({
+        const fallbackJobs = jobsPayload.slice(0, 3).map((job, index) => ({
           id: job.id,
           title: job.title,
           department:
             typeof job.department === "string"
               ? job.department
-              : job.department?.name ?? "Phòng ban chung",
+              : job.department?.name ?? "General",
           location: job.location,
-          workMode: job.workMode,
-          employmentType: job.employmentType,
-          tag: index === 0 ? "Mới" : "Đang tuyển",
+          workMode: job.workMode || "Hybrid",
+          employmentType: job.employmentType || "Full-time",
+          tag: index === 0 ? "New" : index === 1 ? "Hot" : "Urgent",
+          summary: job.shortDescription ?? job.summary ?? null,
         }));
 
-        setHomeData({
-          hero: homePayload?.hero,
-          stats: homePayload?.stats,
-          featuredJobs:
-            homePayload?.featuredJobs?.length
-              ? homePayload.featuredJobs
-              : fallbackJobs,
-        });
+        setHomeData(homePayload);
+        setFeaturedJobs(homeFeaturedJobs.length ? homeFeaturedJobs : fallbackJobs);
       })
       .catch(() => {
         if (!mounted) return;
-        setHomeData({ featuredJobs: [] });
+        setHomeData(null);
+        setFeaturedJobs([]);
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -151,490 +211,224 @@ function LandingPageScreen() {
     };
   }, []);
 
-  const featuredJobs = normalizeFeaturedJobs(homeData);
   const heroTitle =
-    homeData?.hero?.title ?? "Nền tảng tuyển dụng nội bộ giúp cơ hội tốt tìm đúng người";
+    homeData?.hero?.title ?? "Empowering Your Career Growth Within RecruitPro";
   const heroSubtitle =
     homeData?.hero?.subtitle ??
-    "Từ khám phá cơ hội, ứng tuyển, đến theo dõi tiến trình, RecruitPro biến trải nghiệm tuyển dụng nội bộ thành một luồng làm việc hiện đại, rõ ràng và đáng tin cậy.";
-  const stats = [
-    {
-      value: `${homeData?.stats?.internalHires ?? 500}+`,
-      label: "Lượt dịch chuyển nội bộ",
-      helper: "Tăng khả năng giữ chân nhân sự giỏi bằng cơ hội nhìn thấy được.",
-    },
-    {
-      value: String(homeData?.stats?.departments ?? 15),
-      label: "Phòng ban kết nối",
-      helper: "Một bề mặt chung cho HR, quản lý tuyển dụng và ứng viên nội bộ.",
-    },
-    {
-      value: `${homeData?.stats?.avgEmployeeRating ?? 4.8}/5`,
-      label: "Điểm hài lòng trung bình",
-      helper: "Trải nghiệm được tối ưu để ít ma sát hơn trong những bước quan trọng.",
-    },
-  ];
+    "Discover the next phase of your professional journey without ever leaving the company. Unlock hidden opportunities and grow with a world-class team.";
+  const heroImage = homeData?.hero?.backgroundImageUrl || DEFAULT_HERO_IMAGE;
 
   return (
-    <div className="overflow-hidden bg-[#f6f3ef] text-[#171717]">
+    <div className="overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
       <main>
-        <section
-          id="home"
-          className="relative border-b border-[#e8e0d9] bg-[#f6f3ef]"
-        >
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute left-[-12%] top-16 h-72 w-72 rounded-full bg-[#efe4dc]" />
-            <div className="absolute right-[-6%] top-10 h-96 w-96 rounded-full border border-[#e8ddd5]" />
-            <div className="absolute bottom-10 left-1/3 h-48 w-48 rounded-full border border-[#eadfd8]" />
-            <div className="absolute inset-x-0 top-0 h-full bg-[linear-gradient(to_right,rgba(140,120,108,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(140,120,108,0.08)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30" />
-          </div>
-
-          <div className="relative mx-auto w-full max-w-[1560px] px-4 py-14 sm:px-6 lg:px-10 lg:py-20 xl:px-12">
-            <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)] xl:gap-14">
-              <div className="max-w-[760px]">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#e3d6ce] bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7b5b4b] shadow-[var(--shadow-xs)] animate-fade-in-up">
-                  <span className="h-2 w-2 rounded-full bg-[#b90014]" />
-                  Internal mobility, upgraded
+        <section id="home" className="border-b border-[#edd8d4] bg-white">
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 md:py-24 lg:px-10 xl:py-28">
+            <div className="grid items-center gap-12 lg:grid-cols-2">
+              <div className="max-w-[640px] space-y-8">
+                <span className="inline-flex rounded-full bg-[#e31b23] px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white">
+                  Internal Mobility First
                 </span>
 
-                <h1 className="mt-5 max-w-[12ch] text-[42px] font-semibold leading-[1.02] tracking-[-0.04em] text-[#161616] animate-fade-in-up md:text-[60px] xl:text-[76px]">
-                  {heroTitle}
-                </h1>
+                <div className="space-y-5">
+                  <h1 className="max-w-[11ch] text-[48px] font-semibold leading-[0.98] tracking-[-0.05em] text-[#1a1c1c] animate-fade-in-up sm:text-[58px] lg:text-[72px]">
+                    {heroTitle}
+                  </h1>
+                  <p className="max-w-[580px] text-[18px] leading-8 text-[#5f5e5e] animate-fade-in-up">
+                    {heroSubtitle}
+                  </p>
+                </div>
 
-                <p className="mt-5 max-w-[62ch] text-[16px] leading-7 text-[#5f5e5e] animate-fade-in-up md:text-[18px]">
-                  {heroSubtitle}
-                </p>
-
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row animate-fade-in-up">
-                  <Link to="/jobs" className="btn btn-primary h-12 px-6">
-                    Khám phá vị trí mở
-                    <span className="material-symbols-outlined text-[18px]">north_east</span>
+                <div className="flex flex-col gap-4 sm:flex-row animate-fade-in-up">
+                  <Link to="/jobs" className="btn btn-primary h-13 px-8 py-4 text-[16px]">
+                    Browse Openings
+                    <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
                   </Link>
                   <Link
                     to="/internal/login"
-                    className="btn btn-secondary h-12 border-[#d8cbc3] px-6"
+                    className="btn h-13 border-2 border-[#1a1c1c] bg-white px-8 py-4 text-[16px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#f5f3f2]"
                   >
-                    Vào cổng nội bộ
-                    <span className="material-symbols-outlined text-[18px]">badge</span>
+                    Internal Talent Pool
                   </Link>
-                </div>
-
-                <div className="mt-10 grid gap-3 sm:grid-cols-3 animate-fade-in-up">
-                  {stats.map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-[16px] border border-[#e4d8d0] bg-white px-4 py-4 shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
-                    >
-                      <p className="text-[28px] font-semibold tracking-[-0.03em] text-[#161616]">
-                        {item.value}
-                      </p>
-                      <p className="mt-2 text-[13px] font-semibold text-[#2f2f2f]">
-                        {item.label}
-                      </p>
-                      <p className="mt-1 text-[12px] leading-5 text-[#7a7776]">
-                        {item.helper}
-                      </p>
-                    </div>
-                  ))}
                 </div>
               </div>
 
               <div className="relative">
-                <div className="absolute -left-6 top-8 hidden h-24 w-24 rounded-[28px] border border-[#ddd0c7] bg-white shadow-[var(--shadow-sm)] lg:block" />
-                <div className="absolute -right-5 bottom-10 hidden h-28 w-28 rounded-full border border-[#e2d7cf] bg-[#faf7f4] lg:block" />
-
-                <div className="rounded-[28px] border border-[#dfd2ca] bg-[#fcfbf9] p-4 shadow-[0_24px_50px_-30px_rgba(26,28,28,0.22)] sm:p-5">
-                  <div className="rounded-[24px] border border-[#ebe1db] bg-white p-5 shadow-[var(--shadow-sm)]">
-                    <div className="flex items-center justify-between gap-4 border-b border-[#f0e9e4] pb-4">
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a8786]">
-                          Dashboard preview
-                        </p>
-                        <h2 className="mt-2 text-[24px] font-semibold tracking-[-0.02em] text-[#171717]">
-                          Tuyển dụng nội bộ, rõ ràng hơn
-                        </h2>
-                      </div>
-                      <div className="rounded-[14px] border border-[#e7ddd7] bg-[#faf7f5] px-3 py-2 text-right">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-                          Live
-                        </p>
-                        <p className="text-[18px] font-semibold text-[#b90014]">24 jobs</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                      {[
-                        ["Ứng viên phù hợp", "132"],
-                        ["Phỏng vấn tuần này", "18"],
-                        ["Job ưu tiên", "06"],
-                      ].map(([label, value]) => (
-                        <div
-                          key={label}
-                          className="rounded-[18px] border border-[#ece4de] bg-[#fcfaf8] px-4 py-4"
-                        >
-                          <p className="text-[12px] font-semibold text-[#8a8786]">{label}</p>
-                          <p className="mt-2 text-[26px] font-semibold tracking-[-0.03em] text-[#171717]">
-                            {value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
-                      <div className="rounded-[22px] border border-[#ece4de] bg-[#fcfaf8] p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#8a8786]">
-                              Job spotlight
-                            </p>
-                            <h3 className="mt-2 text-[19px] font-semibold text-[#171717]">
-                              Senior Product Designer
-                            </h3>
-                          </div>
-                          <span className="badge bg-[#fff1f0] text-[#b90014]">
-                            Gấp
-                          </span>
-                        </div>
-                        <p className="mt-3 text-[14px] leading-6 text-[#5f5e5e]">
-                          Hybrid, Product Design, tập trung vào candidate experience và hệ thống nội bộ.
-                        </p>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <span className={getWorkModeChipClass()}>Hybrid</span>
-                          <span className={getEmploymentTypeBadgeClass("Full-time")}>
-                            Full-time
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="rounded-[22px] border border-[#ece4de] bg-[#171717] p-4 text-white">
-                        <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-white/60">
-                          Weekly pulse
-                        </p>
-                        <div className="mt-4 space-y-3">
-                          {[
-                            ["Tỉ lệ apply hoàn tất", "89%"],
-                            ["Thời gian phản hồi đầu tiên", "1.8 ngày"],
-                            ["Job được xem nhiều nhất", "Engineering"],
-                          ].map(([label, value]) => (
-                            <div
-                              key={label}
-                              className="rounded-[16px] border border-white/10 bg-white/5 px-4 py-3"
-                            >
-                              <p className="text-[12px] text-white/60">{label}</p>
-                              <p className="mt-1 text-[16px] font-semibold">{value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="absolute inset-6 rounded-full bg-[#b90014]/10 blur-3xl" />
+                <div className="relative overflow-hidden rounded-[16px] border border-[#eddad6] shadow-[0_28px_60px_-30px_rgba(26,28,28,0.35)]">
+                  <img
+                    className="aspect-[4/3] w-full object-cover"
+                    alt="RecruitPro internal mobility platform hero"
+                    src={heroImage}
+                  />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="platform" className="border-b border-[#e8e0d9] bg-[#f8f4f0]">
-          <div className="mx-auto w-full max-w-[1560px] px-4 py-18 sm:px-6 lg:px-10 xl:px-12">
-            <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-[760px]">
-                <p className="eyebrow">Platform Benefits</p>
-                <h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#171717] md:text-[46px]">
-                  Một landing page nên kể được vì sao sản phẩm này đáng tin
-                </h2>
-              </div>
-              <p className="max-w-[520px] text-[15px] leading-7 text-[#5f5e5e]">
-                Thay vì những khối rời rạc, RecruitPro giờ mở đầu bằng một câu chuyện rõ hơn:
-                khám phá cơ hội, ra quyết định nhanh hơn và nhìn thấy tiến trình minh bạch hơn.
-              </p>
-            </div>
-
-            <div className="stagger grid gap-5 lg:grid-cols-3">
-              {platformBenefits.map((item) => (
-                <article
-                  key={item.title}
-                  className="rounded-[22px] border border-[#e3d8d0] bg-white p-6 shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-[#f0e5df] bg-[#fbf7f4] text-[#b90014]">
-                    <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-                  </div>
-                  <h3 className="mt-5 text-[22px] font-semibold tracking-[-0.02em] text-[#171717]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 text-[15px] leading-7 text-[#5f5e5e]">
-                    {item.description}
-                  </p>
-                </article>
-              ))}
+        <section id="stats" className="border-y border-[#edd8d4] bg-[#f3f1f0]">
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 lg:px-10">
+            <div className="grid gap-6 md:grid-cols-3">
+              <LandingMetricCard
+                icon="groups"
+                label="Internal Hires"
+                value={`${homeData?.stats?.internalHires ?? 500}+`}
+              />
+              <LandingMetricCard
+                icon="domain"
+                label="Departments"
+                value={String(homeData?.stats?.departments ?? 15)}
+              />
+              <LandingMetricCard
+                icon="star"
+                label="Avg Employee Rating"
+                value={String(homeData?.stats?.avgEmployeeRating ?? 4.8)}
+              />
             </div>
           </div>
         </section>
 
-        <section id="careers" className="border-b border-[#e8e0d9] bg-[#f6f3ef]">
-          <div className="mx-auto w-full max-w-[1560px] px-4 py-18 sm:px-6 lg:px-10 xl:px-12">
-            <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-[720px]">
-                <p className="eyebrow">Featured Jobs</p>
-                <h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#171717] md:text-[46px]">
-                  Cơ hội nổi bật được trình bày như một sản phẩm, không chỉ là danh sách
+        <section id="careers" className="bg-white">
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-20 sm:px-6 lg:px-10">
+            <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-[34px] font-semibold tracking-[-0.03em] text-[#1a1c1c]">
+                  Featured Internal Openings
                 </h2>
+                <p className="mt-2 text-[17px] text-[#6a6766]">
+                  Your next big career jump is just a click away.
+                </p>
               </div>
               <Link
-                className="btn btn-secondary h-11 border-[#d9ccc4] px-5"
+                className="inline-flex items-center gap-2 self-start text-[15px] font-bold text-[#b90014] transition-all hover:gap-3"
                 to="/jobs"
               >
-                Xem toàn bộ việc làm
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                View All Jobs
+                <span className="material-symbols-outlined text-[18px]">trending_flat</span>
               </Link>
             </div>
 
             {loading ? (
-              <div className="grid gap-5 lg:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, index) => (
                   <div
                     key={index}
-                    className="rounded-[22px] border border-[#e3d8d0] bg-white p-6 shadow-[var(--shadow-sm)]"
+                    className="rounded-[16px] border border-[#ebd7d4] bg-white p-6 shadow-[var(--shadow-xs)]"
                   >
-                    <Skeleton className="h-12 w-12 rounded-[14px]" />
-                    <Skeleton className="mt-5 h-6 w-2/3" />
-                    <Skeleton className="mt-3 h-4 w-5/6" />
-                    <Skeleton className="mt-2 h-4 w-2/3" />
-                    <div className="mt-6 flex gap-2">
-                      <Skeleton className="h-7 w-20 rounded-full" />
-                      <Skeleton className="h-7 w-24 rounded-full" />
+                    <div className="mb-5 flex gap-2">
+                      <Skeleton className="h-7 w-14 rounded-md" />
+                      <Skeleton className="h-7 w-16 rounded-md" />
                     </div>
-                    <Skeleton className="mt-8 h-11 w-full rounded-[12px]" />
+                    <Skeleton className="h-6 w-2/3" />
+                    <Skeleton className="mt-4 h-4 w-full" />
+                    <Skeleton className="mt-2 h-4 w-11/12" />
+                    <Skeleton className="mt-2 h-4 w-10/12" />
+                    <div className="mt-8 border-t border-[#efe3e1] pt-6">
+                      <div className="flex items-center justify-between gap-4">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : featuredJobs.length ? (
-              <div className="stagger grid gap-5 lg:grid-cols-3">
-                {featuredJobs.map((job, index) => (
-                  <article
-                    key={job.id}
-                    className="group rounded-[22px] border border-[#e3d8d0] bg-white p-6 shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d9c7be] hover:shadow-[var(--shadow-md)]"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-[#eee3dc] bg-[#faf7f4] text-[#b90014] transition-transform duration-200 group-hover:scale-105">
-                        <span className="material-symbols-outlined text-[22px]">
-                          {index % 3 === 0
-                            ? "monitoring"
-                            : index % 3 === 1
-                              ? "hub"
-                              : "rocket_launch"}
-                        </span>
-                      </div>
-                      <span
-                        className={`badge ${
-                          job.tag === "Mới"
-                            ? "bg-[#fff1f0] text-[#b90014]"
-                            : "bg-[#f2efed] text-[#5f5e5e]"
-                        }`}
-                      >
-                        {job.tag}
-                      </span>
-                    </div>
-
-                    <h3 className="mt-5 text-[22px] font-semibold leading-[1.18] tracking-[-0.02em] text-[#171717] transition-colors duration-200 group-hover:text-[#b90014]">
-                      {job.title}
-                    </h3>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-[#5f5e5e]">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[16px]">apartment</span>
-                        {job.department}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[16px]">location_on</span>
-                        {job.location}
-                      </span>
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      <span className={getWorkModeChipClass()}>{job.workMode}</span>
-                      <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
-                        {job.employmentType}
-                      </span>
-                    </div>
-
-                    <p className="mt-5 text-[14px] leading-6 text-[#6a6766]">
-                      Vai trò phù hợp với những ứng viên nội bộ muốn bước sang một nhịp phát triển tiếp theo nhưng vẫn giữ đà cộng tác với tổ chức hiện tại.
-                    </p>
-
-                    <Link
-                      className="btn btn-secondary mt-8 h-11 w-full border-[#dccfc8] text-[#1a1c1c] group-hover:border-[#cdbcb1]"
-                      to={`/jobs/${job.id}`}
-                    >
-                      Xem chi tiết vị trí
-                      <span className="material-symbols-outlined text-[18px] transition-transform duration-200 group-hover:translate-x-0.5">
-                        arrow_forward
-                      </span>
-                    </Link>
-                  </article>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {featuredJobs.map((job) => (
+                  <FeaturedJobCard key={job.id} job={job} />
                 ))}
               </div>
             ) : (
-              <div className="rounded-[22px] border border-[#e3d8d0] bg-white p-8 text-center shadow-[var(--shadow-sm)]">
-                <p className="text-[18px] font-semibold text-[#171717]">
+              <div className="rounded-[16px] border border-[#ebd7d4] bg-white p-8 text-center shadow-[var(--shadow-xs)]">
+                <p className="text-[20px] font-semibold text-[#1a1c1c]">
                   Chưa có vị trí nổi bật để hiển thị
                 </p>
-                <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">
-                  Khi dữ liệu tuyển dụng sẵn sàng, phần này sẽ tự động cập nhật từ hệ thống public jobs.
+                <p className="mt-3 text-[15px] leading-7 text-[#5f5e5e]">
+                  Khi hệ thống có dữ liệu tuyển dụng public, phần Featured Internal Openings sẽ tự động hiển thị từ API hiện tại.
                 </p>
               </div>
             )}
           </div>
         </section>
 
-        <section id="how-it-works" className="border-b border-[#e8e0d9] bg-white">
-          <div className="mx-auto grid w-full max-w-[1560px] gap-8 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-10 xl:px-12">
-            <div className="max-w-[560px]">
-              <p className="eyebrow">How It Works</p>
-              <h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#171717] md:text-[46px]">
-                Luồng trải nghiệm được thiết kế để người dùng ít phải nghĩ hơn
-              </h2>
-              <p className="mt-5 text-[15px] leading-7 text-[#5f5e5e]">
-                Một landing page tốt không chỉ đẹp ở first impression. Nó phải giúp người dùng hiểu nhanh hệ thống sẽ hỗ trợ họ ở đâu và vì sao nên tin tưởng sản phẩm này.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              {workflowSteps.map((item) => (
-                <article
-                  key={item.step}
-                  className="rounded-[22px] border border-[#e7dfd9] bg-[#fcfaf8] p-6 shadow-[var(--shadow-xs)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-sm)]"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#b90014]">
-                        Bước {item.step}
-                      </p>
-                      <h3 className="mt-2 text-[24px] font-semibold tracking-[-0.02em] text-[#171717]">
-                        {item.title}
-                      </h3>
-                    </div>
-                    <span className="material-symbols-outlined text-[24px] text-[#b90014]">
-                      north_east
-                    </span>
-                  </div>
-                  <p className="mt-4 max-w-[70ch] text-[15px] leading-7 text-[#5f5e5e]">
-                    {item.description}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="metrics" className="border-b border-[#e8e0d9] bg-[#f8f4f0]">
-          <div className="mx-auto w-full max-w-[1560px] px-4 py-18 sm:px-6 lg:px-10 xl:px-12">
-            <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-[700px]">
-                <p className="eyebrow">Statistics</p>
-                <h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#171717] md:text-[46px]">
-                  Các chỉ số được đặt trong đúng bối cảnh để hỗ trợ ra quyết định
+        <section id="mobility" className="overflow-hidden bg-[#171818] text-white">
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-20 sm:px-6 lg:px-10">
+            <div className="grid items-center gap-14 lg:grid-cols-2">
+              <div className="relative">
+                <div className="absolute left-0 top-0 h-28 w-28 rounded-full bg-[#b90014]/20 blur-3xl" />
+                <h2 className="max-w-[11ch] text-[46px] font-semibold leading-[1.02] tracking-[-0.05em] text-white sm:text-[58px]">
+                  Ready to script your <span className="text-[#ffb4ac]">next chapter?</span>
                 </h2>
-              </div>
-              <p className="max-w-[520px] text-[15px] leading-7 text-[#5f5e5e]">
-                Tránh nhồi dashboard bằng những con số vô hồn. Chỉ số tốt là chỉ số giúp người dùng biết phải làm gì tiếp theo.
-              </p>
-            </div>
+                <p className="mt-8 max-w-[600px] text-[18px] leading-8 text-white/72">
+                  At RecruitPro, we believe the best talent is already here. We prioritize internal growth, providing the mentorship, resources, and transparency needed to pivot into new roles or scale up your current path.
+                </p>
 
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
-              <div className="rounded-[24px] border border-[#e4d9d1] bg-white p-6 shadow-[var(--shadow-sm)]">
-                <div className="grid gap-4 md:grid-cols-3">
-                  {stats.map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-[18px] border border-[#ede4de] bg-[#fcfaf8] p-4"
-                    >
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#8a8786]">
-                        {item.label}
-                      </p>
-                      <p className="mt-3 text-[36px] font-semibold tracking-[-0.04em] text-[#171717]">
-                        {item.value}
-                      </p>
-                      <p className="mt-2 text-[13px] leading-6 text-[#666261]">
-                        {item.helper}
-                      </p>
-                    </div>
+                <div className="mt-10 space-y-6">
+                  {missionHighlights.map((item) => (
+                    <HighlightItem
+                      key={item.title}
+                      title={item.title}
+                      description={item.description}
+                    />
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-[#e4d9d1] bg-[#171717] p-6 text-white shadow-[var(--shadow-sm)]">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-white/55">
-                  Insight
-                </p>
-                <h3 className="mt-3 text-[28px] font-semibold leading-[1.14] tracking-[-0.03em]">
-                  Không cần màu mè để trông premium
-                </h3>
-                <p className="mt-4 text-[15px] leading-7 text-white/72">
-                  Chất lượng ở đây đến từ spacing, typography, nhịp điệu section và cảm giác hệ thống đã được tổ chức. Đó là thứ làm sản phẩm trông trưởng thành.
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="overflow-hidden rounded-[16px]">
+                    <img
+                      className="aspect-[3/4] w-full object-cover"
+                      alt="RecruitPro mobility analytics"
+                      src={MISSION_IMAGE_TOP}
+                    />
+                  </div>
+                  <div className="rounded-[16px] border border-[#6e2e35] bg-[#4c161d] p-6">
+                    <p className="text-[40px] font-semibold tracking-[-0.04em] text-white">74%</p>
+                    <p className="mt-2 text-[15px] leading-6 text-white/70">
+                      Managers promoted internally last year
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-4 pt-10">
+                  <div className="rounded-[16px] border border-white/10 bg-white/10 p-6">
+                    <p className="text-[40px] font-semibold tracking-[-0.04em] text-white">3k+</p>
+                    <p className="mt-2 text-[15px] leading-6 text-white/70">
+                      Mentorship sessions completed
+                    </p>
+                  </div>
+                  <div className="overflow-hidden rounded-[16px]">
+                    <img
+                      className="aspect-[3/4] w-full object-cover"
+                      alt="RecruitPro collaboration team"
+                      src={MISSION_IMAGE_BOTTOM}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="stories" className="border-b border-[#e8e0d9] bg-white">
-          <div className="mx-auto w-full max-w-[1560px] px-4 py-18 sm:px-6 lg:px-10 xl:px-12">
-            <div className="mb-10 max-w-[760px]">
-              <p className="eyebrow">Success Stories</p>
-              <h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#171717] md:text-[46px]">
-                Những phản hồi đúng kiểu của một sản phẩm đã sẵn sàng đưa vào môi trường thật
+        <section id="cta" className="bg-white">
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-20 text-center sm:px-6 lg:px-10">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="text-[44px] font-semibold tracking-[-0.04em] text-[#1a1c1c] sm:text-[56px]">
+                Your future self is calling.
               </h2>
-            </div>
-
-            <div className="stagger grid gap-5 lg:grid-cols-3">
-              {successStories.map((item) => (
-                <article
-                  key={item.name}
-                  className="rounded-[22px] border border-[#e4dad3] bg-[#fcfaf8] p-6 shadow-[var(--shadow-xs)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-sm)]"
+              <p className="mt-5 text-[18px] leading-8 text-[#5f5e5e]">
+                Join the thousands of RecruitPro teammates who have redefined their careers within our walls.
+              </p>
+              <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+                <Link to="/jobs" className="btn btn-primary h-14 px-10 text-[18px]">
+                  Explore Career Paths
+                </Link>
+                <Link
+                  to="/internal/login"
+                  className="btn h-14 border-2 border-[#b90014] bg-white px-10 text-[18px] font-bold text-[#b90014] transition-colors hover:bg-[#fff6f5]"
                 >
-                  <span className="material-symbols-outlined text-[26px] text-[#b90014]">
-                    format_quote
-                  </span>
-                  <p className="mt-4 text-[16px] leading-7 text-[#353434]">
-                    {item.quote}
-                  </p>
-                  <div className="mt-6 border-t border-[#ebe2dc] pt-4">
-                    <p className="text-[15px] font-semibold text-[#171717]">{item.name}</p>
-                    <p className="mt-1 text-[13px] text-[#7a7776]">{item.role}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="cta" className="bg-[#171717]">
-          <div className="mx-auto w-full max-w-[1560px] px-4 py-18 sm:px-6 lg:px-10 xl:px-12">
-            <div className="rounded-[28px] border border-white/10 bg-white/4 p-8 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.65)] backdrop-blur-sm md:p-10">
-              <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-[760px]">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#ffb3ac]">
-                    Ready to move
-                  </p>
-                  <h2 className="mt-3 text-[34px] font-semibold leading-[1.06] tracking-[-0.03em] text-white md:text-[48px]">
-                    Mở ứng dụng và cảm nhận đây là một nền tảng tuyển dụng nội bộ thực sự trưởng thành
-                  </h2>
-                  <p className="mt-4 text-[15px] leading-7 text-white/70">
-                    Khám phá việc làm đang mở, đăng nhập vào cổng nội bộ hoặc tiếp tục tối ưu hành trình ứng viên với giao diện nhất quán hơn trên toàn hệ thống.
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link to="/jobs" className="btn btn-primary h-12 px-6">
-                    Xem việc làm mở
-                  </Link>
-                  <Link
-                    to="/login"
-                    className="btn h-12 border border-white/20 bg-transparent px-6 text-white hover:bg-white/10"
-                  >
-                    Đăng nhập ứng viên
-                  </Link>
-                </div>
+                  Contact Talent Ops
+                </Link>
               </div>
             </div>
           </div>

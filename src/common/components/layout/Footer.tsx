@@ -1,8 +1,53 @@
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 import { RootState } from "../../../store";
 
 function Footer() {
   const authState = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
+  const publicLinks = [
+    "Privacy Policy",
+    "Terms of Service",
+    "Cookie Policy",
+    "Support",
+    "Contact",
+  ];
+
+  if (!authState.isAuthenticated || location.pathname === "/home") {
+    return (
+      <footer
+        id="footer"
+        className="border-t border-white/10 bg-[#171818]"
+      >
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 py-12 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-10">
+          <div>
+            <p className="text-[24px] font-bold tracking-[-0.03em] text-white">
+              RecruitPro
+            </p>
+            <p className="mt-2 text-[14px] text-white/60">
+              Building the world's most agile workforce.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {publicLinks.map((link) => (
+              <a
+                key={link}
+                className="text-[14px] text-white/70 transition-colors hover:text-white"
+                href="#"
+              >
+                {link}
+              </a>
+            ))}
+          </div>
+
+          <p className="text-[14px] text-white/55">
+            © 2024 RecruitPro Internal. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className={`overflow-x-hidden border-t border-[#e2dfde] bg-gray-300 ${authState.isAuthenticated ? "mt-12" : ""}`}>
