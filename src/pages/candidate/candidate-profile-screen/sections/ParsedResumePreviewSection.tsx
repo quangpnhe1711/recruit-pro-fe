@@ -1,4 +1,5 @@
 import type { CandidateResumeParseResponseDto } from "../../../../services/candidate/candidateService";
+import { getSkillChipClass } from "../../../../common/utils/jobPresentation";
 import {
   formatDateRange,
   formatMonthYear,
@@ -338,10 +339,10 @@ function ParsedResumePreviewSection({
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {parsedResumePreview.skills.length ? (
-                  parsedResumePreview.skills.map((skill) => (
+                  parsedResumePreview.skills.map((skill, index) => (
                     <span
                       key={skill.id}
-                      className="rounded-full border border-[#dce9f2] bg-white px-3 py-1.5 text-[12px] font-medium text-[#18364a]"
+                      className={getSkillChipClass(skill.label, index)}
                     >
                       {skill.label}
                       {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}

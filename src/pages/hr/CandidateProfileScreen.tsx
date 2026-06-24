@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import Badge from "../../common/components/Badge";
 import { Skeleton, SkeletonCard, SkeletonText } from "../../common/components/Skeleton";
 import { formatApplicationStatus } from "../../common/utils/applicationPresentation";
+import { getSkillChipClass } from "../../common/utils/jobPresentation";
 import {
   downloadProtectedFile,
   openProtectedFileInNewTab,
@@ -365,10 +366,10 @@ function CandidateProfileScreen() {
             <h2 className="section-title border-b border-[#f0eceb] pb-4">Kỹ năng</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {detail.skills.length ? (
-                detail.skills.map((skill) => (
+                detail.skills.map((skill, index) => (
                   <span
                     key={skill.id}
-                    className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700"
+                    className={getSkillChipClass(skill.label, index)}
                   >
                     {skill.label}
                     {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}

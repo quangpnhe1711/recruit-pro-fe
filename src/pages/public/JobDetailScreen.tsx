@@ -23,6 +23,12 @@ import {
   getApplicationStatusBadgeClass,
   type ApplicationStatusLabel,
 } from "../../common/utils/applicationPresentation";
+import {
+  getEmploymentTypeBadgeClass,
+  getSkillChipClass,
+  getWorkModeChipClass,
+  quickApplyCardClass,
+} from "../../common/utils/jobPresentation";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -1011,7 +1017,7 @@ function JobDetailScreen() {
                 </section>
               </PermissionGuard>
 
-              <section className="card p-6 lg:sticky lg:top-6">
+              <section className={`${quickApplyCardClass} p-6 lg:sticky lg:top-6`}>
                 <h3 className="eyebrow mb-5">
                   Thông tin đăng tuyển
                 </h3>
@@ -1035,16 +1041,25 @@ function JobDetailScreen() {
                     <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">work</span>
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Loại hình</p>
-                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{jobSummary.jobType}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className={getEmploymentTypeBadgeClass(detail.employmentType)}>
+                          {detail.employmentType}
+                        </span>
+                        {detail.workMode ? (
+                          <span className={getWorkModeChipClass()}>
+                            {detail.workMode}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                   <div className="border-t border-[#f0eceb] pt-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Kỹ năng</p>
                     <div className="mt-2.5 flex flex-wrap gap-2">
-                      {(detail.skills ?? []).map((skill) => (
+                      {(detail.skills ?? []).map((skill, index) => (
                         <span
                           key={skill.skill.id}
-                          className="badge bg-[#f2efed] text-[#5f5e5e]"
+                          className={getSkillChipClass(skill.skill.name, index)}
                         >
                           {skill.skill.name}
                         </span>

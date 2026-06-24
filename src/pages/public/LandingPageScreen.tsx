@@ -1,5 +1,11 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import {
+  getEmploymentTypeBadgeClass,
+  getWorkModeChipClass,
+  quickApplyCardClass,
+  quickApplyIconClass,
+} from "../../common/utils/jobPresentation";
 import { jobsService } from "../../services/jobs/jobsService";
 
 type HomeResponseDto = {
@@ -162,9 +168,9 @@ function LandingPageScreen() {
 
             <div className="stagger grid grid-cols-1 gap-6 md:grid-cols-3">
               {featuredJobs.map((job, index) => (
-                <div key={job.id} className="card-interactive group flex flex-col p-7">
+                <div key={job.id} className={`${quickApplyCardClass} group flex flex-col p-7`}>
                   <div className="mb-6 flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+                    <div className={`${quickApplyIconClass} h-12 w-12`}>
                       <span className="material-symbols-outlined">
                         {index % 3 === 0 ? "engineering" : index % 3 === 1 ? "campaign" : "monitoring"}
                       </span>
@@ -185,16 +191,22 @@ function LandingPageScreen() {
                     {job.department} · {job.location}
                   </p>
                   <div className="mb-7 flex flex-wrap gap-2">
-                    {[job.workMode, job.employmentType].map((chip) => (
-                      <span key={chip} className="badge bg-[#f2efed] text-[#5f5e5e]">
-                        {chip}
-                      </span>
-                    ))}
+                    <span className={getWorkModeChipClass()}>
+                      {job.workMode}
+                    </span>
+                    <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
+                      {job.employmentType}
+                    </span>
                   </div>
-                  <button type="button" className="btn btn-secondary mt-auto w-full">
+                  <Link
+                    className="btn btn-secondary mt-auto w-full"
+                    to={`/jobs/${job.id}`}
+                  >
                     Ứng tuyển ngay
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                  </button>
+                    <span className="material-symbols-outlined text-[18px]">
+                      arrow_forward
+                    </span>
+                  </Link>
                 </div>
               ))}
             </div>

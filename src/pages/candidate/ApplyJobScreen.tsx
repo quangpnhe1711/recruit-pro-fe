@@ -4,6 +4,10 @@ import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import { Skeleton } from "../../common/components/Skeleton";
 import EmptyState from "../../common/components/EmptyState";
+import {
+  getEmploymentTypeBadgeClass,
+  quickApplyCardClass,
+} from "../../common/utils/jobPresentation";
 import { openProtectedFileInNewTab } from "../../common/utils/protectedFile";
 import { buildResumePreviewPath } from "../../common/utils/resumeLinks";
 import type { ApplyJobResponseDto, ApplyJobScreenDto } from "../../modules/jobs/jobsSchema";
@@ -324,7 +328,7 @@ function ApplyJobScreen() {
           </div>
 
           <div className="space-y-6 lg:col-span-4">
-            <section className="card overflow-hidden lg:sticky lg:top-24">
+            <section className={`${quickApplyCardClass} overflow-hidden lg:sticky lg:top-24`}>
               <div className="flex h-28 items-center justify-center bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white">
                 <span className="material-symbols-outlined text-[52px]">terminal</span>
               </div>
@@ -343,7 +347,9 @@ function ApplyJobScreen() {
                     <span className="material-symbols-outlined text-[20px] text-[#b90014]">schedule</span>
                     <div>
                       <p className="text-[12px] font-semibold text-[#8a8786]">Loại hình</p>
-                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.employmentType}</p>
+                      <span className={`mt-1.5 ${getEmploymentTypeBadgeClass(job.employmentType)}`}>
+                        {job.employmentType}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

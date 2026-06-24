@@ -6,6 +6,11 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import SkillPicker from "../../common/components/SkillPicker";
+import {
+  getEmploymentTypeBadgeClass,
+  getSkillChipClass,
+  getWorkModeChipClass,
+} from "../../common/utils/jobPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
   employmentTypeLabels,
@@ -1091,10 +1096,19 @@ function JobCreatingScreen() {
                 <p className="mt-3 text-[16px] font-semibold text-[#1a1c1c]">
                   {title || "—"}
                 </p>
-                <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                  {department} · {location || "—"} · {employmentType || "—"} ·{" "}
-                  {workMode || "—"}
-                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[14px] text-[#5f5e5e]">
+                  <span>{department}</span>
+                  <span className="text-[#d6d2cf]">•</span>
+                  <span>{location || "—"}</span>
+                  {employmentType ? (
+                    <span className={getEmploymentTypeBadgeClass(employmentType)}>
+                      {employmentType}
+                    </span>
+                  ) : null}
+                  {workMode ? (
+                    <span className={getWorkModeChipClass()}>{workMode}</span>
+                  ) : null}
+                </div>
                 <p className="mt-4 text-[14px] text-[#1a1c1c]">
                   {shortPitch || "—"}
                 </p>
@@ -1104,10 +1118,10 @@ function JobCreatingScreen() {
                 <p className="eyebrow">Kỹ năng &amp; Lương</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {skills.length ? (
-                    skills.map((skill) => (
+                    skills.map((skill, index) => (
                       <span
                         key={skill.skillName}
-                        className="badge bg-white text-[#1a1c1c] ring-1 ring-inset ring-[#ececec]"
+                        className={getSkillChipClass(skill.skillName, index)}
                       >
                         {skill.skillName}
                         {skill.minimumYearsOfExperience
@@ -1121,10 +1135,10 @@ function JobCreatingScreen() {
                 </div>
                 {niceToHaveSkills.length ? (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {niceToHaveSkills.map((skill) => (
+                    {niceToHaveSkills.map((skill, index) => (
                       <span
                         key={skill.skillName}
-                        className="badge bg-[#005f93]/10 text-[#005f93]"
+                        className={getSkillChipClass(skill.skillName, index + skills.length)}
                       >
                         {skill.skillName}
                         {skill.minimumYearsOfExperience

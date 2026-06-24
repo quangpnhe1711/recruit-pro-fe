@@ -5,6 +5,12 @@ import CommonSelect from "../../common/components/CommonSelect";
 import EmptyState from "../../common/components/EmptyState";
 import { SkeletonCard } from "../../common/components/Skeleton";
 import SkillPicker from "../../common/components/SkillPicker";
+import {
+  getEmploymentTypeBadgeClass,
+  getSkillChipClass,
+  quickApplyCardClass,
+  quickApplyIconClass,
+} from "../../common/utils/jobPresentation";
 import type { EmploymentType, JobListItemDto, JobSearchFilterOption, SkillDto } from "../../modules/jobs/jobsSchema";
 import { employmentTypeLabels } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -541,9 +547,9 @@ function JobListingCandidateScreen() {
           ) : jobs.map((job) => (
             <article
               key={job.id}
-              className="card-interactive group flex flex-col gap-4 p-5 md:flex-row md:items-start md:gap-5"
+              className={`${quickApplyCardClass} group flex flex-col gap-4 p-5 md:flex-row md:items-start md:gap-5`}
             >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
+              <div className={`${quickApplyIconClass} h-14 w-14`}>
                 <span className="material-symbols-outlined text-[28px]">work</span>
               </div>
 
@@ -588,11 +594,13 @@ function JobListingCandidateScreen() {
                 </div>
 
                 <div className="mb-4 flex flex-wrap gap-2">
-                  <span className="badge bg-[#f2efed] text-[#5f5e5e]">{formatEmploymentType(job.employmentType)}</span>
+                  <span className={getEmploymentTypeBadgeClass(job.employmentType)}>
+                    {formatEmploymentType(job.employmentType)}
+                  </span>
                   {extractJobTags(job).map((tag) => (
                     <span
                       key={tag}
-                      className="badge bg-sky-50 text-sky-700"
+                      className={getSkillChipClass(tag)}
                     >
                       {tag}
                     </span>

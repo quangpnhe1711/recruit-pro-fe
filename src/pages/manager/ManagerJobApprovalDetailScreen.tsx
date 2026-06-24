@@ -4,6 +4,10 @@ import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import EmptyState from "../../common/components/EmptyState";
 import { Skeleton } from "../../common/components/Skeleton";
+import {
+  getEmploymentTypeBadgeClass,
+  getSkillChipClass,
+} from "../../common/utils/jobPresentation";
 
 import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -37,12 +41,6 @@ function formatMoneyRange(min: number | null, max: number | null) {
   }
 
   return `Tối đa ${formatter.format(max ?? 0)} VNĐ / tháng`;
-}
-
-function toneForSkill(required: boolean) {
-  return required
-    ? "bg-[#fff1f0] text-[#b90014]"
-    : "bg-[#f2efed] text-[#5f5e5e]";
 }
 
 function actionStyles(action: "approve" | "changes" | "reject") {
@@ -196,7 +194,9 @@ function ManagerJobApprovalDetailScreen() {
               </div>
               <div>
                 <p className="eyebrow">Loại hình</p>
-                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.employmentType}</p>
+                <span className={`mt-1.5 ${getEmploymentTypeBadgeClass(detail.employmentType)}`}>
+                  {detail.employmentType}
+                </span>
               </div>
               <div>
                 <p className="eyebrow">Số lượng tuyển</p>
@@ -215,10 +215,10 @@ function ManagerJobApprovalDetailScreen() {
               <h2 className="section-title">Công nghệ / Kỹ năng</h2>
             </div>
             <div className="flex flex-wrap gap-2">
-              {detail.skills.length ? detail.skills.map((skill) => (
+              {detail.skills.length ? detail.skills.map((skill, index) => (
                 <span
                   key={skill.skillId}
-                  className={`badge ${toneForSkill(skill.isRequired)}`}
+                  className={getSkillChipClass(skill.name, index)}
                 >
                   {skill.isRequired ? <span className="material-symbols-outlined text-[14px] leading-none">star</span> : null}
                   {skill.name}

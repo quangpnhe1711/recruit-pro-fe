@@ -18,6 +18,7 @@ import {
   formatApplicationStatus,
   getApplicationStatusBadgeClass,
 } from "../../common/utils/applicationPresentation";
+import { getSkillChipClass } from "../../common/utils/jobPresentation";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import type {
@@ -190,26 +191,6 @@ function InfoItem({
         {value || "Chưa cập nhật"}
       </div>
     </div>
-  );
-}
-
-function SkillPill({
-  children,
-  tone = "brand",
-}: {
-  children: ReactNode;
-  tone?: "brand" | "blue";
-}) {
-  return (
-    <span
-      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-        tone === "brand"
-          ? "bg-[#fff1f0] text-[#b90014]"
-          : "bg-sky-50 text-sky-700"
-      }`}
-    >
-      {children}
-    </span>
   );
 }
 
@@ -655,8 +636,10 @@ function CandidateReviewDetailScreen() {
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {detail.job.requiredSkills.length ? (
-                    detail.job.requiredSkills.map((skill) => (
-                      <SkillPill key={skill}>{skill}</SkillPill>
+                    detail.job.requiredSkills.map((skill, index) => (
+                      <span key={skill} className={getSkillChipClass(skill, index)}>
+                        {skill}
+                      </span>
                     ))
                   ) : (
                     <span className="text-sm text-[#5f5e5e]">
@@ -671,10 +654,10 @@ function CandidateReviewDetailScreen() {
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {detail.candidate.skills.length ? (
-                    detail.candidate.skills.map((skill) => (
-                      <SkillPill key={skill} tone="blue">
+                    detail.candidate.skills.map((skill, index) => (
+                      <span key={skill} className={getSkillChipClass(skill, index)}>
                         {skill}
-                      </SkillPill>
+                      </span>
                     ))
                   ) : (
                     <span className="text-sm text-[#5f5e5e]">
