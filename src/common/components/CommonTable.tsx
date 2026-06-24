@@ -57,7 +57,7 @@ function CommonTable<T>({
   pagination,
   showPagination = false,
   tableHeaderBg = "",
-  tableWrapperClassName = "card overflow-hidden",
+  tableWrapperClassName = "card overflow-hidden ring-1 ring-black/[0.02]",
 }: CommonTableProps<T>) {
   const shouldShowPagination = showPagination && pagination?.enabled;
 
@@ -78,20 +78,20 @@ function CommonTable<T>({
   return (
     <section className={tableWrapperClassName}>
       {/* -------- Desktop / tablet: table -------- */}
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full border-collapse text-left">
+      <div className="hidden overflow-x-auto bg-[#fbfaf9] md:block">
+        <table className="w-full min-w-[860px] border-separate border-spacing-0 text-left">
           <thead>
             <tr
               className={
                 headerClassName
                   ? `${headerClassName} ${tableHeaderBg}`
-                  : "border-b border-[#ececec] bg-[#faf9f8]"
+                  : "bg-[#f0eceb]"
               }
             >
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-5 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8a8786] ${
+                  className={`border-b border-[#ddd7d5] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.11em] text-[#5f5e5e] first:pl-6 last:pr-6 ${
                     col.alignRight ? "text-right" : ""
                   } ${col.headerClassName || ""}`}
                 >
@@ -120,20 +120,22 @@ function CommonTable<T>({
             ) : (
               data.map((item, idx) => {
                 const rowBg =
-                  zebra && idx % 2 === 1 ? "bg-[#faf9f8]" : "bg-white";
-                const rowHover = hover ? "hover:bg-[#fdf6f6]" : "";
+                  zebra && idx % 2 === 1 ? "bg-[#f8f6f5]" : "bg-white";
+                const rowHover = hover
+                  ? "hover:relative hover:z-[1] hover:bg-[#fffafa] hover:shadow-[0_10px_24px_-18px_rgba(26,28,28,0.45)]"
+                  : "";
                 const rowCursor = onRowClick ? "cursor-pointer" : "";
 
                 return (
                   <tr
                     key={keyExtractor(item, idx)}
-                    className={`${rowBg} border-b border-[#f0eceb] transition-colors last:border-0 ${rowHover} ${rowCursor}`}
+                    className={`${rowBg} transition-all duration-150 ${rowHover} ${rowCursor}`}
                     onClick={() => onRowClick?.(item, idx)}
                   >
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`px-5 py-4 align-middle text-[#3a3a3a] ${
+                        className={`border-b border-[#eee9e7] px-5 py-[18px] align-middle text-[#3a3a3a] first:pl-6 last:pr-6 ${
                           col.alignRight ? "text-right" : ""
                         } ${col.cellClassName || ""}`}
                       >
@@ -151,13 +153,13 @@ function CommonTable<T>({
       </div>
 
       {/* -------- Mobile: stacked cards -------- */}
-      <div className="md:hidden">
+      <div className="bg-[#fbfaf9] p-3 md:hidden">
         {loading ? (
           <SkeletonRows rows={5} />
         ) : data.length === 0 ? (
           <EmptyState icon={emptyIcon} title={emptyMessage || "Chưa có dữ liệu"} />
         ) : (
-          <ul className="divide-y divide-[#f0eceb]">
+          <ul className="space-y-3">
             {data.map((item, idx) => {
               const primaryCol = columns[primaryIndex];
               const detailCols = columns.filter(
@@ -171,8 +173,8 @@ function CommonTable<T>({
               return (
                 <li
                   key={keyExtractor(item, idx)}
-                  className={`px-4 py-4 transition-colors ${
-                    onRowClick ? "cursor-pointer active:bg-[#faf9f8]" : ""
+                  className={`rounded-[14px] border border-[#e8e2df] bg-white px-4 py-4 shadow-[var(--shadow-xs)] transition-all duration-150 ${
+                    onRowClick ? "cursor-pointer active:scale-[0.99] active:bg-[#fffafa]" : ""
                   }`}
                   onClick={() => onRowClick?.(item, idx)}
                 >
@@ -185,13 +187,13 @@ function CommonTable<T>({
                   </div>
 
                   {detailCols.length ? (
-                    <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5">
+                    <dl className="mt-3 grid grid-cols-1 gap-x-3 gap-y-2.5 min-[420px]:grid-cols-2">
                       {detailCols.map((col) => (
                         <div key={col.key} className="min-w-0">
                           <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a8a4a2]">
                             {col.header}
                           </dt>
-                          <dd className="mt-1 truncate text-[13px] text-[#3a3a3a]">
+                          <dd className="mt-1 min-w-0 break-words text-[13px] text-[#3a3a3a]">
                             {col.renderCell
                               ? col.renderCell(item, idx)
                               : String(item[col.key as keyof T] || "—")}
@@ -202,7 +204,7 @@ function CommonTable<T>({
                   ) : null}
 
                   {actionColumns.length ? (
-                    <div className="mt-3 flex items-center justify-end gap-3 border-t border-[#f0eceb] pt-3">
+                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-[#f0eceb] pt-3">
                       {actionColumns.map((col) => (
                         <div key={col.key}>
                           {col.renderCell ? col.renderCell(item, idx) : null}

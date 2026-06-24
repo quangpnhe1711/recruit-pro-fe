@@ -51,18 +51,36 @@ function CommonPagination({
     onPageChange(safe);
   }
 
-  return (
-    <div className="flex flex-col gap-3 border-t border-[#e2dfde] bg-white px-4 py-3 text-[12px] font-semibold text-[#5f5e5e] md:flex-row md:items-center md:justify-between">
-      <span className="whitespace-nowrap">
-        {totalItems > 0
-          ? `${rangeStart}-${rangeEnd} / ${totalItems} mục`
-          : "Chưa có dữ liệu"}
-      </span>
+  const pageButtonClass = (isActive: boolean) =>
+    `flex h-10 min-w-10 items-center justify-center rounded-[10px] border px-3 text-[13px] font-bold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
+      isActive
+        ? "border-[#1a1c1c] bg-[#1a1c1c] text-white shadow-[0_10px_22px_-14px_rgba(26,28,28,0.9)]"
+        : "border-[#ded8d6] bg-white text-[#3a3a3a] hover:-translate-y-0.5 hover:border-[#c8c2c0] hover:bg-[#faf9f8] hover:text-[#1a1c1c] hover:shadow-[var(--shadow-xs)]"
+    }`;
 
-      <div className="flex flex-wrap items-center gap-2">
+  return (
+    <div className="border-t border-[#ded8d6] bg-[#f7f4f2] px-4 py-4 text-[12px] font-semibold text-[#5f5e5e]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-[#e4dedc] bg-white text-[#b90014] shadow-[var(--shadow-xs)]">
+            <span className="material-symbols-outlined text-[20px]">view_list</span>
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a8786]">
+              Phân trang
+            </p>
+            <p className="mt-0.5 text-[13px] font-bold text-[#1a1c1c]">
+              {totalItems > 0
+                ? `${rangeStart}-${rangeEnd} trong ${totalItems} mục`
+                : "Chưa có dữ liệu"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#ded8d6] bg-white text-[#3a3a3a] transition-all duration-150 hover:-translate-y-0.5 hover:border-[#c8c2c0] hover:bg-[#faf9f8] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage <= 1 || disabled}
           aria-label="Trang trước"
@@ -73,11 +91,7 @@ function CommonPagination({
         {visiblePageNumbers[0] > 1 ? (
           <button
             type="button"
-            className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              currentPage === 1
-                ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
-                : "border-[#e2dfde] hover:bg-[#f3f3f3]"
-            }`}
+            className={pageButtonClass(currentPage === 1)}
             onClick={() => goTo(1)}
             disabled={disabled}
           >
@@ -86,7 +100,7 @@ function CommonPagination({
         ) : null}
 
         {showLeadingEllipsis ? (
-          <span className="flex h-9 min-w-9 items-center justify-center px-1 text-[#5f5e5e]">
+          <span className="flex h-10 min-w-8 items-center justify-center px-1 text-[#8a8786]">
             ...
           </span>
         ) : null}
@@ -95,11 +109,7 @@ function CommonPagination({
           <button
             key={p}
             type="button"
-            className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              p === currentPage
-                ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
-                : "border-[#e2dfde] hover:bg-[#f3f3f3]"
-            }`}
+            className={pageButtonClass(p === currentPage)}
             onClick={() => goTo(p)}
             disabled={disabled}
           >
@@ -108,7 +118,7 @@ function CommonPagination({
         ))}
 
         {showTrailingEllipsis ? (
-          <span className="flex h-9 min-w-9 items-center justify-center px-1 text-[#5f5e5e]">
+          <span className="flex h-10 min-w-8 items-center justify-center px-1 text-[#8a8786]">
             ...
           </span>
         ) : null}
@@ -116,11 +126,7 @@ function CommonPagination({
         {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages ? (
           <button
             type="button"
-            className={`flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-              currentPage === totalPages
-                ? "border-[#1a1c1c] bg-[#1a1c1c] text-white"
-                : "border-[#e2dfde] hover:bg-[#f3f3f3]"
-            }`}
+            className={pageButtonClass(currentPage === totalPages)}
             onClick={() => goTo(totalPages)}
             disabled={disabled}
           >
@@ -130,13 +136,14 @@ function CommonPagination({
 
         <button
           type="button"
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e2dfde] transition-colors hover:bg-[#f3f3f3] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#ded8d6] bg-white text-[#3a3a3a] transition-all duration-150 hover:-translate-y-0.5 hover:border-[#c8c2c0] hover:bg-[#faf9f8] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage >= totalPages || disabled}
           aria-label="Trang sau"
         >
           <span className="material-symbols-outlined">chevron_right</span>
         </button>
+        </div>
       </div>
     </div>
   );

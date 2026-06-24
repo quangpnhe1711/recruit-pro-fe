@@ -5,6 +5,10 @@
       "destination": "https://recruit-pro-production.up.railway.app/api/$1"
     },
     {
+      "source": "/hubs/(.*)",
+      "destination": "https://recruit-pro-production.up.railway.app/hubs/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }

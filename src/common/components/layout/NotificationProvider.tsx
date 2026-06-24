@@ -1,5 +1,5 @@
 import {
-  createContext,
+  useCallback,
   useEffect,
   useState,
   type PropsWithChildren,
@@ -17,26 +17,7 @@ import {
   notificationService,
   type NotificationItemDto,
 } from "../../../services/notification/notificationService";
-
-type NotificationContextValue = {
-  notifications: NotificationItemDto[];
-  unreadCount: number;
-  loading: boolean;
-  refreshing: boolean;
-  markAsRead: (notificationId: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  refresh: () => Promise<void>;
-};
-
-export const NotificationContext = createContext<NotificationContextValue>({
-  notifications: [],
-  unreadCount: 0,
-  loading: false,
-  refreshing: false,
-  markAsRead: async () => {},
-  markAllAsRead: async () => {},
-  refresh: async () => {},
-});
+import { NotificationContext } from "./NotificationContext";
 
 function resolveNotificationHubUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
@@ -57,17 +38,47 @@ export function NotificationProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  const refreshNotifications = useCallback(
+    async (silent = false) => {
+      if (!isAuthenticated || !userId) return;
+
+      if (!silent) {
+        setRefreshing(true);
+      }
+
+      try {
+        const [notificationsResponse, unreadResponse] = await Promise.all([
+          notificationService.getNotifications(1, 8),
+          notificationService.getUnreadCount(),
+        ]);
+
+        const nextItems = notificationsResponse.data?.items ?? [];
+
+        setNotifications(nextItems);
+        setUnreadCount(unreadResponse.data?.unreadCount ?? 0);
+      } finally {
+        if (!silent) {
+          setRefreshing(false);
+        }
+      }
+    },
+    [isAuthenticated, userId],
+  );
+
   useEffect(() => {
     if (!isAuthenticated || !userId) {
-      setNotifications([]);
-      setUnreadCount(0);
-      return;
+      const resetTimer = window.setTimeout(() => {
+        setNotifications([]);
+        setUnreadCount(0);
+      }, 0);
+      return () => window.clearTimeout(resetTimer);
     }
 
     let cancelled = false;
     const connection = new HubConnectionBuilder()
       .withUrl(resolveNotificationHubUrl(), {
         accessTokenFactory: () => localStorage.getItem("access_token") ?? "",
+        withCredentials: false,
       })
       .withAutomaticReconnect()
       .configureLogging(LogLevel.Error)
@@ -125,31 +136,7 @@ export function NotificationProvider({ children }: PropsWithChildren) {
         void connection.stop();
       }
     };
-  }, [isAuthenticated, userId]);
-
-  const refreshNotifications = async (silent = false) => {
-    if (!isAuthenticated || !userId) return;
-
-    if (!silent) {
-      setRefreshing(true);
-    }
-
-    try {
-      const [notificationsResponse, unreadResponse] = await Promise.all([
-        notificationService.getNotifications(1, 8),
-        notificationService.getUnreadCount(),
-      ]);
-
-      const nextItems = notificationsResponse.data?.items ?? [];
-
-      setNotifications(nextItems);
-      setUnreadCount(unreadResponse.data?.unreadCount ?? 0);
-    } finally {
-      if (!silent) {
-        setRefreshing(false);
-      }
-    }
-  };
+  }, [isAuthenticated, refreshNotifications, userId]);
 
   const markAsRead = async (notificationId: string) => {
     const target = notifications.find(

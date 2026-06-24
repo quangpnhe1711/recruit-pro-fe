@@ -11,14 +11,9 @@ const authFreeEndpoints = [
   "/auth/candidate/forgot-password",
   "/auth/internal/forgot-password",
   "/auth/register",
-  "/auth/refresh-token",
 ];
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
-});
-
-const refreshClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
 });
 
@@ -48,38 +43,6 @@ apiClient.interceptors.response.use(
     }
 
     const isUnauthorized = error.response?.status === 401;
-
-    const isRefreshRequest = originalRequest.url?.includes(
-      "/auth/refresh-token",
-    );
-
-    if (
-      isUnauthorized &&
-      !originalRequest._retry &&
-      !isRefreshRequest &&
-      !shouldSkipRefresh
-    ) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem("refresh_token");
-
-        const response = await refreshClient.post("/auth/refresh-token", {
-          refreshToken,
-        });
-
-        const newAccessToken = response.data.data.accessToken;
-
-        localStorage.setItem("access_token", newAccessToken);
-
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        forceLogoutAndRedirectToLogin();
-        return Promise.reject(refreshError);
-      }
-    }
 
     if (isUnauthorized && !shouldSkipRefresh) {
       forceLogoutAndRedirectToLogin();

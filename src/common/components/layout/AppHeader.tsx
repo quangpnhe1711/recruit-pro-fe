@@ -6,7 +6,7 @@ import { PERMISSIONS } from "../../../permissions/permissions";
 import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 import HeaderAvatarDropDown from "../../../pages/internal/HeaderAvatarDropDown";
 import type { RootState } from "../../../store";
-import { NotificationContext } from "./NotificationProvider";
+import { NotificationContext } from "./NotificationContext";
 
 export type AppHeaderMenuItem = {
   label: string;
@@ -115,7 +115,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#ececec] bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70">
-      <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 md:px-10">
+      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
         <div className="flex flex-1 items-center gap-2">
           {onMenuToggle ? (
             <button
