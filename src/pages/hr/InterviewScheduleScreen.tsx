@@ -150,6 +150,14 @@ function InterviewScheduleScreen() {
   useEffect(() => {
     let mounted = true;
 
+    if (!requestedApplicationId) {
+      setScheduleData(null);
+      setIsLoading(false);
+      return () => {
+        mounted = false;
+      };
+    }
+
     setIsLoading(true);
     hrService
       .getInterviewScheduleData(
@@ -349,6 +357,8 @@ function InterviewScheduleScreen() {
   }
 
   if (!scheduleData || !currentInterviewer) {
+    const missingApplicationContext = !requestedApplicationId;
+
     return (
       <div className="app-container py-10">
         <div className="surface-card p-10 text-center">
@@ -359,15 +369,17 @@ function InterviewScheduleScreen() {
             Lên lịch phỏng vấn
           </h2>
           <p className="mt-2 text-[14px] text-[#5f5e5e]">
-            Hiện chưa có dữ liệu để lên lịch phỏng vấn.
+            {missingApplicationContext
+              ? "Hãy chọn một hồ sơ ứng tuyển trước khi mở màn hình lên lịch."
+              : "Hiện chưa có dữ liệu để lên lịch phỏng vấn."}
           </p>
           <button
             type="button"
             className="btn btn-secondary mt-6"
-            onClick={() => navigate("/hr/interviews")}
+            onClick={() => navigate(missingApplicationContext ? "/hr/applications" : "/hr/interviews")}
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Quay lại danh sách phỏng vấn
+            {missingApplicationContext ? "Đi đến danh sách hồ sơ" : "Quay lại danh sách phỏng vấn"}
           </button>
         </div>
       </div>

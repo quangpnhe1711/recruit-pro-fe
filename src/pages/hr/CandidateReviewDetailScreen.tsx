@@ -222,6 +222,9 @@ function CandidateReviewDetailScreen() {
   const canSendOffer =
     primaryRole === ROLE_NAMES.HR &&
     hasPermission(PERMISSIONS.APPLICATION_SEND_EMAIL);
+  const canScheduleInterview =
+    hasPermission(PERMISSIONS.INTERVIEW_VIEW_SCHEDULE_DATA) &&
+    hasPermission(PERMISSIONS.INTERVIEW_CREATE);
   const reviewRoutePrefix =
     primaryRole === ROLE_NAMES.MANAGER
       ? "/manager/applications"
@@ -500,6 +503,16 @@ function CandidateReviewDetailScreen() {
                     : "send"}
                 </span>
                 {detail.offerStatus ? "Quản lý offer" : "Tạo offer"}
+              </Link>
+            ) : null}
+            {canScheduleInterview &&
+            ["managerreview", "interview"].includes(detail.status.toLowerCase()) ? (
+              <Link
+                className="btn btn-secondary"
+                to={`/hr/interviews/schedule?applicationId=${detail.applicationId}`}
+              >
+                <span className="material-symbols-outlined text-[18px]">event</span>
+                Lên lịch phỏng vấn
               </Link>
             ) : null}
           </div>

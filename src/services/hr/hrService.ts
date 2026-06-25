@@ -199,6 +199,7 @@ export type HrApplicationItemDto = {
 
 export type HrInterviewItemDto = {
   id: string;
+  applicationId: string;
   candidateName: string;
   candidateEmail: string;
   jobTitle: string;

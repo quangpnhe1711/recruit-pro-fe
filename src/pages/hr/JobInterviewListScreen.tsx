@@ -17,6 +17,7 @@ type InterviewStatus = "Scheduled" | "Completed" | "Canceled";
 
 type Interview = {
   id: string;
+  applicationId: string;
   candidateName: string;
   candidateEmail: string;
   initials: string;
@@ -339,6 +340,7 @@ function JobInterviewListScreen() {
             const parsed = parseDateAndTime(item.dateLabel, item.timeLabel);
             return {
               id: item.id,
+              applicationId: item.applicationId,
               candidateName: item.candidateName,
               candidateEmail: item.candidateEmail,
               initials: getInitials(item.candidateName),
@@ -522,10 +524,7 @@ function JobInterviewListScreen() {
       toast.info("Đang mở lịch phỏng vấn...");
       navigate("/hr/interviews/schedule", {
         state: {
-          candidateName: it.candidateName,
-          candidateEmail: it.candidateEmail,
-          jobTitle: it.jobTitle,
-          interviewer: it.interviewer,
+          applicationId: it.applicationId,
         },
       });
     },
@@ -635,8 +634,8 @@ function JobInterviewListScreen() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  toast.info("Đang mở form tạo lịch phỏng vấn");
-                  navigate("/hr/interviews/schedule");
+                  toast.info("Hãy chọn hồ sơ ứng tuyển để lên lịch phỏng vấn.");
+                  navigate("/hr/applications");
                 }}
               >
                 <span className="material-symbols-outlined text-[18px]">add</span>
