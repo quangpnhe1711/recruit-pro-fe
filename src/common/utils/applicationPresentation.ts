@@ -6,7 +6,8 @@ export type ApplicationStatusKey =
   | "offer"
   | "hired"
   | "rejected"
-  | "offerdeclined";
+  | "offerdeclined"
+  | "withdrawn";
 
 export type ApplicationStatusLabel =
   | "Đã ứng tuyển"
@@ -16,7 +17,8 @@ export type ApplicationStatusLabel =
   | "Offer"
   | "Đã nhận việc"
   | "Từ chối"
-  | "Từ chối offer";
+  | "Từ chối offer"
+  | "Đã rút đơn";
 
 type ApplicationStatusVariant = "default" | "candidate" | "detail";
 
@@ -99,6 +101,17 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
       detail: "bg-stone-100 text-stone-700 border-stone-300",
     },
   },
+  // Withdrawal is candidate-initiated and non-punitive — render it as a neutral state, never
+  // as the red "Từ chối" (rejected) badge it used to collapse into.
+  withdrawn: {
+    key: "withdrawn",
+    label: "Đã rút đơn",
+    classes: {
+      default: "bg-slate-100 text-slate-600 border-slate-200",
+      candidate: "bg-slate-100 text-slate-600",
+      detail: "bg-slate-100 text-slate-600 border-slate-300",
+    },
+  },
 };
 
 export const applicationStatusOptions: ApplicationStatusLabel[] = [
@@ -110,6 +123,7 @@ export const applicationStatusOptions: ApplicationStatusLabel[] = [
   "Đã nhận việc",
   "Từ chối",
   "Từ chối offer",
+  "Đã rút đơn",
 ];
 
 export const applicationStatusFilterOptions = [
@@ -122,6 +136,7 @@ export const applicationStatusFilterOptions = [
   { label: "Đã nhận việc", value: "hired" },
   { label: "Từ chối", value: "rejected" },
   { label: "Từ chối offer", value: "offerdeclined" },
+  { label: "Đã rút đơn", value: "withdrawn" },
 ] as const;
 
 export function normalizeApplicationStatusKey(status: string): ApplicationStatusKey {
@@ -152,6 +167,13 @@ export function normalizeApplicationStatusKey(status: string): ApplicationStatus
     case "offerdeclined":
     case "declined":
       return "offerdeclined";
+    // Match both the raw enum ("Withdrawn") and the localized candidate label ("Đã rút đơn",
+    // which normalizes to "đãrútđơn" once spaces are stripped).
+    case "withdrawn":
+    case "withdraw":
+    case "đãrútđơn":
+    case "rútđơn":
+      return "withdrawn";
     case "rejected":
     default:
       return "rejected";
