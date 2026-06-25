@@ -70,6 +70,7 @@ function approvalChip(status: ApprovalStatus) {
 
 function buildJobTableColumns(
   onOpenJobDetail: (job: Job) => void,
+  onOpenApplications: (job: Job) => void,
   onOpenEdit: (job: Job) => void,
   onDeleteJob: (job: Job) => void,
   options: {
@@ -129,12 +130,12 @@ function buildJobTableColumns(
       headerClassName: "text-right",
       renderCell: (job) => (
         <div className="flex items-center justify-end gap-3">
-          {options.canViewApplications ? (
+          {options.canViewApplications && job.approvalStatus === "Đã duyệt" ? (
             <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-              title="Mở chi tiết công việc"
-              onClick={() => onOpenJobDetail(job)}
+              title="Xem hồ sơ ứng tuyển"
+              onClick={() => onOpenApplications(job)}
             >
               <span className="material-symbols-outlined">visibility</span>
             </button>
@@ -340,6 +341,12 @@ function JobManagementScreen() {
     navigate(`/jobs/${job.id}`);
   }
 
+  function openApplications(job: Job) {
+    navigate(
+      `/hr/applications?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`,
+    );
+  }
+
   function goToPage(next: number) {
     const safe = Math.max(1, Math.min(totalPages, next));
     setPage(safe);
@@ -493,11 +500,17 @@ function JobManagementScreen() {
 
       {/* Job table */}
       <CommonTable
-        columns={buildJobTableColumns(openJobDetail, openEdit, deleteJob, {
-          canDeleteJobs,
-          canEditJobs,
-          canViewApplications,
-        })}
+        columns={buildJobTableColumns(
+          openJobDetail,
+          openApplications,
+          openEdit,
+          deleteJob,
+          {
+            canDeleteJobs,
+            canEditJobs,
+            canViewApplications,
+          },
+        )}
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={loading}
