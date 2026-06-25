@@ -387,16 +387,6 @@ function ApplyJobScreen() {
                 </button>
               </div>
             </section>
-
-            <section className="flex items-start gap-3 rounded-[16px] border border-[#cde5ff] bg-[#eaf4ff] p-5">
-              <span className="material-symbols-outlined text-[#005f93]">info</span>
-              <div>
-                <p className="text-[14px] font-semibold text-[#001d32]">Cần hỗ trợ?</p>
-                <p className="mt-1 text-[13px] leading-5 text-[#004b74]">
-                  {eligibility.guidanceMessage || "Đội ngũ tuyển dụng thường xem xét hồ sơ trong 3-5 ngày làm việc."}
-                </p>
-              </div>
-            </section>
           </div>
         </div>
       </section>

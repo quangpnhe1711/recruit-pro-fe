@@ -22,11 +22,21 @@ import { NotificationContext } from "./NotificationContext";
 function resolveNotificationHubUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
   const resolvedUrl = new URL(configuredBaseUrl, window.location.origin);
-  resolvedUrl.pathname = "/hubs/notifications";
+  // Keep the same host (and any sub-path) as the REST API, only swapping the
+  // trailing "/api" segment for the hub path. This guarantees the hub is reached
+  // through the exact same channel/proxy as the API, so it can't drift into an
+  // un-proxied path (which would 405 on the negotiate POST).
+  resolvedUrl.pathname =
+    resolvedUrl.pathname.replace(/\/api\/?$/, "") + "/hubs/notifications";
   resolvedUrl.search = "";
   resolvedUrl.hash = "";
   return resolvedUrl.toString();
 }
+
+// Bounded backoff for the *initial* connection. withAutomaticReconnect only covers
+// drops after a connection is established; it does not retry a failed start. Without
+// this, a transient hub failure left realtime notifications permanently dead.
+const INITIAL_CONNECT_DELAYS_MS = [0, 2000, 5000, 10000, 20000];
 
 export function NotificationProvider({ children }: PropsWithChildren) {
   const isAuthenticated = useSelector(
@@ -127,8 +137,33 @@ export function NotificationProvider({ children }: PropsWithChildren) {
 
     connection.onreconnected(() => refreshNotifications(true));
 
+    const startWithRetry = async () => {
+      for (
+        let attempt = 0;
+        !cancelled && connection.state === HubConnectionState.Disconnected;
+        attempt += 1
+      ) {
+        try {
+          await connection.start();
+          // Re-sync after (re)connecting so nothing pushed while we were offline is missed.
+          if (!cancelled) {
+            void refreshNotifications(true);
+          }
+          return;
+        } catch {
+          if (attempt >= INITIAL_CONNECT_DELAYS_MS.length - 1) {
+            // Give up quietly: realtime is best-effort and the REST load already
+            // populated the panel. Avoids flooding the console with repeated errors.
+            return;
+          }
+          const delay = INITIAL_CONNECT_DELAYS_MS[attempt + 1];
+          await new Promise((resolve) => window.setTimeout(resolve, delay));
+        }
+      }
+    };
+
     void runInitialLoad();
-    void connection.start().catch(() => undefined);
+    void startWithRetry();
 
     return () => {
       cancelled = true;
