@@ -25,6 +25,16 @@ export type NotificationUnreadCountDto = {
   unreadCount: number;
 };
 
+function isMethodNotAllowedError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof (error as { response?: { status?: number } }).response?.status === "number" &&
+    (error as { response?: { status?: number } }).response?.status === 405
+  );
+}
+
 export const notificationService = {
   getNotifications: async (
     page = 1,
@@ -47,14 +57,34 @@ export const notificationService = {
   markAsRead: async (
     notificationId: string,
   ): Promise<ApiResponse<NotificationItemDto>> => {
-    return request.patch<ApiResponse<NotificationItemDto>>(
-      endpoints.notifications.markRead(notificationId),
-    );
+    try {
+      return await request.patch<ApiResponse<NotificationItemDto>>(
+        endpoints.notifications.markRead(notificationId),
+      );
+    } catch (error) {
+      if (!isMethodNotAllowedError(error)) {
+        throw error;
+      }
+
+      return request.post<ApiResponse<NotificationItemDto>>(
+        endpoints.notifications.markRead(notificationId),
+      );
+    }
   },
 
   markAllAsRead: async (): Promise<ApiResponse<NotificationUnreadCountDto>> => {
-    return request.patch<ApiResponse<NotificationUnreadCountDto>>(
-      endpoints.notifications.markAllRead,
-    );
+    try {
+      return await request.patch<ApiResponse<NotificationUnreadCountDto>>(
+        endpoints.notifications.markAllRead,
+      );
+    } catch (error) {
+      if (!isMethodNotAllowedError(error)) {
+        throw error;
+      }
+
+      return request.post<ApiResponse<NotificationUnreadCountDto>>(
+        endpoints.notifications.markAllRead,
+      );
+    }
   },
 };
