@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "../../common/components/Skeleton";
 import {
@@ -64,25 +64,108 @@ function getTagClass(tag: string) {
   return "bg-[#fff1f0] text-[#b90014]";
 }
 
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** Reveals + returns true once the element scrolls into view (one-shot). */
+function useInView<T extends HTMLElement>(rootMargin = "0px 0px -10% 0px") {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin, threshold: 0.2 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [rootMargin]);
+
+  return { ref, inView };
+}
+
+/** Counts up to `value` over `duration` ms once `active` flips true. */
+function useCountUp(value: number, active: boolean, duration = 1400) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    if (prefersReducedMotion()) {
+      setDisplay(value);
+      return;
+    }
+
+    let frame = 0;
+    let start: number | null = null;
+    const step = (timestamp: number) => {
+      if (start === null) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      // easeOutCubic for a snappy, decelerating count
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(value * eased);
+      if (progress < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [value, active, duration]);
+
+  return display;
+}
+
 function LandingMetricCard({
   icon,
   label,
   value,
+  suffix = "",
+  decimals = 0,
+  active,
+  delay = 0,
 }: {
   icon: string;
   label: string;
-  value: string;
+  value: number;
+  suffix?: string;
+  decimals?: number;
+  active: boolean;
+  delay?: number;
 }) {
+  const animated = useCountUp(value, active);
+  const formatted = animated.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+
   return (
-    <div className="flex items-center gap-5 rounded-[18px] px-4 py-4 transition-transform duration-200 hover:-translate-y-0.5">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[12px] bg-[#fff1f0] text-[#b90014]">
-        <span className="material-symbols-outlined text-[22px]">{icon}</span>
+    <div
+      className={`group relative flex items-center gap-5 overflow-hidden rounded-[18px] border border-[#efdcd9] bg-white px-6 py-7 shadow-[var(--shadow-xs)] transition-all duration-300 hover:-translate-y-1 hover:border-[#f0bcb6] hover:shadow-[var(--shadow-md)] ${
+        active ? "animate-fade-in-up" : "opacity-0"
+      }`}
+      style={active ? { animationDelay: `${delay}ms` } : undefined}
+    >
+      {/* gradient accent rail */}
+      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-[#e8242c] to-[#b90014] opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffe1de] text-[#b90014] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+        <span className="material-symbols-outlined text-[24px]">{icon}</span>
       </div>
-      <div>
-        <p className="text-[19px] font-semibold tracking-[-0.02em] text-[#1a1c1c]">
-          {value}
+      <div className="min-w-0">
+        <p className="text-[32px] font-semibold leading-none tracking-[-0.03em] text-[#1a1c1c] tabular-nums">
+          {formatted}
+          <span className="text-[#b90014]">{suffix}</span>
         </p>
-        <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6e6c6b]">
+        <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6e6c6b]">
           {label}
         </p>
       </div>
@@ -163,6 +246,7 @@ function LandingPageScreen() {
   const [homeData, setHomeData] = useState<HomeResponseDto | null>(null);
   const [featuredJobs, setFeaturedJobs] = useState<FeaturedJobCardModel[]>([]);
   const [loading, setLoading] = useState(true);
+  const stats = useInView<HTMLDivElement>();
 
   useEffect(() => {
     let mounted = true;
@@ -250,39 +334,108 @@ function LandingPageScreen() {
                     Internal Talent Pool
                   </Link>
                 </div>
+
+                <div className="flex items-center gap-3 pt-2 animate-fade-in-up">
+                  <div className="flex -space-x-3">
+                    {["#e8242c", "#b90014", "#7f2933", "#c0382b"].map((bg, i) => (
+                      <span
+                        key={bg}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-[12px] font-semibold text-white shadow-sm"
+                        style={{ backgroundColor: bg, zIndex: 4 - i }}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[13px] leading-5 text-[#6a6766]">
+                    Joined by <span className="font-semibold text-[#1a1c1c]">500+ teammates</span>
+                    <br className="hidden sm:block" /> moving up internally
+                  </p>
+                </div>
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-6 rounded-full bg-[#b90014]/10 blur-3xl" />
-                <div className="relative overflow-hidden rounded-[16px] border border-[#eddad6] shadow-[0_28px_60px_-30px_rgba(26,28,28,0.35)]">
+              <div className="group relative">
+                <div className="absolute inset-6 rounded-full bg-[#b90014]/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+                <div className="relative overflow-hidden rounded-[16px] border border-[#eddad6] shadow-[0_28px_60px_-30px_rgba(26,28,28,0.35)] animate-scale-in">
                   <img
-                    className="aspect-[4/3] w-full object-cover"
+                    className="aspect-[4/3] w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                     alt="RecruitPro internal mobility platform hero"
                     src={heroImage}
                   />
+                </div>
+
+                {/* floating glass metric — hidden on the smallest screens */}
+                <div className="absolute -bottom-5 -left-3 hidden animate-float items-center gap-3 rounded-[16px] border border-white/60 bg-white/85 px-5 py-4 shadow-[var(--shadow-lg)] backdrop-blur-md sm:flex">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffe1de] text-[#b90014]">
+                    <span className="material-symbols-outlined text-[22px]">trending_up</span>
+                  </div>
+                  <div>
+                    <p className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-[#1a1c1c]">
+                      74%
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6e6c6b]">
+                      Promoted from within
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="stats" className="border-y border-[#edd8d4] bg-[#f3f1f0]">
-          <div className="mx-auto w-full max-w-[1440px] px-4 py-10 sm:px-6 lg:px-10">
-            <div className="grid gap-6 md:grid-cols-3">
+        <section
+          id="stats"
+          className="relative overflow-hidden border-y border-[#edd8d4] bg-gradient-to-b from-[#f7f3f2] to-[#f1ece9]"
+        >
+          {/* soft brand glows */}
+          <div className="pointer-events-none absolute -left-16 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-[#b90014]/8 blur-3xl" />
+          <div className="pointer-events-none absolute -right-10 -bottom-16 h-52 w-52 rounded-full bg-[#e8242c]/8 blur-3xl" />
+
+          <div
+            ref={stats.ref}
+            className="relative mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 lg:px-10"
+          >
+            <div className="mb-9 text-center">
+              <span
+                className={`eyebrow inline-block text-[#b90014] ${
+                  stats.inView ? "animate-fade-in-up" : "opacity-0"
+                }`}
+              >
+                Proof in numbers
+              </span>
+              <h2
+                className={`mt-3 text-[26px] font-semibold tracking-[-0.03em] text-[#1a1c1c] sm:text-[30px] ${
+                  stats.inView ? "animate-fade-in-up" : "opacity-0"
+                }`}
+                style={stats.inView ? { animationDelay: "60ms" } : undefined}
+              >
+                A platform our people actually grow with
+              </h2>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-3">
               <LandingMetricCard
                 icon="groups"
                 label="Internal Hires"
-                value={`${homeData?.stats?.internalHires ?? 500}+`}
+                value={homeData?.stats?.internalHires ?? 500}
+                suffix="+"
+                active={stats.inView}
+                delay={120}
               />
               <LandingMetricCard
                 icon="domain"
                 label="Departments"
-                value={String(homeData?.stats?.departments ?? 15)}
+                value={homeData?.stats?.departments ?? 15}
+                active={stats.inView}
+                delay={220}
               />
               <LandingMetricCard
                 icon="star"
                 label="Avg Employee Rating"
-                value={String(homeData?.stats?.avgEmployeeRating ?? 4.8)}
+                value={homeData?.stats?.avgEmployeeRating ?? 4.8}
+                decimals={1}
+                active={stats.inView}
+                delay={320}
               />
             </div>
           </div>
