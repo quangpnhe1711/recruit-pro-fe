@@ -138,26 +138,6 @@ function buildJobTableColumns(
           >
             <span className="material-symbols-outlined">visibility</span>
           </button>
-          {options.canViewApplications && job.approvalStatus !== "Nháp" ? (
-            <button
-              type="button"
-              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-              title="Xem hồ sơ ứng tuyển"
-              onClick={() => onOpenApplications(job)}
-            >
-              <span className="material-symbols-outlined">description</span>
-            </button>
-          ) : null}
-          {options.canEditJobs ? (
-            <button
-              type="button"
-              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
-              title="Chỉnh sửa trong chi tiết công việc"
-              onClick={() => onOpenEdit(job)}
-            >
-              <span className="material-symbols-outlined">edit</span>
-            </button>
-          ) : null}
           {options.canDeleteJobs ? (
             <AsyncActionButton
               type="button"
