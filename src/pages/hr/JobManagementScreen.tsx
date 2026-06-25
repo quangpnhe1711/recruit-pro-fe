@@ -130,14 +130,22 @@ function buildJobTableColumns(
       headerClassName: "text-right",
       renderCell: (job) => (
         <div className="flex items-center justify-end gap-3">
-          {options.canViewApplications && job.approvalStatus === "Đã duyệt" ? (
+          <button
+            type="button"
+            className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+            title="Xem chi tiết"
+            onClick={() => onOpenJobDetail(job)}
+          >
+            <span className="material-symbols-outlined">visibility</span>
+          </button>
+          {options.canViewApplications && job.approvalStatus !== "Nháp" ? (
             <button
               type="button"
-              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
+              className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#b90014]"
               title="Xem hồ sơ ứng tuyển"
               onClick={() => onOpenApplications(job)}
             >
-              <span className="material-symbols-outlined">visibility</span>
+              <span className="material-symbols-outlined">description</span>
             </button>
           ) : null}
           {options.canEditJobs ? (

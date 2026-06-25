@@ -39,6 +39,38 @@ const missionHighlights = [
   },
 ];
 
+const heroFeatures = [
+  {
+    icon: "auto_awesome",
+    title: "AI-Powered Matching",
+    description: "Find roles that fit you best",
+  },
+  {
+    icon: "swap_horiz",
+    title: "Internal Mobility",
+    description: "Move up, across, or explore",
+  },
+  {
+    icon: "bolt",
+    title: "One-Click Apply",
+    description: "Simple, fast, internal",
+  },
+];
+
+/** Renders the hero title, coloring any "RecruitPro" occurrence in brand crimson. */
+function renderHeroTitle(title: string) {
+  const parts = title.split(/(RecruitPro)/g);
+  return parts.map((part, index) =>
+    part === "RecruitPro" ? (
+      <span key={index} className="text-[#b90014]">
+        {part}
+      </span>
+    ) : (
+      <span key={index}>{part}</span>
+    ),
+  );
+}
+
 function normalizeFeaturedJobs(data?: HomeResponseDto | null) {
   if (!data?.featuredJobs?.length) {
     return [];
@@ -128,17 +160,21 @@ function useCountUp(value: number, active: boolean, duration = 1400) {
 function LandingMetricCard({
   icon,
   label,
+  sublabel,
   value,
   suffix = "",
   decimals = 0,
+  stars = false,
   active,
   delay = 0,
 }: {
   icon: string;
   label: string;
+  sublabel?: string;
   value: number;
   suffix?: string;
   decimals?: number;
+  stars?: boolean;
   active: boolean;
   delay?: number;
 }) {
@@ -150,24 +186,35 @@ function LandingMetricCard({
 
   return (
     <div
-      className={`group relative flex items-center gap-5 overflow-hidden rounded-[18px] border border-[#efdcd9] bg-white px-6 py-7 shadow-[var(--shadow-xs)] transition-all duration-300 hover:-translate-y-1 hover:border-[#f0bcb6] hover:shadow-[var(--shadow-md)] ${
+      className={`group flex items-center justify-center gap-4 px-7 py-7 transition-colors ${
         active ? "animate-fade-in-up" : "opacity-0"
       }`}
       style={active ? { animationDelay: `${delay}ms` } : undefined}
     >
-      {/* gradient accent rail */}
-      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-[#e8242c] to-[#b90014] opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffe1de] text-[#b90014] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffe1de] text-[#b90014] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
         <span className="material-symbols-outlined text-[24px]">{icon}</span>
       </div>
       <div className="min-w-0">
-        <p className="text-[32px] font-semibold leading-none tracking-[-0.03em] text-[#1a1c1c] tabular-nums">
+        <p className="text-[34px] font-bold leading-none tracking-[-0.03em] text-[#1a1c1c] tabular-nums">
           {formatted}
           <span className="text-[#b90014]">{suffix}</span>
         </p>
-        <p className="mt-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6e6c6b]">
-          {label}
-        </p>
+        <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{label}</p>
+        {stars ? (
+          <div className="mt-1 flex gap-0.5 text-[#b90014]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <span
+                key={i}
+                className="material-symbols-outlined text-[15px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                star
+              </span>
+            ))}
+          </div>
+        ) : sublabel ? (
+          <p className="mt-1 text-[12px] text-[#8a8786]">{sublabel}</p>
+        ) : null}
       </div>
     </div>
   );
@@ -296,33 +343,62 @@ function LandingPageScreen() {
   }, []);
 
   const heroTitle =
-    homeData?.hero?.title ?? "Empowering Your Career Growth Within RecruitPro";
+    homeData?.hero?.title ?? "Grow Your Career Inside RecruitPro.";
   const heroSubtitle =
     homeData?.hero?.subtitle ??
-    "Discover the next phase of your professional journey without ever leaving the company. Unlock hidden opportunities and grow with a world-class team.";
+    "Discover internal opportunities, connect with the right people, and take the next step in your professional journey—without leaving the company you love.";
   const heroImage = homeData?.hero?.backgroundImageUrl || DEFAULT_HERO_IMAGE;
 
   return (
     <div className="overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
       <main>
-        <section id="home" className="border-b border-[#edd8d4] bg-white">
-          <div className="mx-auto w-full max-w-[1440px] px-4 py-16 sm:px-6 md:py-24 lg:px-10 xl:py-28">
+        <section
+          id="home"
+          className="relative overflow-hidden border-b border-[#f1ddd9] bg-gradient-to-br from-white via-[#fff7f6] to-[#ffe9e7]"
+        >
+          {/* decorative brand glow — top right */}
+          <div className="pointer-events-none absolute -right-20 -top-24 h-[480px] w-[480px] rounded-full bg-[#ffb3ac]/35 blur-[130px]" />
+          <div className="pointer-events-none absolute left-1/4 top-1/2 h-72 w-72 rounded-full bg-[#ffd9d5]/40 blur-[120px]" />
+
+          <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-32 pt-14 sm:px-6 md:pb-40 md:pt-20 lg:px-10">
             <div className="grid items-center gap-12 lg:grid-cols-2">
-              <div className="max-w-[640px] space-y-8">
-                <span className="inline-flex rounded-full bg-[#e31b23] px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-white">
+              <div className="max-w-[640px] space-y-7">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#ffc9c3] bg-white/70 px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#b90014] backdrop-blur-sm animate-fade-in-up">
+                  <span className="material-symbols-outlined text-[16px]">groups</span>
                   Internal Mobility First
                 </span>
 
                 <div className="space-y-5">
-                  <h1 className="max-w-[11ch] text-[48px] font-semibold leading-[0.98] tracking-[-0.05em] text-[#1a1c1c] animate-fade-in-up sm:text-[58px] lg:text-[72px]">
-                    {heroTitle}
+                  <h1 className="max-w-[12ch] text-[44px] font-bold leading-[0.98] tracking-[-0.04em] text-[#1a1c1c] animate-fade-in-up sm:text-[56px] lg:text-[64px]">
+                    {renderHeroTitle(heroTitle)}
                   </h1>
-                  <p className="max-w-[580px] text-[18px] leading-8 text-[#5f5e5e] animate-fade-in-up">
+                  <p className="max-w-[540px] text-[17px] leading-8 text-[#5f5e5e] animate-fade-in-up">
                     {heroSubtitle}
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-4 sm:flex-row animate-fade-in-up">
+                {/* feature highlights */}
+                <div className="grid grid-cols-1 gap-4 animate-fade-in-up sm:grid-cols-3">
+                  {heroFeatures.map((feature) => (
+                    <div key={feature.title} className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#fff1f0] text-[#b90014]">
+                        <span className="material-symbols-outlined text-[18px]">
+                          {feature.icon}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold leading-tight text-[#1a1c1c]">
+                          {feature.title}
+                        </p>
+                        <p className="mt-0.5 text-[12px] leading-tight text-[#6a6766]">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-4 pt-1 animate-fade-in-up sm:flex-row">
                   <Link to="/jobs" className="btn btn-primary h-13 px-8 py-4 text-[16px]">
                     Browse Openings
                     <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -331,32 +407,14 @@ function LandingPageScreen() {
                     to="/internal/login"
                     className="btn h-13 border-2 border-[#1a1c1c] bg-white px-8 py-4 text-[16px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#f5f3f2]"
                   >
-                    Internal Talent Pool
+                    Explore Talent Pool
                   </Link>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2 animate-fade-in-up">
-                  <div className="flex -space-x-3">
-                    {["#e8242c", "#b90014", "#7f2933", "#c0382b"].map((bg, i) => (
-                      <span
-                        key={bg}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-[12px] font-semibold text-white shadow-sm"
-                        style={{ backgroundColor: bg, zIndex: 4 - i }}
-                      >
-                        {String.fromCharCode(65 + i)}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-[13px] leading-5 text-[#6a6766]">
-                    Joined by <span className="font-semibold text-[#1a1c1c]">500+ teammates</span>
-                    <br className="hidden sm:block" /> moving up internally
-                  </p>
                 </div>
               </div>
 
-              <div className="group relative">
-                <div className="absolute inset-6 rounded-full bg-[#b90014]/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-                <div className="relative overflow-hidden rounded-[16px] border border-[#eddad6] shadow-[0_28px_60px_-30px_rgba(26,28,28,0.35)] animate-scale-in">
+              <div className="group relative mx-auto w-full max-w-[600px] animate-fade-in-up">
+                <div className="pointer-events-none absolute -inset-6 rounded-full bg-[#b90014]/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+                <div className="relative overflow-hidden rounded-[20px] border-4 border-white shadow-[0_30px_70px_-25px_rgba(185,0,20,0.35)] animate-scale-in">
                   <img
                     className="aspect-[4/3] w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                     alt="RecruitPro internal mobility platform hero"
@@ -364,17 +422,63 @@ function LandingPageScreen() {
                   />
                 </div>
 
-                {/* floating glass metric — hidden on the smallest screens */}
-                <div className="absolute -bottom-5 -left-3 hidden animate-float items-center gap-3 rounded-[16px] border border-white/60 bg-white/85 px-5 py-4 shadow-[var(--shadow-lg)] backdrop-blur-md sm:flex">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffe1de] text-[#b90014]">
-                    <span className="material-symbols-outlined text-[22px]">trending_up</span>
+                {/* floating card — Match Score (top left) */}
+                <div
+                  className="absolute -left-3 top-8 hidden w-[190px] animate-float rounded-[16px] border border-[#f1e2e0] bg-white/95 p-4 shadow-[var(--shadow-lg)] backdrop-blur-sm sm:block"
+                  style={{ animationDelay: "0s" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-[26px] font-bold leading-none text-[#b90014]">92%</p>
+                    <svg viewBox="0 0 60 24" className="h-6 w-16" aria-hidden="true">
+                      <polyline
+                        points="0,20 12,15 24,17 36,9 48,11 60,2"
+                        fill="none"
+                        stroke="#059669"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </div>
-                  <div>
-                    <p className="text-[20px] font-semibold leading-none tracking-[-0.02em] text-[#1a1c1c]">
-                      74%
+                  <p className="mt-2 text-[13px] font-bold text-[#1a1c1c]">Match Score</p>
+                  <p className="text-[11px] leading-tight text-[#8a8786]">
+                    Great match for your skills
+                  </p>
+                </div>
+
+                {/* floating card — Internal Transfer (right) */}
+                <div
+                  className="absolute -right-4 top-[38%] hidden w-[215px] animate-float rounded-[16px] border border-[#f1e2e0] bg-white/95 p-4 shadow-[var(--shadow-lg)] backdrop-blur-sm lg:block"
+                  style={{ animationDelay: "1.3s" }}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#b90014]">
+                      Internal Transfer
                     </p>
-                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6e6c6b]">
-                      Promoted from within
+                    <span className="material-symbols-outlined text-[16px] text-[#b90014]">
+                      arrow_forward
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[14px] font-bold text-[#1a1c1c]">
+                    Senior Backend Engineer
+                  </p>
+                  <p className="text-[11px] text-[#8a8786]">Engineering · Full-time</p>
+                </div>
+
+                {/* floating card — Interview Scheduled (bottom) */}
+                <div
+                  className="absolute -bottom-6 left-1/2 hidden w-[235px] -translate-x-1/2 animate-float items-center gap-3 rounded-[16px] border border-[#f1e2e0] bg-white/95 p-4 shadow-[var(--shadow-lg)] backdrop-blur-sm sm:flex"
+                  style={{ animationDelay: "0.7s" }}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fff1f0] text-[#b90014]">
+                    <span className="material-symbols-outlined text-[20px]">event</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold text-[#1a1c1c]">Interview Scheduled</p>
+                    <p className="text-[11px] text-[#8a8786]">Tomorrow, 10:00 AM</p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#1a1c1c]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Product Designer
                     </p>
                   </div>
                 </div>
@@ -383,60 +487,41 @@ function LandingPageScreen() {
           </div>
         </section>
 
-        <section
-          id="stats"
-          className="relative overflow-hidden border-y border-[#edd8d4] bg-gradient-to-b from-[#f7f3f2] to-[#f1ece9]"
-        >
-          {/* soft brand glows */}
-          <div className="pointer-events-none absolute -left-16 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-[#b90014]/8 blur-3xl" />
-          <div className="pointer-events-none absolute -right-10 -bottom-16 h-52 w-52 rounded-full bg-[#e8242c]/8 blur-3xl" />
-
-          <div
-            ref={stats.ref}
-            className="relative mx-auto w-full max-w-[1440px] px-4 py-14 sm:px-6 lg:px-10"
-          >
-            <div className="mb-9 text-center">
-              <span
-                className={`eyebrow inline-block text-[#b90014] ${
-                  stats.inView ? "animate-fade-in-up" : "opacity-0"
-                }`}
-              >
-                Proof in numbers
-              </span>
-              <h2
-                className={`mt-3 text-[26px] font-semibold tracking-[-0.03em] text-[#1a1c1c] sm:text-[30px] ${
-                  stats.inView ? "animate-fade-in-up" : "opacity-0"
-                }`}
-                style={stats.inView ? { animationDelay: "60ms" } : undefined}
-              >
-                A platform our people actually grow with
-              </h2>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-3">
-              <LandingMetricCard
-                icon="groups"
-                label="Internal Hires"
-                value={homeData?.stats?.internalHires ?? 500}
-                suffix="+"
-                active={stats.inView}
-                delay={120}
-              />
-              <LandingMetricCard
-                icon="domain"
-                label="Departments"
-                value={homeData?.stats?.departments ?? 15}
-                active={stats.inView}
-                delay={220}
-              />
-              <LandingMetricCard
-                icon="star"
-                label="Avg Employee Rating"
-                value={homeData?.stats?.avgEmployeeRating ?? 4.8}
-                decimals={1}
-                active={stats.inView}
-                delay={320}
-              />
+        {/* Stats — single elevated card overlapping the hero */}
+        <section id="stats" className="relative z-10">
+          <div className="mx-auto -mt-20 w-full max-w-[1180px] px-4 sm:px-6 md:-mt-24 lg:px-10">
+            <div
+              ref={stats.ref}
+              className="overflow-hidden rounded-[22px] border border-[#f1e2e0] bg-white shadow-[0_30px_70px_-30px_rgba(26,28,28,0.30)]"
+            >
+              <div className="grid divide-y divide-[#f1e2e0] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                <LandingMetricCard
+                  icon="groups"
+                  label="Internal Hires"
+                  sublabel="Last 12 months"
+                  value={homeData?.stats?.internalHires ?? 500}
+                  suffix="+"
+                  active={stats.inView}
+                  delay={120}
+                />
+                <LandingMetricCard
+                  icon="domain"
+                  label="Departments"
+                  sublabel="Across the organization"
+                  value={homeData?.stats?.departments ?? 15}
+                  active={stats.inView}
+                  delay={220}
+                />
+                <LandingMetricCard
+                  icon="star"
+                  label="Avg. Employee Rating"
+                  value={homeData?.stats?.avgEmployeeRating ?? 4.8}
+                  decimals={1}
+                  stars
+                  active={stats.inView}
+                  delay={320}
+                />
+              </div>
             </div>
           </div>
         </section>
