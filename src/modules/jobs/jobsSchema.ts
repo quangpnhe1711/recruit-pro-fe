@@ -415,6 +415,9 @@ export type ApplyJobScreenDto = {
     existingApplicationStatus: string | null;
     blockers: string[];
     guidanceMessage: string;
+    // Stable machine code for the primary blocker (null when canApply). Branch on this, not on the
+    // localized blocker text.
+    primaryErrorCode?: string | null;
   };
 };
 
