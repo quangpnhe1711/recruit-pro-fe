@@ -52,24 +52,27 @@ type JobStatusPresentation = {
   tone: StatusTone;
 };
 
+// Canonical English display labels for JobStatus (status contract: badges/columns/filters render
+// English; Vietnamese is reserved for guidance/helper copy). An unrecognized value resolves to a
+// neutral "Unknown" — it must never collapse to Rejected.
 const JOB_STATUS_PRESENTATION: Record<JobStatus, JobStatusPresentation> = {
-  Draft: { label: "Nháp", tone: "neutral" },
-  PendingApproval: { label: "Chờ duyệt", tone: "warning" },
-  Approved: { label: "Đang tuyển", tone: "success" },
-  Closed: { label: "Đã đóng", tone: "neutral" },
-  Rejected: { label: "Từ chối", tone: "danger" },
+  Draft: { label: "Draft", tone: "neutral" },
+  PendingApproval: { label: "Pending Approval", tone: "warning" },
+  Approved: { label: "Approved", tone: "success" },
+  Closed: { label: "Closed", tone: "neutral" },
+  Rejected: { label: "Rejected", tone: "danger" },
 };
 
 export function getJobStatusPresentation(value: unknown): JobStatusPresentation {
   const status = normalizeJobStatus(value);
   if (status) return JOB_STATUS_PRESENTATION[status];
-  return { label: typeof value === "string" && value ? value : "Không rõ", tone: "neutral" };
+  return { label: "Unknown", tone: "neutral" };
 }
 
 // Stable filter keys for job-status filters ("all" + canonical values). Labels come from
 // getJobStatusPresentation so screens never branch on Vietnamese text.
 export const jobStatusFilterOptions: { label: string; value: "all" | JobStatus }[] = [
-  { label: "Tất cả trạng thái", value: "all" },
+  { label: "All statuses", value: "all" },
   { label: getJobStatusPresentation(JobStatus.Draft).label, value: JobStatus.Draft },
   { label: getJobStatusPresentation(JobStatus.PendingApproval).label, value: JobStatus.PendingApproval },
   { label: getJobStatusPresentation(JobStatus.Approved).label, value: JobStatus.Approved },

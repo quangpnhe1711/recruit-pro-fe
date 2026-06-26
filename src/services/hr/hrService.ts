@@ -381,7 +381,7 @@ export const hrService = {
           },
           appliedDate: item.appliedAt,
           status: item.status,
-          recruiter: item.reviewedBy?.fullName ?? "Unassigned",
+          recruiter: item.reviewedBy?.fullName ?? "Chưa phân công",
           score: item.score ?? null,
         };
       }),

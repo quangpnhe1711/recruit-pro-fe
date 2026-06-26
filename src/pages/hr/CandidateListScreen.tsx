@@ -30,10 +30,10 @@ const CANDIDATE_REVIEW_STATE_META: Record<
   CandidateReviewState,
   { label: string; wrapper: string; icon: string }
 > = {
-  new: { label: "Mới", wrapper: "bg-amber-100 text-amber-800", icon: "new_releases" },
-  reviewing: { label: "Đang xem xét", wrapper: "bg-blue-100 text-blue-800", icon: "schedule" },
-  interviewed: { label: "Đã phỏng vấn", wrapper: "bg-green-100 text-green-800", icon: "check_circle" },
-  rejected: { label: "Từ chối", wrapper: "bg-red-100 text-red-800", icon: "cancel" },
+  new: { label: "New", wrapper: "bg-amber-100 text-amber-800", icon: "new_releases" },
+  reviewing: { label: "Reviewing", wrapper: "bg-blue-100 text-blue-800", icon: "schedule" },
+  interviewed: { label: "Interviewed", wrapper: "bg-green-100 text-green-800", icon: "check_circle" },
+  rejected: { label: "Rejected", wrapper: "bg-red-100 text-red-800", icon: "cancel" },
 };
 
 const sourceOptions: ("Tất cả nguồn" | CandidateSource)[] = [
@@ -45,7 +45,7 @@ const sourceOptions: ("Tất cả nguồn" | CandidateSource)[] = [
 
 // Stable filter keys: "all" + the derived review states. Labels resolved from the meta map.
 const candidateStatusFilterOptions: { label: string; value: "all" | CandidateReviewState }[] = [
-  { label: "Tất cả trạng thái", value: "all" },
+  { label: "All statuses", value: "all" },
   { label: CANDIDATE_REVIEW_STATE_META.new.label, value: "new" },
   { label: CANDIDATE_REVIEW_STATE_META.reviewing.label, value: "reviewing" },
   { label: CANDIDATE_REVIEW_STATE_META.interviewed.label, value: "interviewed" },

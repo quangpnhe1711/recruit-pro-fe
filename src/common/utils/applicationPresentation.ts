@@ -10,17 +10,20 @@ export type ApplicationStatusKey =
   | "withdrawn"
   | "unknown";
 
+// Canonical English display labels (status contract: badges/columns/filters render English).
+// ManagerReview presents as "Head Review" (= the DepartmentHeadReview business stage — the enum
+// value is NOT renamed). Kept in sync with src/common/status/statusPresentation.ts.
 export type ApplicationStatusLabel =
-  | "Đã ứng tuyển"
-  | "Sàng lọc"
-  | "QL xét duyệt"
-  | "Phỏng vấn"
+  | "Applied"
+  | "Screening"
+  | "Head Review"
+  | "Interview"
   | "Offer"
-  | "Đã nhận việc"
-  | "Từ chối"
-  | "Từ chối offer"
-  | "Đã rút đơn"
-  | "Không xác định";
+  | "Hired"
+  | "Rejected"
+  | "Offer Declined"
+  | "Withdrawn"
+  | "Unknown";
 
 type ApplicationStatusVariant = "default" | "candidate" | "detail";
 
@@ -33,7 +36,7 @@ type ApplicationStatusMeta = {
 const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMeta> = {
   applied: {
     key: "applied",
-    label: "Đã ứng tuyển",
+    label: "Applied",
     classes: {
       default: "bg-slate-50 text-slate-700 border-slate-100",
       candidate: "bg-slate-50 text-slate-700",
@@ -42,7 +45,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   screening: {
     key: "screening",
-    label: "Sàng lọc",
+    label: "Screening",
     classes: {
       default: "bg-amber-50 text-amber-700 border-amber-100",
       candidate: "bg-amber-50 text-amber-700",
@@ -51,7 +54,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   managerreview: {
     key: "managerreview",
-    label: "QL xét duyệt",
+    label: "Head Review",
     classes: {
       default: "bg-emerald-50 text-emerald-700 border-emerald-100",
       candidate: "bg-emerald-50 text-emerald-700",
@@ -60,7 +63,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   interview: {
     key: "interview",
-    label: "Phỏng vấn",
+    label: "Interview",
     classes: {
       default: "bg-sky-50 text-sky-700 border-sky-100",
       candidate: "bg-sky-50 text-sky-700",
@@ -78,7 +81,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   hired: {
     key: "hired",
-    label: "Đã nhận việc",
+    label: "Hired",
     classes: {
       default: "bg-green-50 text-green-700 border-green-100",
       candidate: "bg-green-50 text-green-700",
@@ -87,7 +90,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   rejected: {
     key: "rejected",
-    label: "Từ chối",
+    label: "Rejected",
     classes: {
       default: "bg-rose-50 text-rose-700 border-rose-100",
       candidate: "bg-rose-50 text-rose-700",
@@ -96,7 +99,7 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
   },
   offerdeclined: {
     key: "offerdeclined",
-    label: "Từ chối offer",
+    label: "Offer Declined",
     classes: {
       default: "bg-stone-100 text-stone-700 border-stone-200",
       candidate: "bg-stone-100 text-stone-700",
@@ -104,21 +107,21 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
     },
   },
   // Withdrawal is candidate-initiated and non-punitive — render it as a neutral state, never
-  // as the red "Từ chối" (rejected) badge it used to collapse into.
+  // as the red "Rejected" badge it used to collapse into.
   withdrawn: {
     key: "withdrawn",
-    label: "Đã rút đơn",
+    label: "Withdrawn",
     classes: {
       default: "bg-slate-100 text-slate-600 border-slate-200",
       candidate: "bg-slate-100 text-slate-600",
       detail: "bg-slate-100 text-slate-600 border-slate-300",
     },
   },
-  // Safe fallback for any unrecognized status — NEUTRAL, never the red "Từ chối" (rejected) badge.
+  // Safe fallback for any unrecognized status — NEUTRAL, never the red "Rejected" badge.
   // An unknown status must never be presented as a company rejection.
   unknown: {
     key: "unknown",
-    label: "Không xác định",
+    label: "Unknown",
     classes: {
       default: "bg-slate-100 text-slate-600 border-slate-200",
       candidate: "bg-slate-100 text-slate-600",
@@ -128,28 +131,28 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
 };
 
 export const applicationStatusOptions: ApplicationStatusLabel[] = [
-  "Đã ứng tuyển",
-  "Sàng lọc",
-  "QL xét duyệt",
-  "Phỏng vấn",
+  "Applied",
+  "Screening",
+  "Head Review",
+  "Interview",
   "Offer",
-  "Đã nhận việc",
-  "Từ chối",
-  "Từ chối offer",
-  "Đã rút đơn",
+  "Hired",
+  "Rejected",
+  "Offer Declined",
+  "Withdrawn",
 ];
 
 export const applicationStatusFilterOptions = [
-  { label: "Tất cả trạng thái", value: "all" },
-  { label: "Đã ứng tuyển", value: "applied" },
-  { label: "Sàng lọc", value: "screening" },
-  { label: "QL xét duyệt", value: "managerreview" },
-  { label: "Phỏng vấn", value: "interview" },
+  { label: "All statuses", value: "all" },
+  { label: "Applied", value: "applied" },
+  { label: "Screening", value: "screening" },
+  { label: "Head Review", value: "managerreview" },
+  { label: "Interview", value: "interview" },
   { label: "Offer", value: "offer" },
-  { label: "Đã nhận việc", value: "hired" },
-  { label: "Từ chối", value: "rejected" },
-  { label: "Từ chối offer", value: "offerdeclined" },
-  { label: "Đã rút đơn", value: "withdrawn" },
+  { label: "Hired", value: "hired" },
+  { label: "Rejected", value: "rejected" },
+  { label: "Offer Declined", value: "offerdeclined" },
+  { label: "Withdrawn", value: "withdrawn" },
 ];
 
 export function normalizeApplicationStatusKey(status: string): ApplicationStatusKey {

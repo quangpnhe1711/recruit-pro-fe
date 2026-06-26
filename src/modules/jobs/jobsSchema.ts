@@ -559,12 +559,14 @@ export type UpdateJobStatusRequest = {
   status: JobStatus;
 };
 
+// Canonical English job-status display labels (status contract). Kept in sync with
+// src/common/status/jobStatus.ts (PascalCase variant). Vietnamese is reserved for helper copy.
 export const jobStatusLabels: Record<JobStatus, string> = {
-  DRAFT: "Nháp",
-  PENDING_APPROVAL: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  CLOSED: "Đã đóng",
-  REJECTED: "Từ chối",
+  DRAFT: "Draft",
+  PENDING_APPROVAL: "Pending Approval",
+  APPROVED: "Approved",
+  CLOSED: "Closed",
+  REJECTED: "Rejected",
 };
 
 export const employmentTypeLabels: Record<EmploymentType, string> = {
