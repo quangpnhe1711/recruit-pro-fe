@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import { Skeleton } from "../../common/components/Skeleton";
 import EmptyState from "../../common/components/EmptyState";
@@ -95,8 +96,8 @@ function ApplyJobScreen() {
       }
 
       toast.success(response.message || "Nộp đơn thành công");
-    } catch {
-      toast.error("Không thể nộp đơn ứng tuyển");
+    } catch (error) {
+      toast.error(getApplicationErrorMessage(error, "Không thể nộp đơn ứng tuyển"));
     } finally {
       setSubmitting(false);
     }

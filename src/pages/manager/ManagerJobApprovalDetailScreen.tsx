@@ -11,6 +11,7 @@ import {
 
 import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
+import { getJobStatusPresentation } from "../../common/status/jobStatus";
 
 function formatDateLabel(value: string | null) {
   if (!value) return "Chưa cung cấp";
@@ -92,7 +93,7 @@ function ManagerJobApprovalDetailScreen() {
 
   const statusText = useMemo(() => {
     if (!detail) return "";
-    return detail.status === "PendingApproval" ? "Chờ duyệt" : detail.statusLabel;
+    return getJobStatusPresentation(detail.status).label;
   }, [detail]);
 
   async function submitDecision(nextStatus: JobStatus, successMessage: string) {

@@ -2,6 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+import {
+  JobStatus,
+  normalizeJobStatus,
+  isOpenForApplicationJobStatus,
+  getJobStatusPresentation,
+} from "../../common/status/jobStatus";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import EmptyState from "../../common/components/EmptyState";
@@ -10,7 +16,7 @@ import type {
   DepartmentDto,
   EmploymentType,
   JobDetailDto,
-  JobStatus,
+  JobStatus as JobStatusApi,
   SkillDto,
   WorkMode,
 } from "../../modules/jobs/jobsSchema";
@@ -136,6 +142,25 @@ function JobDetailScreen() {
       : "/hr/applications";
 
   const [detail, setDetail] = useState<JobDetailDto | null>(null);
+
+  // UI-005 / INV-001: only an Approved, non-expired job accepts applications. The backend remains the
+  // source of truth (422 on submit); this just makes the Apply CTA reflect job status + deadline.
+  const jobApplyState = useMemo(() => {
+    const status = normalizeJobStatus(detail?.status);
+    const open = status !== null && isOpenForApplicationJobStatus(status);
+    const deadlinePassed = detail?.deadline
+      ? new Date(detail.deadline).getTime() < Date.now()
+      : false;
+    let reason: string | null = null;
+    if (!open) {
+      reason = status
+        ? `Tin tuyển dụng đang ở trạng thái "${getJobStatusPresentation(status).label}" — không nhận hồ sơ mới.`
+        : "Tin tuyển dụng này hiện không nhận hồ sơ mới.";
+    } else if (deadlinePassed) {
+      reason = "Đã hết hạn nộp hồ sơ cho vị trí này.";
+    }
+    return { canApply: open && !deadlinePassed, reason };
+  }, [detail?.status, detail?.deadline]);
   const [recentApplications, setRecentApplications] = useState<
     RecentApplication[]
   >([]);
@@ -251,16 +276,7 @@ function JobDetailScreen() {
       posted: detail.createdAt
         ? `Đăng ngày ${new Date(detail.createdAt).toLocaleDateString()}`
         : "",
-      statusLabel:
-        detail.status === "CLOSED"
-          ? "Đã đóng"
-          : detail.status === "PENDING_APPROVAL"
-            ? "Chờ duyệt"
-            : detail.status === "DRAFT"
-              ? "Nháp"
-              : detail.status === "REJECTED"
-                ? "Từ chối"
-                : "Đang tuyển",
+      statusLabel: getJobStatusPresentation(detail.status).label,
       salaryRange:
         detail.salaryLabel ||
         (detail.salaryMin != null || detail.salaryMax != null
@@ -363,7 +379,7 @@ function JobDetailScreen() {
     setClosing(true);
     try {
       await jobsService.updateJobStatus(detail.id, {
-        status: "CLOSED" as JobStatus,
+        status: "CLOSED" as JobStatusApi,
       });
       toast.success("Đã đóng tin tuyển dụng.");
       await loadDetail();
@@ -383,7 +399,7 @@ function JobDetailScreen() {
     setClosing(true);
     try {
       await jobsService.updateJobStatus(detail.id, {
-        status: "APPROVED" as JobStatus,
+        status: "APPROVED" as JobStatusApi,
       });
       toast.success("Đã mở lại tin tuyển dụng.");
       await loadDetail();
@@ -495,15 +511,20 @@ function JobDetailScreen() {
 
               <div className="flex flex-wrap gap-3">
                 {showCandidateActions ? (
-                  <button
-                    type="button"
-                    className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-white px-5 text-[13px] font-bold text-[#b90014] transition-all hover:bg-[#fff1f0] disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={isAuthenticated && !canApplyJob}
-                    onClick={handleApplyClick}
-                  >
-                    <Icon name="send" />
-                    Ứng tuyển ngay
-                  </button>
+                  <div className="flex flex-col gap-1.5">
+                    <button
+                      type="button"
+                      className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-white px-5 text-[13px] font-bold text-[#b90014] transition-all hover:bg-[#fff1f0] disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={(isAuthenticated && !canApplyJob) || !jobApplyState.canApply}
+                      onClick={handleApplyClick}
+                    >
+                      <Icon name="send" />
+                      Ứng tuyển ngay
+                    </button>
+                    {!jobApplyState.canApply && jobApplyState.reason ? (
+                      <p className="text-[12px] font-medium text-white/80">{jobApplyState.reason}</p>
+                    ) : null}
+                  </div>
                 ) : null}
                 <PermissionGuard permissions={PERMISSIONS.JOB_UPDATE}>
                   <button
@@ -542,17 +563,17 @@ function JobDetailScreen() {
                       disabled={closing}
                       loading={closing}
                       loadingText={
-                        detail.status === "CLOSED" ? "Đang mở lại..." : "Đang đóng..."
+                        normalizeJobStatus(detail.status) === JobStatus.Closed ? "Đang mở lại..." : "Đang đóng..."
                       }
                       onClick={() =>
-                        detail.status === "CLOSED"
+                        normalizeJobStatus(detail.status) === JobStatus.Closed
                           ? handleReopenPosting()
                           : handleClosePosting()
                       }
                       spinnerTone="brand"
                     >
-                      <Icon name={detail.status === "CLOSED" ? "refresh" : "close"} />
-                      {detail.status === "CLOSED" ? "Mở lại tin" : "Đóng tin"}
+                      <Icon name={normalizeJobStatus(detail.status) === JobStatus.Closed ? "refresh" : "close"} />
+                      {normalizeJobStatus(detail.status) === JobStatus.Closed ? "Mở lại tin" : "Đóng tin"}
                     </AsyncActionButton>
                   </PermissionGuard>
                 ) : null}

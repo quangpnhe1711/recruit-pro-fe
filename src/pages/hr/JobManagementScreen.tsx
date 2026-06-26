@@ -10,8 +10,13 @@ import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
-
-type ApprovalStatus = "Đã duyệt" | "Chờ duyệt" | "Nháp" | "Từ chối" | "Đã đóng";
+import {
+  JobStatus,
+  normalizeJobStatus,
+  getJobStatusPresentation,
+  jobStatusFilterOptions,
+} from "../../common/status/jobStatus";
+import { toneBadgeClassName } from "../../common/status/statusPresentation";
 
 type Job = {
   id: string;
@@ -19,54 +24,13 @@ type Job = {
   department: string;
   createdDate: string; // e.g. "Oct 24, 2024"
   createdAt: number; // epoch ms for sorting
-  approvalStatus: ApprovalStatus;
+  status: JobStatus;
   applicationsCount: number;
   createdByUserId: string;
   createdByName: string;
 };
 
-const statusOptions: ("Tất cả trạng thái" | ApprovalStatus)[] = [
-  "Tất cả trạng thái",
-  "Nháp",
-  "Chờ duyệt",
-  "Đã duyệt",
-  "Đã đóng",
-  "Từ chối",
-];
-
 const creatorAllOption = "Tất cả người tạo";
-
-function parseDateLabelToEpoch(label: string) {
-  const parsed = Date.parse(label);
-  return Number.isNaN(parsed) ? Date.now() : parsed;
-}
-
-function approvalChip(status: ApprovalStatus) {
-  switch (status) {
-    case "Đã duyệt":
-      return {
-        wrapper: "bg-[#005f93]/10 text-[#005f93]",
-        dot: "bg-[#005f93]",
-      };
-    case "Chờ duyệt":
-      return {
-        wrapper: "bg-[#926e6b]/10 text-[#926e6b]",
-        dot: "bg-[#926e6b]",
-      };
-    case "Nháp":
-      return {
-        wrapper: "bg-[#5f5e5e]/10 text-[#5f5e5e]",
-        dot: "bg-[#5f5e5e]",
-      };
-    case "Từ chối":
-      return {
-        wrapper: "bg-[#ba1a1a]/10 text-[#ba1a1a]",
-        dot: "bg-[#ba1a1a]",
-      };
-    default:
-      return { wrapper: "bg-[#eeeeee] text-[#5f5e5e]", dot: "bg-[#5f5e5e]" };
-  }
-}
 
 function buildJobTableColumns(
   onOpenJobDetail: (job: Job) => void,
@@ -111,14 +75,13 @@ function buildJobTableColumns(
       ),
     },
     {
-      key: "approvalStatus",
+      key: "status",
       header: "Trạng thái duyệt",
       renderCell: (job) => {
-        const chip = approvalChip(job.approvalStatus);
+        const presentation = getJobStatusPresentation(job.status);
         return (
-          <span className={`badge ${chip.wrapper}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
-            {job.approvalStatus}
+          <span className={`badge ${toneBadgeClassName(presentation.tone)}`}>
+            {presentation.label}
           </span>
         );
       },
@@ -174,7 +137,7 @@ function JobManagementScreen() {
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] =
     useState<string>("Tất cả phòng ban");
-  const [statusFilter, setStatusFilter] = useState<string>("Tất cả trạng thái");
+  const [statusFilter, setStatusFilter] = useState<"all" | JobStatus>("all");
   const [creatorFilter, setCreatorFilter] = useState<string>(creatorAllOption);
   const [page, setPage] = useState<number>(1);
 
@@ -196,16 +159,7 @@ function JobManagementScreen() {
               ? new Date(item.createdAt).toLocaleDateString()
               : "",
             createdAt: item.createdAt ? Date.parse(item.createdAt) : Date.now(),
-            approvalStatus:
-              item.status === "APPROVED"
-                ? "Đã duyệt"
-                : item.status === "CLOSED"
-                  ? "Đã đóng"
-                  : item.status === "REJECTED"
-                    ? "Từ chối"
-                    : item.status === "DRAFT"
-                      ? "Nháp"
-                      : "Chờ duyệt",
+            status: normalizeJobStatus(item.status) ?? JobStatus.PendingApproval,
             applicationsCount: item.applicationCount,
             createdByUserId: item.createdBy.id,
             createdByName: item.createdBy.fullName || "Không rõ",
@@ -245,9 +199,7 @@ function JobManagementScreen() {
           : j.department === departmentFilter,
       )
       .filter((j) =>
-        statusFilter === "Tất cả trạng thái"
-          ? true
-          : j.approvalStatus === statusFilter,
+        statusFilter === "all" ? true : j.status === statusFilter,
       )
       .filter((j) =>
         creatorFilter === creatorAllOption
@@ -467,10 +419,10 @@ function JobManagementScreen() {
           <CommonSelect
             className="h-[42px] min-w-[170px] text-sm"
             wrapperClassName="w-full lg:w-auto"
-            options={statusOptions.map((s) => ({ label: s, value: s }))}
+            options={jobStatusFilterOptions}
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value);
+              setStatusFilter(e.target.value as "all" | JobStatus);
               resetToFirstPage();
             }}
           />

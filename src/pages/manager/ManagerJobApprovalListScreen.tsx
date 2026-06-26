@@ -7,6 +7,7 @@ import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
+import { getJobStatusPresentation } from "../../common/status/jobStatus";
 
 function formatDateLabel(value: string | null) {
   if (!value) return "Không rõ";
@@ -83,7 +84,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
       renderCell: (item) => (
         <div className="space-y-2">
           <span className={`badge ${statusBadge(item.status)}`}>
-            {item.status === "PendingApproval" ? "Chờ duyệt" : item.status === "Approved" ? "Đã duyệt" : item.status === "Rejected" ? "Từ chối" : item.status}
+            {getJobStatusPresentation(item.status).label}
           </span>
           <p className={`flex items-center gap-1 text-[12px] font-semibold ${item.isOverdue ? "text-[#ba1a1a]" : "text-[#5f5e5e]"}`}>
             <span className="material-symbols-outlined text-[15px]">{item.isOverdue ? "priority_high" : "schedule"}</span>
