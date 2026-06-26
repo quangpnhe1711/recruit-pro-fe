@@ -4,6 +4,11 @@ export type DepartmentDto = {
   id: string;
   name: string;
   description: string | null;
+  // Department head (Phase 2/3 ownership). Optional/nullable — older payloads and departments without
+  // an assigned head omit these. Source: GET /api/departments (DepartmentResponseDto).
+  headUserId?: string | null;
+  headUserName?: string | null;
+  headUserEmail?: string | null;
 };
 
 export type SkillDto = {
@@ -57,6 +62,34 @@ export type JobListItemDto = {
   skills?: Array<JobSkillDto | SkillDto>;
   shortDescription?: string | null;
   summary?: string | null;
+  // Ownership snapshot (Phase 2/3). Optional/nullable — display-only, never required.
+  // `createdBy`/`approvedBy` above are audit fields; recruiter + (effective) department head are the
+  // business owners (BR-OWN-002/003). Source: GET /api/hr/jobs (HrJobListItemDto).
+  recruiterId?: string | null;
+  recruiterName?: string | null;
+  departmentHeadId?: string | null;
+  departmentHeadName?: string | null;
+  effectiveDepartmentHeadId?: string | null;
+  effectiveDepartmentHeadName?: string | null;
+};
+
+// Ownership snapshot for a single job (Phase 2/3). All fields optional/nullable — render with safe
+// fallbacks ("Chưa phân công" / "Chưa có trưởng bộ phận"). Source: GET /api/hr/jobs/{id}
+// (JobDetailResponseDto). `effectiveDepartmentHead*` falls back to the approver when no head is set.
+export type JobOwnershipDto = {
+  recruiterId: string | null;
+  recruiterName: string | null;
+  recruiterEmail: string | null;
+  departmentHeadId: string | null;
+  departmentHeadName: string | null;
+  departmentHeadEmail: string | null;
+  effectiveDepartmentHeadId: string | null;
+  effectiveDepartmentHeadName: string | null;
+  effectiveDepartmentHeadEmail: string | null;
+  createdById: string | null;
+  createdByName: string | null;
+  approvedById: string | null;
+  approvedByName: string | null;
 };
 
 export type JobFunnelStageDto = {
@@ -161,6 +194,15 @@ export type ApplicationReviewDetailDto = {
     notes: string | null;
   }>;
   reviewedBy: UserDto | null;
+  // Ownership snapshot (Phase 2/3, BR-OWN-005). Optional/nullable — the assigned recruiter handles the
+  // application; the assigned department head is the business approver. Source:
+  // GET /api/hr/applications/{id} (ApplicationReviewDetailDto).
+  assignedRecruiterId?: string | null;
+  assignedRecruiterName?: string | null;
+  assignedRecruiterEmail?: string | null;
+  assignedDepartmentHeadId?: string | null;
+  assignedDepartmentHeadName?: string | null;
+  assignedDepartmentHeadEmail?: string | null;
 };
 
 export type OfferEditorDto = {
@@ -376,6 +418,8 @@ export type JobDetailDto = {
   recentApplications: ApplicationListItemDto[];
   hiringFunnel: JobFunnelStageDto[];
   availableActions: string[];
+  // Ownership snapshot (Phase 2/3) — present on the HR job detail; null for public/unauthenticated.
+  ownership?: JobOwnershipDto | null;
 };
 
 export type ApplyJobScreenDto = {

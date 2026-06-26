@@ -12,6 +12,9 @@ import {
 import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 import { getJobStatusPresentation } from "../../common/status/jobStatus";
+import { getJobStatusErrorMessage } from "../../common/utils/apiError";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 
 function formatDateLabel(value: string | null) {
   if (!value) return "Chưa cung cấp";
@@ -58,9 +61,16 @@ function actionStyles(action: "approve" | "changes" | "reject") {
 function ManagerJobApprovalDetailScreen() {
   const navigate = useNavigate();
   const { jobId = "" } = useParams();
+  const { hasPermission } = usePermissions();
+  // The route is already guarded by JOB_APPROVE; this keeps the action buttons honest even if a stale
+  // UI reaches the screen. The backend remains the source of truth (BR-OWN-003): only the job's
+  // department head or a SystemAdmin can actually approve/reject — surfaced as a friendly 403 below.
+  const canApprove = hasPermission(PERMISSIONS.JOB_APPROVE);
   const [detail, setDetail] = useState<ManagerJobApprovalDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<JobStatus | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -73,10 +83,18 @@ function ManagerJobApprovalDetailScreen() {
 
         if (!mounted) return;
         setDetail(response.data ?? null);
-      } catch {
+        setLoadError(null);
+      } catch (error) {
         if (!mounted) return;
         setDetail(null);
-        toast.error("Không thể tải chi tiết phê duyệt job.");
+        // A DepartmentHead opening another department's job gets 403; a department with no head gets
+        // 422. Surface the structured reason instead of a generic "couldn't load" toast.
+        const message = getJobStatusErrorMessage(
+          error,
+          "Không thể tải chi tiết phê duyệt tin tuyển dụng.",
+        );
+        setLoadError(message);
+        toast.error(message);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -100,13 +118,23 @@ function ManagerJobApprovalDetailScreen() {
     if (!detail) return;
 
     setSubmitting(nextStatus);
+    setActionError(null);
 
     try {
+      // Guarded HR status endpoint (PATCH /api/hr/jobs/{id}/status). We only navigate AFTER the
+      // backend confirms — no optimistic "approved" flip (BR-OWN-003).
       await jobsService.updateJobStatus(detail.jobId, { status: nextStatus });
       toast.success(successMessage);
       navigate("/jobs");
-    } catch {
-      toast.error("Không thể cập nhật trạng thái phê duyệt job.");
+    } catch (error) {
+      // errorCode → HTTP status → backend message → fallback. Surfaces the actionable 403 (not the
+      // department head / SystemAdmin) and 422 (department has no head) cases explicitly.
+      const message = getJobStatusErrorMessage(
+        error,
+        "Không thể cập nhật trạng thái phê duyệt job.",
+      );
+      setActionError(message);
+      toast.error(message);
     } finally {
       setSubmitting(null);
     }
@@ -134,8 +162,8 @@ function ManagerJobApprovalDetailScreen() {
         <div className="surface-card p-10">
           <EmptyState
             icon="search_off"
-            title="Không tìm thấy bản nháp phê duyệt"
-            description="Không thể tải job đã chọn từ luồng phê duyệt hiện tại."
+            title="Không thể mở chi tiết phê duyệt"
+            description={loadError ?? "Không thể tải tin tuyển dụng đã chọn từ luồng phê duyệt hiện tại."}
             action={
               <button type="button" className="btn btn-dark" onClick={() => navigate("/jobs")}>
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
@@ -301,51 +329,72 @@ function ManagerJobApprovalDetailScreen() {
               Khi quản lý phê duyệt, job sẽ đi tiếp trong luồng đăng tuyển. Yêu cầu chỉnh sửa sẽ trả bản nháp về cho HR cập nhật.
             </p>
 
-            <div className="mt-6 space-y-3">
-              <AsyncActionButton
-                type="button"
-                className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("approve")}`}
-                disabled={submitting !== null}
-                loading={submitting === "APPROVED"}
-                loadingText="Đang duyệt job..."
-                onClick={() => submitDecision("APPROVED", "Job đã được duyệt và sẵn sàng cho bước đăng tuyển.")}
+            <p className="mt-3 flex items-start gap-2 rounded-[10px] bg-[#f7f4f2] px-3 py-2.5 text-[12px] leading-5 text-[#5f5e5e]">
+              <span className="material-symbols-outlined mt-px text-[16px] text-[#8a8786]">info</span>
+              Chỉ trưởng bộ phận của phòng ban hoặc quản trị hệ thống mới có thể duyệt hoặc từ chối tin tuyển dụng này.
+            </p>
+
+            {actionError ? (
+              <div
+                role="alert"
+                className="mt-4 flex items-start gap-2 rounded-[10px] border border-rose-100 bg-rose-50 px-3 py-2.5 text-[13px] leading-5 text-rose-700"
               >
-                <span className="flex items-center gap-3">
-                  <span className="material-symbols-outlined">check_circle</span>
-                  Duyệt job
-                </span>
-                <span>Sang bước đăng tuyển</span>
-              </AsyncActionButton>
-              <AsyncActionButton
-                type="button"
-                className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("changes")}`}
-                disabled={submitting !== null}
-                loading={submitting === "DRAFT"}
-                loadingText="Đang trả về nháp..."
-                onClick={() => submitDecision("DRAFT", "Job đã được trả về bản nháp để HR chỉnh sửa.")}
-                spinnerTone="brand"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="material-symbols-outlined">edit_note</span>
-                  Yêu cầu chỉnh sửa
-                </span>
-                <span>Trả về nháp</span>
-              </AsyncActionButton>
-              <AsyncActionButton
-                type="button"
-                className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("reject")}`}
-                disabled={submitting !== null}
-                loading={submitting === "REJECTED"}
-                loadingText="Đang từ chối..."
-                onClick={() => submitDecision("REJECTED", "Job đã bị từ chối trong luồng phê duyệt.")}
-              >
-                <span className="flex items-center gap-3">
-                  <span className="material-symbols-outlined">cancel</span>
-                  Từ chối job
-                </span>
-                <span>Kết thúc duyệt</span>
-              </AsyncActionButton>
-            </div>
+                <span className="material-symbols-outlined mt-px text-[18px]">error</span>
+                <span>{actionError}</span>
+              </div>
+            ) : null}
+
+            {canApprove ? (
+              <div className="mt-6 space-y-3">
+                <AsyncActionButton
+                  type="button"
+                  className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("approve")}`}
+                  disabled={submitting !== null}
+                  loading={submitting === "APPROVED"}
+                  loadingText="Đang duyệt job..."
+                  onClick={() => submitDecision("APPROVED", "Job đã được duyệt và sẵn sàng cho bước đăng tuyển.")}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="material-symbols-outlined">check_circle</span>
+                    Duyệt job
+                  </span>
+                  <span>Sang bước đăng tuyển</span>
+                </AsyncActionButton>
+                <AsyncActionButton
+                  type="button"
+                  className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("changes")}`}
+                  disabled={submitting !== null}
+                  loading={submitting === "DRAFT"}
+                  loadingText="Đang trả về nháp..."
+                  onClick={() => submitDecision("DRAFT", "Job đã được trả về bản nháp để HR chỉnh sửa.")}
+                  spinnerTone="brand"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="material-symbols-outlined">edit_note</span>
+                    Yêu cầu chỉnh sửa
+                  </span>
+                  <span>Trả về nháp</span>
+                </AsyncActionButton>
+                <AsyncActionButton
+                  type="button"
+                  className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("reject")}`}
+                  disabled={submitting !== null}
+                  loading={submitting === "REJECTED"}
+                  loadingText="Đang từ chối..."
+                  onClick={() => submitDecision("REJECTED", "Job đã bị từ chối trong luồng phê duyệt.")}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="material-symbols-outlined">cancel</span>
+                    Từ chối job
+                  </span>
+                  <span>Kết thúc duyệt</span>
+                </AsyncActionButton>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-[10px] border border-dashed border-[#d6d1cf] px-4 py-5 text-[13px] leading-6 text-[#5f5e5e]">
+                Bạn không có quyền phê duyệt tin tuyển dụng. Vui lòng liên hệ trưởng bộ phận hoặc quản trị hệ thống.
+              </div>
+            )}
 
             <div className="mt-6 border-t border-[#f0eceb] pt-6">
               <p className="eyebrow">Tóm tắt phê duyệt</p>

@@ -17,6 +17,14 @@ export const ERROR_CODES = {
   Unauthenticated: "UNAUTHENTICATED",
   Forbidden: "FORBIDDEN",
   ValidationError: "VALIDATION_ERROR",
+  // Ownership / job-approval domain (Phase 2/3 backend, mirrored here for Phase 4 FE).
+  // Source: RecruitPro.Application.Common.ErrorCodes + docs/source-of-truth/ERROR-CONTRACT.md.
+  DepartmentHeadRequired: "DEPARTMENT_HEAD_REQUIRED",
+  InvalidDepartmentHead: "INVALID_DEPARTMENT_HEAD",
+  JobRecruiterRequired: "JOB_RECRUITER_REQUIRED",
+  InvalidJobRecruiter: "INVALID_JOB_RECRUITER",
+  InvalidJobTransition: "INVALID_JOB_TRANSITION",
+  DepartmentNotFound: "DEPARTMENT_NOT_FOUND",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -88,4 +96,52 @@ export const APPLICATION_ERROR_MESSAGES: Partial<Record<string, string>> = {
 /** Resolve an application-domain error to Vietnamese copy (errorCode → status → message → fallback). */
 export function getApplicationErrorMessage(error: unknown, fallback: string): string {
   return resolveErrorMessage(error, APPLICATION_ERROR_MESSAGES, fallback);
+}
+
+// Centralized Vietnamese copy for the ownership / job-approval + cross-cutting auth codes. These back
+// the job status-change actions (approve / reject / close / reopen) that route through the guarded
+// PATCH /api/hr/jobs/{id}/status endpoint (BR-OWN-003).
+export const JOB_STATUS_ERROR_MESSAGES: Partial<Record<string, string>> = {
+  [ERROR_CODES.Forbidden]:
+    "Bạn không có quyền duyệt hoặc từ chối tin tuyển dụng này.",
+  [ERROR_CODES.DepartmentHeadRequired]:
+    "Phòng ban này chưa có trưởng bộ phận nên chưa thể duyệt tin tuyển dụng.",
+  [ERROR_CODES.InvalidDepartmentHead]:
+    "Người được chọn làm trưởng bộ phận phải là tài khoản có vai trò Trưởng bộ phận.",
+  [ERROR_CODES.DepartmentNotFound]:
+    "Không tìm thấy phòng ban tương ứng với tin tuyển dụng này.",
+  [ERROR_CODES.InvalidJobRecruiter]:
+    "Người phụ trách được chọn phải là tài khoản có vai trò HR.",
+  [ERROR_CODES.JobRecruiterRequired]:
+    "Tin tuyển dụng cần có người phụ trách (recruiter) trước khi thực hiện thao tác này.",
+  [ERROR_CODES.InvalidJobTransition]:
+    "Không thể chuyển tin tuyển dụng sang trạng thái này.",
+  [ERROR_CODES.ValidationError]:
+    "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra lại.",
+  [ERROR_CODES.Unauthenticated]:
+    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+};
+
+// Status-only fallbacks for the job status-change flow. The backend returns 404 (and sometimes 422)
+// without a stable errorCode (ERROR-CONTRACT.md), so we map on HTTP status when no code is present.
+const JOB_STATUS_MESSAGE_BY_HTTP: Partial<Record<number, string>> = {
+  401: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+  403: "Bạn không có quyền duyệt hoặc từ chối tin tuyển dụng này.",
+  404: "Không tìm thấy tin tuyển dụng này.",
+};
+
+/**
+ * Resolve a job status-change error (approve / reject / close / reopen) to Vietnamese copy.
+ * Precedence: stable errorCode → known HTTP status → backend localized message → fallback.
+ * Never surfaces raw exception text when a structured code/status is available (INV-012).
+ */
+export function getJobStatusErrorMessage(error: unknown, fallback: string): string {
+  const env = readEnvelope(error);
+  if (env?.errorCode && JOB_STATUS_ERROR_MESSAGES[env.errorCode]) {
+    return JOB_STATUS_ERROR_MESSAGES[env.errorCode] as string;
+  }
+  if (env?.statusCode && JOB_STATUS_MESSAGE_BY_HTTP[env.statusCode]) {
+    return JOB_STATUS_MESSAGE_BY_HTTP[env.statusCode] as string;
+  }
+  return env?.message ?? fallback;
 }

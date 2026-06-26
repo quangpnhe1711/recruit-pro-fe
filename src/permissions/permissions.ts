@@ -150,6 +150,12 @@ export const MANAGER_PORTAL_PERMISSIONS: Permission[] = [
 export const HEAD_DEPARTMENT_PORTAL_PERMISSIONS: Permission[] = [
   PERMISSIONS.DASHBOARD_VIEW_INTERNAL,
   PERMISSIONS.PROFILE_VIEW_INTERNAL,
+  // BR-OWN-003: the DepartmentHead is the job-approval workflow role — they own the approval queue/detail
+  // for the department(s) they head. JOB_APPROVE unlocks the approval queue (/jobs) and the approval
+  // detail route. The backend remains the gate: the queue/detail are scoped to Department.HeadUserId and
+  // approve/reject is guarded (queue/detail/submit consume /api/manager/... + /api/hr/jobs/{id}/status,
+  // not the HR-only job list). Deliberately NOT granting HR job-management permissions.
+  PERMISSIONS.JOB_APPROVE,
   PERMISSIONS.INTERVIEW_VIEW_ALL,
   PERMISSIONS.LOOKUP_VIEW_DEPARTMENTS,
   PERMISSIONS.LOOKUP_VIEW_SKILLS,

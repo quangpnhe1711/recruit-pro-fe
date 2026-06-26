@@ -8,6 +8,7 @@ import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 import { getJobStatusPresentation } from "../../common/status/jobStatus";
+import { toneBadgeClassName } from "../../common/status/statusPresentation";
 
 function formatDateLabel(value: string | null) {
   if (!value) return "Không rõ";
@@ -20,19 +21,6 @@ function formatDateLabel(value: string | null) {
     month: "short",
     year: "numeric",
   });
-}
-
-function statusBadge(status: string) {
-  switch (status.toLowerCase()) {
-    case "pendingapproval":
-      return "bg-sky-50 text-sky-700";
-    case "approved":
-      return "bg-emerald-50 text-emerald-700";
-    case "rejected":
-      return "bg-rose-50 text-rose-700";
-    default:
-      return "bg-[#f2efed] text-[#5f5e5e]";
-  }
 }
 
 function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): TableColumn<ManagerJobApprovalQueueItemDto>[] {
@@ -83,7 +71,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
       header: "Trạng thái",
       renderCell: (item) => (
         <div className="space-y-2">
-          <span className={`badge ${statusBadge(item.status)}`}>
+          <span className={`badge ${toneBadgeClassName(getJobStatusPresentation(item.status).tone)}`}>
             {getJobStatusPresentation(item.status).label}
           </span>
           <p className={`flex items-center gap-1 text-[12px] font-semibold ${item.isOverdue ? "text-[#ba1a1a]" : "text-[#5f5e5e]"}`}>
@@ -217,10 +205,10 @@ function ManagerJobApprovalListScreen() {
     <div className="app-container animate-fade-in py-8">
       <PageHeader
         className="mb-7"
-        eyebrow="Quy trình duyệt tuyển dụng"
+        eyebrow="Trưởng bộ phận duyệt tin tuyển dụng"
         icon="approval"
         title="Duyệt tin tuyển dụng"
-        subtitle="Xem lại các job HR đã gửi lên, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa."
+        subtitle="Xem lại các tin tuyển dụng của phòng ban bạn phụ trách, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa."
         actions={
           <div className="relative w-full sm:w-72">
             <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">

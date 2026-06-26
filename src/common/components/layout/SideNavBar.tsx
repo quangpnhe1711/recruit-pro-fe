@@ -54,6 +54,7 @@ const managerItems: SideNavItem[] = [
 
 const headDepartmentItems: SideNavItem[] = [
   { icon: "dashboard", label: "Tổng quan", to: "/hr/dashboard" },
+  { icon: "approval", label: "Duyệt tin tuyển dụng", to: "/jobs" },
   { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
   { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
 ];
@@ -134,7 +135,7 @@ function SideNavBar({
         : primaryRole === ROLE_NAMES.SYSTEM_ADMIN
           ? "Quản trị hệ thống"
           : primaryRole === ROLE_NAMES.HEAD_DEPARTMENT
-            ? "Điều phối phỏng vấn"
+            ? "Trưởng bộ phận duyệt tin"
             : primaryRole === ROLE_NAMES.MANAGER
               ? "Phê duyệt tuyển dụng"
               : "Vận hành tuyển dụng",

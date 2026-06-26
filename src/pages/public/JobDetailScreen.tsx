@@ -40,6 +40,7 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
 import { jobsService } from "../../services/jobs/jobsService";
+import { getJobStatusErrorMessage } from "../../common/utils/apiError";
 
 type RecentApplication = {
   id: string;
@@ -78,6 +79,35 @@ type JobEditForm = {
 
 function Icon({ name }: { name: string }) {
   return <span className="material-symbols-outlined">{name}</span>;
+}
+
+// Ownership snapshot row (Phase 2/3). Name/email are optional — render a safe fallback when absent so
+// the panel never breaks for jobs without an assigned recruiter / department head.
+function OwnershipRow({
+  icon,
+  label,
+  name,
+  email,
+  fallback,
+}: {
+  icon: string;
+  label: string;
+  name: string | null | undefined;
+  email: string | null | undefined;
+  fallback: string;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">{label}</p>
+        <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">{name || fallback}</p>
+        {name && email ? (
+          <p className="truncate text-[12px] text-[#5f5e5e]">{email}</p>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function formatCurrency(amount: number | null) {
@@ -387,8 +417,8 @@ function JobDetailScreen() {
       });
       toast.success("Đã đóng tin tuyển dụng.");
       await loadDetail();
-    } catch {
-      toast.error("Không thể đóng tin tuyển dụng.");
+    } catch (error) {
+      toast.error(getJobStatusErrorMessage(error, "Không thể đóng tin tuyển dụng."));
     } finally {
       setClosing(false);
     }
@@ -407,8 +437,10 @@ function JobDetailScreen() {
       });
       toast.success("Đã mở lại tin tuyển dụng.");
       await loadDetail();
-    } catch {
-      toast.error("Không thể mở lại tin tuyển dụng.");
+    } catch (error) {
+      // Reopening transitions the job back to Approved, which routes through the department-head
+      // approval guard (BR-OWN-003) — surface the 403/422 reason instead of a generic message.
+      toast.error(getJobStatusErrorMessage(error, "Không thể mở lại tin tuyển dụng."));
     } finally {
       setClosing(false);
     }
@@ -1041,6 +1073,51 @@ function JobDetailScreen() {
                   </div>
                 </section>
               </PermissionGuard>
+
+              {isInternalPortal && detail.ownership ? (
+                <section className="card p-6">
+                  <h3 className="section-title mb-1">Phụ trách & phê duyệt</h3>
+                  <p className="mb-5 text-[12px] leading-5 text-[#8a8786]">
+                    Quyền duyệt/từ chối thuộc về trưởng bộ phận của phòng ban (hoặc quản trị hệ thống).
+                  </p>
+                  <dl className="space-y-4">
+                    <OwnershipRow
+                      icon="badge"
+                      label="Recruiter phụ trách"
+                      name={detail.ownership.recruiterName}
+                      email={detail.ownership.recruiterEmail}
+                      fallback="Chưa phân công"
+                    />
+                    <OwnershipRow
+                      icon="supervisor_account"
+                      label="Trưởng bộ phận"
+                      name={
+                        detail.ownership.departmentHeadName ??
+                        detail.ownership.effectiveDepartmentHeadName
+                      }
+                      email={
+                        detail.ownership.departmentHeadEmail ??
+                        detail.ownership.effectiveDepartmentHeadEmail
+                      }
+                      fallback="Chưa có trưởng bộ phận"
+                    />
+                    <OwnershipRow
+                      icon="person_add"
+                      label="Người tạo"
+                      name={detail.ownership.createdByName}
+                      email={null}
+                      fallback="Không rõ"
+                    />
+                    <OwnershipRow
+                      icon="verified"
+                      label="Người duyệt gần nhất"
+                      name={detail.ownership.approvedByName}
+                      email={null}
+                      fallback="Chưa duyệt"
+                    />
+                  </dl>
+                </section>
+              ) : null}
 
               <section className={`${quickApplyCardClass} p-6 lg:sticky lg:top-6`}>
                 <h3 className="eyebrow mb-5">

@@ -28,6 +28,10 @@ type Job = {
   applicationsCount: number;
   createdByUserId: string;
   createdByName: string;
+  // Ownership snapshot (Phase 2/3) — display-only, optional. recruiter = business owner;
+  // departmentHead = effective head (falls back to the approver on the backend). Both may be null.
+  recruiterName: string | null;
+  departmentHeadName: string | null;
 };
 
 const creatorAllOption = "Tất cả người tạo";
@@ -65,6 +69,22 @@ function buildJobTableColumns(
       header: "Phòng ban",
       renderCell: (job) => (
         <p className="text-[14px] text-[#5f5e5e]">{job.department}</p>
+      ),
+    },
+    {
+      key: "owner",
+      header: "Phụ trách",
+      renderCell: (job) => (
+        <div className="space-y-0.5 text-[12px] leading-5">
+          <p className="text-[#1a1c1c]">
+            <span className="text-[#8a8786]">Recruiter: </span>
+            {job.recruiterName || job.createdByName || "Chưa phân công"}
+          </p>
+          <p className="text-[#5f5e5e]">
+            <span className="text-[#8a8786]">Trưởng bộ phận: </span>
+            {job.departmentHeadName || "Chưa có trưởng bộ phận"}
+          </p>
+        </div>
       ),
     },
     {
@@ -163,6 +183,9 @@ function JobManagementScreen() {
             applicationsCount: item.applicationCount,
             createdByUserId: item.createdBy.id,
             createdByName: item.createdBy.fullName || "Không rõ",
+            recruiterName: item.recruiterName ?? null,
+            departmentHeadName:
+              item.effectiveDepartmentHeadName ?? item.departmentHeadName ?? null,
           })),
         );
         setStats(

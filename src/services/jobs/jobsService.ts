@@ -136,6 +136,13 @@ function normalizeJobListItem(
     approvedBy: item.approvedBy ?? null,
     vacancyCount: item.vacancyCount ?? 0,
     deadline: item.deadline ?? null,
+    // Ownership snapshot (Phase 2/3) — pass through when present, else null. Display-only.
+    recruiterId: item.recruiterId ?? null,
+    recruiterName: item.recruiterName ?? null,
+    departmentHeadId: item.departmentHeadId ?? null,
+    departmentHeadName: item.departmentHeadName ?? null,
+    effectiveDepartmentHeadId: item.effectiveDepartmentHeadId ?? null,
+    effectiveDepartmentHeadName: item.effectiveDepartmentHeadName ?? null,
     status: normalizeJobStatus(item.status ?? item.approvalStatus),
   } as JobListItemDto;
 }
@@ -230,6 +237,20 @@ type RawHrJobDetail = {
   vacancyCount?: number | null;
   status?: string;
   description?: string[] | string | null;
+  // Ownership snapshot (Phase 2/3) — present on GET /api/hr/jobs/{id}.
+  recruiterId?: string | null;
+  recruiterName?: string | null;
+  recruiterEmail?: string | null;
+  departmentHeadId?: string | null;
+  departmentHeadName?: string | null;
+  departmentHeadEmail?: string | null;
+  effectiveDepartmentHeadId?: string | null;
+  effectiveDepartmentHeadName?: string | null;
+  effectiveDepartmentHeadEmail?: string | null;
+  createdBy?: string | null;
+  createdByName?: string | null;
+  approvedBy?: string | null;
+  approvedByName?: string | null;
 };
 
 function normalizeEmploymentType(value?: string | null): JobDetailDto["employmentType"] {
@@ -387,6 +408,21 @@ function normalizeHrJobDetail(item: RawHrJobDetail | null | undefined): JobDetai
     recentApplications: [],
     hiringFunnel: [],
     availableActions: [],
+    ownership: {
+      recruiterId: item?.recruiterId ?? null,
+      recruiterName: item?.recruiterName ?? null,
+      recruiterEmail: item?.recruiterEmail ?? null,
+      departmentHeadId: item?.departmentHeadId ?? null,
+      departmentHeadName: item?.departmentHeadName ?? null,
+      departmentHeadEmail: item?.departmentHeadEmail ?? null,
+      effectiveDepartmentHeadId: item?.effectiveDepartmentHeadId ?? null,
+      effectiveDepartmentHeadName: item?.effectiveDepartmentHeadName ?? null,
+      effectiveDepartmentHeadEmail: item?.effectiveDepartmentHeadEmail ?? null,
+      createdById: item?.createdBy ?? null,
+      createdByName: item?.createdByName ?? null,
+      approvedById: item?.approvedBy ?? null,
+      approvedByName: item?.approvedByName ?? null,
+    },
   };
 }
 

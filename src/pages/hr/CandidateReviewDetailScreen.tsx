@@ -884,6 +884,15 @@ function CandidateReviewDetailScreen() {
                   label="Người phụ trách"
                   value={detail.reviewedBy?.fullName || "Chưa phân công"}
                 />
+                {/* Ownership snapshot (Phase 2/3, BR-OWN-005) — optional, null-safe. */}
+                <InfoItem
+                  label="Recruiter phụ trách"
+                  value={detail.assignedRecruiterName || "Chưa phân công"}
+                />
+                <InfoItem
+                  label="Trưởng bộ phận phê duyệt"
+                  value={detail.assignedDepartmentHeadName || "Chưa có trưởng bộ phận"}
+                />
                 <InfoItem
                   label="Trạng thái offer"
                   value={formatOfferStatusVi(detail.offerStatus)}
