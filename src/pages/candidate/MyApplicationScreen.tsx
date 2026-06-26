@@ -9,10 +9,9 @@ import CommonPagination from "../../common/components/CommonPagination";
 import { Skeleton, SkeletonRows } from "../../common/components/Skeleton";
 import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
-import {
-  applicationStatusFilterOptions,
-  getApplicationStatusMeta,
-} from "../../common/utils/applicationPresentation";
+import { applicationStatusFilterOptions } from "../../common/utils/applicationPresentation";
+import { getApplicationStatusPresentation } from "../../common/status/statusPresentation";
+import { normalizeApplicationStatus } from "../../common/status/applicationStatus";
 import { PERMISSIONS } from "../../permissions/permissions";
 import {
   candidateService,
@@ -51,7 +50,13 @@ function mapApplicationItem(
   index: number,
   interviews: CandidateInterviewItemDto[],
 ) {
-  const status = getApplicationStatusMeta(item.status, "candidate");
+  // Drive presentation + logic off the canonical status key only — never the localized API text.
+  // `getApplicationStatusPresentation` returns an English label (ManagerReview → "Head Review") and a
+  // neutral "Unknown" for unrecognized values (never Rejected). `statusKey` is the lowercased canonical
+  // value used for filtering / the interview check; unknown statuses key to "unknown".
+  const presentation = getApplicationStatusPresentation(item.status);
+  const canonicalStatus = normalizeApplicationStatus(item.status);
+  const statusKey = canonicalStatus ? canonicalStatus.toLowerCase() : "unknown";
   const relatedInterviewCount = interviews.filter(
     (interview) => toJobKey(interview.jobTitle) === toJobKey(item.jobTitle),
   ).length;
@@ -66,9 +71,9 @@ function mapApplicationItem(
       ? new Date(item.appliedDate).toLocaleDateString("vi-VN")
       : "",
     appliedDateValue: item.appliedDate ?? "",
-    status: status.label,
-    statusKey: status.key,
-    statusClass: status.className,
+    status: presentation.label,
+    statusKey,
+    statusClass: presentation.badgeClassName,
     nextStep: item.nextStep,
     availableActions: item.availableActions ?? [],
     relatedInterviewCount,

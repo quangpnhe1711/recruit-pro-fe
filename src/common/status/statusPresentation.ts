@@ -5,9 +5,6 @@ import {
   ApplicationStatus,
   normalizeApplicationStatus,
 } from "./applicationStatus";
-import {
-  getApplicationStatusMeta,
-} from "../utils/applicationPresentation";
 
 export type StatusTone =
   | "neutral"
@@ -52,18 +49,39 @@ const APPLICATION_STATUS_TONE: Record<ApplicationStatus, StatusTone> = {
   Withdrawn: "neutral",
 };
 
-// Application status presentation. Label + badge classes reuse the existing canonical map
-// (applicationPresentation), augmented with a semantic tone.
-export function getApplicationStatusPresentation(
-  value: unknown,
-  variant: "default" | "candidate" | "detail" = "default",
-): StatusPresentation {
-  const meta = getApplicationStatusMeta(typeof value === "string" ? value : "", variant);
-  const canonical = normalizeApplicationStatus(value) ?? ApplicationStatus.Rejected;
+// Canonical English display labels for ApplicationStatus. Statuses stay English (user preference);
+// ManagerReview presents as "Head Review" (= the DepartmentHeadReview business stage — the enum value
+// is NOT renamed). Localized explanatory text (nextStep) lives elsewhere, not here.
+const APPLICATION_STATUS_ENGLISH_LABEL: Record<ApplicationStatus, string> = {
+  Applied: "Applied",
+  Screening: "Screening",
+  ManagerReview: "Head Review",
+  Interview: "Interview",
+  Offer: "Offer",
+  Hired: "Hired",
+  Rejected: "Rejected",
+  OfferDeclined: "Offer Declined",
+  Withdrawn: "Withdrawn",
+};
+
+// Application status presentation. Branches ONLY on the canonical status (never a localized label).
+// An unknown/unrecognized value resolves to a NEUTRAL "Unknown" — it must never collapse to Rejected
+// (the prior `?? Rejected` fallback was the source of the "Từ chối" mislabel bug).
+export function getApplicationStatusPresentation(value: unknown): StatusPresentation {
+  const canonical = normalizeApplicationStatus(value);
+  if (!canonical) {
+    return {
+      label: "Unknown",
+      tone: "neutral",
+      badgeClassName: toneBadgeClassName("neutral"),
+    };
+  }
+
+  const tone = APPLICATION_STATUS_TONE[canonical];
   return {
-    label: meta.label,
-    tone: APPLICATION_STATUS_TONE[canonical],
-    badgeClassName: meta.className,
+    label: APPLICATION_STATUS_ENGLISH_LABEL[canonical],
+    tone,
+    badgeClassName: toneBadgeClassName(tone),
   };
 }
 

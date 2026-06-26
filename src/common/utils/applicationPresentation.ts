@@ -7,7 +7,8 @@ export type ApplicationStatusKey =
   | "hired"
   | "rejected"
   | "offerdeclined"
-  | "withdrawn";
+  | "withdrawn"
+  | "unknown";
 
 export type ApplicationStatusLabel =
   | "Đã ứng tuyển"
@@ -18,7 +19,8 @@ export type ApplicationStatusLabel =
   | "Đã nhận việc"
   | "Từ chối"
   | "Từ chối offer"
-  | "Đã rút đơn";
+  | "Đã rút đơn"
+  | "Không xác định";
 
 type ApplicationStatusVariant = "default" | "candidate" | "detail";
 
@@ -112,6 +114,17 @@ const APPLICATION_STATUS_META: Record<ApplicationStatusKey, ApplicationStatusMet
       detail: "bg-slate-100 text-slate-600 border-slate-300",
     },
   },
+  // Safe fallback for any unrecognized status — NEUTRAL, never the red "Từ chối" (rejected) badge.
+  // An unknown status must never be presented as a company rejection.
+  unknown: {
+    key: "unknown",
+    label: "Không xác định",
+    classes: {
+      default: "bg-slate-100 text-slate-600 border-slate-200",
+      candidate: "bg-slate-100 text-slate-600",
+      detail: "bg-slate-100 text-slate-600 border-slate-300",
+    },
+  },
 };
 
 export const applicationStatusOptions: ApplicationStatusLabel[] = [
@@ -175,8 +188,11 @@ export function normalizeApplicationStatusKey(status: string): ApplicationStatus
     case "rútđơn":
       return "withdrawn";
     case "rejected":
-    default:
       return "rejected";
+    // Unknown/unrecognized → neutral "unknown", NEVER "rejected" (INV-012). A localized status label
+    // (e.g. "HR đang sàng lọc") that slips through must not be mislabeled as a company rejection.
+    default:
+      return "unknown";
   }
 }
 

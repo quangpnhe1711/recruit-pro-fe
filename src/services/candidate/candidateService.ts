@@ -35,7 +35,11 @@ export type CandidateApplicationItemDto = {
   jobTitle: string;
   companyOrDepartment: string;
   appliedDate: string;
+  // Canonical English ApplicationStatus enum value — drives all FE logic. Never a localized label.
   status: string;
+  // Localized (Vietnamese) display label from the API. Presentation only; must not drive logic.
+  // Optional for backward compatibility with older payloads.
+  statusLabel?: string;
   nextStep: string;
   availableActions: string[];
 };
