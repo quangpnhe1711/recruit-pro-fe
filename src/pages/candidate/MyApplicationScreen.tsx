@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
@@ -370,8 +371,8 @@ function MyApplicationScreen() {
       setSelectedApplicationId((current) =>
         current === item.id ? null : current,
       );
-    } catch {
-      toast.error("Không thể rút đơn ứng tuyển lúc này.");
+    } catch (error) {
+      toast.error(getApplicationErrorMessage(error, "Không thể rút đơn ứng tuyển lúc này."));
     } finally {
       setActionLoadingId(null);
     }
@@ -390,8 +391,8 @@ function MyApplicationScreen() {
       await candidateService.acceptOffer(item.id);
       toast.success("Bạn đã xác nhận nhận offer.");
       await loadData();
-    } catch {
-      toast.error("Không thể xác nhận offer lúc này.");
+    } catch (error) {
+      toast.error(getApplicationErrorMessage(error, "Không thể xác nhận offer lúc này."));
     } finally {
       setActionLoadingId(null);
     }
@@ -410,8 +411,8 @@ function MyApplicationScreen() {
       await candidateService.declineOffer(item.id);
       toast.success("Bạn đã từ chối offer.");
       await loadData();
-    } catch {
-      toast.error("Không thể từ chối offer lúc này.");
+    } catch (error) {
+      toast.error(getApplicationErrorMessage(error, "Không thể từ chối offer lúc này."));
     } finally {
       setActionLoadingId(null);
     }

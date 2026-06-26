@@ -8,7 +8,10 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 
-type CandidateStatus = "Mới" | "Đang xem xét" | "Đã phỏng vấn" | "Từ chối";
+// Candidate-list review state is a DERIVED DISPLAY GROUP (not the ApplicationStatus workflow). It
+// summarizes where a candidate sits across their applications. Logic/filtering keys off these stable
+// keys; the Vietnamese text lives only in CANDIDATE_REVIEW_STATE_META for display (INV-012).
+type CandidateReviewState = "new" | "reviewing" | "interviewed" | "rejected";
 type CandidateSource = "Portal" | "LinkedIn" | "Import hàng loạt";
 
 type Candidate = {
@@ -20,24 +23,18 @@ type Candidate = {
   source: CandidateSource;
   appliedDate: string;
   appliedAt: number;
-  status: CandidateStatus;
+  status: CandidateReviewState;
 };
 
-const statuses: CandidateStatus[] = [
-  "Mới",
-  "Đang xem xét",
-  "Đã phỏng vấn",
-  "Từ chối",
-];
-const sources: CandidateSource[] = ["Portal", "LinkedIn", "Import hàng loạt"];
-
-const statusOptions: ("Tất cả trạng thái" | CandidateStatus)[] = [
-  "Tất cả trạng thái",
-  "Mới",
-  "Đang xem xét",
-  "Đã phỏng vấn",
-  "Từ chối",
-];
+const CANDIDATE_REVIEW_STATE_META: Record<
+  CandidateReviewState,
+  { label: string; wrapper: string; icon: string }
+> = {
+  new: { label: "Mới", wrapper: "bg-amber-100 text-amber-800", icon: "new_releases" },
+  reviewing: { label: "Đang xem xét", wrapper: "bg-blue-100 text-blue-800", icon: "schedule" },
+  interviewed: { label: "Đã phỏng vấn", wrapper: "bg-green-100 text-green-800", icon: "check_circle" },
+  rejected: { label: "Từ chối", wrapper: "bg-red-100 text-red-800", icon: "cancel" },
+};
 
 const sourceOptions: ("Tất cả nguồn" | CandidateSource)[] = [
   "Tất cả nguồn",
@@ -46,52 +43,39 @@ const sourceOptions: ("Tất cả nguồn" | CandidateSource)[] = [
   "Import hàng loạt",
 ];
 
-function parseDateLabelToEpoch(label: string) {
-  const parsed = Date.parse(label);
-  return Number.isNaN(parsed) ? Date.now() : parsed;
-}
+// Stable filter keys: "all" + the derived review states. Labels resolved from the meta map.
+const candidateStatusFilterOptions: { label: string; value: "all" | CandidateReviewState }[] = [
+  { label: "Tất cả trạng thái", value: "all" },
+  { label: CANDIDATE_REVIEW_STATE_META.new.label, value: "new" },
+  { label: CANDIDATE_REVIEW_STATE_META.reviewing.label, value: "reviewing" },
+  { label: CANDIDATE_REVIEW_STATE_META.interviewed.label, value: "interviewed" },
+  { label: CANDIDATE_REVIEW_STATE_META.rejected.label, value: "rejected" },
+];
 
-function normalizeCandidateStatus(status: string): CandidateStatus {
-  switch (status.trim().toLowerCase()) {
+// Map raw backend candidate/application status strings → stable derived key (done once here).
+function normalizeCandidateReviewState(status: string): CandidateReviewState {
+  switch (status.trim().toLowerCase().replace(/[_\s-]+/g, "")) {
     case "reviewing":
-    case "under review":
+    case "underreview":
+    case "screening":
     case "managerreview":
-      return "Đang xem xét";
+      return "reviewing";
     case "interviewing":
+    case "interview":
+    case "offer":
+    case "hired":
     case "accepted":
-      return "Đã phỏng vấn";
+      return "interviewed";
     case "rejected":
-      return "Từ chối";
+    case "offerdeclined":
+      return "rejected";
     default:
-      return "Mới";
+      return "new";
   }
 }
 
-function statusChip(status: CandidateStatus) {
-  switch (status) {
-    case "Đã phỏng vấn":
-      return {
-        wrapper: "bg-green-100 text-green-800",
-        icon: "check_circle",
-      };
-    case "Đang xem xét":
-      return {
-        wrapper: "bg-blue-100 text-blue-800",
-        icon: "schedule",
-      };
-    case "Mới":
-      return {
-        wrapper: "bg-amber-100 text-amber-800",
-        icon: "new_releases",
-      };
-    case "Từ chối":
-      return {
-        wrapper: "bg-red-100 text-red-800",
-        icon: "cancel",
-      };
-    default:
-      return { wrapper: "bg-gray-100 text-gray-800", icon: "help" };
-  }
+function statusChip(status: CandidateReviewState) {
+  return CANDIDATE_REVIEW_STATE_META[status];
 }
 
 function sourceChip(source: CandidateSource) {
@@ -236,7 +220,7 @@ function CandidateListScreen() {
             appliedAt: item.appliedDate
               ? Date.parse(item.appliedDate)
               : Date.now(),
-            status: normalizeCandidateStatus(item.status),
+            status: normalizeCandidateReviewState(item.status),
           })),
         );
       })
@@ -251,7 +235,7 @@ function CandidateListScreen() {
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("Tất cả trạng thái");
+  const [statusFilter, setStatusFilter] = useState<"all" | CandidateReviewState>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("Tất cả nguồn");
   const [page, setPage] = useState<number>(1);
 
@@ -266,7 +250,7 @@ function CandidateListScreen() {
             c.email.toLowerCase().includes(searchTerm.toLowerCase()),
       )
       .filter((c) =>
-        statusFilter === "Tất cả trạng thái" ? true : c.status === statusFilter,
+        statusFilter === "all" ? true : c.status === statusFilter,
       )
       .filter((c) =>
         sourceFilter === "Tất cả nguồn" ? true : c.source === sourceFilter,
@@ -294,7 +278,7 @@ function CandidateListScreen() {
       return daysOld <= 7;
     }).length;
     const pendingReviews = candidates.filter(
-      (c) => c.status === "Đang xem xét",
+      (c) => c.status === "reviewing",
     ).length;
 
     return {
@@ -408,10 +392,10 @@ function CandidateListScreen() {
           <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto">
             <CommonSelect
               className="h-[42px] min-w-[200px] text-sm"
-              options={statusOptions.map((status) => ({ label: status, value: status }))}
+              options={candidateStatusFilterOptions}
               value={statusFilter}
               onChange={(event) => {
-                setStatusFilter(event.target.value);
+                setStatusFilter(event.target.value as "all" | CandidateReviewState);
                 resetToFirstPage();
               }}
             />

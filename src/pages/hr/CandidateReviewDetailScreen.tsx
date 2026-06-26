@@ -1,6 +1,11 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  ApplicationStatus,
+  normalizeApplicationStatus,
+} from "../../common/status/applicationStatus";
+import { isOfferActionableStatus } from "../../common/status/offerStatus";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import { Skeleton, SkeletonText } from "../../common/components/Skeleton";
@@ -492,13 +497,14 @@ function CandidateReviewDetailScreen() {
                 Tải CV
               </button>
             ) : null}
-            {canSendOffer && detail.status.toLowerCase() === "offer" ? (
+            {canSendOffer &&
+            normalizeApplicationStatus(detail.status) === ApplicationStatus.Offer ? (
               <Link
                 className="btn btn-primary"
                 to={`/hr/applications/${detail.applicationId}/send-offer`}
               >
                 <span className="material-symbols-outlined text-[18px]">
-                  {detail.offerStatus?.toLowerCase() === "sent"
+                  {isOfferActionableStatus(detail.offerStatus)
                     ? "edit_document"
                     : "send"}
                 </span>
@@ -506,7 +512,8 @@ function CandidateReviewDetailScreen() {
               </Link>
             ) : null}
             {canScheduleInterview &&
-            ["managerreview", "interview"].includes(detail.status.toLowerCase()) ? (
+            (normalizeApplicationStatus(detail.status) === ApplicationStatus.ManagerReview ||
+              normalizeApplicationStatus(detail.status) === ApplicationStatus.Interview) ? (
               <Link
                 className="btn btn-secondary"
                 to={`/hr/interviews/schedule?applicationId=${detail.applicationId}`}

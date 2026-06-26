@@ -7,10 +7,12 @@ import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
-  applicationStatusOptions,
+  applicationStatusFilterOptions,
   formatApplicationStatus,
   getApplicationStatusBadgeClass,
   getDepartmentBadgeClass,
+  normalizeApplicationStatusKey,
+  type ApplicationStatusKey,
   type ApplicationStatusLabel,
 } from "../../common/utils/applicationPresentation";
 import { openProtectedFileInNewTab } from "../../common/utils/protectedFile";
@@ -50,6 +52,7 @@ type Application = {
   appliedDate: string;
   appliedAt: number;
   status: ApplicationStatusLabel;
+  statusKey: ApplicationStatusKey;
   recruiter: string;
   score: number | null;
 };
@@ -83,7 +86,6 @@ const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateType, string> = {
 };
 
 const JOB_FILTER_ALL = "ALL_JOBS";
-const STATUS_FILTER_ALL = "ALL_STATUSES";
 
 const emailTemplateOptions: Array<{
   label: string;
@@ -96,11 +98,6 @@ const emailTemplateOptions: Array<{
   { label: EMAIL_TEMPLATE_LABELS["Job Offer"], value: "Job Offer" },
   { label: EMAIL_TEMPLATE_LABELS["Rejection Mail"], value: "Rejection Mail" },
   { label: EMAIL_TEMPLATE_LABELS.Custom, value: "Custom" },
-];
-
-const statusOptions: ("Tất cả trạng thái" | ApplicationStatusLabel)[] = [
-  "Tất cả trạng thái",
-  ...applicationStatusOptions,
 ];
 
 const departmentOptions: Department[] = [
@@ -304,7 +301,7 @@ function CandidateApplicationScreen() {
   );
   const [departmentFilter, setDepartmentFilter] =
     useState<Department>("Tất cả phòng ban");
-  const [statusFilter, setStatusFilter] = useState<string>(STATUS_FILTER_ALL);
+  const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatusKey>("all");
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>("Anytime");
   const [page, setPage] = useState<number>(1);
   const [currentTime] = useState(() => Date.now());
@@ -340,6 +337,7 @@ function CandidateApplicationScreen() {
               ? Date.parse(item.appliedDate)
               : Date.now(),
             status: formatApplicationStatus(item.status),
+            statusKey: normalizeApplicationStatusKey(item.status),
             recruiter: item.recruiter,
             score: item.score,
           })),
@@ -383,8 +381,8 @@ function CandidateApplicationScreen() {
     }
 
     // Status filter
-    if (statusFilter !== STATUS_FILTER_ALL) {
-      result = result.filter((a) => a.status === statusFilter);
+    if (statusFilter !== "all") {
+      result = result.filter((a) => a.statusKey === statusFilter);
     }
 
     // Date range filter
@@ -607,14 +605,10 @@ function CandidateApplicationScreen() {
           <CommonSelect
             className="h-[42px] text-sm"
             wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
-            options={statusOptions.map((status) => ({
-              label: status,
-              value:
-                status === "Tất cả trạng thái" ? STATUS_FILTER_ALL : status,
-            }))}
+            options={applicationStatusFilterOptions}
             value={statusFilter}
             onChange={(event) => {
-              setStatusFilter(event.target.value);
+              setStatusFilter(event.target.value as "all" | ApplicationStatusKey);
               resetToFirstPage();
             }}
           />

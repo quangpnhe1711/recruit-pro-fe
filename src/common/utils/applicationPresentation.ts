@@ -137,7 +137,7 @@ export const applicationStatusFilterOptions = [
   { label: "Từ chối", value: "rejected" },
   { label: "Từ chối offer", value: "offerdeclined" },
   { label: "Đã rút đơn", value: "withdrawn" },
-] as const;
+];
 
 export function normalizeApplicationStatusKey(status: string): ApplicationStatusKey {
   switch (status.trim().toLowerCase().replace(/[_\s-]+/g, "")) {

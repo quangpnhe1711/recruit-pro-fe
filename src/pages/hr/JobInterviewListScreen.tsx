@@ -251,7 +251,7 @@ function buildInterviewTableColumns(
                     type="button"
                     className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
                     onClick={() => onReschedule(item)}
-                    disabled={item.status === "Completed"}
+                    disabled={normalizeInterviewStatus(item.status) === "Completed"}
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       schedule
@@ -444,8 +444,8 @@ function JobInterviewListScreen() {
   const stats = useMemo(() => {
     const base = items.filter(withinTimeframe);
     const total = base.length;
-    const actionNeeded = base.filter((x) => x.status === "Scheduled").length;
-    const completed = base.filter((x) => x.status === "Completed").length;
+    const actionNeeded = base.filter((x) => normalizeInterviewStatus(x.status) === "Scheduled").length;
+    const completed = base.filter((x) => normalizeInterviewStatus(x.status) === "Completed").length;
 
     const completionRate =
       total === 0 ? 0 : Math.round((completed / total) * 100);
@@ -501,7 +501,7 @@ function JobInterviewListScreen() {
   }
 
   const markCompleted = useCallback(async (it: Interview) => {
-    if (it.status === "Completed") {
+    if (normalizeInterviewStatus(it.status) === "Completed") {
       toast.info("Buổi phỏng vấn này đã hoàn tất.");
       return;
     }

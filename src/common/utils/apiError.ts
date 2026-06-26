@@ -68,3 +68,24 @@ export function resolveErrorMessage(
   if (env?.errorCode && byCode[env.errorCode]) return byCode[env.errorCode] as string;
   return env?.message ?? fallback;
 }
+
+// Centralized Vietnamese copy for application-domain error codes. Single source so screens never
+// branch on localized message text (INV-012) and stay consistent with the backend ERROR-CONTRACT.
+export const APPLICATION_ERROR_MESSAGES: Partial<Record<string, string>> = {
+  [ERROR_CODES.ApplicationAlreadyActive]: "Bạn đang có một đơn ứng tuyển còn hiệu lực cho vị trí này.",
+  [ERROR_CODES.ApplicationAlreadyHired]: "Bạn đã được tuyển cho vị trí này nên không thể ứng tuyển lại.",
+  [ERROR_CODES.JobNotAcceptingApplications]: "Vị trí này hiện không nhận hồ sơ mới.",
+  [ERROR_CODES.JobDeadlinePassed]: "Đã hết hạn nộp hồ sơ cho vị trí này.",
+  [ERROR_CODES.CandidateProfileIncomplete]: "Hồ sơ của bạn còn thiếu thông tin liên hệ bắt buộc.",
+  [ERROR_CODES.ResumeRequired]: "Vui lòng tải lên CV mới nhất trước khi ứng tuyển.",
+  [ERROR_CODES.ApplicationNotFound]: "Không tìm thấy hồ sơ ứng tuyển.",
+  [ERROR_CODES.ApplicationNotWithdrawable]: "Đơn ứng tuyển này không thể rút lại ở trạng thái hiện tại.",
+  [ERROR_CODES.InvalidApplicationTransition]: "Thao tác chuyển trạng thái không hợp lệ.",
+  [ERROR_CODES.InterviewNotActionable]: "Không thể thao tác phỏng vấn ở trạng thái hiện tại của hồ sơ.",
+  [ERROR_CODES.OfferNotActionable]: "Offer hiện không ở trạng thái có thể phản hồi.",
+};
+
+/** Resolve an application-domain error to Vietnamese copy (errorCode → status → message → fallback). */
+export function getApplicationErrorMessage(error: unknown, fallback: string): string {
+  return resolveErrorMessage(error, APPLICATION_ERROR_MESSAGES, fallback);
+}

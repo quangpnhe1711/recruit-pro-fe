@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { isOfferActionableStatus } from "../../common/status/offerStatus";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -253,8 +254,9 @@ function SendOfferScreen() {
     );
   }
 
-  const offerStatusTone =
-    editor.offer.status.toLowerCase() === "sent" ? "info" : "brand";
+  const offerStatusTone = isOfferActionableStatus(editor.offer.status)
+    ? "info"
+    : "brand";
 
   return (
     <div className="app-container animate-fade-in space-y-6 py-8">
