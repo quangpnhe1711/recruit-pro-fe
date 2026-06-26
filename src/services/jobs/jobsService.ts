@@ -82,6 +82,8 @@ function normalizeJobStatus(value?: string | null): JobListItemDto["status"] {
       return "REJECTED";
     case "APPROVED":
       return "APPROVED";
+    case "CLOSED":
+      return "CLOSED";
     default:
       return "PENDING_APPROVAL";
   }

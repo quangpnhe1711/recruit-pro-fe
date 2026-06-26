@@ -46,6 +46,9 @@ type RecentApplication = {
   candidateName: string;
   applied: string;
   status: ApplicationStatusLabel;
+  // Badge tone resolved from the raw status (canonical key), never re-derived from the localized
+  // label (INV-012) — a label would fall through to the rejected tone for non-rejected statuses.
+  statusClass: string;
   score: string;
   avatarUrl?: string;
   initials?: string;
@@ -213,6 +216,7 @@ function JobDetailScreen() {
             ? new Date(item.appliedAt).toLocaleDateString()
             : "",
           status: formatApplicationStatus(item.status),
+          statusClass: getApplicationStatusBadgeClass(item.status),
           score: "0",
           avatarUrl: item.candidate?.avatarUrl ?? undefined,
           initials:
@@ -973,7 +977,7 @@ function JobDetailScreen() {
                               {item.applied}
                             </td>
                             <td className="px-5 py-3.5">
-                              <span className={`badge ${getApplicationStatusBadgeClass(item.status)}`}>
+                              <span className={`badge ${item.statusClass}`}>
                                 {item.status}
                               </span>
                             </td>

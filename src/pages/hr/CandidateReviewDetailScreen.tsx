@@ -6,6 +6,7 @@ import {
   normalizeApplicationStatus,
 } from "../../common/status/applicationStatus";
 import { isOfferActionableStatus } from "../../common/status/offerStatus";
+import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import { Skeleton, SkeletonText } from "../../common/components/Skeleton";
@@ -351,8 +352,10 @@ function CandidateReviewDetailScreen() {
       );
       setDetail(response.data);
       toast.success("Đã cập nhật trạng thái hồ sơ.");
-    } catch {
-      toast.error("Không thể cập nhật trạng thái hồ sơ.");
+    } catch (error) {
+      // errorCode first (e.g. INVALID_APPLICATION_TRANSITION when the workflow rejects the move —
+      // BR-APPLICATION-006), then HTTP status, then message.
+      toast.error(getApplicationErrorMessage(error, "Không thể cập nhật trạng thái hồ sơ."));
     } finally {
       setSubmittingDecision(null);
     }

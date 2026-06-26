@@ -152,7 +152,7 @@ function buildCandidateTableColumns(
         return (
           <span className={`badge ${chip.wrapper}`}>
             <span className="material-symbols-outlined text-[14px] leading-none">{chip.icon}</span>
-            {candidate.status}
+            {chip.label}
           </span>
         );
       },

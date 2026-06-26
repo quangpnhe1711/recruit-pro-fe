@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApplicationErrorMessage } from "../../common/utils/apiError";
+import { InterviewStatus } from "../../common/status/interviewStatus";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import { Skeleton } from "../../common/components/Skeleton";
@@ -316,14 +318,18 @@ function InterviewScheduleScreen() {
         mode,
         locationOrLink: locationOrLink.trim(),
         interviewerId: currentInterviewer.id,
-        status: "confirmed",
+        // Persisted status is the canonical InterviewStatus.Scheduled, never the FE form token
+        // "confirmed" (BR-APPLICATION-008 / STATE-MACHINE Interview).
+        status: InterviewStatus.Scheduled,
       });
 
       window.localStorage.removeItem(draftStorageKey);
       toast.success("Đã lên lịch phỏng vấn.");
       navigate("/hr/interviews");
-    } catch {
-      toast.error("Không thể lên lịch phỏng vấn.");
+    } catch (error) {
+      // Surface the backend errorCode first (e.g. INTERVIEW_NOT_ACTIONABLE when the application is
+      // not in the Interview stage — BR-APPLICATION-008/INV-008), then HTTP status, then message.
+      toast.error(getApplicationErrorMessage(error, "Không thể lên lịch phỏng vấn."));
     } finally {
       setIsSubmitting(false);
     }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { isOfferActionableStatus } from "../../common/status/offerStatus";
+import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -207,8 +208,8 @@ function SendOfferScreen() {
       setEditor(response.data);
       setForm(mapEditorToForm(response.data));
       toast.success(response.message || "Đã lưu nháp offer.");
-    } catch {
-      toast.error("Không thể lưu nháp offer.");
+    } catch (error) {
+      toast.error(getApplicationErrorMessage(error, "Không thể lưu nháp offer."));
     } finally {
       setSaving(false);
     }
@@ -224,8 +225,10 @@ function SendOfferScreen() {
       setEditor(response.data);
       setForm(mapEditorToForm(response.data));
       toast.success(response.message || "Đã gửi offer thành công.");
-    } catch {
-      toast.error("Không thể gửi offer.");
+    } catch (error) {
+      // errorCode first (e.g. OFFER_NOT_ACTIONABLE when the application is not in the Offer stage —
+      // BR-APPLICATION-009/INV-009), then HTTP status, then message.
+      toast.error(getApplicationErrorMessage(error, "Không thể gửi offer."));
     } finally {
       setSending(false);
     }

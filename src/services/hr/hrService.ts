@@ -1,6 +1,7 @@
 import type { ApiResponse } from "../../common/types";
 import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
+import type { InterviewStatus } from "../../common/status/interviewStatus";
 import type {
   ApplicationReviewDecision,
   ApplicationReviewDetailDto,
@@ -241,7 +242,10 @@ export type CreateInterviewRequest = {
   mode: "video" | "inPerson";
   locationOrLink: string;
   interviewerId: string;
-  status: "draft" | "confirmed";
+  // Persisted interview status only — canonical backend InterviewStatus (Scheduled/Completed/Canceled).
+  // Local scheduling-form draft state (e.g. InterviewDraftState) must NOT be sent here. Optional: the
+  // backend defaults to Scheduled when omitted.
+  status?: InterviewStatus;
 };
 
 export type CandidateImportPreviewRowDto = {

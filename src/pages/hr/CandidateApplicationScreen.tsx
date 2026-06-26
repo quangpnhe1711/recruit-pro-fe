@@ -244,7 +244,10 @@ function buildApplicationTableColumns(
       key: "status",
       header: "Trạng thái",
       renderCell: (app) => (
-        <span className={`badge ${getApplicationStatusBadgeClass(app.status)}`}>
+        // Tone is derived from the canonical status key, never from the localized label
+        // (INV-012). Passing the VI label would fall through to the rejected tone for every
+        // non-rejected/withdrawn status.
+        <span className={`badge ${getApplicationStatusBadgeClass(app.statusKey)}`}>
           {app.status}
         </span>
       ),
