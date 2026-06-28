@@ -1,5 +1,6 @@
 import { type ReactNode, Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { getToastErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
@@ -525,9 +526,10 @@ function AiCopilotScreen() {
         });
         await sleep(45);
       }
-    } catch {
+    } catch (error) {
       setChat((current) => current.slice(0, -1));
-      toast.error("Không thể xếp hạng ứng viên.");
+      // Surface a clean backend message when present (4xx); otherwise a clear fallback — never empty.
+      toast.error(getToastErrorMessage(error, "Không thể xếp hạng ứng viên."));
     } finally {
       setRankingLoading(false);
       setLoadingStatus("");

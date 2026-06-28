@@ -333,3 +333,45 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================================
+   Toast polish (react-toastify) — align with the RecruitPro design system.
+   Rounded, elevated cards; brand-consistent type colors; readable copy.
+   The container/positioning and timer behavior are configured on
+   <ToastContainer> in App.tsx (pauseOnFocusLoss disabled there).
+   ========================================================================= */
+.Toastify__toast {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.25),
+    0 8px 10px -6px rgba(15, 23, 42, 0.15);
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.Toastify__toast-body {
+  font-weight: 500;
+  white-space: pre-line; /* preserve intentional line breaks; never collapse the message */
+}
+
+.Toastify__toast--success {
+  background: #15803d;
+}
+
+.Toastify__toast--error {
+  background: #c50f1b; /* brand crimson */
+}
+
+.Toastify__toast--warning {
+  background: #b45309;
+}
+
+.Toastify__toast--info {
+  background: #1d4ed8;
+}
+
+.Toastify__progress-bar {
+  height: 3px;
+}

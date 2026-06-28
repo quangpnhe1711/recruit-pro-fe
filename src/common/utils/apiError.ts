@@ -109,6 +109,25 @@ export function getApplicationErrorMessage(error: unknown, fallback: string): st
   return resolveErrorMessage(error, APPLICATION_ERROR_MESSAGES, fallback);
 }
 
+/**
+ * Generic toast message resolver. Surfaces a clean backend `message` for client-side (4xx) errors,
+ * but never the raw text of a 5xx/server error (those carry stack-like internals) and never an empty
+ * string — it always falls back to a clear, user-facing message. Use for toasts that don't have a
+ * domain-specific errorCode map.
+ */
+export function getToastErrorMessage(
+  error: unknown,
+  fallback = "Có lỗi xảy ra, vui lòng thử lại.",
+): string {
+  const env = readEnvelope(error);
+  const message = env?.message?.trim();
+  const status = env?.statusCode;
+  if (message && (status === undefined || status < 500)) {
+    return message;
+  }
+  return fallback;
+}
+
 // Centralized Vietnamese copy for the ownership / job-approval + cross-cutting auth codes. These back
 // the job status-change actions (approve / reject / close / reopen) that route through the guarded
 // PATCH /api/hr/jobs/{id}/status endpoint (BR-OWN-003).
