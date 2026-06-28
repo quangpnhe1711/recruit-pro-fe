@@ -109,7 +109,38 @@ were `Manager`-role only") is **fixed**:
 - Screen/route names kept (`ManagerJobApprovalListScreen`, `ManagerJobApprovalDetailScreen`,
   `/manager/...`) for compatibility; only the visible copy now reads "Trưởng bộ phận duyệt tin tuyển dụng".
 
-## 7. Things deliberately NOT done
+## 7. Canonical English status display (implemented)
+
+Status **badges, filters, and table status columns** render canonical **English**
+display labels everywhere. Vietnamese is reserved for `nextStep`/guidance, buttons,
+helper copy, empty states, errors, toasts, and page titles/subtitles. An unknown
+status renders as a neutral **"Unknown"** — it never collapses to "Rejected"
+(the INV-012 regression guard).
+
+- Application statuses: `src/common/status/statusPresentation.ts` and
+  `src/common/utils/applicationPresentation.ts` (kept in sync) →
+  Applied, Screening, **Head Review** (= `ManagerReview`), Interview, Offer, Hired,
+  Rejected, Offer Declined, Withdrawn, Unknown.
+- Job statuses: `src/common/status/jobStatus.ts` (and the `jobStatusLabels` map in
+  `modules/jobs/jobsSchema.ts`) → Draft, Pending Approval, Approved, Closed,
+  Rejected, Unknown.
+- The earlier Vietnamese labels in `applicationPresentation.ts` (e.g. "Từ chối",
+  "QL xét duyệt") and `jobStatus.ts` (e.g. "Chờ duyệt", "Đang tuyển") — which still
+  drove HR/candidate/manager badges and the analytics funnel — were converted to
+  English; the candidate review-state chips were likewise englishized.
+
+## 8. E2E verification (Playwright)
+
+Deterministic, backend-free Playwright tests under `e2e/` cover the ownership +
+status contract: **E2E-OWN-001** (candidate My Applications status display),
+**E2E-OWN-002** (DepartmentHead approval queue/detail + approve via
+`PATCH /api/hr/jobs/{id}/status`), **E2E-OWN-003** (HR ownership display + safe
+fallbacks). They seed an authenticated session into `localStorage` and mock every
+`/api/**` response via route interception (all HTTP 200). Run with `npm run e2e`
+(one-time `npm run e2e:install` for the Chromium binary). See
+`docs/testing/e2e-ownership-manual-checklist.md`.
+
+## 9. Things deliberately NOT done
 
 - No notification feature (that remains **Phase 6 / not implemented**). No role/enum/status rename
   (`ManagerReview` = the DepartmentHeadReview business stage, `HeadDepartment`, `Manager` all kept). No
