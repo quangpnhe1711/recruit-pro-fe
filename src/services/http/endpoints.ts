@@ -52,9 +52,11 @@ export const endpoints = {
   skills: "/skills",
   notifications: {
     list: "/notifications",
+    counts: "/notifications/counts",
     unreadCount: "/notifications/unread-count",
     markRead: (notificationId: string) => `/notifications/${notificationId}/read`,
     markAllRead: "/notifications/read-all",
+    markAllSeen: "/notifications/seen",
   },
   hr: {
     dashboard: "/hr/dashboard",

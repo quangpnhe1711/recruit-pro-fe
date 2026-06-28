@@ -315,10 +315,12 @@ function JobInterviewListScreen() {
   const [customRange, setCustomRange] = useState<Range>(() => {
     const start = new Date(anchorNow);
     const end = new Date(anchorNow);
-    end.setUTCDate(end.getUTCDate() + 7);
+    end.setDate(end.getDate() + 7);
 
-    const toIso = (d: Date) => d.toISOString().slice(0, 10);
-    return { start: toIso(start), end: toIso(end) };
+    // Use local date components to avoid UTC midnight shifting the date by ±1 day.
+    const toLocalIso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { start: toLocalIso(start), end: toLocalIso(end) };
   });
 
   const [page, setPage] = useState<number>(1);

@@ -44,6 +44,7 @@ export function NotificationProvider({ children }: PropsWithChildren) {
   );
   const userId = useSelector((state: RootState) => state.auth.user?.id ?? null);
   const [notifications, setNotifications] = useState<NotificationItemDto[]>([]);
+  const [unseenCount, setUnseenCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,15 +58,16 @@ export function NotificationProvider({ children }: PropsWithChildren) {
       }
 
       try {
-        const [notificationsResponse, unreadResponse] = await Promise.all([
+        const [notificationsResponse, countsResponse] = await Promise.all([
           notificationService.getNotifications(1, 8),
-          notificationService.getUnreadCount(),
+          notificationService.getCounts(),
         ]);
 
         const nextItems = notificationsResponse.data?.items ?? [];
 
         setNotifications(nextItems);
-        setUnreadCount(unreadResponse.data?.unreadCount ?? 0);
+        setUnseenCount(countsResponse.data?.unseen ?? 0);
+        setUnreadCount(countsResponse.data?.unread ?? 0);
       } finally {
         if (!silent) {
           setRefreshing(false);
@@ -79,6 +81,7 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     if (!isAuthenticated || !userId) {
       const resetTimer = window.setTimeout(() => {
         setNotifications([]);
+        setUnseenCount(0);
         setUnreadCount(0);
       }, 0);
       return () => window.clearTimeout(resetTimer);
@@ -97,19 +100,21 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     const runInitialLoad = async () => {
       setLoading(true);
       try {
-        const [notificationsResponse, unreadResponse] = await Promise.all([
+        const [notificationsResponse, countsResponse] = await Promise.all([
           notificationService.getNotifications(1, 8),
-          notificationService.getUnreadCount(),
+          notificationService.getCounts(),
         ]);
 
         if (cancelled) return;
 
         const nextItems = notificationsResponse.data?.items ?? [];
         setNotifications(nextItems);
-        setUnreadCount(unreadResponse.data?.unreadCount ?? 0);
+        setUnseenCount(countsResponse.data?.unseen ?? 0);
+        setUnreadCount(countsResponse.data?.unread ?? 0);
       } catch {
         if (!cancelled) {
           setNotifications([]);
+          setUnseenCount(0);
           setUnreadCount(0);
         }
       } finally {
@@ -131,6 +136,8 @@ export function NotificationProvider({ children }: PropsWithChildren) {
 
         return [notification, ...current].slice(0, 8);
       });
+      // New incoming notification is always unseen and unread.
+      setUnseenCount((current) => current + 1);
       setUnreadCount((current) => current + (notification.isRead ? 0 : 1));
       toast.info(notification.title || "Bạn có thông báo mới.");
     });
@@ -173,6 +180,19 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     };
   }, [isAuthenticated, refreshNotifications, userId]);
 
+  // Opening the bell: mark all as SEEN only. Do NOT mark as read.
+  const markAllSeen = async () => {
+    if (unseenCount === 0) return;
+
+    await notificationService.markAllSeen();
+    setNotifications((current) =>
+      current.map((notification) => ({ ...notification, isSeen: true })),
+    );
+    setUnseenCount(0);
+    // unreadCount is unchanged — items still show unread styling until clicked.
+  };
+
+  // Clicking a specific notification item: mark as read (also marks seen).
   const markAsRead = async (notificationId: string) => {
     const target = notifications.find(
       (notification) => notification.id === notificationId,
@@ -186,18 +206,22 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     setNotifications((current) =>
       current.map((notification) =>
         notification.id === notificationId
-          ? { ...notification, isRead: true }
+          ? { ...notification, isRead: true, isSeen: true }
           : notification,
       ),
     );
     setUnreadCount((current) => Math.max(0, current - 1));
+    if (!target.isSeen) {
+      setUnseenCount((current) => Math.max(0, current - 1));
+    }
   };
 
   const markAllAsRead = async () => {
     await notificationService.markAllAsRead();
     setNotifications((current) =>
-      current.map((notification) => ({ ...notification, isRead: true })),
+      current.map((notification) => ({ ...notification, isRead: true, isSeen: true })),
     );
+    setUnseenCount(0);
     setUnreadCount(0);
   };
 
@@ -205,10 +229,12 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     <NotificationContext.Provider
       value={{
         notifications,
+        unseenCount,
         unreadCount,
         loading,
         refreshing,
         markAsRead,
+        markAllSeen,
         markAllAsRead,
         refresh: () => refreshNotifications(false),
       }}
