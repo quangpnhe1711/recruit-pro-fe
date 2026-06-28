@@ -1,11 +1,14 @@
 import { useContext, useEffect, useId, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 import { usePermissions } from "../../../hooks/usePermissions";
 import { PERMISSIONS } from "../../../permissions/permissions";
 import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 import HeaderAvatarDropDown from "../../../pages/internal/HeaderAvatarDropDown";
 import type { RootState } from "../../../store";
+import type { NotificationItemDto } from "../../../services/notification/notificationService";
 import { NotificationContext } from "./NotificationContext";
 
 export type AppHeaderMenuItem = {
@@ -55,14 +58,40 @@ function formatRoleLabel(
   }
 }
 
+/** Extract a navigable URL from notification.data without crashing on bad data. */
+function resolveDeepLinkUrl(notification: NotificationItemDto): string | null {
+  try {
+    const raw = notification.data;
+    if (!raw) return null;
+
+    let parsed: Record<string, unknown>;
+    if (typeof raw === "string") {
+      parsed = JSON.parse(raw) as Record<string, unknown>;
+    } else {
+      parsed = raw as Record<string, unknown>;
+    }
+
+    const url = parsed["url"];
+    if (typeof url === "string" && url.startsWith("/")) {
+      return url;
+    }
+  } catch {
+    // Malformed data — do not crash the bell.
+  }
+  return null;
+}
+
 function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHeaderProps) {
+  const navigate = useNavigate();
   const authUser = useSelector((state: RootState) => state.auth.user);
   const {
     notifications,
+    unseenCount,
     unreadCount,
     loading,
     refreshing,
     markAsRead,
+    markAllSeen,
     markAllAsRead,
     refresh,
   } = useContext(NotificationContext);
@@ -82,6 +111,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
   const canViewInternalProfile = hasPermission(
     PERMISSIONS.PROFILE_VIEW_INTERNAL,
   );
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -112,6 +142,30 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
             : []),
           { label: "Tổng quan", to: defaultPath },
         ]);
+
+  function handleBellClick() {
+    const wasOpen = open;
+    setOpen((value) => !value);
+    if (!wasOpen) {
+      // Opening the bell: refresh list then mark all as SEEN.
+      // Do NOT mark as read — reading requires an intentional item click.
+      void refresh().then(() => void markAllSeen());
+    }
+  }
+
+  async function handleNotificationClick(notification: NotificationItemDto) {
+    // Mark this specific notification as read.
+    await markAsRead(notification.id);
+
+    // Navigate to the stored deep-link URL.
+    const url = resolveDeepLinkUrl(notification);
+    if (url) {
+      setOpen(false);
+      navigate(url);
+    } else {
+      toast.info("Không tìm thấy đường dẫn thông báo.", { toastId: "noti-no-url" });
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#ececec] bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70">
@@ -150,17 +204,12 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                 aria-expanded={open}
                 className="premium-action relative flex h-10 w-10 items-center justify-center rounded-lg text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014]"
                 type="button"
-                onClick={() => {
-                  setOpen((value) => !value);
-                  if (!open) {
-                    void refresh();
-                  }
-                }}
+                onClick={handleBellClick}
               >
                 <span className="material-symbols-outlined">notifications</span>
-                {unreadCount > 0 ? (
+                {unseenCount > 0 ? (
                   <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#b90014] px-1 text-[11px] font-bold text-white">
-                    {unreadCount > 99 ? "99+" : unreadCount}
+                    {unseenCount > 99 ? "99+" : unseenCount}
                   </span>
                 ) : null}
               </button>
@@ -187,7 +236,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                       disabled={!unreadCount}
                       onClick={() => void markAllAsRead()}
                     >
-                      Đánh dấu tất cả
+                      Đánh dấu tất cả đã đọc
                     </button>
                   </div>
 
@@ -204,18 +253,18 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                             notification.isRead ? "bg-white" : "bg-[#fff7f8]"
                           }`}
                           type="button"
-                          onClick={() => void markAsRead(notification.id)}
+                          onClick={() => void handleNotificationClick(notification)}
                         >
                           <div className="flex items-start gap-3">
                             <span
-                              className={`mt-1 h-2.5 w-2.5 rounded-full ${
+                              className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
                                 notification.isRead
                                   ? "bg-[#d8d3d2]"
                                   : "bg-[#b90014]"
                               }`}
                             />
                             <div className="min-w-0 flex-1">
-                              <p className="text-[13px] font-semibold text-[#1a1c1c]">
+                              <p className={`text-[13px] font-semibold ${notification.isRead ? "text-[#5f5e5e]" : "text-[#1a1c1c]"}`}>
                                 {notification.title}
                               </p>
                               <p className="mt-1 line-clamp-2 text-[12px] leading-5 text-[#5f5e5e]">

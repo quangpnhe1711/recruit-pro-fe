@@ -13,6 +13,7 @@ export type NotificationItemDto = {
   entityType?: string | null;
   entityId?: string | null;
   isRead: boolean;
+  isSeen: boolean;
   createdAt: string;
 };
 
@@ -21,8 +22,9 @@ export type NotificationListResponseDto = {
   meta?: ApiResponse<unknown>["meta"];
 };
 
-export type NotificationUnreadCountDto = {
-  unreadCount: number;
+export type NotificationCountsDto = {
+  unseen: number;
+  unread: number;
 };
 
 function isMethodNotAllowedError(error: unknown) {
@@ -48,9 +50,15 @@ export const notificationService = {
     );
   },
 
-  getUnreadCount: async (): Promise<ApiResponse<NotificationUnreadCountDto>> => {
-    return request.get<ApiResponse<NotificationUnreadCountDto>>(
-      endpoints.notifications.unreadCount,
+  getCounts: async (): Promise<ApiResponse<NotificationCountsDto>> => {
+    return request.get<ApiResponse<NotificationCountsDto>>(
+      endpoints.notifications.counts,
+    );
+  },
+
+  markAllSeen: async (): Promise<ApiResponse<NotificationCountsDto>> => {
+    return request.post<ApiResponse<NotificationCountsDto>>(
+      endpoints.notifications.markAllSeen,
     );
   },
 
@@ -72,9 +80,9 @@ export const notificationService = {
     }
   },
 
-  markAllAsRead: async (): Promise<ApiResponse<NotificationUnreadCountDto>> => {
+  markAllAsRead: async (): Promise<ApiResponse<NotificationCountsDto>> => {
     try {
-      return await request.patch<ApiResponse<NotificationUnreadCountDto>>(
+      return await request.patch<ApiResponse<NotificationCountsDto>>(
         endpoints.notifications.markAllRead,
       );
     } catch (error) {
@@ -82,7 +90,7 @@ export const notificationService = {
         throw error;
       }
 
-      return request.post<ApiResponse<NotificationUnreadCountDto>>(
+      return request.post<ApiResponse<NotificationCountsDto>>(
         endpoints.notifications.markAllRead,
       );
     }
