@@ -57,6 +57,8 @@ export const endpoints = {
     markRead: (notificationId: string) => `/notifications/${notificationId}/read`,
     markAllRead: "/notifications/read-all",
     markAllSeen: "/notifications/seen",
+    // Server-Sent Events stream of newly created notifications (replaces the SignalR hub).
+    stream: "/notifications/stream",
   },
   hr: {
     dashboard: "/hr/dashboard",

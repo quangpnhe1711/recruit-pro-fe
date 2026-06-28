@@ -294,7 +294,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                   </div>
 
                   <div className="border-t border-[#f0eceb] px-4 py-3 text-right text-[11px] text-[#9a8e8c]">
-                    {refreshing ? "Đang làm mới..." : "Realtime qua SignalR"}
+                    {refreshing ? "Đang làm mới..." : "Cập nhật realtime"}
                   </div>
                 </div>
               ) : null}

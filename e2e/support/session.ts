@@ -120,9 +120,6 @@ export async function installApiMocks(
   handlers: MockHandler[],
   options: MockOptions = {},
 ): Promise<void> {
-  // Block the SignalR notification hub negotiate/transport so it doesn't spam retries.
-  await page.route("**/hubs/**", (route: Route) => route.abort());
-
   await page.route("**/api/**", async (route: Route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -130,15 +127,34 @@ export async function installApiMocks(
     const body = request.postData();
     options.onRequest?.(method, url, body);
 
-    // Global shell calls fired by NotificationProvider on every authenticated screen.
-    if (/\/api\/notifications\/unread-count$/.test(url.pathname)) {
+    // Notification realtime is now SSE (GET /api/notifications/stream). By default abort it so the
+    // fetch-based client backs off quietly instead of holding an open stream during a test. A spec
+    // that exercises realtime delivery registers its own `page.route(".../stream", ...)` with a
+    // `text/event-stream` body — Playwright runs the most-recently-added route first, so that wins.
+    if (/\/api\/notifications\/stream$/.test(url.pathname)) {
+      return route.abort();
+    }
+
+    // Global shell calls fired by NotificationProvider on every authenticated screen. A spec can
+    // override any of these by passing its own handler (checked before the default below).
+    const hasOverride = handlers.some(
+      (h) => h.match.test(url.pathname) && (!h.method || h.method.toUpperCase() === method),
+    );
+    if (!hasOverride && /\/api\/notifications\/counts$/.test(url.pathname)) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(ok({ unseen: 0, unread: 0 })),
+      });
+    }
+    if (!hasOverride && /\/api\/notifications\/unread-count$/.test(url.pathname)) {
       return route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify(ok({ unreadCount: 0 })),
       });
     }
-    if (/\/api\/notifications$/.test(url.pathname)) {
+    if (!hasOverride && /\/api\/notifications$/.test(url.pathname)) {
       return route.fulfill({
         status: 200,
         contentType: "application/json",
