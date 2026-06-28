@@ -4,6 +4,13 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import {
+  AI_RANKING_COPY,
+  normalizeEducation,
+  normalizeSkills,
+  scoreBand,
+  type ScoreBand,
+} from "../../common/utils/aiRankingPresentation";
+import {
   copilotService,
   type CopilotCandidateDto,
   type CopilotCandidatePoolDto,
@@ -40,29 +47,49 @@ const EMPTY_NEGATIVE_CRITERION: CopilotRuleCriterionDto = {
   autoReject: true,
 };
 
-function matchReasonText(result?: CopilotRankingResultDto) {
-  if (!result) {
-    return "Run AI review to generate match reasoning.";
-  }
-
-  if (result.isAiGenerated && result.summary) {
-    return result.summary;
-  }
-
-  return "AI match reason unavailable for this run.";
+// The match reason for a ranked candidate. Returns null when there is no AI reasoning yet, so the UI can
+// render a clearly-muted placeholder instead of text that looks like a final AI result.
+function matchReasonText(result?: CopilotRankingResultDto): string | null {
+  if (!result) return null;
+  if (result.isAiGenerated && result.summary?.trim()) return result.summary.trim();
+  return null;
 }
 
-function scoreTone(score: number) {
-  if (score >= 80) return "text-emerald-700 bg-emerald-50 border-emerald-200";
-  if (score >= 60) return "text-[#005f93] bg-[#cde5ff] border-[#94ccff]";
-  return "text-[#ba1a1a] bg-[#ffdad6] border-[#ffb4ac]";
+const SCORE_BAND_TONE: Record<ScoreBand, string> = {
+  high: "text-emerald-700 bg-emerald-50 border-emerald-200",
+  medium: "text-[#005f93] bg-[#cde5ff] border-[#94ccff]",
+  low: "text-[#9a4a00] bg-[#ffedd5] border-[#fed7aa]",
+  unknown: "text-[#5f5e5e] bg-[#f1eeed] border-[#e2dfde]",
+};
+
+function scoreTone(score: number | null) {
+  return SCORE_BAND_TONE[scoreBand(score)];
 }
 
-function statusLabel(result?: CopilotRankingResultDto) {
-  if (!result) return "Loaded";
-  if (result.isAutoRejected) return "Auto Rejected";
-  return result.recommendation;
+type RankingRowStatus = "ready" | "reviewing" | "ranked" | "rejected";
+
+function rowStatus(result: CopilotRankingResultDto | undefined, reviewing: boolean): RankingRowStatus {
+  if (reviewing) return "reviewing";
+  if (!result) return "ready";
+  if (result.isAutoRejected) return "rejected";
+  return "ranked";
 }
+
+// Vietnamese status copy (the screen is Vietnamese; the canonical English status contract does not apply
+// to this AI-assist surface).
+const ROW_STATUS_LABEL: Record<RankingRowStatus, string> = {
+  ready: "Sẵn sàng",
+  reviewing: "Đang chấm",
+  ranked: "Đã chấm",
+  rejected: "Đã loại",
+};
+
+const ROW_STATUS_TONE: Record<RankingRowStatus, string> = {
+  ready: "bg-[#f1eeed] text-[#5f5e5e]",
+  reviewing: "bg-[#cde5ff] text-[#005f93]",
+  ranked: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-[#ffdad6] text-[#ba1a1a]",
+};
 
 function mapConversationToChat(
   conversationDetail: CopilotConversationDetailDto | null,
@@ -85,6 +112,11 @@ function mapRankingSessionToPromptResponse(
   return {
     conversationId: session.conversationId,
     rankingSessionId: session.rankingSessionId,
+    // A persisted ranking session always carries results, so it represents a completed ranking.
+    // (These two required fields were previously omitted — the source of the known TS2739 error, and
+    // the reason a reloaded session lost its ranked ordering because `didRank` came back undefined.)
+    didRank: true,
+    assistantMessage: "",
     normalizedRules: session.normalizedRules,
     results: session.results,
   };
@@ -288,6 +320,9 @@ function AiCopilotScreen() {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [savingRule, setSavingRule] = useState(false);
   const [rankingEnabled, setRankingEnabled] = useState(false);
+  // Which candidate's AI reasoning detail is expanded inline (only one at a time, so opening a detail
+  // does not push every other row's height).
+  const [expandedCandidateId, setExpandedCandidateId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -638,9 +673,21 @@ function AiCopilotScreen() {
             <div className="flex min-h-[420px] items-center justify-center">
               <LoadingIndicator label="Đang tải ứng viên..." />
             </div>
+          ) : visibleCandidates.length === 0 ? (
+            <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 px-6 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f1eeed] text-[#8a8786]">
+                <span className="material-symbols-outlined text-[28px]">group_off</span>
+              </span>
+              <p className="text-[15px] font-semibold text-[#1a1c1c]">
+                Chưa có ứng viên cho vị trí này
+              </p>
+              <p className="max-w-sm text-[13px] text-[#5f5e5e]">
+                Khi có hồ sơ ứng tuyển, danh sách ứng viên và kết quả chấm điểm AI sẽ hiển thị ở đây.
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto scrollbar-hide">
-              <table className="min-w-[1100px] w-full border-collapse text-left">
+              <table className="min-w-[1180px] w-full border-collapse text-left">
               <thead className="sticky top-0 z-10 bg-[#1a1c1c] text-white/90">
                 <tr>
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
@@ -658,8 +705,11 @@ function AiCopilotScreen() {
                   <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
                     Điểm AI
                   </th>
-                  <th className="px-6 py-4 text-right text-[12px] font-semibold uppercase tracking-[0.08em]">
+                  <th className="px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.08em]">
                     Trạng thái
+                  </th>
+                  <th className="px-6 py-4 text-right text-[12px] font-semibold uppercase tracking-[0.08em]">
+                    Hành động
                   </th>
                 </tr>
               </thead>
@@ -668,14 +718,37 @@ function AiCopilotScreen() {
                   const result = rankedByCandidateId.get(
                     candidate.candidateUserId,
                   );
+                  const educationEntries = normalizeEducation(candidate.education);
+                  const skills = normalizeSkills(candidate.skills);
+                  const visibleSkills = skills.slice(0, 6);
+                  const extraSkillCount = skills.length - visibleSkills.length;
+                  const reason = matchReasonText(result);
+                  const status = rowStatus(result, rankingLoading && !result);
+                  const initials = candidate.fullName
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((part) => part[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase();
+                  const isExpanded = expandedCandidateId === candidate.candidateUserId;
+                  const hasDetail = Boolean(
+                    result &&
+                      (result.summary?.trim() ||
+                        result.strengths.length ||
+                        result.weaknesses.length),
+                  );
                   return (
+                    <Fragment key={candidate.candidateUserId}>
                     <tr
-                      key={candidate.candidateUserId}
-                      className={`${index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"} ${result?.isAutoRejected ? "opacity-70" : ""}`}
+                      className={`align-top ${index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"} ${result?.isAutoRejected ? "opacity-70" : ""}`}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div>
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[12px] font-bold text-[#b90014]">
+                            {initials || "?"}
+                          </span>
+                          <div className="min-w-0">
                             <p className="font-semibold text-[#1a1c1c]">
                               {candidate.fullName}
                             </p>
@@ -686,67 +759,198 @@ function AiCopilotScreen() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                          <p className="text-[#1a1c1c]">
-                          {candidate.education ?? "Chưa cập nhật"}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex max-w-[280px] flex-wrap gap-1.5">
-                          {candidate.skills.slice(0, 4).map((skill) => (
-                            <span
-                              key={skill}
-                              className="rounded-full bg-[#f1eeed] px-2.5 py-1 text-[11px] font-semibold text-[#5f5e5e]"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="max-w-[200px]">
-                          <p className="line-clamp-2 text-[13px] leading-5 text-[#1a1c1c] text-wrap">
-                            {matchReasonText(result)}
+                        {educationEntries.length ? (
+                          <div className="max-w-[260px] space-y-1.5">
+                            {educationEntries.slice(0, 2).map((entry, entryIndex) => (
+                              <div key={`${candidate.candidateUserId}-edu-${entryIndex.toString()}`}>
+                                <p className="font-medium text-[#1a1c1c]">
+                                  {entry.school ?? entry.degree ?? entry.text ?? "—"}
+                                </p>
+                                {(entry.degree || entry.fieldOfStudy || entry.startYear != null || entry.endYear != null) &&
+                                !entry.text ? (
+                                  <p className="text-[12px] text-[#5f5e5e]">
+                                    {[
+                                      [entry.degree, entry.fieldOfStudy].filter(Boolean).join(", "),
+                                      entry.startYear != null || entry.endYear != null
+                                        ? `${entry.startYear ?? "?"}–${entry.endYear ?? "nay"}`
+                                        : "",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" • ")}
+                                  </p>
+                                ) : null}
+                              </div>
+                            ))}
+                            {educationEntries.length > 2 ? (
+                              <p className="text-[12px] font-medium text-[#8a8786]">
+                                +{educationEntries.length - 2} mục khác
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <p className="text-[13px] italic text-[#a8a4a2]">
+                            {AI_RANKING_COPY.noEducation}
                           </p>
-                          {result?.strengths.length ? (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {result.strengths.slice(0, 2).map((strength) => (
-                                <span
-                                  key={strength}
-                                  className="rounded-full bg-[#f1eeed] px-2.5 py-1 text-[10px] font-semibold text-[#5f5e5e]"
-                                >
-                                  {strength}
-                                </span>
-                              ))}
-                            </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {visibleSkills.length ? (
+                          <div className="flex max-w-[280px] flex-wrap gap-1.5">
+                            {visibleSkills.map((skill) => (
+                              <span
+                                key={skill}
+                                className="rounded-full bg-[#eef2ff] px-2.5 py-1 text-[11px] font-semibold text-[#3730a3]"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                            {extraSkillCount > 0 ? (
+                              <span className="rounded-full bg-[#f1eeed] px-2.5 py-1 text-[11px] font-semibold text-[#5f5e5e]">
+                                +{extraSkillCount}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <p className="text-[13px] italic text-[#a8a4a2]">
+                            {AI_RANKING_COPY.noSkills}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="max-w-[240px]">
+                          {reason ? (
+                            <p className="line-clamp-2 text-[13px] leading-5 text-[#1a1c1c]">
+                              {reason}
+                            </p>
+                          ) : (
+                            <p className="flex items-center gap-1.5 text-[12px] italic text-[#a8a4a2]">
+                              <span className="material-symbols-outlined text-[16px]">
+                                auto_awesome
+                              </span>
+                              {AI_RANKING_COPY.runReview}
+                            </p>
+                          )}
+                          {result?.rejectReason ? (
+                            <p className="mt-1 text-[11px] font-medium text-[#ba1a1a]">
+                              {result.rejectReason}
+                            </p>
                           ) : null}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {result ? (
-                          <span
-                            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-bold ${scoreTone(result.totalScore)}`}
-                          >
-                            {result.isAutoRejected
-                              ? "Rejected"
-                              : `${Math.round(result.totalScore)}/100`}
-                          </span>
+                        {result && !result.isAutoRejected ? (
+                          <div className="w-[120px]">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-bold ${scoreTone(result.totalScore)}`}
+                            >
+                              {Math.round(result.totalScore)}/100
+                            </span>
+                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#f1eeed]">
+                              <div
+                                className={`h-full rounded-full ${
+                                  scoreBand(result.totalScore) === "high"
+                                    ? "bg-emerald-500"
+                                    : scoreBand(result.totalScore) === "medium"
+                                      ? "bg-[#2f80c2]"
+                                      : "bg-[#e8843c]"
+                                }`}
+                                style={{ width: `${Math.max(0, Math.min(100, Math.round(result.totalScore)))}%` }}
+                              />
+                            </div>
+                            {result.recommendation ? (
+                              <p className="mt-1 text-[11px] font-medium text-[#5f5e5e]">
+                                {result.recommendation}
+                              </p>
+                            ) : null}
+                          </div>
                         ) : (
-                          <span className="text-[12px] text-[#5f5e5e]">
-                            Not ranked
+                          <span
+                            className={`inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold ${scoreTone(null)}`}
+                          >
+                            {AI_RANKING_COPY.notRanked}
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-[12px] font-semibold text-[#1a1c1c]">
-                          {statusLabel(result)}
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.06em] ${ROW_STATUS_TONE[status]}`}
+                        >
+                          {status === "reviewing" ? (
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                          ) : null}
+                          {ROW_STATUS_LABEL[status]}
                         </span>
-                        {result?.rejectReason ? (
-                          <p className="mt-1 text-[11px] text-[#ba1a1a]">
-                            {result.rejectReason}
-                          </p>
-                        ) : null}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {hasDetail ? (
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#b90014] transition-colors hover:text-[#93000d]"
+                            onClick={() =>
+                              setExpandedCandidateId((current) =>
+                                current === candidate.candidateUserId
+                                  ? null
+                                  : candidate.candidateUserId,
+                              )
+                            }
+                            aria-expanded={isExpanded}
+                          >
+                            {isExpanded ? "Thu gọn" : "Xem chi tiết"}
+                            <span className="material-symbols-outlined text-[18px]">
+                              {isExpanded ? "expand_less" : "expand_more"}
+                            </span>
+                          </button>
+                        ) : (
+                          <span className="text-[12px] text-[#a8a4a2]">—</span>
+                        )}
                       </td>
                     </tr>
+                    {isExpanded && result ? (
+                      <tr className={index % 2 === 1 ? "bg-[#f9fafb]" : "bg-white"}>
+                        <td colSpan={7} className="px-6 pb-5 pt-0">
+                          <div className="rounded-xl border border-[#ececec] bg-[#faf9f8] p-4">
+                            {result.summary?.trim() ? (
+                              <p className="text-[13px] leading-6 text-[#1a1c1c]">
+                                {result.summary.trim()}
+                              </p>
+                            ) : null}
+                            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                              {result.strengths.length ? (
+                                <div>
+                                  <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">
+                                    Điểm mạnh
+                                  </p>
+                                  <ul className="mt-1.5 space-y-1 text-[12px] text-[#1a1c1c]">
+                                    {result.strengths.map((strength, strengthIndex) => (
+                                      <li key={`s-${strengthIndex.toString()}`} className="flex gap-1.5">
+                                        <span className="text-emerald-600">+</span>
+                                        {strength}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : null}
+                              {result.weaknesses.length ? (
+                                <div>
+                                  <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#ba1a1a]">
+                                    Điểm cần lưu ý
+                                  </p>
+                                  <ul className="mt-1.5 space-y-1 text-[12px] text-[#1a1c1c]">
+                                    {result.weaknesses.map((weakness, weaknessIndex) => (
+                                      <li key={`w-${weaknessIndex.toString()}`} className="flex gap-1.5">
+                                        <span className="text-[#ba1a1a]">!</span>
+                                        {weakness}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : null}
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -976,6 +1180,7 @@ function AiCopilotScreen() {
             />
             <button
               type="button"
+              aria-label="Gửi tin nhắn cho AI Copilot"
               className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_8px_20px_rgba(185,0,20,0.24)] transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
               disabled={
                 rankingLoading ||
