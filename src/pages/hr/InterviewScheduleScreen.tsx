@@ -135,8 +135,10 @@ function InterviewScheduleScreen() {
   const requestedApplicationId = routeState?.applicationId ?? queryApplicationId;
   const { hasPermission } = usePermissions();
   const canViewScheduleData = hasPermission(PERMISSIONS.INTERVIEW_VIEW_SCHEDULE_DATA);
+  // Scheduling an interview is an HR coordination action gated by INTERVIEW_CREATE only. It must NOT
+  // also require INTERVIEW_APPROVE (a Manager-only permission) — that was the bug that left the confirm
+  // button permanently disabled for HR, the role that actually schedules interviews.
   const canCreateInterview = hasPermission(PERMISSIONS.INTERVIEW_CREATE);
-  const canConfirmSchedule = hasPermission(PERMISSIONS.INTERVIEW_APPROVE);
 
   const [scheduleData, setScheduleData] = useState<HrInterviewScheduleDataDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -240,6 +242,20 @@ function InterviewScheduleScreen() {
     () => (selectedSlot === null ? 0 : addMinutes(selectedSlot, durationMinutes)),
     [selectedSlot, durationMinutes],
   );
+
+  // A single, visible reason the confirm button is disabled — no silent disabled button. Permission
+  // is checked first, then the concrete form gaps (slot selection, interviewer availability, link).
+  const confirmDisabledReason: string | null = !canCreateInterview
+    ? "Bạn không có quyền lên lịch phỏng vấn."
+    : selectedSlot === null
+      ? "Hãy chọn khung giờ phỏng vấn."
+      : !isInterviewerFree
+        ? "Người phỏng vấn bận trong khung giờ này. Hãy chọn giờ khác hoặc đổi người phỏng vấn."
+        : !locationOrLink.trim()
+          ? mode === "video"
+            ? "Hãy nhập link cuộc họp."
+            : "Hãy nhập địa điểm phỏng vấn."
+          : null;
 
   useEffect(() => {
     if (!slotMinutes.length) {
@@ -696,17 +712,17 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-2.5">
+              {confirmDisabledReason ? (
+                <p className="flex items-center gap-1.5 rounded-[10px] bg-[#fff1f0] px-3 py-2 text-[12px] font-medium text-[#93000a]">
+                  <span className="material-symbols-outlined text-[16px]">info</span>
+                  {confirmDisabledReason}
+                </p>
+              ) : null}
               <AsyncActionButton
                 type="button"
                 className="btn btn-primary w-full justify-center py-3.5 text-[15px] disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={saveSchedule}
-                disabled={
-                  !canCreateInterview
-                  || !canConfirmSchedule
-                  || !isInterviewerFree
-                  || selectedSlot === null
-                  || isSubmitting
-                }
+                disabled={confirmDisabledReason !== null || isSubmitting}
                 loading={isSubmitting}
                 loadingText="Đang lưu lịch..."
               >

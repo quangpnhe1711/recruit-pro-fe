@@ -463,6 +463,19 @@ export const hrService = {
     );
   },
 
+  // Rejection email flow: sends the rejection email and, only on success, transitions the application
+  // to Rejected (the backend gates this — see ApplicationService.SendRejectionEmailAsync). Returns the
+  // refreshed review detail so callers can re-render the new status.
+  sendRejectionEmail: async (
+    applicationId: string,
+    data: { subject: string; body: string },
+  ): Promise<ApiResponse<ApplicationReviewDetailDto>> => {
+    return request.post<ApiResponse<ApplicationReviewDetailDto>, { subject: string; body: string }>(
+      endpoints.hr.applicationRejectionEmail(applicationId),
+      data,
+    );
+  },
+
   getInterviews: async (
     params?: Record<string, unknown>,
   ): Promise<ApiResponse<HrPagedItemsResponseDto<HrInterviewItemDto>>> => {

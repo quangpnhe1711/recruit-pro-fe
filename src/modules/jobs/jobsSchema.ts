@@ -157,6 +157,8 @@ export type ApplicationReviewDetailDto = {
   status: string;
   offerStatus: string | null;
   appliedAt: string | null;
+  // Date HR sent the application to Head Review (Screening -> ManagerReview). Null for legacy rows.
+  departmentHeadReviewRequestedAt?: string | null;
   nextStep: string;
   candidate: {
     id: string;
@@ -285,6 +287,9 @@ export type ManagerReviewQueueItemDto = {
   recommendation: string;
   status: string;
   appliedAt: string | null;
+  // Date HR sent the application to Head Review (Screening -> ManagerReview). The DepartmentHead/Manager
+  // review queue shows THIS as the "received for review" date, not appliedAt. Null for legacy rows.
+  departmentHeadReviewRequestedAt?: string | null;
   completedInterviews: number;
   totalInterviews: number;
 };

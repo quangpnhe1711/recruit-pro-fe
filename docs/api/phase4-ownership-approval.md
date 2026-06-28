@@ -146,3 +146,27 @@ fallbacks). They seed an authenticated session into `localStorage` and mock ever
   (`ManagerReview` = the DepartmentHeadReview business stage, `HeadDepartment`, `Manager` all kept). No
   invented `Job.HiringManagerId`. HeadDepartment was **not** granted HR job-management permissions — only
   the approval surfaces.
+
+## 10. Workflow correctness — Interview → Offer/Reject (BR-WF-001…005)
+
+A later pass tightened the Head-Review → Interview → Offer/Reject workflow on the FE:
+
+- **Manager/DepartmentHead review queue date.** `ManagerCandidateReviewListScreen` shows the
+  **"Nhận review"** date from `departmentHeadReviewRequestedAt` (the date HR sent the application to Head
+  Review), with the applied date kept as secondary metadata. Falls back to `appliedAt` for legacy rows.
+  Type: `ManagerReviewQueueItemDto.departmentHeadReviewRequestedAt` / `ApplicationReviewDetailDto.departmentHeadReviewRequestedAt`.
+- **Interview scheduling required + completion gate.** `CandidateReviewDetailScreen`: in the `Interview`
+  stage with no interview it shows a "Cần lên lịch phỏng vấn" prompt; Offer and Reject are disabled with a
+  visible reason until the interview is **marked completed** (HR action "Đánh dấu đã phỏng vấn" → `PATCH
+  /hr/interviews/{id}/status` = `completed`).
+- **Email-gated Offer/Reject.** Direct status-decision buttons for `Offer`/`Rejected` were removed.
+  "Gửi email offer" routes to `SendOfferScreen` (`POST …/offer/send`); "Gửi email từ chối" opens a
+  subject/body modal that calls `hrService.sendRejectionEmail` (`POST …/rejection-email`). The status
+  changes only after the backend reports the email was sent. New error codes mirrored in
+  `src/common/utils/apiError.ts`: `INTERVIEW_REQUIRED`, `INTERVIEW_NOT_COMPLETED`, `EMAIL_REQUIRED_FOR_OFFER`,
+  `EMAIL_REQUIRED_FOR_REJECTION`, `EMAIL_SEND_FAILED`.
+- **Schedule-interview button fix.** `InterviewScheduleScreen`'s confirm button required the Manager-only
+  `INTERVIEW_APPROVE` permission and was permanently disabled for HR. It is now gated by `INTERVIEW_CREATE`
+  only and renders a single visible disabled reason (permission / no slot / interviewer busy / missing link).
+
+Covered by Playwright `E2E-WF-001…007` (`e2e/workflow-interview-offer-reject.e2e.ts`).

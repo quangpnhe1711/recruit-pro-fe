@@ -73,6 +73,8 @@ export const endpoints = {
       `/hr/applications/${applicationId}/offer/send`,
     applicationSendEmail: (applicationId: string) =>
       `/hr/applications/${applicationId}/send-email`,
+    applicationRejectionEmail: (applicationId: string) =>
+      `/hr/applications/${applicationId}/rejection-email`,
     interviews: "/hr/interviews",
     interviewStatus: (interviewId: string) =>
       `/hr/interviews/${interviewId}/status`,

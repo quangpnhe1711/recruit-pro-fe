@@ -66,12 +66,18 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     {
       key: "jobTitle",
       header: "Vị trí tuyển dụng",
-      renderCell: (item) => (
-        <div>
-          <p className="font-semibold text-[#1a1c1c]">{item.jobTitle}</p>
-          <p className="text-[12px] text-[#5f5e5e]">Ứng tuyển {formatDate(item.appliedAt)}</p>
-        </div>
-      ),
+      renderCell: (item) => {
+        // The Manager/DepartmentHead work date is when HR sent the application to Head Review, not when
+        // the candidate first applied. Fall back to appliedAt only for legacy rows missing the field.
+        const reviewDate = item.departmentHeadReviewRequestedAt ?? item.appliedAt;
+        return (
+          <div>
+            <p className="font-semibold text-[#1a1c1c]">{item.jobTitle}</p>
+            <p className="text-[12px] text-[#5f5e5e]">Nhận review {formatDate(reviewDate)}</p>
+            <p className="text-[11px] text-[#a8a4a2]">Ứng tuyển {formatDate(item.appliedAt)}</p>
+          </div>
+        );
+      },
     },
     {
       key: "score",
@@ -229,10 +235,12 @@ function ManagerCandidateReviewListScreen() {
       return;
     }
 
-    const header = ["Candidate Name", "Job Title", "Score", "Recommendation", "Status"];
+    const header = ["Candidate Name", "Job Title", "Received For Review", "Applied", "Score", "Recommendation", "Status"];
     const rows = items.map((item) => [
       item.candidateName,
       item.jobTitle,
+      formatDate(item.departmentHeadReviewRequestedAt ?? item.appliedAt),
+      formatDate(item.appliedAt),
       item.score.toFixed(1),
       item.recommendation,
       item.status,

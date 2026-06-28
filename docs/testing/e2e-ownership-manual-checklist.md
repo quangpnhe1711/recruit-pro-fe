@@ -98,3 +98,27 @@ Login as HR (seeded: Nguyễn Thục Uyên) and open job management (`/jobs`).
 
 Source of truth: `src/common/status/statusPresentation.ts`,
 `src/common/status/jobStatus.ts`, `src/common/utils/applicationPresentation.ts`.
+
+---
+
+## Workflow correctness — Interview → Offer/Reject (E2E-WF-001…007)
+
+Automated in `e2e/workflow-interview-offer-reject.e2e.ts` (deterministic, mocked). Manual sanity passes:
+
+- [ ] **Manager review queue date** — `/manager/applications` shows "Nhận review {date}" (Head Review
+      hand-off date) as the primary work date, with "Ứng tuyển {date}" as secondary. (E2E-WF-001)
+- [ ] **Interview stage, no interview** — review detail shows "Cần lên lịch phỏng vấn"; "Gửi email offer"
+      and "Gửi email từ chối" are disabled with the reason "Hãy lên lịch phỏng vấn trước." (E2E-WF-002)
+- [ ] **Schedule button enables** — on `/hr/interviews/schedule?applicationId=…`, after a slot is selected
+      and a link is entered, "Xác nhận lịch phỏng vấn" is **enabled** for an HR user (no longer requires
+      the Manager-only INTERVIEW_APPROVE). A visible reason explains any disabled state. (E2E-WF-003)
+- [ ] **Decisions gated until completed** — with a scheduled-but-not-completed interview, Offer/Reject are
+      disabled with "Hãy hoàn tất phỏng vấn trước khi gửi offer/từ chối."; "Đánh dấu đã phỏng vấn" appears. (E2E-WF-004)
+- [ ] **Mark completed unlocks offer** — clicking "Đánh dấu đã phỏng vấn" enables "Gửi email offer". (E2E-WF-005)
+- [ ] **Send offer email** — "Gửi email offer" → SendOfferScreen → "Gửi offer qua email" calls
+      `POST /hr/applications/{id}/offer/send`; success toast shown. (E2E-WF-006)
+- [ ] **Send rejection email** — "Gửi email từ chối" opens the subject/body modal; "Gửi email & từ chối"
+      calls `POST /hr/applications/{id}/rejection-email` and the application then shows `Rejected`. (E2E-WF-007)
+
+Notification dispatch is **Phase 6 (not implemented)** — these flows record/send the email and gate the
+status transition only; they do not raise candidate notifications yet.

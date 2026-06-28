@@ -253,6 +253,11 @@ function CandidateReviewDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [submittingDecision, setSubmittingDecision] =
     useState<ApplicationReviewDecision | null>(null);
+  const [markingComplete, setMarkingComplete] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectSubject, setRejectSubject] = useState("");
+  const [rejectBody, setRejectBody] = useState("");
+  const [sendingReject, setSendingReject] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -361,6 +366,65 @@ function CandidateReviewDetailScreen() {
     }
   }
 
+  async function refreshDetail() {
+    try {
+      const response = await hrService.getApplicationDetail(applicationId);
+      setDetail(response.data);
+    } catch {
+      toast.error("Không thể tải lại chi tiết hồ sơ.");
+    }
+  }
+
+  // Mark the pending interview completed so the post-interview Offer/Reject actions unlock.
+  async function handleMarkInterviewCompleted(interviewId: string) {
+    setMarkingComplete(true);
+    try {
+      await hrService.updateInterviewStatus(interviewId, "completed");
+      await refreshDetail();
+      toast.success("Đã đánh dấu hoàn tất phỏng vấn.");
+    } catch (error) {
+      toast.error(
+        getApplicationErrorMessage(error, "Không thể cập nhật trạng thái phỏng vấn."),
+      );
+    } finally {
+      setMarkingComplete(false);
+    }
+  }
+
+  function openRejectModal() {
+    setRejectSubject(`Cập nhật kết quả ứng tuyển - ${detail?.job.title ?? ""}`);
+    setRejectBody(
+      `Xin chào ${detail?.candidate.fullName ?? ""},\n\n` +
+        `Cảm ơn bạn đã quan tâm và dành thời gian ứng tuyển vị trí ${detail?.job.title ?? ""}. ` +
+        `Sau khi cân nhắc, chúng tôi rất tiếc chưa thể tiếp tục với hồ sơ của bạn ở giai đoạn này.\n\n` +
+        `Trân trọng,\nBộ phận Tuyển dụng`,
+    );
+    setRejectModalOpen(true);
+  }
+
+  // Rejection is email-gated: the backend sends the email and only then transitions to Rejected.
+  async function handleSendRejectionEmail() {
+    if (!rejectSubject.trim() || !rejectBody.trim()) {
+      toast.error("Vui lòng nhập tiêu đề và nội dung email.");
+      return;
+    }
+
+    setSendingReject(true);
+    try {
+      const response = await hrService.sendRejectionEmail(applicationId, {
+        subject: rejectSubject.trim(),
+        body: rejectBody.trim(),
+      });
+      setDetail(response.data);
+      setRejectModalOpen(false);
+      toast.success("Đã gửi email từ chối và cập nhật hồ sơ.");
+    } catch (error) {
+      toast.error(getApplicationErrorMessage(error, "Không thể gửi email từ chối."));
+    } finally {
+      setSendingReject(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="app-container space-y-6 py-8">
@@ -413,6 +477,36 @@ function CandidateReviewDetailScreen() {
 
   const interviewNotes = detail.interviews.filter((item) => item.notes);
   const availableDecisions = getAvailableDecisions(detail.status, primaryRole);
+
+  // Workflow gating (workflow-correctness phase). Offer and Rejected are email-gated and, from the
+  // Interview stage, require a scheduled AND completed interview — so they are split out of the direct
+  // (forward) decision buttons and rendered as their own email actions with a visible disabled reason.
+  const statusKey = normalizeApplicationStatus(detail.status);
+  const isInterviewStage = statusKey === ApplicationStatus.Interview;
+  const nonCanceledInterviews = detail.interviews.filter((interview) => {
+    const normalized = interview.status.trim().toLowerCase();
+    return normalized !== "canceled" && normalized !== "cancelled";
+  });
+  const interviewScheduled = nonCanceledInterviews.length > 0;
+  const interviewCompleted = nonCanceledInterviews.some(
+    (interview) => interview.status.trim().toLowerCase() === "completed",
+  );
+  const pendingScheduledInterview = nonCanceledInterviews.find(
+    (interview) => interview.status.trim().toLowerCase() === "scheduled",
+  );
+  const forwardDecisions = availableDecisions.filter(
+    (decision) => decision !== "Offer" && decision !== "Rejected",
+  );
+  const canOfferHere = availableDecisions.includes("Offer");
+  const canRejectHere = availableDecisions.includes("Rejected");
+  // Post-interview decisions need a completed interview; earlier-stage rejections do not.
+  const postInterviewBlockReason = !interviewScheduled
+    ? "Hãy lên lịch phỏng vấn trước."
+    : !interviewCompleted
+      ? "Hãy hoàn tất phỏng vấn trước khi gửi offer/từ chối."
+      : null;
+  const offerDisabledReason = canOfferHere ? postInterviewBlockReason : null;
+  const rejectDisabledReason = canRejectHere && isInterviewStage ? postInterviewBlockReason : null;
   const resumePreviewPath = resumeFile
     ? buildResumePreviewPath(resumeFile.resumeId, resumeFile.fileUrl)
     : null;
@@ -815,66 +909,148 @@ function CandidateReviewDetailScreen() {
 
             <div className="mt-5 border-t border-[#f0eceb] pt-5">
               <h3 className="eyebrow">Hành động</h3>
-              {availableDecisions.length ? (
-                <>
+              <div className="mt-4 space-y-3">
+                {/* Forward (direct) stage decisions — Applied→Screening, Screening→ManagerReview,
+                    ManagerReview→Interview. Offer and Rejected are email-gated and rendered below. */}
+                {forwardDecisions.length ? (
                   <PermissionGuard permissions={PERMISSIONS.APPLICATION_APPROVE}>
-                    <div className="mt-4 space-y-3">
-                      {availableDecisions
-                        .filter((decision) => decision !== "Rejected")
-                        .map((decision) => (
-                          <AsyncActionButton
-                            key={decision}
-                            type="button"
-                            className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${decisionButtonClassName(decision)} disabled:cursor-not-allowed disabled:opacity-60`}
-                            disabled={!canReview || submittingDecision !== null}
-                            loading={submittingDecision === decision}
-                            loadingText="Đang cập nhật..."
-                            onClick={() => handleDecision(decision)}
-                            spinnerTone="brand"
-                          >
-                            <span className="flex items-center gap-3 text-sm font-bold">
-                              <span className="material-symbols-outlined">
-                                {decisionIcon(decision)}
-                              </span>
-                              {decisionLabel(decision)}
+                    <div className="space-y-3">
+                      {forwardDecisions.map((decision) => (
+                        <AsyncActionButton
+                          key={decision}
+                          type="button"
+                          className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${decisionButtonClassName(decision)} disabled:cursor-not-allowed disabled:opacity-60`}
+                          disabled={!canReview || submittingDecision !== null}
+                          loading={submittingDecision === decision}
+                          loadingText="Đang cập nhật..."
+                          onClick={() => handleDecision(decision)}
+                          spinnerTone="brand"
+                        >
+                          <span className="flex items-center gap-3 text-sm font-bold">
+                            <span className="material-symbols-outlined">
+                              {decisionIcon(decision)}
                             </span>
-                            <span className="material-symbols-outlined text-[18px]">
-                              chevron_right
-                            </span>
-                          </AsyncActionButton>
-                        ))}
+                            {decisionLabel(decision)}
+                          </span>
+                          <span className="material-symbols-outlined text-[18px]">
+                            chevron_right
+                          </span>
+                        </AsyncActionButton>
+                      ))}
                     </div>
                   </PermissionGuard>
+                ) : null}
 
+                {/* Interview stage: scheduling is the required next action before any decision. */}
+                {isInterviewStage && !interviewScheduled ? (
+                  <div className="rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-800">
+                    <p className="font-bold">Cần lên lịch phỏng vấn</p>
+                    <p className="mt-1 text-[13px] leading-5">
+                      Hãy lên lịch phỏng vấn trước khi có thể gửi offer hoặc từ chối.
+                    </p>
+                    {canScheduleInterview ? (
+                      <Link
+                        className="btn btn-secondary mt-3 w-full justify-center"
+                        to={`/hr/interviews/schedule?applicationId=${detail.applicationId}`}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">event</span>
+                        Lên lịch phỏng vấn
+                      </Link>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {/* Interview scheduled but not completed: let HR mark it completed to unlock decisions. */}
+                {isInterviewStage &&
+                interviewScheduled &&
+                !interviewCompleted &&
+                pendingScheduledInterview ? (
+                  <PermissionGuard permissions={PERMISSIONS.INTERVIEW_UPDATE}>
+                    <AsyncActionButton
+                      type="button"
+                      className="flex w-full items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-emerald-800 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={markingComplete}
+                      loading={markingComplete}
+                      loadingText="Đang cập nhật..."
+                      onClick={() => handleMarkInterviewCompleted(pendingScheduledInterview.id)}
+                      spinnerTone="brand"
+                    >
+                      <span className="flex items-center gap-3 text-sm font-bold">
+                        <span className="material-symbols-outlined">task_alt</span>
+                        Đánh dấu đã phỏng vấn
+                      </span>
+                      <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    </AsyncActionButton>
+                  </PermissionGuard>
+                ) : null}
+
+                {/* Offer email (Interview stage, HR). Disabled with a visible reason until completed. */}
+                {canOfferHere ? (
+                  <PermissionGuard permissions={PERMISSIONS.APPLICATION_SEND_EMAIL}>
+                    <div>
+                      {offerDisabledReason ? (
+                        <button
+                          type="button"
+                          disabled
+                          className="flex w-full cursor-not-allowed items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-left text-orange-800 opacity-60"
+                        >
+                          <span className="flex items-center gap-3 text-sm font-bold">
+                            <span className="material-symbols-outlined">approval</span>
+                            Gửi email offer
+                          </span>
+                        </button>
+                      ) : (
+                        <Link
+                          to={`/hr/applications/${detail.applicationId}/send-offer`}
+                          className="flex w-full items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-left text-orange-800 transition-colors hover:bg-orange-100"
+                        >
+                          <span className="flex items-center gap-3 text-sm font-bold">
+                            <span className="material-symbols-outlined">approval</span>
+                            Gửi email offer
+                          </span>
+                          <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </Link>
+                      )}
+                      {offerDisabledReason ? (
+                        <p className="mt-1 text-[12px] text-[#8a8786]">{offerDisabledReason}</p>
+                      ) : null}
+                    </div>
+                  </PermissionGuard>
+                ) : null}
+
+                {/* Reject email. From the Interview stage it requires a completed interview;
+                    earlier-stage rejections (Screening / Head Review) do not. */}
+                {canRejectHere ? (
                   <PermissionGuard permissions={PERMISSIONS.APPLICATION_REJECT}>
-                    {availableDecisions.includes("Rejected") ? (
-                      <AsyncActionButton
+                    <div>
+                      <button
                         type="button"
-                        className={`mt-3 flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${decisionButtonClassName("Rejected")} disabled:cursor-not-allowed disabled:opacity-60`}
-                        disabled={!canReject || submittingDecision !== null}
-                        loading={submittingDecision === "Rejected"}
-                        loadingText="Đang cập nhật..."
-                        onClick={() => handleDecision("Rejected")}
-                        spinnerTone="brand"
+                        disabled={rejectDisabledReason !== null || submittingDecision !== null}
+                        onClick={openRejectModal}
+                        className="flex w-full items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-left text-red-800 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <span className="flex items-center gap-3 text-sm font-bold">
-                          <span className="material-symbols-outlined">
-                            {decisionIcon("Rejected")}
-                          </span>
-                          {decisionLabel("Rejected")}
+                          <span className="material-symbols-outlined">mail</span>
+                          Gửi email từ chối
                         </span>
-                        <span className="material-symbols-outlined text-[18px]">
-                          chevron_right
-                        </span>
-                      </AsyncActionButton>
-                    ) : null}
+                        <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                      </button>
+                      {rejectDisabledReason ? (
+                        <p className="mt-1 text-[12px] text-[#8a8786]">{rejectDisabledReason}</p>
+                      ) : null}
+                    </div>
                   </PermissionGuard>
-                </>
-              ) : (
-                <p className="mt-4 rounded-lg border border-dashed border-[#d6d1cf] p-4 text-sm text-[#5f5e5e]">
-                  Không có hành động khả dụng ở bước này.
-                </p>
-              )}
+                ) : null}
+
+                {!forwardDecisions.length &&
+                !canOfferHere &&
+                !canRejectHere &&
+                !(isInterviewStage && !interviewScheduled) ? (
+                  <p className="rounded-lg border border-dashed border-[#d6d1cf] p-4 text-sm text-[#5f5e5e]">
+                    Không có hành động khả dụng ở bước này.
+                  </p>
+                ) : null}
+              </div>
             </div>
 
             <div className="mt-5 border-t border-[#f0eceb] pt-5">
@@ -933,6 +1109,83 @@ function CandidateReviewDetailScreen() {
           </section>
         </aside>
       </div>
+
+      {rejectModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-[16px] bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-[18px] font-semibold text-[#1a1c1c]">
+                  Gửi email từ chối
+                </h2>
+                <p className="mt-1 text-sm text-[#5f5e5e]">
+                  Email sẽ được gửi tới {detail.candidate.email}. Hồ sơ chỉ chuyển sang
+                  trạng thái “Rejected” sau khi gửi email thành công.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#5f5e5e] hover:bg-[#f3f3f3]"
+                onClick={() => setRejectModalOpen(false)}
+                aria-label="Đóng"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="field-label" htmlFor="reject-subject">
+                  Tiêu đề
+                </label>
+                <input
+                  id="reject-subject"
+                  className="input-field mt-1"
+                  value={rejectSubject}
+                  onChange={(event) => setRejectSubject(event.target.value)}
+                  placeholder="Tiêu đề email"
+                />
+              </div>
+              <div>
+                <label className="field-label" htmlFor="reject-body">
+                  Nội dung
+                </label>
+                <textarea
+                  id="reject-body"
+                  className="input-field mt-1 min-h-[180px]"
+                  value={rejectBody}
+                  onChange={(event) => setRejectBody(event.target.value)}
+                  placeholder="Nội dung email"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setRejectModalOpen(false)}
+                disabled={sendingReject}
+              >
+                Hủy
+              </button>
+              <AsyncActionButton
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSendRejectionEmail}
+                disabled={
+                  sendingReject || !rejectSubject.trim() || !rejectBody.trim()
+                }
+                loading={sendingReject}
+                loadingText="Đang gửi..."
+              >
+                <span className="material-symbols-outlined text-[18px]">send</span>
+                Gửi email & từ chối
+              </AsyncActionButton>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

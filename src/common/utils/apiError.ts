@@ -14,6 +14,12 @@ export const ERROR_CODES = {
   InvalidApplicationTransition: "INVALID_APPLICATION_TRANSITION",
   InterviewNotActionable: "INTERVIEW_NOT_ACTIONABLE",
   OfferNotActionable: "OFFER_NOT_ACTIONABLE",
+  // Post-interview decision gates + email-gated Offer/Reject transitions (workflow-correctness phase).
+  InterviewRequired: "INTERVIEW_REQUIRED",
+  InterviewNotCompleted: "INTERVIEW_NOT_COMPLETED",
+  EmailRequiredForOffer: "EMAIL_REQUIRED_FOR_OFFER",
+  EmailRequiredForRejection: "EMAIL_REQUIRED_FOR_REJECTION",
+  EmailSendFailed: "EMAIL_SEND_FAILED",
   Unauthenticated: "UNAUTHENTICATED",
   Forbidden: "FORBIDDEN",
   ValidationError: "VALIDATION_ERROR",
@@ -91,6 +97,11 @@ export const APPLICATION_ERROR_MESSAGES: Partial<Record<string, string>> = {
   [ERROR_CODES.InvalidApplicationTransition]: "Thao tác chuyển trạng thái không hợp lệ.",
   [ERROR_CODES.InterviewNotActionable]: "Không thể thao tác phỏng vấn ở trạng thái hiện tại của hồ sơ.",
   [ERROR_CODES.OfferNotActionable]: "Offer hiện không ở trạng thái có thể phản hồi.",
+  [ERROR_CODES.InterviewRequired]: "Hãy lên lịch phỏng vấn trước khi gửi offer hoặc từ chối.",
+  [ERROR_CODES.InterviewNotCompleted]: "Hãy hoàn tất phỏng vấn trước khi gửi offer hoặc từ chối.",
+  [ERROR_CODES.EmailRequiredForOffer]: "Vui lòng gửi email offer thay vì đổi trạng thái trực tiếp.",
+  [ERROR_CODES.EmailRequiredForRejection]: "Vui lòng gửi email từ chối thay vì đổi trạng thái trực tiếp.",
+  [ERROR_CODES.EmailSendFailed]: "Không gửi được email; trạng thái hồ sơ chưa thay đổi.",
 };
 
 /** Resolve an application-domain error to Vietnamese copy (errorCode → status → message → fallback). */
