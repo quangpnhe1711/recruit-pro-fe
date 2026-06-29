@@ -1,4 +1,5 @@
 import LoadingIndicator from "../../../common/components/LoadingIndicator";
+import type { ValidationErrors } from "../../../common/validation/formValidation";
 import { useCandidateProfileScreen } from "./useCandidateProfileScreen";
 import ExperienceSection from "./sections/ExperienceSection";
 import ParsedResumePreviewSection from "./sections/ParsedResumePreviewSection";
@@ -50,6 +51,7 @@ function CandidateProfileAndCVManagementScreen() {
           onSave={actions.handleSaveProfile}
           setIsEditingProfile={setters.setIsEditingProfile}
           onProfileChange={actions.handleProfileChange}
+          errors={state.profileErrors as ValidationErrors}
         />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -59,6 +61,7 @@ function CandidateProfileAndCVManagementScreen() {
               isEditingProfile={state.isEditingProfile}
               canEditProfile={permissions.canEditProfile}
               onProfileChange={actions.handleProfileChange}
+              errors={state.profileErrors as ValidationErrors}
             />
 
             <SkillsSection
@@ -103,10 +106,11 @@ function CandidateProfileAndCVManagementScreen() {
               showEntryComposer={state.showEntryComposer}
               setShowEntryComposer={setters.setShowEntryComposer}
               entryDraft={state.entryDraft}
-              setEntryDraft={setters.setEntryDraft}
+              onEntryDraftChange={actions.handleEntryDraftChange}
               experienceEntries={state.experienceEntries}
               onAddEntry={actions.handleAddEntry}
               onRemoveEntry={actions.handleRemoveEntry}
+              errors={state.entryDraftErrors as ValidationErrors}
             />
 
             <section className="card animate-fade-in-up p-5 md:p-6">
@@ -116,10 +120,11 @@ function CandidateProfileAndCVManagementScreen() {
                   showProjectComposer={state.showProjectComposer}
                   setShowProjectComposer={setters.setShowProjectComposer}
                   projectDraft={state.projectDraft}
-                  setProjectDraft={setters.setProjectDraft}
+                  onProjectDraftChange={actions.handleProjectDraftChange}
                   projects={state.projects}
                   onAddProject={actions.handleAddProject}
                   onRemoveProject={actions.handleRemoveProject}
+                  errors={state.projectDraftErrors as ValidationErrors}
                 />
 
                 <EducationSection
@@ -127,10 +132,11 @@ function CandidateProfileAndCVManagementScreen() {
                   showEducationComposer={state.showEducationComposer}
                   setShowEducationComposer={setters.setShowEducationComposer}
                   educationDraft={state.educationDraft}
-                  setEducationDraft={setters.setEducationDraft}
+                  onEducationDraftChange={actions.handleEducationDraftChange}
                   educations={state.educations}
                   onAddEducation={actions.handleAddEducation}
                   onRemoveEducation={actions.handleRemoveEducation}
+                  errors={state.educationDraftErrors as ValidationErrors}
                 />
               </div>
 
@@ -142,10 +148,13 @@ function CandidateProfileAndCVManagementScreen() {
                     setters.setShowCertificationComposer
                   }
                   certificationDraft={state.certificationDraft}
-                  setCertificationDraft={setters.setCertificationDraft}
+                  onCertificationDraftChange={
+                    actions.handleCertificationDraftChange
+                  }
                   certifications={state.certifications}
                   onAddCertification={actions.handleAddCertification}
                   onRemoveCertification={actions.handleRemoveCertification}
+                  errors={state.certificationDraftErrors as ValidationErrors}
                 />
 
                 <LanguagesSection
@@ -153,10 +162,11 @@ function CandidateProfileAndCVManagementScreen() {
                   showLanguageComposer={state.showLanguageComposer}
                   setShowLanguageComposer={setters.setShowLanguageComposer}
                   languageDraft={state.languageDraft}
-                  setLanguageDraft={setters.setLanguageDraft}
+                  onLanguageDraftChange={actions.handleLanguageDraftChange}
                   languages={state.languages}
                   onAddLanguage={actions.handleAddLanguage}
                   onRemoveLanguage={actions.handleRemoveLanguage}
+                  errors={state.languageDraftErrors as ValidationErrors}
                 />
               </div>
 
@@ -168,7 +178,9 @@ function CandidateProfileAndCVManagementScreen() {
                   setters.setShowCustomSectionComposer
                 }
                 customSectionDraft={state.customSectionDraft}
-                setCustomSectionDraft={setters.setCustomSectionDraft}
+                onCustomSectionDraftChange={
+                  actions.handleCustomSectionDraftChange
+                }
                 customSectionItemDrafts={state.customSectionItemDrafts}
                 openCustomSectionItemComposerId={
                   state.openCustomSectionItemComposerId
@@ -185,6 +197,8 @@ function CandidateProfileAndCVManagementScreen() {
                 onRemoveCustomSectionItem={
                   actions.handleRemoveCustomSectionItem
                 }
+                sectionErrors={state.customSectionDraftErrors as ValidationErrors}
+                itemErrorsBySection={state.customSectionItemDraftErrors}
               />
             </section>
           </div>

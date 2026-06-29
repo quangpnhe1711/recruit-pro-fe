@@ -1,5 +1,6 @@
 import CommonSelect from "../../../../common/components/CommonSelect";
 import type { Dispatch, SetStateAction } from "react";
+import type { ValidationErrors } from "../../../../common/validation/formValidation";
 import type { EntryDraft, ExperienceEntry } from "../types";
 import { formatPeriod, monthOptions } from "../utils";
 
@@ -8,10 +9,14 @@ type ExperienceSectionProps = {
   showEntryComposer: boolean;
   setShowEntryComposer: Dispatch<SetStateAction<boolean>>;
   entryDraft: EntryDraft;
-  setEntryDraft: Dispatch<SetStateAction<EntryDraft>>;
+  onEntryDraftChange: (
+    field: keyof EntryDraft,
+    value: string | number | boolean,
+  ) => void;
   experienceEntries: ExperienceEntry[];
   onAddEntry: () => void;
   onRemoveEntry: (entryId: string) => void;
+  errors: ValidationErrors;
 };
 
 function ExperienceSection({
@@ -19,10 +24,11 @@ function ExperienceSection({
   showEntryComposer,
   setShowEntryComposer,
   entryDraft,
-  setEntryDraft,
+  onEntryDraftChange,
   experienceEntries,
   onAddEntry,
   onRemoveEntry,
+  errors,
 }: ExperienceSectionProps) {
   return (
     <section className="card p-5 md:p-6">
@@ -47,28 +53,24 @@ function ExperienceSection({
         <div className="animate-scale-in mb-6 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <input
-              className="input-field h-11"
+              className={`input-field h-11 ${errors.title ? "border-[#dc2626]" : ""}`}
               placeholder="Chức danh"
               value={entryDraft.title}
-              onChange={(e) =>
-                setEntryDraft((prev) => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
+              onChange={(e) => onEntryDraftChange("title", e.target.value)}
             />
             <input
-              className="input-field h-11"
+              className={`input-field h-11 ${errors.company ? "border-[#dc2626]" : ""}`}
               placeholder="Công ty / Trường"
               value={entryDraft.company}
-              onChange={(e) =>
-                setEntryDraft((prev) => ({
-                  ...prev,
-                  company: e.target.value,
-                }))
-              }
+              onChange={(e) => onEntryDraftChange("company", e.target.value)}
             />
           </div>
+          {errors.title || errors.company ? (
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <p className="text-sm text-[#dc2626]">{errors.title || " "}</p>
+              <p className="text-sm text-[#dc2626]">{errors.company || " "}</p>
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <CommonSelect
               value={String(entryDraft.startMonth)}
@@ -77,10 +79,7 @@ function ExperienceSection({
                 value: String(index + 1),
               }))}
               onValueChange={(value) =>
-                setEntryDraft((prev) => ({
-                  ...prev,
-                  startMonth: Number(value),
-                }))
+                onEntryDraftChange("startMonth", Number(value))
               }
               className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
               menuClassName="border-[#ececec]"
@@ -93,10 +92,7 @@ function ExperienceSection({
               type="number"
               value={entryDraft.startYear}
               onChange={(e) =>
-                setEntryDraft((prev) => ({
-                  ...prev,
-                  startYear: Number(e.target.value),
-                }))
+                onEntryDraftChange("startYear", Number(e.target.value))
               }
             />
             <label className="col-span-2 flex h-11 items-center gap-2 rounded-[10px] border border-[#dcd7d5] bg-white px-3 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
@@ -105,10 +101,7 @@ function ExperienceSection({
                 className="h-4 w-4 accent-[#b90014]"
                 type="checkbox"
                 onChange={(e) =>
-                  setEntryDraft((prev) => ({
-                    ...prev,
-                    isCurrent: e.target.checked,
-                  }))
+                  onEntryDraftChange("isCurrent", e.target.checked)
                 }
               />
               Hiện tại
@@ -122,10 +115,7 @@ function ExperienceSection({
                     value: String(index + 1),
                   }))}
                   onValueChange={(value) =>
-                    setEntryDraft((prev) => ({
-                      ...prev,
-                      endMonth: Number(value),
-                    }))
+                    onEntryDraftChange("endMonth", Number(value))
                   }
                   className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
                   menuClassName="border-[#ececec]"
@@ -138,26 +128,21 @@ function ExperienceSection({
                   type="number"
                   value={entryDraft.endYear}
                   onChange={(e) =>
-                    setEntryDraft((prev) => ({
-                      ...prev,
-                      endYear: Number(e.target.value),
-                    }))
+                    onEntryDraftChange("endYear", Number(e.target.value))
                   }
                 />
               </>
             )}
           </div>
           <textarea
-            className="input-field min-h-[96px] resize-none"
+            className={`input-field min-h-[96px] resize-none ${errors.bullets ? "border-[#dc2626]" : ""}`}
             placeholder="Mỗi ý một dòng"
             value={entryDraft.bullets}
-            onChange={(e) =>
-              setEntryDraft((prev) => ({
-                ...prev,
-                bullets: e.target.value,
-              }))
-            }
+            onChange={(e) => onEntryDraftChange("bullets", e.target.value)}
           />
+          {errors.bullets ? (
+            <p className="text-sm text-[#dc2626]">{errors.bullets}</p>
+          ) : null}
           <div className="flex flex-wrap justify-end gap-2">
             <button
               className="btn btn-secondary h-11"

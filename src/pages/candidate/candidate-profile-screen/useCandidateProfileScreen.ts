@@ -3,6 +3,18 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
+  candidateProfileSchema,
+  certificationDraftSchema,
+  customSectionDraftSchema,
+  customSectionItemDraftSchema,
+  educationDraftSchema,
+  experienceDraftSchema,
+  languageDraftSchema,
+  projectDraftSchema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../../common/validation/formValidation";
+import {
   downloadProtectedFile,
   openProtectedFileInNewTab,
 } from "../../../common/utils/protectedFile";
@@ -124,6 +136,22 @@ export function useCandidateProfileScreen() {
   const [completionScore, setCompletionScore] = useState(0);
   const [loading, setLoading] = useState(true);
   const [initialSnapshot, setInitialSnapshot] = useState("");
+  const [profileErrors, setProfileErrors] = useState<ValidationErrors>({});
+  const [profileSubmitted, setProfileSubmitted] = useState(false);
+  const [entryDraftErrors, setEntryDraftErrors] = useState<ValidationErrors>({});
+  const [entryDraftSubmitted, setEntryDraftSubmitted] = useState(false);
+  const [projectDraftErrors, setProjectDraftErrors] = useState<ValidationErrors>({});
+  const [projectDraftSubmitted, setProjectDraftSubmitted] = useState(false);
+  const [educationDraftErrors, setEducationDraftErrors] = useState<ValidationErrors>({});
+  const [educationDraftSubmitted, setEducationDraftSubmitted] = useState(false);
+  const [certificationDraftErrors, setCertificationDraftErrors] = useState<ValidationErrors>({});
+  const [certificationDraftSubmitted, setCertificationDraftSubmitted] = useState(false);
+  const [languageDraftErrors, setLanguageDraftErrors] = useState<ValidationErrors>({});
+  const [languageDraftSubmitted, setLanguageDraftSubmitted] = useState(false);
+  const [customSectionDraftErrors, setCustomSectionDraftErrors] = useState<ValidationErrors>({});
+  const [customSectionDraftSubmitted, setCustomSectionDraftSubmitted] = useState(false);
+  const [customSectionItemDraftErrors, setCustomSectionItemDraftErrors] = useState<Record<string, ValidationErrors>>({});
+  const [customSectionItemDraftSubmitted, setCustomSectionItemDraftSubmitted] = useState<Record<string, boolean>>({});
 
   const displayAvatarUrl = profileAvatarUrl ?? authUser?.avatarUrl ?? null;
   const profileInitials = getInitials(
@@ -282,7 +310,100 @@ export function useCandidateProfileScreen() {
   }, []);
 
   function handleProfileChange(field: keyof ProfileState, value: string) {
-    setProfile((prev) => ({ ...prev, [field]: value }));
+    setProfile((prev) => {
+      const next = { ...prev, [field]: value };
+      if (profileSubmitted) {
+        setProfileErrors(
+          validateWithSchema(candidateProfileSchema, {
+            name: next.name,
+            headline: next.headline,
+            email: next.email,
+            phone: next.phone,
+            location: next.location,
+            bio: next.bio,
+            github: next.github,
+            linkedin: next.linkedin,
+          }),
+        );
+      }
+      return next;
+    });
+  }
+
+  function handleEntryDraftChange(field: keyof EntryDraft, value: string | number | boolean) {
+    setEntryDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (entryDraftSubmitted) {
+        setEntryDraftErrors(validateWithSchema(experienceDraftSchema, next));
+      }
+      return next;
+    });
+  }
+
+  function handleProjectDraftChange(
+    field: keyof ProjectDraft,
+    value: string | number | boolean,
+  ) {
+    setProjectDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (projectDraftSubmitted) {
+        setProjectDraftErrors(validateWithSchema(projectDraftSchema, next));
+      }
+      return next;
+    });
+  }
+
+  function handleEducationDraftChange(
+    field: keyof EducationDraft,
+    value: string,
+  ) {
+    setEducationDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (educationDraftSubmitted) {
+        setEducationDraftErrors(validateWithSchema(educationDraftSchema, next));
+      }
+      return next;
+    });
+  }
+
+  function handleCertificationDraftChange(
+    field: keyof typeof certificationDraft,
+    value: string,
+  ) {
+    setCertificationDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (certificationDraftSubmitted) {
+        setCertificationDraftErrors(
+          validateWithSchema(certificationDraftSchema, next),
+        );
+      }
+      return next;
+    });
+  }
+
+  function handleLanguageDraftChange(field: keyof typeof languageDraft, value: string) {
+    setLanguageDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (languageDraftSubmitted) {
+        setLanguageDraftErrors(validateWithSchema(languageDraftSchema, next));
+      }
+      return next;
+    });
+  }
+
+  function handleCustomSectionDraftChange(
+    field: keyof typeof customSectionDraft,
+    value: string,
+  ) {
+    setCustomSectionDraft((prev) => {
+      const next = { ...prev, [field]: value };
+      if (customSectionDraftSubmitted) {
+        setCustomSectionDraftErrors(
+          validateWithSchema(customSectionDraftSchema, next),
+        );
+      }
+      return next;
+    });
   }
 
   function handleSkillYearsChange(skillId: string, value: string) {
@@ -404,6 +525,22 @@ export function useCandidateProfileScreen() {
   }
 
   async function handleSaveProfile() {
+    setProfileSubmitted(true);
+    const nextProfileErrors = validateWithSchema(candidateProfileSchema, {
+      name: profile.name,
+      headline: profile.headline,
+      email: profile.email,
+      phone: profile.phone,
+      location: profile.location,
+      bio: profile.bio,
+      github: profile.github,
+      linkedin: profile.linkedin,
+    });
+    setProfileErrors(nextProfileErrors);
+    if (Object.keys(nextProfileErrors).length > 0) {
+      return;
+    }
+
     setIsSavingProfile(true);
     try {
       const savePayload = {
@@ -610,17 +747,19 @@ export function useCandidateProfileScreen() {
   }
 
   function handleAddEntry() {
+    setEntryDraftSubmitted(true);
+    const nextErrors = validateWithSchema(experienceDraftSchema, entryDraft);
+    setEntryDraftErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
     const title = entryDraft.title.trim();
     const company = entryDraft.company.trim();
     const bullets = entryDraft.bullets
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
-
-    if (!title || !company || bullets.length === 0) {
-      toast.error("Hãy nhập chức danh, công ty và ít nhất một gạch đầu dòng.");
-      return;
-    }
 
     const newEntry = {
       id: `${title.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
@@ -638,6 +777,8 @@ export function useCandidateProfileScreen() {
 
     setExperienceEntries((prev) => [newEntry, ...prev]);
     setEntryDraft(emptyEntryDraft);
+    setEntryDraftErrors({});
+    setEntryDraftSubmitted(false);
     setShowEntryComposer(false);
     setIsEditingProfile(true);
   }
@@ -648,11 +789,14 @@ export function useCandidateProfileScreen() {
   }
 
   function handleAddProject() {
-    const name = projectDraft.name.trim();
-    if (!name) {
-      toast.error("Hãy nhập tên dự án.");
+    setProjectDraftSubmitted(true);
+    const nextErrors = validateWithSchema(projectDraftSchema, projectDraft);
+    setProjectDraftErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    const name = projectDraft.name.trim();
 
     setProjects((prev) => [
       {
@@ -675,6 +819,8 @@ export function useCandidateProfileScreen() {
       ...prev,
     ]);
     setProjectDraft(emptyProjectDraft);
+    setProjectDraftErrors({});
+    setProjectDraftSubmitted(false);
     setShowProjectComposer(false);
     setIsEditingProfile(true);
   }
@@ -685,12 +831,15 @@ export function useCandidateProfileScreen() {
   }
 
   function handleAddEducation() {
-    const school = educationDraft.school.trim();
-    const degree = educationDraft.degree.trim();
-    if (!school || !degree) {
-      toast.error("Hãy nhập trường học và bằng cấp.");
+    setEducationDraftSubmitted(true);
+    const nextErrors = validateWithSchema(educationDraftSchema, educationDraft);
+    setEducationDraftErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    const school = educationDraft.school.trim();
+    const degree = educationDraft.degree.trim();
 
     setEducations((prev) => [
       {
@@ -707,6 +856,8 @@ export function useCandidateProfileScreen() {
       ...prev,
     ]);
     setEducationDraft(emptyEducationDraft);
+    setEducationDraftErrors({});
+    setEducationDraftSubmitted(false);
     setShowEducationComposer(false);
     setIsEditingProfile(true);
   }
@@ -719,11 +870,14 @@ export function useCandidateProfileScreen() {
   }
 
   function handleAddCertification() {
-    const name = certificationDraft.name.trim();
-    if (!name) {
-      toast.error("Hãy nhập tên chứng chỉ.");
+    setCertificationDraftSubmitted(true);
+    const nextErrors = validateWithSchema(certificationDraftSchema, certificationDraft);
+    setCertificationDraftErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    const name = certificationDraft.name.trim();
 
     setCertifications((prev) => [
       {
@@ -738,6 +892,8 @@ export function useCandidateProfileScreen() {
       ...prev,
     ]);
     setCertificationDraft(emptyCertificationDraft);
+    setCertificationDraftErrors({});
+    setCertificationDraftSubmitted(false);
     setShowCertificationComposer(false);
     setIsEditingProfile(true);
   }
@@ -750,12 +906,15 @@ export function useCandidateProfileScreen() {
   }
 
   function handleAddLanguage() {
-    const name = languageDraft.name.trim();
-    const proficiency = languageDraft.proficiency.trim();
-    if (!name || !proficiency) {
-      toast.error("Hãy nhập ngôn ngữ và trình độ.");
+    setLanguageDraftSubmitted(true);
+    const nextErrors = validateWithSchema(languageDraftSchema, languageDraft);
+    setLanguageDraftErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    const name = languageDraft.name.trim();
+    const proficiency = languageDraft.proficiency.trim();
 
     setLanguages((prev) => [
       {
@@ -766,6 +925,8 @@ export function useCandidateProfileScreen() {
       ...prev,
     ]);
     setLanguageDraft(emptyLanguageDraft);
+    setLanguageDraftErrors({});
+    setLanguageDraftSubmitted(false);
     setShowLanguageComposer(false);
     setIsEditingProfile(true);
   }
@@ -778,11 +939,14 @@ export function useCandidateProfileScreen() {
   }
 
   function handleAddCustomSection() {
-    const title = customSectionDraft.title.trim();
-    if (!title) {
-      toast.error("Hãy nhập tên đầu mục lớn.");
+    setCustomSectionDraftSubmitted(true);
+    const nextErrors = validateWithSchema(customSectionDraftSchema, customSectionDraft);
+    setCustomSectionDraftErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    const title = customSectionDraft.title.trim();
 
     const sectionId = `custom-section-${Date.now()}`;
     setSections((prev) => [
@@ -801,6 +965,8 @@ export function useCandidateProfileScreen() {
       },
     ]);
     setCustomSectionDraft(emptyCustomSectionDraft);
+    setCustomSectionDraftErrors({});
+    setCustomSectionDraftSubmitted(false);
     setShowCustomSectionComposer(false);
     setOpenCustomSectionItemComposerId(sectionId);
     setIsEditingProfile(true);
@@ -819,23 +985,38 @@ export function useCandidateProfileScreen() {
     field: keyof CustomSectionItemDraft,
     value: string,
   ) {
-    setCustomSectionItemDrafts((prev) => ({
-      ...prev,
-      [sectionId]: {
-        ...(prev[sectionId] ?? emptyCustomSectionItemDraft),
-        [field]: value,
-      },
-    }));
+    setCustomSectionItemDrafts((prev) => {
+      const next = {
+        ...prev,
+        [sectionId]: {
+          ...(prev[sectionId] ?? emptyCustomSectionItemDraft),
+          [field]: value,
+        },
+      };
+      if (customSectionItemDraftSubmitted[sectionId]) {
+        setCustomSectionItemDraftErrors((current) => ({
+          ...current,
+          [sectionId]: validateWithSchema(
+            customSectionItemDraftSchema,
+            next[sectionId],
+          ),
+        }));
+      }
+      return next;
+    });
   }
 
   function handleAddCustomSectionItem(sectionId: string) {
     const draft =
       customSectionItemDrafts[sectionId] ?? emptyCustomSectionItemDraft;
-    const title = draft.title.trim();
-    if (!title) {
-      toast.error("Hãy nhập tiêu đề cho mục con.");
+    setCustomSectionItemDraftSubmitted((prev) => ({ ...prev, [sectionId]: true }));
+    const nextErrors = validateWithSchema(customSectionItemDraftSchema, draft);
+    setCustomSectionItemDraftErrors((prev) => ({ ...prev, [sectionId]: nextErrors }));
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    const title = draft.title.trim();
 
     setSections((prev) =>
       prev.map((section) =>
@@ -875,6 +1056,8 @@ export function useCandidateProfileScreen() {
       ...prev,
       [sectionId]: emptyCustomSectionItemDraft,
     }));
+    setCustomSectionItemDraftErrors((prev) => ({ ...prev, [sectionId]: {} }));
+    setCustomSectionItemDraftSubmitted((prev) => ({ ...prev, [sectionId]: false }));
     setOpenCustomSectionItemComposerId(null);
     setIsEditingProfile(true);
   }
@@ -958,25 +1141,33 @@ export function useCandidateProfileScreen() {
       isProfileDirty,
       hasPendingResumeUpload,
       hasAppliedParsedResume,
+      profileErrors,
+      entryDraftErrors,
+      projectDraftErrors,
+      educationDraftErrors,
+      certificationDraftErrors,
+      languageDraftErrors,
+      customSectionDraftErrors,
+      customSectionItemDraftErrors,
     },
     setters: {
       setIsEditingProfile,
-      setEntryDraft,
       setShowEntryComposer,
-      setProjectDraft,
       setShowProjectComposer,
-      setEducationDraft,
       setShowEducationComposer,
-      setCertificationDraft,
       setShowCertificationComposer,
-      setLanguageDraft,
       setShowLanguageComposer,
-      setCustomSectionDraft,
       setShowCustomSectionComposer,
       setOpenCustomSectionItemComposerId,
     },
     actions: {
       handleProfileChange,
+      handleEntryDraftChange,
+      handleProjectDraftChange,
+      handleEducationDraftChange,
+      handleCertificationDraftChange,
+      handleLanguageDraftChange,
+      handleCustomSectionDraftChange,
       handleSkillYearsChange,
       handleSaveProfile,
       handleResumeFileChange,

@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getApplicationErrorMessage } from "../../common/utils/apiError";
+import {
+  interviewScheduleSchema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../common/validation/formValidation";
 import { InterviewStatus } from "../../common/status/interviewStatus";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -150,6 +155,8 @@ function InterviewScheduleScreen() {
   const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [locationOrLink, setLocationOrLink] = useState<string>("");
   const [interviewerIndex, setInterviewerIndex] = useState<number>(0);
+  const [formErrors, setFormErrors] = useState<ValidationErrors>({});
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -312,13 +319,17 @@ function InterviewScheduleScreen() {
       return;
     }
 
-    if (selectedSlot === null) {
-      toast.error("Hãy chọn khung giờ.");
-      return;
-    }
-
-    if (!locationOrLink.trim()) {
-      toast.error(mode === "video" ? "Hãy nhập link họp." : "Hãy nhập địa điểm.");
+    setSubmitted(true);
+    const schemaErrors = validateWithSchema(interviewScheduleSchema, {
+      date: selectedDateKey,
+      startMinutes: selectedSlot ?? -1,
+      durationMinutes,
+      mode,
+      locationOrLink,
+      interviewerId: currentInterviewer.id,
+    });
+    setFormErrors(schemaErrors);
+    if (Object.keys(schemaErrors).length > 0) {
       return;
     }
 
@@ -619,12 +630,30 @@ function InterviewScheduleScreen() {
                   link
                 </span>
                 <input
-                  className="input-field pl-10 font-mono text-[13px]"
+                  className={`input-field pl-10 font-mono text-[13px] ${formErrors.locationOrLink ? "border-[#ba1a1a]" : ""}`}
                   value={locationOrLink}
-                  onChange={(e) => setLocationOrLink(e.target.value)}
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setLocationOrLink(nextValue);
+                    if (submitted) {
+                      setFormErrors(
+                        validateWithSchema(interviewScheduleSchema, {
+                          date: selectedDateKey,
+                          startMinutes: selectedSlot ?? -1,
+                          durationMinutes,
+                          mode,
+                          locationOrLink: nextValue,
+                          interviewerId: currentInterviewer.id,
+                        }),
+                      );
+                    }
+                  }}
                   placeholder={mode === "video" ? "Dán link cuộc họp" : "Nhập địa điểm phỏng vấn"}
                 />
               </div>
+              {formErrors.locationOrLink ? (
+                <p className="text-[12px] text-[#ba1a1a]">{formErrors.locationOrLink}</p>
+              ) : null}
             </div>
           </section>
         </div>
@@ -702,6 +731,9 @@ function InterviewScheduleScreen() {
                   {selectedSlot === null ? "Chưa chọn" : `${formatTime(selectedSlot)} - ${formatTime(endMinutes)}`}
                 </span>
               </div>
+              {formErrors.startMinutes ? (
+                <p className="text-[12px] text-[#ba1a1a]">{formErrors.startMinutes}</p>
+              ) : null}
 
               <div className="flex justify-between border-b border-[#f0eceb] pb-3">
                 <span className="text-[14px] text-[#5f5e5e]">Hình thức</span>

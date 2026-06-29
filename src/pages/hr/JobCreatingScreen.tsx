@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import SkillPicker from "../../common/components/SkillPicker";
+import {
+  jobCreateStep1Schema,
+  jobCreateStep2Schema,
+  jobCreateStep3Schema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../common/validation/formValidation";
 import {
   getEmploymentTypeBadgeClass,
   getSkillChipClass,
@@ -218,6 +224,12 @@ function JobCreatingScreen() {
     () => "VND",
   );
   const [publishing, setPublishing] = useState(false);
+  const [step1Errors, setStep1Errors] = useState<ValidationErrors>({});
+  const [step2Errors, setStep2Errors] = useState<ValidationErrors>({});
+  const [step3Errors, setStep3Errors] = useState<ValidationErrors>({});
+  const [step1Submitted, setStep1Submitted] = useState(false);
+  const [step2Submitted, setStep2Submitted] = useState(false);
+  const [step3Submitted, setStep3Submitted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -290,97 +302,38 @@ function JobCreatingScreen() {
   }
 
   function validateStep1() {
-    const schema = yup.object({
-      title: yup.string().trim().required("Vui lòng nhập tiêu đề tuyển dụng."),
-      department: yup.string().trim().required("Vui lòng chọn phòng ban."),
-      location: yup.string().trim().required("Vui lòng nhập địa điểm làm việc."),
-      employmentType: yup.string().required("Vui lòng chọn loại hình làm việc."),
-      workMode: yup.string().required("Vui lòng chọn hình thức làm việc."),
-      shortPitch: yup.string().trim().required("Vui lòng nhập mô tả ngắn."),
+    setStep1Submitted(true);
+    const errors = validateWithSchema(jobCreateStep1Schema, {
+      title,
+      department,
+      location,
+      employmentType,
+      workMode,
+      shortPitch,
     });
-
-    try {
-      schema.validateSync(
-        { title, department, location, employmentType, workMode, shortPitch },
-        { abortEarly: false },
-      );
-      return true;
-    } catch (err) {
-      if (err instanceof yup.ValidationError)
-        toast.error(err.errors?.[0] || "Dữ liệu chưa hợp lệ");
-      return false;
-    }
+    setStep1Errors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function validateStep2() {
-    const schema = yup.object({
-      description: yup.string().trim().required("Job description is required."),
-      requirements: yup
-        .array()
-        .of(yup.string())
-        .min(1, "Hãy thêm ít nhất một yêu cầu."),
+    setStep2Submitted(true);
+    const errors = validateWithSchema(jobCreateStep2Schema, {
+      description,
+      requirements,
     });
-
-    try {
-      schema.validateSync({ description, requirements }, { abortEarly: false });
-      return true;
-    } catch (err) {
-      if (err instanceof yup.ValidationError)
-        toast.error(err.errors?.[0] || "Dữ liệu chưa hợp lệ");
-      return false;
-    }
+    setStep2Errors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function validateStep3() {
-    const schema = yup
-      .object({
-        skills: yup
-          .array()
-          .of(
-            yup.object({
-              skillName: yup.string().trim().required(),
-              minimumYearsOfExperience: yup
-                .string()
-                .test(
-                  "valid-minimum-years",
-                  "Years of experience must be 0.5-step values such as 0.5, 1, 1.5.",
-                  (value) => {
-                    if (!value) return true;
-                    const parsedValue = Number(value);
-                    return Number.isFinite(parsedValue) && parsedValue >= 0 && (parsedValue * 2) % 1 === 0;
-                  },
-                ),
-            }),
-          )
-          .min(1, "Hãy chọn ít nhất một kỹ năng bắt buộc."),
-        salaryMin: yup.number().nullable().transform((value, originalValue) =>
-          originalValue === "" || originalValue == null ? null : value,
-        ),
-        salaryMax: yup.number().nullable().transform((value, originalValue) =>
-          originalValue === "" || originalValue == null ? null : value,
-        ),
-      })
-      .test(
-        "min<=max",
-        "Salary min must be less than or equal to max.",
-        (val) => {
-          if (!val) return false;
-          if (val.salaryMin == null || val.salaryMax == null) return true;
-          return Number(val.salaryMin) <= Number(val.salaryMax);
-        },
-      );
-
-    try {
-      schema.validateSync(
-        { skills, salaryMin, salaryMax },
-        { abortEarly: false },
-      );
-      return true;
-    } catch (err) {
-      if (err instanceof yup.ValidationError)
-        toast.error(err.errors?.[0] || "Dữ liệu chưa hợp lệ");
-      return false;
-    }
+    setStep3Submitted(true);
+    const errors = validateWithSchema(jobCreateStep3Schema, {
+      skills,
+      salaryMin,
+      salaryMax,
+    });
+    setStep3Errors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function addListItem(
@@ -391,7 +344,16 @@ function JobCreatingScreen() {
     if (!next) return;
     setter((prev) => {
       const exists = prev.some((p) => p.toLowerCase() === next.toLowerCase());
-      return exists ? prev : [...prev, next];
+      const nextValues = exists ? prev : [...prev, next];
+      if (setter === setRequirements && step2Submitted) {
+        setStep2Errors(
+          validateWithSchema(jobCreateStep2Schema, {
+            description,
+            requirements: nextValues,
+          }),
+        );
+      }
+      return nextValues;
     });
   }
 
@@ -399,7 +361,18 @@ function JobCreatingScreen() {
     index: number,
     setter: (updater: (prev: string[]) => string[]) => void,
   ) {
-    setter((prev) => prev.filter((_, i) => i !== index));
+    setter((prev) => {
+      const nextValues = prev.filter((_, i) => i !== index);
+      if (setter === setRequirements && step2Submitted) {
+        setStep2Errors(
+          validateWithSchema(jobCreateStep2Schema, {
+            description,
+            requirements: nextValues,
+          }),
+        );
+      }
+      return nextValues;
+    });
   }
 
   function addSkillRequirement(
@@ -411,7 +384,7 @@ function JobCreatingScreen() {
 
     setter((prev) => {
       const exists = prev.some((item) => item.skillName.toLowerCase() === next.toLowerCase());
-      return exists
+      const nextValues = exists
         ? prev
         : [
             ...prev,
@@ -420,6 +393,16 @@ function JobCreatingScreen() {
               minimumYearsOfExperience: "",
             },
           ];
+      if (setter === setSkills && step3Submitted) {
+        setStep3Errors(
+          validateWithSchema(jobCreateStep3Schema, {
+            skills: nextValues,
+            salaryMin,
+            salaryMax,
+          }),
+        );
+      }
+      return nextValues;
     });
   }
 
@@ -427,7 +410,19 @@ function JobCreatingScreen() {
     skillName: string,
     setter: (updater: (prev: SkillRequirementDraft[]) => SkillRequirementDraft[]) => void,
   ) {
-    setter((prev) => prev.filter((item) => item.skillName !== skillName));
+    setter((prev) => {
+      const nextValues = prev.filter((item) => item.skillName !== skillName);
+      if (setter === setSkills && step3Submitted) {
+        setStep3Errors(
+          validateWithSchema(jobCreateStep3Schema, {
+            skills: nextValues,
+            salaryMin,
+            salaryMax,
+          }),
+        );
+      }
+      return nextValues;
+    });
   }
 
   function updateSkillRequirementYears(
@@ -441,14 +436,26 @@ function JobCreatingScreen() {
     }
 
     setter((prev) =>
-      prev.map((item) =>
+      {
+        const nextValues = prev.map((item) =>
         item.skillName === skillName
           ? {
               ...item,
               minimumYearsOfExperience: normalizedValue,
             }
           : item,
-      ),
+        );
+        if (setter === setSkills && step3Submitted) {
+          setStep3Errors(
+            validateWithSchema(jobCreateStep3Schema, {
+              skills: nextValues,
+              salaryMin,
+              salaryMax,
+            }),
+          );
+        }
+        return nextValues;
+      },
     );
   }
 
@@ -644,11 +651,29 @@ function JobCreatingScreen() {
                 <label className="field-label">Chức danh công việc</label>
                 <input
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="input-field h-11"
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setTitle(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                        validateWithSchema(jobCreateStep1Schema, {
+                          title: nextValue,
+                          department,
+                          location,
+                          employmentType,
+                          workMode,
+                          shortPitch,
+                        }),
+                      );
+                    }
+                  }}
+                  className={`input-field h-11 ${step1Errors.title ? "border-[#ba1a1a]" : ""}`}
                   placeholder="Ví dụ: Kỹ sư phần mềm cấp cao"
                   type="text"
                 />
+                {step1Errors.title ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.title}</p>
+                ) : null}
               </div>
 
               <div>
@@ -656,8 +681,26 @@ function JobCreatingScreen() {
                 <CommonSelect
                   options={departments.map((d) => ({ label: d, value: d }))}
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setDepartment(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                      validateWithSchema(jobCreateStep1Schema, {
+                        title,
+                        department: nextValue,
+                        location,
+                        employmentType,
+                        workMode,
+                        shortPitch,
+                      }),
+                      );
+                    }
+                  }}
                 />
+                {step1Errors.department ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.department}</p>
+                ) : null}
               </div>
 
               <div>
@@ -666,21 +709,55 @@ function JobCreatingScreen() {
                   options={employmentTypeOptions}
                   placeholder="Chọn loại hình công việc"
                   value={employmentType}
-                  onChange={(e) =>
-                    setEmploymentType(e.target.value as EmploymentType | "")
-                  }
+                  onChange={(e) => {
+                    const nextValue = e.target.value as EmploymentType | "";
+                    setEmploymentType(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                      validateWithSchema(jobCreateStep1Schema, {
+                        title,
+                        department,
+                        location,
+                        employmentType: nextValue,
+                        workMode,
+                        shortPitch,
+                      }),
+                      );
+                    }
+                  }}
                 />
+                {step1Errors.employmentType ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.employmentType}</p>
+                ) : null}
               </div>
 
               <div>
                 <label className="field-label">Địa điểm</label>
                 <input
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="input-field h-11"
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setLocation(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                      validateWithSchema(jobCreateStep1Schema, {
+                        title,
+                        department,
+                        location: nextValue,
+                        employmentType,
+                        workMode,
+                        shortPitch,
+                      }),
+                      );
+                    }
+                  }}
+                  className={`input-field h-11 ${step1Errors.location ? "border-[#ba1a1a]" : ""}`}
                   placeholder="Ví dụ: TP. Ho Chi Minh"
                   type="text"
                 />
+                {step1Errors.location ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.location}</p>
+                ) : null}
               </div>
 
               <div>
@@ -689,19 +766,55 @@ function JobCreatingScreen() {
                   options={workModeOptions}
                   placeholder="Chọn hình thức làm việc"
                   value={workMode}
-                  onChange={(e) => setWorkMode(e.target.value as WorkMode | "")}
+                  onChange={(e) => {
+                    const nextValue = e.target.value as WorkMode | "";
+                    setWorkMode(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                      validateWithSchema(jobCreateStep1Schema, {
+                        title,
+                        department,
+                        location,
+                        employmentType,
+                        workMode: nextValue,
+                        shortPitch,
+                      }),
+                      );
+                    }
+                  }}
                 />
+                {step1Errors.workMode ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.workMode}</p>
+                ) : null}
               </div>
 
               <div className="md:col-span-2">
                 <label className="field-label">Mô tả ngắn</label>
                 <textarea
                   value={shortPitch}
-                  onChange={(e) => setShortPitch(e.target.value)}
-                  className="input-field min-h-[88px] resize-y"
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setShortPitch(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                      validateWithSchema(jobCreateStep1Schema, {
+                        title,
+                        department,
+                        location,
+                        employmentType,
+                        workMode,
+                        shortPitch: nextValue,
+                      }),
+                      );
+                    }
+                  }}
+                  className={`input-field min-h-[88px] resize-y ${step1Errors.shortPitch ? "border-[#ba1a1a]" : ""}`}
                   placeholder="Tóm tắt ngắn để hiển thị trên trang việc làm..."
                   rows={3}
                 />
+                {step1Errors.shortPitch ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.shortPitch}</p>
+                ) : null}
                 <p className="mt-1.5 text-[12px] text-[#8a8786]">
                   Một câu súc tích thu hút ứng viên ngay từ danh sách việc làm.
                 </p>
@@ -752,11 +865,25 @@ function JobCreatingScreen() {
               <label className="field-label">Mô tả công việc</label>
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="input-field min-h-[160px] resize-y"
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setDescription(nextValue);
+                  if (step2Submitted) {
+                    setStep2Errors(
+                      validateWithSchema(jobCreateStep2Schema, {
+                        description: nextValue,
+                        requirements,
+                      }),
+                    );
+                  }
+                }}
+                className={`input-field min-h-[160px] resize-y ${step2Errors.description ? "border-[#ba1a1a]" : ""}`}
                 placeholder="Mô tả vai trò, phạm vi công việc và kỳ vọng..."
                 rows={6}
               />
+              {step2Errors.description ? (
+                <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step2Errors.description}</p>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -842,6 +969,9 @@ function JobCreatingScreen() {
                     </li>
                   ))}
                 </ul>
+                {step2Errors.requirements ? (
+                  <p className="text-[12px] text-[#ba1a1a]">{step2Errors.requirements}</p>
+                ) : null}
               </div>
             </div>
 
@@ -911,6 +1041,9 @@ function JobCreatingScreen() {
                     onAdd={(value) => addSkillRequirement(value, setSkills)}
                     onRemove={(value) => removeSkillRequirement(value, setSkills)}
                   />
+                  {step3Errors.skills ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{step3Errors.skills}</p>
+                  ) : null}
 
                   {skills.length ? (
                     <div className="space-y-3">
@@ -1012,22 +1145,52 @@ function JobCreatingScreen() {
                 <label className="field-label">Lương tối thiểu (VND/tháng)</label>
                 <input
                   value={salaryMin}
-                  onChange={(e) => setSalaryMin(e.target.value)}
-                  className="input-field h-11"
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setSalaryMin(nextValue);
+                    if (step3Submitted) {
+                      setStep3Errors(
+                        validateWithSchema(jobCreateStep3Schema, {
+                          skills,
+                          salaryMin: nextValue,
+                          salaryMax,
+                        }),
+                      );
+                    }
+                  }}
+                  className={`input-field h-11 ${step3Errors.salaryMin ? "border-[#ba1a1a]" : ""}`}
                   placeholder="Ví dụ: 20000000"
                   inputMode="numeric"
                 />
+                {step3Errors.salaryMin ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step3Errors.salaryMin}</p>
+                ) : null}
               </div>
 
               <div>
                 <label className="field-label">Lương tối đa (VND/tháng)</label>
                 <input
                   value={salaryMax}
-                  onChange={(e) => setSalaryMax(e.target.value)}
-                  className="input-field h-11"
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setSalaryMax(nextValue);
+                    if (step3Submitted) {
+                      setStep3Errors(
+                        validateWithSchema(jobCreateStep3Schema, {
+                          skills,
+                          salaryMin,
+                          salaryMax: nextValue,
+                        }),
+                      );
+                    }
+                  }}
+                  className={`input-field h-11 ${step3Errors.salaryMax ? "border-[#ba1a1a]" : ""}`}
                   placeholder="Ví dụ: 35000000"
                   inputMode="numeric"
                 />
+                {step3Errors.salaryMax ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step3Errors.salaryMax}</p>
+                ) : null}
               </div>
 
               <div>

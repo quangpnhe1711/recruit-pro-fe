@@ -1,3 +1,4 @@
+import type { ValidationErrors } from "../../../../common/validation/formValidation";
 import type { ProfileState } from "../types";
 
 type PersonalInfoSectionProps = {
@@ -5,6 +6,7 @@ type PersonalInfoSectionProps = {
   isEditingProfile: boolean;
   canEditProfile: boolean;
   onProfileChange: (field: keyof ProfileState, value: string) => void;
+  errors: ValidationErrors;
 };
 
 function PersonalInfoSection({
@@ -12,6 +14,7 @@ function PersonalInfoSection({
   isEditingProfile,
   canEditProfile,
   onProfileChange,
+  errors,
 }: PersonalInfoSectionProps) {
   return (
     <section id="resume" className="card p-5 md:p-6">
@@ -25,7 +28,7 @@ function PersonalInfoSection({
           <label className="field-label">Giới thiệu</label>
           {isEditingProfile && canEditProfile ? (
             <textarea
-              className="input-field min-h-[120px] resize-none"
+              className={`input-field min-h-[120px] resize-none ${errors.bio ? "border-[#ba1a1a]" : ""}`}
               value={profile.bio}
               onChange={(e) => onProfileChange("bio", e.target.value)}
             />
@@ -34,6 +37,9 @@ function PersonalInfoSection({
               {profile.bio}
             </p>
           )}
+          {errors.bio ? (
+            <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{errors.bio}</p>
+          ) : null}
         </div>
 
         <div>
@@ -49,6 +55,9 @@ function PersonalInfoSection({
                 disabled={!canEditProfile}
               />
             </div>
+            {errors.github ? (
+              <p className="text-[12px] text-[#ba1a1a]">{errors.github}</p>
+            ) : null}
             <div className="flex h-11 items-center gap-3 rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 transition-all focus-within:border-[#b90014] focus-within:ring-4 focus-within:ring-[#b90014]/10">
               <span className="material-symbols-outlined text-[20px] text-[#8a8786]">group</span>
               <input
@@ -59,6 +68,9 @@ function PersonalInfoSection({
                 disabled={!canEditProfile}
               />
             </div>
+            {errors.linkedin ? (
+              <p className="text-[12px] text-[#ba1a1a]">{errors.linkedin}</p>
+            ) : null}
           </div>
         </div>
       </div>

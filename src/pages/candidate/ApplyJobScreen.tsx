@@ -5,6 +5,7 @@ import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import { Skeleton } from "../../common/components/Skeleton";
 import EmptyState from "../../common/components/EmptyState";
+import { applyJobSchema, validateWithSchema } from "../../common/validation/formValidation";
 import {
   getEmploymentTypeBadgeClass,
   quickApplyCardClass,
@@ -30,9 +31,11 @@ function ApplyJobScreen() {
   const { jobId = "" } = useParams();
   const [screenData, setScreenData] = useState<ApplyJobScreenDto | null>(null);
   const [coverLetter, setCoverLetter] = useState("");
+  const [coverLetterError, setCoverLetterError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [successResult, setSuccessResult] = useState<ApplyJobResponseDto | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -66,6 +69,14 @@ function ApplyJobScreen() {
 
   async function handleSubmit() {
     if (!screenData?.eligibility.canApply) {
+      return;
+    }
+
+    setSubmitted(true);
+    const schemaErrors = validateWithSchema(applyJobSchema, { coverLetter });
+    const nextError = schemaErrors.coverLetter ?? null;
+    setCoverLetterError(nextError);
+    if (nextError) {
       return;
     }
 
@@ -311,14 +322,24 @@ function ApplyJobScreen() {
                 <h2 className="section-title">Thư giới thiệu / Ghi chú cho tuyển dụng</h2>
                 <span className="badge bg-[#f2efed] text-[#8a8786]">Không bắt buộc</span>
               </div>
-              <textarea
-                value={coverLetter}
-                onChange={(event) => setCoverLetter(event.target.value)}
+                <textarea
+                  value={coverLetter}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setCoverLetter(nextValue);
+                    if (submitted) {
+                      const schemaErrors = validateWithSchema(applyJobSchema, { coverLetter: nextValue });
+                      setCoverLetterError(schemaErrors.coverLetter ?? null);
+                    }
+                  }}
                 rows={5}
                 maxLength={2000}
                 placeholder="Chia sẻ vì sao bạn phù hợp với vị trí này..."
-                className="input-field resize-none"
+                className={`input-field resize-none ${coverLetterError ? "border-[#ba1a1a]" : ""}`}
               />
+              {coverLetterError ? (
+                <p className="mt-2 text-[12px] text-[#ba1a1a]">{coverLetterError}</p>
+              ) : null}
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-[12px] text-[#8a8786]">
                   Ghi chú này là tùy chọn. Hiện schema database chưa lưu cover letter.

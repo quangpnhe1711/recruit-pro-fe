@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import {
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../validation/formValidation";
+import * as yup from "yup";
 
 type ForgotPasswordDialogProps = {
   title: string;
@@ -19,11 +24,19 @@ function ForgotPasswordDialog({
 }: ForgotPasswordDialogProps) {
   const [identifier, setIdentifier] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
+  const schema = yup.object({
+    identifier: yup.string().trim().required("Vui lòng nhập thông tin tài khoản."),
+  });
 
   useEffect(() => {
     if (!open) {
       setIdentifier("");
       setSubmitting(false);
+      setSubmitted(false);
+      setErrors({});
     }
   }, [open]);
 
@@ -32,8 +45,11 @@ function ForgotPasswordDialog({
   }
 
   async function handleSubmit() {
+    setSubmitted(true);
     const trimmed = identifier.trim();
-    if (!trimmed) {
+    const nextErrors = validateWithSchema(schema, { identifier: trimmed });
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -76,14 +92,23 @@ function ForgotPasswordDialog({
           <input
             type="text"
             value={identifier}
-            onChange={(event) => setIdentifier(event.target.value)}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              setIdentifier(nextValue);
+              if (submitted) {
+                setErrors(validateWithSchema(schema, { identifier: nextValue.trim() }));
+              }
+            }}
             placeholder={placeholder}
             autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSubmit();
             }}
-            className="input-field h-12"
+            className={`input-field h-12 ${errors.identifier ? "border-[#ba1a1a]" : ""}`}
           />
+          {errors.identifier ? (
+            <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{errors.identifier}</p>
+          ) : null}
         </div>
 
         <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
@@ -94,7 +119,7 @@ function ForgotPasswordDialog({
             type="button"
             className="btn btn-primary"
             onClick={handleSubmit}
-            disabled={submitting || !identifier.trim()}
+            disabled={submitting}
           >
             {submitting ? "Đang gửi..." : "Đặt lại mật khẩu"}
           </button>

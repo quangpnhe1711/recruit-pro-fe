@@ -7,6 +7,11 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
 import { Skeleton, SkeletonText } from "../../common/components/Skeleton";
+import {
+  offerSchema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../common/validation/formValidation";
 import type { OfferEditorDto, UpsertOfferRequest } from "../../modules/jobs/jobsSchema";
 import { hrService } from "../../services/hr/hrService";
 
@@ -117,6 +122,8 @@ function SendOfferScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [formErrors, setFormErrors] = useState<ValidationErrors>({});
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -163,7 +170,14 @@ function SendOfferScreen() {
   );
 
   function updateForm<K extends keyof OfferFormState>(key: K, value: OfferFormState[K]) {
-    setForm((current) => (current ? { ...current, [key]: value } : current));
+    setForm((current) => {
+      if (!current) return current;
+      const next = { ...current, [key]: value };
+      if (submitted) {
+        setFormErrors(validateWithSchema(offerSchema, next));
+      }
+      return next;
+    });
   }
 
   function toggleBenefit(benefitId: string) {
@@ -201,6 +215,10 @@ function SendOfferScreen() {
   async function handleSaveDraft() {
     const payload = toPayload();
     if (!payload) return;
+    setSubmitted(true);
+    const schemaErrors = validateWithSchema(offerSchema, form);
+    setFormErrors(schemaErrors);
+    if (Object.keys(schemaErrors).length > 0) return;
 
     setSaving(true);
     try {
@@ -218,6 +236,10 @@ function SendOfferScreen() {
   async function handleSendOffer() {
     const payload = toPayload();
     if (!payload) return;
+    setSubmitted(true);
+    const schemaErrors = validateWithSchema(offerSchema, form);
+    setFormErrors(schemaErrors);
+    if (Object.keys(schemaErrors).length > 0) return;
 
     setSending(true);
     try {
@@ -367,11 +389,14 @@ function SendOfferScreen() {
                 <label className="space-y-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Lương cơ bản</span>
                   <input
-                    className="input-field font-medium"
+                    className={`input-field font-medium ${formErrors.baseSalary ? "border-[#ba1a1a]" : ""}`}
                     type="number"
                     value={form.baseSalary}
                     onChange={(event) => updateForm("baseSalary", event.target.value)}
                   />
+                  {formErrors.baseSalary ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{formErrors.baseSalary}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -383,26 +408,35 @@ function SendOfferScreen() {
                     className="input-field h-11 font-medium"
                     menuClassName="border-[#ececec]"
                   />
+                  {formErrors.currencyCode ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{formErrors.currencyCode}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Thưởng bổ sung</span>
                   <input
-                    className="input-field font-medium"
+                    className={`input-field font-medium ${formErrors.bonusDescription ? "border-[#ba1a1a]" : ""}`}
                     type="text"
                     value={form.bonusDescription}
                     onChange={(event) => updateForm("bonusDescription", event.target.value)}
                   />
+                  {formErrors.bonusDescription ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{formErrors.bonusDescription}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Cổ phần / Quyền chọn cổ phiếu</span>
                   <input
-                    className="input-field font-medium"
+                    className={`input-field font-medium ${formErrors.equityNotes ? "border-[#ba1a1a]" : ""}`}
                     type="text"
                     value={form.equityNotes}
                     onChange={(event) => updateForm("equityNotes", event.target.value)}
                   />
+                  {formErrors.equityNotes ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{formErrors.equityNotes}</p>
+                  ) : null}
                 </label>
               </div>
             </div>
@@ -421,6 +455,9 @@ function SendOfferScreen() {
                     className="input-field h-11 font-medium"
                     menuClassName="border-[#ececec]"
                   />
+                  {formErrors.employmentType ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{formErrors.employmentType}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -436,11 +473,14 @@ function SendOfferScreen() {
                 <label className="space-y-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Thời gian thử việc</span>
                   <input
-                    className="input-field font-medium"
+                    className={`input-field font-medium ${formErrors.probationPeriod ? "border-[#ba1a1a]" : ""}`}
                     type="text"
                     value={form.probationPeriod}
                     onChange={(event) => updateForm("probationPeriod", event.target.value)}
                   />
+                  {formErrors.probationPeriod ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{formErrors.probationPeriod}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -512,6 +552,9 @@ function SendOfferScreen() {
                 value={form.personalMessage}
                 onChange={(event) => updateForm("personalMessage", event.target.value)}
               />
+              {formErrors.personalMessage ? (
+                <span className="block text-xs text-[#ba1a1a]">{formErrors.personalMessage}</span>
+              ) : null}
             </label>
 
             <div className="rounded-[12px] bg-[#faf9f8] p-2">

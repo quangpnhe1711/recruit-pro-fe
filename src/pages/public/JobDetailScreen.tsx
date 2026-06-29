@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import {
+  jobEditSchema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../common/validation/formValidation";
 
 import {
   JobStatus,
@@ -205,6 +210,8 @@ function JobDetailScreen() {
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editErrors, setEditErrors] = useState<ValidationErrors>({});
+  const [editSubmitted, setEditSubmitted] = useState(false);
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -354,16 +361,22 @@ function JobDetailScreen() {
     key: K,
     value: JobEditForm[K],
   ) {
-    setEditForm((current) =>
-      current ? { ...current, [key]: value } : current,
-    );
+    setEditForm((current) => {
+      if (!current) return current;
+      const next = { ...current, [key]: value };
+      if (editSubmitted) {
+        setEditErrors(validateWithSchema(jobEditSchema, next));
+      }
+      return next;
+    });
   }
 
   async function handleSaveJob() {
     if (!detail || !editForm) return;
-
-    if (!editForm.title.trim()) {
-      toast.error("Vui lòng nhập tiêu đề công việc.");
+    setEditSubmitted(true);
+    const schemaErrors = validateWithSchema(jobEditSchema, editForm);
+    setEditErrors(schemaErrors);
+    if (Object.keys(schemaErrors).length > 0) {
       return;
     }
 
@@ -663,12 +676,15 @@ function JobDetailScreen() {
                     Tiêu đề công việc
                   </span>
                   <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.title ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     value={editForm.title}
                     onChange={(event) =>
                       updateEditForm("title", event.target.value)
                     }
                   />
+                  {editErrors.title ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.title}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -686,6 +702,9 @@ function JobDetailScreen() {
                       updateEditForm("departmentId", event.target.value)
                     }
                   />
+                  {editErrors.departmentId ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.departmentId}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -693,12 +712,15 @@ function JobDetailScreen() {
                     Địa điểm
                   </span>
                   <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.location ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     value={editForm.location}
                     onChange={(event) =>
                       updateEditForm("location", event.target.value)
                     }
                   />
+                  {editErrors.location ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.location}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -761,7 +783,7 @@ function JobDetailScreen() {
                     Số lượng tuyển
                   </span>
                   <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.vacancyCount ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     type="number"
                     min={1}
                     value={editForm.vacancyCount}
@@ -769,6 +791,9 @@ function JobDetailScreen() {
                       updateEditForm("vacancyCount", event.target.value)
                     }
                   />
+                  {editErrors.vacancyCount ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.vacancyCount}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -776,7 +801,7 @@ function JobDetailScreen() {
                     Kinh nghiệm tối thiểu
                   </span>
                   <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.minExperienceYears ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     type="number"
                     min={0}
                     value={editForm.minExperienceYears}
@@ -784,6 +809,9 @@ function JobDetailScreen() {
                       updateEditForm("minExperienceYears", event.target.value)
                     }
                   />
+                  {editErrors.minExperienceYears ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.minExperienceYears}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -791,7 +819,7 @@ function JobDetailScreen() {
                     Lương tối thiểu
                   </span>
                   <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.salaryMin ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     type="number"
                     min={0}
                     value={editForm.salaryMin}
@@ -799,6 +827,9 @@ function JobDetailScreen() {
                       updateEditForm("salaryMin", event.target.value)
                     }
                   />
+                  {editErrors.salaryMin ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.salaryMin}</p>
+                  ) : null}
                 </label>
 
                 <label className="space-y-2">
@@ -806,7 +837,7 @@ function JobDetailScreen() {
                     Lương tối đa
                   </span>
                   <input
-                    className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.salaryMax ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     type="number"
                     min={0}
                     value={editForm.salaryMax}
@@ -814,6 +845,9 @@ function JobDetailScreen() {
                       updateEditForm("salaryMax", event.target.value)
                     }
                   />
+                  {editErrors.salaryMax ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.salaryMax}</p>
+                  ) : null}
                 </label>
               </div>
 
@@ -823,25 +857,31 @@ function JobDetailScreen() {
                     Mô tả
                   </span>
                   <textarea
-                    className="min-h-36 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`min-h-36 w-full border px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.description ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     value={editForm.description}
                     onChange={(event) =>
                       updateEditForm("description", event.target.value)
                     }
                   />
+                  {editErrors.description ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.description}</p>
+                  ) : null}
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
                     Yêu cầu
                   </span>
                   <textarea
-                    className="min-h-28 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
+                    className={`min-h-28 w-full border px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.requirements ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
                     value={editForm.requirements}
                     onChange={(event) =>
                       updateEditForm("requirements", event.target.value)
                     }
                     placeholder="Mỗi dòng một yêu cầu"
                   />
+                  {editErrors.requirements ? (
+                    <p className="text-[12px] text-[#ba1a1a]">{editErrors.requirements}</p>
+                  ) : null}
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">

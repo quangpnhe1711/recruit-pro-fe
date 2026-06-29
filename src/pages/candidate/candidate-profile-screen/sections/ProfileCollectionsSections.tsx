@@ -1,7 +1,9 @@
 import CommonSelect from "../../../../common/components/CommonSelect";
 import type { Dispatch, SetStateAction } from "react";
+import type { ValidationErrors } from "../../../../common/validation/formValidation";
 import type {
   CandidateSection,
+  CertificationDraft,
   CustomSectionDraft,
   CustomSectionItemDraft,
   EducationDraft,
@@ -18,14 +20,22 @@ type SharedEditProps = {
   canEditProfile: boolean;
 };
 
+function fieldClassName(hasError: boolean) {
+  return `input-field h-11 ${hasError ? "border-[#dc2626]" : ""}`;
+}
+
 type ProjectsSectionProps = SharedEditProps & {
   showProjectComposer: boolean;
   setShowProjectComposer: Dispatch<SetStateAction<boolean>>;
   projectDraft: ProjectDraft;
-  setProjectDraft: Dispatch<SetStateAction<ProjectDraft>>;
+  onProjectDraftChange: (
+    field: keyof ProjectDraft,
+    value: string | number | boolean,
+  ) => void;
   projects: CandidateProjectItem[];
   onAddProject: () => void;
   onRemoveProject: (projectId: string) => void;
+  errors: ValidationErrors;
 };
 
 export function ProjectsSection({
@@ -33,10 +43,11 @@ export function ProjectsSection({
   showProjectComposer,
   setShowProjectComposer,
   projectDraft,
-  setProjectDraft,
+  onProjectDraftChange,
   projects,
   onAddProject,
   onRemoveProject,
+  errors,
 }: ProjectsSectionProps) {
   return (
     <div>
@@ -58,37 +69,37 @@ export function ProjectsSection({
       {showProjectComposer && canEditProfile ? (
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.name))}
             placeholder="Tên dự án"
             value={projectDraft.name}
-            onChange={(e) =>
-              setProjectDraft((prev) => ({ ...prev, name: e.target.value }))
-            }
+            onChange={(e) => onProjectDraftChange("name", e.target.value)}
           />
+          {errors.name ? <p className="text-sm text-[#dc2626]">{errors.name}</p> : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.role))}
             placeholder="Vai trò"
             value={projectDraft.role}
-            onChange={(e) =>
-              setProjectDraft((prev) => ({ ...prev, role: e.target.value }))
-            }
+            onChange={(e) => onProjectDraftChange("role", e.target.value)}
           />
+          {errors.role ? <p className="text-sm text-[#dc2626]">{errors.role}</p> : null}
           <textarea
-            className="input-field min-h-[90px] resize-none"
+            className={`input-field min-h-[90px] resize-none ${errors.description ? "border-[#dc2626]" : ""}`}
             placeholder="Mô tả dự án"
             value={projectDraft.description}
-            onChange={(e) =>
-              setProjectDraft((prev) => ({ ...prev, description: e.target.value }))
-            }
+            onChange={(e) => onProjectDraftChange("description", e.target.value)}
           />
+          {errors.description ? (
+            <p className="text-sm text-[#dc2626]">{errors.description}</p>
+          ) : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.technologies))}
             placeholder="Công nghệ, phân tách bằng dấu phẩy"
             value={projectDraft.technologies}
-            onChange={(e) =>
-              setProjectDraft((prev) => ({ ...prev, technologies: e.target.value }))
-            }
+            onChange={(e) => onProjectDraftChange("technologies", e.target.value)}
           />
+          {errors.technologies ? (
+            <p className="text-sm text-[#dc2626]">{errors.technologies}</p>
+          ) : null}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <CommonSelect
               value={String(projectDraft.startMonth)}
@@ -97,7 +108,7 @@ export function ProjectsSection({
                 value: String(index + 1),
               }))}
               onValueChange={(value) =>
-                setProjectDraft((prev) => ({ ...prev, startMonth: Number(value) }))
+                onProjectDraftChange("startMonth", Number(value))
               }
               className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
               menuClassName="border-[#ececec]"
@@ -107,7 +118,7 @@ export function ProjectsSection({
               type="number"
               value={projectDraft.startYear}
               onChange={(e) =>
-                setProjectDraft((prev) => ({ ...prev, startYear: Number(e.target.value) }))
+                onProjectDraftChange("startYear", Number(e.target.value))
               }
             />
             <label className="col-span-2 flex h-11 items-center gap-2 rounded-[10px] border border-[#dcd7d5] bg-white px-3 text-[14px] font-semibold text-[#1a1c1c] md:col-span-1">
@@ -116,7 +127,7 @@ export function ProjectsSection({
                 className="h-4 w-4 accent-[#b90014]"
                 type="checkbox"
                 onChange={(e) =>
-                  setProjectDraft((prev) => ({ ...prev, isCurrent: e.target.checked }))
+                  onProjectDraftChange("isCurrent", e.target.checked)
                 }
               />
               Hiện tại
@@ -130,7 +141,7 @@ export function ProjectsSection({
                     value: String(index + 1),
                   }))}
                   onValueChange={(value) =>
-                    setProjectDraft((prev) => ({ ...prev, endMonth: Number(value) }))
+                    onProjectDraftChange("endMonth", Number(value))
                   }
                   className="h-11 rounded-[10px] border border-[#dcd7d5] bg-white text-[14px] shadow-none focus:border-[#b90014]"
                   menuClassName="border-[#ececec]"
@@ -140,7 +151,7 @@ export function ProjectsSection({
                   type="number"
                   value={projectDraft.endYear}
                   onChange={(e) =>
-                    setProjectDraft((prev) => ({ ...prev, endYear: Number(e.target.value) }))
+                    onProjectDraftChange("endYear", Number(e.target.value))
                   }
                 />
               </>
@@ -214,10 +225,11 @@ type EducationSectionProps = SharedEditProps & {
   showEducationComposer: boolean;
   setShowEducationComposer: Dispatch<SetStateAction<boolean>>;
   educationDraft: EducationDraft;
-  setEducationDraft: Dispatch<SetStateAction<EducationDraft>>;
+  onEducationDraftChange: (field: keyof EducationDraft, value: string) => void;
   educations: CandidateEducationItem[];
   onAddEducation: () => void;
   onRemoveEducation: (educationId: string) => void;
+  errors: ValidationErrors;
 };
 
 export function EducationSection({
@@ -225,10 +237,11 @@ export function EducationSection({
   showEducationComposer,
   setShowEducationComposer,
   educationDraft,
-  setEducationDraft,
+  onEducationDraftChange,
   educations,
   onAddEducation,
   onRemoveEducation,
+  errors,
 }: EducationSectionProps) {
   return (
     <div>
@@ -250,55 +263,57 @@ export function EducationSection({
       {showEducationComposer && canEditProfile ? (
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.school))}
             placeholder="Trường học"
             value={educationDraft.school}
-            onChange={(e) =>
-              setEducationDraft((prev) => ({ ...prev, school: e.target.value }))
-            }
+            onChange={(e) => onEducationDraftChange("school", e.target.value)}
           />
+          {errors.school ? <p className="text-sm text-[#dc2626]">{errors.school}</p> : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.degree))}
             placeholder="Bằng cấp"
             value={educationDraft.degree}
-            onChange={(e) =>
-              setEducationDraft((prev) => ({ ...prev, degree: e.target.value }))
-            }
+            onChange={(e) => onEducationDraftChange("degree", e.target.value)}
           />
+          {errors.degree ? <p className="text-sm text-[#dc2626]">{errors.degree}</p> : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.fieldOfStudy))}
             placeholder="Chuyên ngành"
             value={educationDraft.fieldOfStudy}
-            onChange={(e) =>
-              setEducationDraft((prev) => ({ ...prev, fieldOfStudy: e.target.value }))
-            }
+            onChange={(e) => onEducationDraftChange("fieldOfStudy", e.target.value)}
           />
+          {errors.fieldOfStudy ? (
+            <p className="text-sm text-[#dc2626]">{errors.fieldOfStudy}</p>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <input
-              className="input-field h-11"
+              className={fieldClassName(Boolean(errors.startYear))}
               placeholder="Năm bắt đầu"
               value={educationDraft.startYear}
-              onChange={(e) =>
-                setEducationDraft((prev) => ({ ...prev, startYear: e.target.value }))
-              }
+              onChange={(e) => onEducationDraftChange("startYear", e.target.value)}
             />
             <input
-              className="input-field h-11"
+              className={fieldClassName(Boolean(errors.endYear))}
               placeholder="Năm kết thúc"
               value={educationDraft.endYear}
-              onChange={(e) =>
-                setEducationDraft((prev) => ({ ...prev, endYear: e.target.value }))
-              }
+              onChange={(e) => onEducationDraftChange("endYear", e.target.value)}
             />
           </div>
+          {errors.startYear || errors.endYear ? (
+            <div className="grid grid-cols-2 gap-3">
+              <p className="text-sm text-[#dc2626]">{errors.startYear || " "}</p>
+              <p className="text-sm text-[#dc2626]">{errors.endYear || " "}</p>
+            </div>
+          ) : null}
           <textarea
-            className="input-field min-h-[90px] resize-none"
+            className={`input-field min-h-[90px] resize-none ${errors.description ? "border-[#dc2626]" : ""}`}
             placeholder="Mô tả thêm"
             value={educationDraft.description}
-            onChange={(e) =>
-              setEducationDraft((prev) => ({ ...prev, description: e.target.value }))
-            }
+            onChange={(e) => onEducationDraftChange("description", e.target.value)}
           />
+          {errors.description ? (
+            <p className="text-sm text-[#dc2626]">{errors.description}</p>
+          ) : null}
           <div className="flex flex-wrap justify-end gap-2">
             <button
               className="btn btn-secondary h-11"
@@ -359,27 +374,12 @@ export function EducationSection({
 type CertificationsSectionProps = SharedEditProps & {
   showCertificationComposer: boolean;
   setShowCertificationComposer: Dispatch<SetStateAction<boolean>>;
-  certificationDraft: {
-    name: string;
-    issuer: string;
-    issuedOn: string;
-    expiresOn: string;
-    credentialId: string;
-    credentialUrl: string;
-  };
-  setCertificationDraft: Dispatch<
-    SetStateAction<{
-      name: string;
-      issuer: string;
-      issuedOn: string;
-      expiresOn: string;
-      credentialId: string;
-      credentialUrl: string;
-    }>
-  >;
+  certificationDraft: CertificationDraft;
+  onCertificationDraftChange: (field: keyof CertificationDraft, value: string) => void;
   certifications: CandidateCertificationItem[];
   onAddCertification: () => void;
   onRemoveCertification: (certificationId: string) => void;
+  errors: ValidationErrors;
 };
 
 export function CertificationsSection({
@@ -387,10 +387,11 @@ export function CertificationsSection({
   showCertificationComposer,
   setShowCertificationComposer,
   certificationDraft,
-  setCertificationDraft,
+  onCertificationDraftChange,
   certifications,
   onAddCertification,
   onRemoveCertification,
+  errors,
 }: CertificationsSectionProps) {
   return (
     <div>
@@ -412,55 +413,57 @@ export function CertificationsSection({
       {showCertificationComposer && canEditProfile ? (
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.name))}
             placeholder="Tên chứng chỉ"
             value={certificationDraft.name}
-            onChange={(e) =>
-              setCertificationDraft((prev) => ({ ...prev, name: e.target.value }))
-            }
+            onChange={(e) => onCertificationDraftChange("name", e.target.value)}
           />
+          {errors.name ? <p className="text-sm text-[#dc2626]">{errors.name}</p> : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.issuer))}
             placeholder="Đơn vị cấp"
             value={certificationDraft.issuer}
-            onChange={(e) =>
-              setCertificationDraft((prev) => ({ ...prev, issuer: e.target.value }))
-            }
+            onChange={(e) => onCertificationDraftChange("issuer", e.target.value)}
           />
+          {errors.issuer ? <p className="text-sm text-[#dc2626]">{errors.issuer}</p> : null}
           <div className="grid grid-cols-2 gap-3">
             <input
-              className="input-field h-11"
+              className={fieldClassName(Boolean(errors.issuedOn))}
               type="date"
               value={certificationDraft.issuedOn}
-              onChange={(e) =>
-                setCertificationDraft((prev) => ({ ...prev, issuedOn: e.target.value }))
-              }
+              onChange={(e) => onCertificationDraftChange("issuedOn", e.target.value)}
             />
             <input
-              className="input-field h-11"
+              className={fieldClassName(Boolean(errors.expiresOn))}
               type="date"
               value={certificationDraft.expiresOn}
-              onChange={(e) =>
-                setCertificationDraft((prev) => ({ ...prev, expiresOn: e.target.value }))
-              }
+              onChange={(e) => onCertificationDraftChange("expiresOn", e.target.value)}
             />
           </div>
+          {errors.issuedOn || errors.expiresOn ? (
+            <div className="grid grid-cols-2 gap-3">
+              <p className="text-sm text-[#dc2626]">{errors.issuedOn || " "}</p>
+              <p className="text-sm text-[#dc2626]">{errors.expiresOn || " "}</p>
+            </div>
+          ) : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.credentialId))}
             placeholder="Mã chứng chỉ"
             value={certificationDraft.credentialId}
-            onChange={(e) =>
-              setCertificationDraft((prev) => ({ ...prev, credentialId: e.target.value }))
-            }
+            onChange={(e) => onCertificationDraftChange("credentialId", e.target.value)}
           />
+          {errors.credentialId ? (
+            <p className="text-sm text-[#dc2626]">{errors.credentialId}</p>
+          ) : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.credentialUrl))}
             placeholder="Liên kết chứng chỉ"
             value={certificationDraft.credentialUrl}
-            onChange={(e) =>
-              setCertificationDraft((prev) => ({ ...prev, credentialUrl: e.target.value }))
-            }
+            onChange={(e) => onCertificationDraftChange("credentialUrl", e.target.value)}
           />
+          {errors.credentialUrl ? (
+            <p className="text-sm text-[#dc2626]">{errors.credentialUrl}</p>
+          ) : null}
           <div className="flex flex-wrap justify-end gap-2">
             <button
               className="btn btn-secondary h-11"
@@ -514,10 +517,11 @@ type LanguagesSectionProps = SharedEditProps & {
   showLanguageComposer: boolean;
   setShowLanguageComposer: Dispatch<SetStateAction<boolean>>;
   languageDraft: LanguageDraft;
-  setLanguageDraft: Dispatch<SetStateAction<LanguageDraft>>;
+  onLanguageDraftChange: (field: keyof LanguageDraft, value: string) => void;
   languages: CandidateLanguageItem[];
   onAddLanguage: () => void;
   onRemoveLanguage: (languageId: string) => void;
+  errors: ValidationErrors;
 };
 
 export function LanguagesSection({
@@ -525,10 +529,11 @@ export function LanguagesSection({
   showLanguageComposer,
   setShowLanguageComposer,
   languageDraft,
-  setLanguageDraft,
+  onLanguageDraftChange,
   languages,
   onAddLanguage,
   onRemoveLanguage,
+  errors,
 }: LanguagesSectionProps) {
   return (
     <div>
@@ -550,21 +555,21 @@ export function LanguagesSection({
       {showLanguageComposer && canEditProfile ? (
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.name))}
             placeholder="Ngôn ngữ"
             value={languageDraft.name}
-            onChange={(e) =>
-              setLanguageDraft((prev) => ({ ...prev, name: e.target.value }))
-            }
+            onChange={(e) => onLanguageDraftChange("name", e.target.value)}
           />
+          {errors.name ? <p className="text-sm text-[#dc2626]">{errors.name}</p> : null}
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(errors.proficiency))}
             placeholder="Trình độ"
             value={languageDraft.proficiency}
-            onChange={(e) =>
-              setLanguageDraft((prev) => ({ ...prev, proficiency: e.target.value }))
-            }
+            onChange={(e) => onLanguageDraftChange("proficiency", e.target.value)}
           />
+          {errors.proficiency ? (
+            <p className="text-sm text-[#dc2626]">{errors.proficiency}</p>
+          ) : null}
           <div className="flex flex-wrap justify-end gap-2">
             <button
               className="btn btn-secondary h-11"
@@ -615,7 +620,10 @@ type CustomSectionsSectionProps = SharedEditProps & {
   showCustomSectionComposer: boolean;
   setShowCustomSectionComposer: Dispatch<SetStateAction<boolean>>;
   customSectionDraft: CustomSectionDraft;
-  setCustomSectionDraft: Dispatch<SetStateAction<CustomSectionDraft>>;
+  onCustomSectionDraftChange: (
+    field: keyof CustomSectionDraft,
+    value: string,
+  ) => void;
   customSectionItemDrafts: Record<string, CustomSectionItemDraft>;
   openCustomSectionItemComposerId: string | null;
   setOpenCustomSectionItemComposerId: Dispatch<SetStateAction<string | null>>;
@@ -628,6 +636,8 @@ type CustomSectionsSectionProps = SharedEditProps & {
   onRemoveCustomSection: (sectionId: string) => void;
   onAddCustomSectionItem: (sectionId: string) => void;
   onRemoveCustomSectionItem: (sectionId: string, itemId: string) => void;
+  sectionErrors: ValidationErrors;
+  itemErrorsBySection: Record<string, ValidationErrors>;
 };
 
 export function CustomSectionsSection({
@@ -636,7 +646,7 @@ export function CustomSectionsSection({
   showCustomSectionComposer,
   setShowCustomSectionComposer,
   customSectionDraft,
-  setCustomSectionDraft,
+  onCustomSectionDraftChange,
   customSectionItemDrafts,
   openCustomSectionItemComposerId,
   setOpenCustomSectionItemComposerId,
@@ -645,6 +655,8 @@ export function CustomSectionsSection({
   onRemoveCustomSection,
   onAddCustomSectionItem,
   onRemoveCustomSectionItem,
+  sectionErrors,
+  itemErrorsBySection,
 }: CustomSectionsSectionProps) {
   return (
     <div className="mt-8 border-t border-[#f0eceb] pt-8">
@@ -667,21 +679,25 @@ export function CustomSectionsSection({
       {showCustomSectionComposer && canEditProfile ? (
         <div className="animate-scale-in mt-4 grid gap-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4 md:grid-cols-2">
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(sectionErrors.title))}
             placeholder="Ví dụ: Vinh danh"
             value={customSectionDraft.title}
-            onChange={(e) =>
-              setCustomSectionDraft((prev) => ({ ...prev, title: e.target.value }))
-            }
+            onChange={(e) => onCustomSectionDraftChange("title", e.target.value)}
           />
           <input
-            className="input-field h-11"
+            className={fieldClassName(Boolean(sectionErrors.sectionType))}
             placeholder="Ví dụ: Thành tích"
             value={customSectionDraft.sectionType}
             onChange={(e) =>
-              setCustomSectionDraft((prev) => ({ ...prev, sectionType: e.target.value }))
+              onCustomSectionDraftChange("sectionType", e.target.value)
             }
           />
+          {sectionErrors.title || sectionErrors.sectionType ? (
+            <>
+              <p className="text-sm text-[#dc2626]">{sectionErrors.title || " "}</p>
+              <p className="text-sm text-[#dc2626]">{sectionErrors.sectionType || " "}</p>
+            </>
+          ) : null}
           <div className="md:col-span-2 flex justify-end gap-2">
             <button
               className="btn btn-secondary h-11"
@@ -706,6 +722,7 @@ export function CustomSectionsSection({
           customSections.map((section) => {
             const itemDraft = customSectionItemDrafts[section.id] ?? emptyCustomSectionItemDraft;
             const composerOpen = openCustomSectionItemComposerId === section.id;
+            const itemErrors = itemErrorsBySection[section.id] ?? {};
 
             return (
               <div key={section.id} className="rounded-[12px] border border-[#ececec] bg-[#fcfcfc] p-4">
@@ -741,47 +758,65 @@ export function CustomSectionsSection({
                 {composerOpen && canEditProfile ? (
                   <div className="animate-scale-in mt-4 grid gap-3 rounded-[12px] border border-[#ececec] bg-white p-4 md:grid-cols-2">
                     <input
-                      className="input-field h-11"
+                      className={fieldClassName(Boolean(itemErrors.title))}
                       placeholder="Tiêu đề"
                       value={itemDraft.title}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "title", e.target.value)}
                     />
                     <input
-                      className="input-field h-11"
+                      className={fieldClassName(Boolean(itemErrors.subtitle))}
                       placeholder="Phụ đề / vai trò"
                       value={itemDraft.subtitle}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "subtitle", e.target.value)}
                     />
                     <input
-                      className="input-field h-11"
+                      className={fieldClassName(Boolean(itemErrors.organization))}
                       placeholder="Tổ chức"
                       value={itemDraft.organization}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "organization", e.target.value)}
                     />
                     <input
-                      className="input-field h-11"
+                      className={fieldClassName(Boolean(itemErrors.dateLabel))}
                       placeholder="Mốc thời gian hiển thị"
                       value={itemDraft.dateLabel}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "dateLabel", e.target.value)}
                     />
                     <input
-                      className="input-field h-11"
+                      className={fieldClassName(Boolean(itemErrors.location))}
                       placeholder="Địa điểm"
                       value={itemDraft.location}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "location", e.target.value)}
                     />
                     <input
-                      className="input-field h-11"
+                      className={fieldClassName(Boolean(itemErrors.tags))}
                       placeholder="Tags, phân tách bằng dấu phẩy"
                       value={itemDraft.tags}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "tags", e.target.value)}
                     />
+                    {itemErrors.title ||
+                    itemErrors.subtitle ||
+                    itemErrors.organization ||
+                    itemErrors.dateLabel ||
+                    itemErrors.location ||
+                    itemErrors.tags ? (
+                      <>
+                        <p className="text-sm text-[#dc2626]">{itemErrors.title || " "}</p>
+                        <p className="text-sm text-[#dc2626]">{itemErrors.subtitle || " "}</p>
+                        <p className="text-sm text-[#dc2626]">{itemErrors.organization || " "}</p>
+                        <p className="text-sm text-[#dc2626]">{itemErrors.dateLabel || " "}</p>
+                        <p className="text-sm text-[#dc2626]">{itemErrors.location || " "}</p>
+                        <p className="text-sm text-[#dc2626] md:col-span-2">{itemErrors.tags || " "}</p>
+                      </>
+                    ) : null}
                     <textarea
-                      className="input-field min-h-[100px] resize-none md:col-span-2"
+                      className={`input-field min-h-[100px] resize-none md:col-span-2 ${itemErrors.description ? "border-[#dc2626]" : ""}`}
                       placeholder="Mô tả"
                       value={itemDraft.description}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "description", e.target.value)}
                     />
+                    {itemErrors.description ? (
+                      <p className="text-sm text-[#dc2626] md:col-span-2">{itemErrors.description}</p>
+                    ) : null}
                     <div className="md:col-span-2 flex flex-wrap justify-end gap-2">
                       <button
                         className="btn btn-secondary h-11"

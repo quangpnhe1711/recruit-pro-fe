@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import type { ValidationErrors } from "../../../../common/validation/formValidation";
 import type { ProfileState } from "../types";
 
 type ProfileHeaderSectionProps = {
@@ -14,6 +15,7 @@ type ProfileHeaderSectionProps = {
   onSave: () => void;
   setIsEditingProfile: Dispatch<SetStateAction<boolean>>;
   onProfileChange: (field: keyof ProfileState, value: string) => void;
+  errors: ValidationErrors;
 };
 
 function ProfileHeaderSection({
@@ -29,6 +31,7 @@ function ProfileHeaderSection({
   onSave,
   setIsEditingProfile,
   onProfileChange,
+  errors,
 }: ProfileHeaderSectionProps) {
   return (
     <section
@@ -60,7 +63,7 @@ function ProfileHeaderSection({
             <div className="space-y-2">
               {isEditingProfile && canEditProfile ? (
                 <input
-                  className="input-field max-w-xl text-[24px] font-semibold leading-tight tracking-[-0.01em] md:text-[28px]"
+                  className={`input-field max-w-xl text-[24px] font-semibold leading-tight tracking-[-0.01em] md:text-[28px] ${errors.name ? "border-[#ba1a1a]" : ""}`}
                   value={profile.name}
                   onChange={(e) => onProfileChange("name", e.target.value)}
                 />
@@ -69,9 +72,12 @@ function ProfileHeaderSection({
                   {profile.name}
                 </h2>
               )}
+              {errors.name ? (
+                <p className="text-[12px] text-[#ba1a1a]">{errors.name}</p>
+              ) : null}
               {isEditingProfile && canEditProfile ? (
                 <input
-                  className="input-field max-w-xl text-[16px] font-semibold text-[#b90014]"
+                  className={`input-field max-w-xl text-[16px] font-semibold text-[#b90014] ${errors.headline ? "border-[#ba1a1a]" : ""}`}
                   value={profile.headline}
                   onChange={(e) => onProfileChange("headline", e.target.value)}
                 />
@@ -80,6 +86,9 @@ function ProfileHeaderSection({
                   {profile.headline}
                 </p>
               )}
+              {errors.headline ? (
+                <p className="text-[12px] text-[#ba1a1a]">{errors.headline}</p>
+              ) : null}
               <span className="badge bg-[#b90014]/10 text-[#b90014]">
                 <span className="badge-dot bg-[#b90014]" />
                 Hoàn thiện hồ sơ {completionScore}%
@@ -100,26 +109,35 @@ function ProfileHeaderSection({
                 <div>
                   <label className="field-label">Email</label>
                   <input
-                    className="input-field"
+                    className={`input-field ${errors.email ? "border-[#ba1a1a]" : ""}`}
                     value={profile.email}
                     onChange={(e) => onProfileChange("email", e.target.value)}
                   />
+                  {errors.email ? (
+                    <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{errors.email}</p>
+                  ) : null}
                 </div>
                 <div>
                   <label className="field-label">Số điện thoại</label>
                   <input
-                    className="input-field"
+                    className={`input-field ${errors.phone ? "border-[#ba1a1a]" : ""}`}
                     value={profile.phone}
                     onChange={(e) => onProfileChange("phone", e.target.value)}
                   />
+                  {errors.phone ? (
+                    <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{errors.phone}</p>
+                  ) : null}
                 </div>
                 <div>
                   <label className="field-label">Địa điểm</label>
                   <input
-                    className="input-field"
+                    className={`input-field ${errors.location ? "border-[#ba1a1a]" : ""}`}
                     value={profile.location}
                     onChange={(e) => onProfileChange("location", e.target.value)}
                   />
+                  {errors.location ? (
+                    <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{errors.location}</p>
+                  ) : null}
                 </div>
                 <div>
                   <label className="field-label">Thành viên từ</label>
@@ -186,3 +204,6 @@ function ProfileHeaderSection({
 }
 
 export default ProfileHeaderSection;
+              {errors.headline ? (
+                <p className="text-[12px] text-[#ba1a1a]">{errors.headline}</p>
+              ) : null}

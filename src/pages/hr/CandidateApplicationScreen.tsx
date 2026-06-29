@@ -5,6 +5,11 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
+import {
+  applicationEmailSchema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../common/validation/formValidation";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
   applicationStatusFilterOptions,
@@ -312,6 +317,8 @@ function CandidateApplicationScreen() {
     null,
   );
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailComposerErrors, setEmailComposerErrors] = useState<ValidationErrors>({});
+  const [emailComposerSubmitted, setEmailComposerSubmitted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -472,6 +479,8 @@ function CandidateApplicationScreen() {
     templateType: EmailTemplateType = "Interview Invitation",
   ) {
     const draft = buildEmailDraft(application, templateType);
+    setEmailComposerSubmitted(false);
+    setEmailComposerErrors({});
     setEmailComposer({
       application,
       templateType,
@@ -482,6 +491,8 @@ function CandidateApplicationScreen() {
 
   function closeEmailComposer() {
     setEmailComposer(null);
+    setEmailComposerSubmitted(false);
+    setEmailComposerErrors({});
   }
 
   function updateEmailComposer(
@@ -510,10 +521,36 @@ function CandidateApplicationScreen() {
           : (patch.body ?? current.body),
       };
     });
+
+    if (emailComposerSubmitted && emailComposer) {
+      const nextSubject =
+        patch.templateType && patch.templateType !== emailComposer.templateType
+          ? buildEmailDraft(emailComposer.application, patch.templateType).subject
+          : (patch.subject ?? emailComposer.subject);
+      const nextBody =
+        patch.templateType && patch.templateType !== emailComposer.templateType
+          ? buildEmailDraft(emailComposer.application, patch.templateType).body
+          : (patch.body ?? emailComposer.body);
+      setEmailComposerErrors(
+        validateWithSchema(applicationEmailSchema, {
+          subject: nextSubject,
+          body: nextBody,
+        }),
+      );
+    }
   }
 
   async function submitEmailComposer() {
     if (!emailComposer) return;
+    setEmailComposerSubmitted(true);
+    const nextErrors = validateWithSchema(applicationEmailSchema, {
+      subject: emailComposer.subject,
+      body: emailComposer.body,
+    });
+    setEmailComposerErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
 
     setSendingEmail(true);
 
@@ -709,13 +746,16 @@ function CandidateApplicationScreen() {
                 <div>
                   <label className="field-label">Tiêu đề</label>
                   <input
-                    className="input-field"
+                    className={`input-field ${emailComposerErrors.subject ? "border-[#ba1a1a]" : ""}`}
                     value={emailComposer.subject}
                     onChange={(event) =>
                       updateEmailComposer({ subject: event.target.value })
                     }
                     placeholder="Nhập tiêu đề email"
                   />
+                  {emailComposerErrors.subject ? (
+                    <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{emailComposerErrors.subject}</p>
+                  ) : null}
                 </div>
               </div>
 
@@ -729,13 +769,16 @@ function CandidateApplicationScreen() {
               <div>
                 <label className="field-label">Nội dung</label>
                 <textarea
-                  className="input-field min-h-[260px] leading-6"
+                  className={`input-field min-h-[260px] leading-6 ${emailComposerErrors.body ? "border-[#ba1a1a]" : ""}`}
                   value={emailComposer.body}
                   onChange={(event) =>
                     updateEmailComposer({ body: event.target.value })
                   }
                   placeholder="Nhập nội dung email..."
                 />
+                {emailComposerErrors.body ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{emailComposerErrors.body}</p>
+                ) : null}
               </div>
             </div>
 
@@ -752,11 +795,7 @@ function CandidateApplicationScreen() {
                 type="button"
                 className="btn btn-primary disabled:opacity-60"
                 onClick={submitEmailComposer}
-                disabled={
-                  sendingEmail ||
-                  !emailComposer.subject.trim() ||
-                  !emailComposer.body.trim()
-                }
+                disabled={sendingEmail}
                 loading={sendingEmail}
                 loadingText="Đang gửi email..."
               >

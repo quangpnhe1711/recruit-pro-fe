@@ -6,6 +6,11 @@ import {
   normalizeApplicationStatus,
 } from "../../common/status/applicationStatus";
 import { isOfferActionableStatus } from "../../common/status/offerStatus";
+import {
+  applicationEmailSchema,
+  validateWithSchema,
+  type ValidationErrors,
+} from "../../common/validation/formValidation";
 import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
@@ -258,6 +263,8 @@ function CandidateReviewDetailScreen() {
   const [rejectSubject, setRejectSubject] = useState("");
   const [rejectBody, setRejectBody] = useState("");
   const [sendingReject, setSendingReject] = useState(false);
+  const [rejectErrors, setRejectErrors] = useState<ValidationErrors>({});
+  const [rejectSubmitted, setRejectSubmitted] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -399,13 +406,21 @@ function CandidateReviewDetailScreen() {
         `Sau khi cân nhắc, chúng tôi rất tiếc chưa thể tiếp tục với hồ sơ của bạn ở giai đoạn này.\n\n` +
         `Trân trọng,\nBộ phận Tuyển dụng`,
     );
+    setRejectErrors({});
+    setRejectSubmitted(false);
     setRejectModalOpen(true);
+  }
+
+  function validateRejectForm(subject: string, body: string) {
+    return validateWithSchema(applicationEmailSchema, { subject, body });
   }
 
   // Rejection is email-gated: the backend sends the email and only then transitions to Rejected.
   async function handleSendRejectionEmail() {
-    if (!rejectSubject.trim() || !rejectBody.trim()) {
-      toast.error("Vui lòng nhập tiêu đề và nội dung email.");
+    setRejectSubmitted(true);
+    const nextErrors = validateRejectForm(rejectSubject, rejectBody);
+    setRejectErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -1140,11 +1155,20 @@ function CandidateReviewDetailScreen() {
                 </label>
                 <input
                   id="reject-subject"
-                  className="input-field mt-1"
+                  className={`input-field mt-1 ${rejectErrors.subject ? "border-[#dc2626]" : ""}`}
                   value={rejectSubject}
-                  onChange={(event) => setRejectSubject(event.target.value)}
+                  onChange={(event) => {
+                    const nextSubject = event.target.value;
+                    setRejectSubject(nextSubject);
+                    if (rejectSubmitted) {
+                      setRejectErrors(validateRejectForm(nextSubject, rejectBody));
+                    }
+                  }}
                   placeholder="Tiêu đề email"
                 />
+                {rejectErrors.subject ? (
+                  <p className="mt-1 text-sm text-[#dc2626]">{rejectErrors.subject}</p>
+                ) : null}
               </div>
               <div>
                 <label className="field-label" htmlFor="reject-body">
@@ -1152,11 +1176,20 @@ function CandidateReviewDetailScreen() {
                 </label>
                 <textarea
                   id="reject-body"
-                  className="input-field mt-1 min-h-[180px]"
+                  className={`input-field mt-1 min-h-[180px] ${rejectErrors.body ? "border-[#dc2626]" : ""}`}
                   value={rejectBody}
-                  onChange={(event) => setRejectBody(event.target.value)}
+                  onChange={(event) => {
+                    const nextBody = event.target.value;
+                    setRejectBody(nextBody);
+                    if (rejectSubmitted) {
+                      setRejectErrors(validateRejectForm(rejectSubject, nextBody));
+                    }
+                  }}
                   placeholder="Nội dung email"
                 />
+                {rejectErrors.body ? (
+                  <p className="mt-1 text-sm text-[#dc2626]">{rejectErrors.body}</p>
+                ) : null}
               </div>
             </div>
 
@@ -1164,7 +1197,11 @@ function CandidateReviewDetailScreen() {
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setRejectModalOpen(false)}
+                onClick={() => {
+                  setRejectModalOpen(false);
+                  setRejectErrors({});
+                  setRejectSubmitted(false);
+                }}
                 disabled={sendingReject}
               >
                 Hủy
@@ -1173,9 +1210,7 @@ function CandidateReviewDetailScreen() {
                 type="button"
                 className="btn btn-primary"
                 onClick={handleSendRejectionEmail}
-                disabled={
-                  sendingReject || !rejectSubject.trim() || !rejectBody.trim()
-                }
+                disabled={sendingReject}
                 loading={sendingReject}
                 loadingText="Đang gửi..."
               >

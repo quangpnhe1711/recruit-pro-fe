@@ -1,7 +1,10 @@
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import * as yup from "yup";
+import {
+  candidateRegisterSchema,
+  validateWithSchema,
+} from "../../common/validation/formValidation";
 import { candidateService } from "../../services/candidate/candidateService";
 
 type UserInfoValues = {
@@ -30,75 +33,50 @@ const initialValues: RegisterValues = {
 
 const baseInputClass = "input-field h-11";
 
-function getFieldErrorKey(path?: string) {
-  if (!path) {
-    return undefined;
-  }
-
-  const segments = path.split(".");
-  return segments[segments.length - 1];
-}
-
 function CandidateRegisterScreen() {
   const [values, setValues] = useState<RegisterValues>(initialValues);
   const [errors, setErrors] = useState<ErrorMap>({});
   const [submitState, setSubmitState] = useState("idle");
-
-  const setField =
-    (field: keyof UserInfoValues) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setValues((prev) => ({
-        ...prev,
-        userInfo: {
-          ...prev.userInfo,
-          [field]: e.target.value,
-        },
-      }));
-
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
+  const [submitted, setSubmitted] = useState(false);
 
   const validateForm = () => {
-    const schema = yup.object({
-      userInfo: yup.object({
-        username: yup
-          .string()
-          .required("Bắt buộc")
-          .min(4, "Tối thiểu 4 ký tự")
-          .max(50, "Tối đa 50 ký tự")
-          .matches(
-            /^[a-zA-Z0-9._-]+$/,
-            "Chỉ gồm chữ, số, dấu chấm, gạch dưới hoặc gạch ngang",
-          ),
-        fullName: yup.string().required("Bắt buộc"),
-        email: yup.string().email("Email không hợp lệ").required("Bắt buộc"),
-        password: yup.string().min(6, "Tối thiểu 6 ký tự").required("Bắt buộc"),
-        phone: yup.string(),
-      }),
-    });
-
-    try {
-      schema.validateSync(values, { abortEarly: false });
-      setErrors({});
-      return true;
-    } catch (err) {
-      if (err instanceof yup.ValidationError) {
-        const nextErrors: ErrorMap = {};
-        err.inner.forEach((item) => {
-          const fieldKey = getFieldErrorKey(item.path);
-          if (fieldKey) {
-            nextErrors[fieldKey] = item.message;
-          }
-        });
-        setErrors(nextErrors);
-      }
-
-      return false;
-    }
+    const schemaErrors = validateWithSchema(candidateRegisterSchema, values);
+    const nextErrors: ErrorMap = {
+      username: schemaErrors["userInfo.username"],
+      fullName: schemaErrors["userInfo.fullName"],
+      email: schemaErrors["userInfo.email"],
+      password: schemaErrors["userInfo.password"],
+      phone: schemaErrors["userInfo.phone"],
+    };
+    setErrors(nextErrors);
+    return Object.values(nextErrors).every((value) => !value);
   };
+
+  function validateAndSetField(field: keyof UserInfoValues, nextValue: string) {
+    const nextValues: RegisterValues = {
+      ...values,
+      userInfo: {
+        ...values.userInfo,
+        [field]: nextValue,
+      },
+    };
+
+    setValues(nextValues);
+    if (submitted) {
+      const schemaErrors = validateWithSchema(candidateRegisterSchema, nextValues);
+      setErrors({
+        username: schemaErrors["userInfo.username"],
+        fullName: schemaErrors["userInfo.fullName"],
+        email: schemaErrors["userInfo.email"],
+        password: schemaErrors["userInfo.password"],
+        phone: schemaErrors["userInfo.phone"],
+      });
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
     if (!validateForm()) return;
 
     setSubmitState("processing");
@@ -250,7 +228,7 @@ function CandidateRegisterScreen() {
                       placeholder="jane.doe"
                       type="text"
                       value={values.userInfo.username}
-                      onChange={setField("username")}
+                      onChange={(event) => validateAndSetField("username", event.target.value)}
                     />
                     {errors.username ? (
                       <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
@@ -274,7 +252,7 @@ function CandidateRegisterScreen() {
                       placeholder="Nguyễn Văn A"
                       type="text"
                       value={values.userInfo.fullName}
-                      onChange={setField("fullName")}
+                      onChange={(event) => validateAndSetField("fullName", event.target.value)}
                     />
                     {errors.fullName ? (
                       <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
@@ -298,7 +276,7 @@ function CandidateRegisterScreen() {
                       placeholder="email@example.com"
                       type="email"
                       value={values.userInfo.email}
-                      onChange={setField("email")}
+                      onChange={(event) => validateAndSetField("email", event.target.value)}
                     />
                     {errors.email ? (
                       <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
@@ -322,7 +300,7 @@ function CandidateRegisterScreen() {
                       placeholder="••••••••"
                       type="password"
                       value={values.userInfo.password}
-                      onChange={setField("password")}
+                      onChange={(event) => validateAndSetField("password", event.target.value)}
                     />
                     {errors.password ? (
                       <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
@@ -345,7 +323,7 @@ function CandidateRegisterScreen() {
                       placeholder="(+84) 8123 45678"
                       type="tel"
                       value={values.userInfo.phone}
-                      onChange={setField("phone")}
+                      onChange={(event) => validateAndSetField("phone", event.target.value)}
                     />
                     {errors.phone ? (
                       <p className="mt-1.5 text-[12px] text-[#ba1a1a]">

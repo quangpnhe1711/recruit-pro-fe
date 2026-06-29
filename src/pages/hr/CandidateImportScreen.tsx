@@ -19,6 +19,10 @@ function CandidateImportScreen() {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<{
+    file?: string;
+    selectedRows?: string;
+  }>({});
 
   const validRows = useMemo(
     () => preview?.rows.filter((row) => row.isValid) ?? [],
@@ -34,6 +38,11 @@ function CandidateImportScreen() {
     setSelectedFile(file);
     setPreview(null);
     setSelectedRows([]);
+    setFormErrors((current) => ({
+      ...current,
+      file: undefined,
+      selectedRows: undefined,
+    }));
   }
 
   async function handleDownloadTemplate() {
@@ -52,10 +61,14 @@ function CandidateImportScreen() {
 
   async function handlePreview() {
     if (!selectedFile) {
-      toast.error("Hãy chọn file Excel trước.");
+      setFormErrors((current) => ({
+        ...current,
+        file: "Vui lòng chọn file Excel trước khi xem trước dữ liệu.",
+      }));
       return;
     }
 
+    setFormErrors((current) => ({ ...current, file: undefined }));
     setPreviewLoading(true);
     try {
       const response = await hrService.previewCandidateImport(selectedFile);
@@ -71,10 +84,14 @@ function CandidateImportScreen() {
 
   async function handleImportSelected() {
     if (!selectedValidRows.length) {
-      toast.error("Hãy chọn ít nhất 1 dòng hợp lệ.");
+      setFormErrors((current) => ({
+        ...current,
+        selectedRows: "Vui lòng chọn ít nhất 1 dòng hợp lệ để import.",
+      }));
       return;
     }
 
+    setFormErrors((current) => ({ ...current, selectedRows: undefined }));
     setImportLoading(true);
     try {
       const response = await hrService.importCandidates(
@@ -104,6 +121,7 @@ function CandidateImportScreen() {
         ? current.filter((value) => value !== rowNumber)
         : [...current, rowNumber],
     );
+    setFormErrors((current) => ({ ...current, selectedRows: undefined }));
   }
 
   function toggleAllValidRows() {
@@ -111,6 +129,7 @@ function CandidateImportScreen() {
 
     const allSelected = validRows.every((row) => selectedRows.includes(row.rowNumber));
     setSelectedRows(allSelected ? [] : validRows.map((row) => row.rowNumber));
+    setFormErrors((current) => ({ ...current, selectedRows: undefined }));
   }
 
   const importStats = [
@@ -157,7 +176,7 @@ function CandidateImportScreen() {
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <label className="card-interactive flex cursor-pointer flex-col justify-center border-2 border-dashed border-[#e0d4d2] bg-[#faf9f8] p-6">
+        <label className={`card-interactive flex cursor-pointer flex-col justify-center border-2 border-dashed bg-[#faf9f8] p-6 ${formErrors.file ? "border-[#dc2626]" : "border-[#e0d4d2]"}`}>
           <input
             className="hidden"
             type="file"
@@ -178,6 +197,9 @@ function CandidateImportScreen() {
             </div>
           </div>
         </label>
+        {formErrors.file ? (
+          <p className="text-sm text-[#dc2626] lg:col-span-2">{formErrors.file}</p>
+        ) : null}
 
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
           {importStats.map((card) => (
@@ -216,6 +238,11 @@ function CandidateImportScreen() {
             Chọn tất cả dòng hợp lệ
           </button>
         </div>
+        {formErrors.selectedRows ? (
+          <div className="border-b border-[#f0eceb] px-5 py-3">
+            <p className="text-sm text-[#dc2626]">{formErrors.selectedRows}</p>
+          </div>
+        ) : null}
 
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
