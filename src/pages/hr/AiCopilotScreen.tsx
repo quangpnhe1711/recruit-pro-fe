@@ -1,4 +1,4 @@
-import { type ReactNode, Fragment, useEffect, useMemo, useState } from "react";
+import { type ReactNode, Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { getToastErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
@@ -17,8 +17,10 @@ import {
   type CopilotCandidatePoolDto,
   type CopilotConversationDetailDto,
   type CopilotConversationDto,
+  type CopilotGeneratedArtifactDto,
   type CopilotJobOptionDto,
   type CopilotPromptResponseDto,
+  type CopilotPromptTemplateDto,
   type CopilotRankingResultDto,
   type CopilotRankingSessionDetailDto,
   type CopilotRuleCriterionDto,
@@ -91,6 +93,115 @@ const ROW_STATUS_TONE: Record<RankingRowStatus, string> = {
   ranked: "bg-emerald-50 text-emerald-700",
   rejected: "bg-[#ffdad6] text-[#ba1a1a]",
 };
+
+const ARTIFACT_TYPE_OPTIONS = [
+  { label: "Tất cả artifact", value: "" },
+  { label: "Candidate search", value: "candidate_search" },
+  { label: "Interview questions", value: "interview_questions" },
+  { label: "Shortlist", value: "shortlist_suggestion" },
+  { label: "Email draft", value: "email_draft" },
+];
+
+function formatDateTimeLabel(value: string | null) {
+  if (!value) return "Chưa có";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function parseArtifactPayload(artifact: CopilotGeneratedArtifactDto): Record<string, unknown> | null {
+  try {
+    const parsed = JSON.parse(artifact.payloadJson);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function getStringValue(source: Record<string, unknown> | null, key: string) {
+  const value = source?.[key];
+  return typeof value === "string" ? value : "";
+}
+
+function formatProviderMetadata(providerName: string | null | undefined, modelName: string | null | undefined) {
+  const provider = providerName?.trim() || "unknown-provider";
+  const model = modelName?.trim() || "unknown-model";
+  return `${provider}/${model}`;
+}
+
+function artifactTitle(artifact: CopilotGeneratedArtifactDto) {
+  const payload = parseArtifactPayload(artifact);
+  const subject = getStringValue(payload, "subject");
+  const query = getStringValue(payload, "query");
+  const focus = getStringValue(payload, "focus");
+
+  if (subject) return subject;
+  if (query) return query;
+  if (focus) return focus;
+  return artifact.artifactType.replace(/_/g, " ");
+}
+
+function artifactPreview(artifact: CopilotGeneratedArtifactDto) {
+  const payload = parseArtifactPayload(artifact);
+  if (!payload) return artifact.payloadJson.slice(0, 240);
+
+  const body = getStringValue(payload, "body");
+  const summary = getStringValue(payload, "summary");
+  if (body) return body.slice(0, 360);
+  if (summary) return summary.slice(0, 360);
+
+  const results = payload.results;
+  if (Array.isArray(results)) {
+    return results
+      .slice(0, 3)
+      .map((item) => {
+        if (!item || typeof item !== "object") return "";
+        const row = item as Record<string, unknown>;
+        return [row.fullName, row.evidence, row.recommendation]
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+          .join(": ");
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  const questions = payload.questions;
+  if (Array.isArray(questions)) {
+    return questions
+      .slice(0, 3)
+      .map((item, index) => {
+        const row = item && typeof item === "object" ? item as Record<string, unknown> : {};
+        return `${index + 1}. ${typeof row.question === "string" ? row.question : ""}`;
+      })
+      .join("\n");
+  }
+
+  const suggestions = payload.suggestions;
+  if (Array.isArray(suggestions)) {
+    return suggestions
+      .slice(0, 3)
+      .map((item) => {
+        const row = item && typeof item === "object" ? item as Record<string, unknown> : {};
+        return [row.fullName, row.recommendation]
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+          .join(": ");
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  return JSON.stringify(payload).slice(0, 360);
+}
 
 function mapConversationToChat(
   conversationDetail: CopilotConversationDetailDto | null,
@@ -321,6 +432,28 @@ function AiCopilotScreen() {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [savingRule, setSavingRule] = useState(false);
   const [rankingEnabled, setRankingEnabled] = useState(false);
+  const [aiToolLoading, setAiToolLoading] = useState<string | null>(null);
+  const [aiToolResult, setAiToolResult] = useState<{
+    title: string;
+    body: string;
+    auditId?: string;
+    artifactId?: string | null;
+  } | null>(null);
+  const [artifactTypeFilter, setArtifactTypeFilter] = useState("");
+  const [artifacts, setArtifacts] = useState<CopilotGeneratedArtifactDto[]>([]);
+  const [artifactsLoading, setArtifactsLoading] = useState(false);
+  const [artifactsError, setArtifactsError] = useState("");
+  const [promptTemplates, setPromptTemplates] = useState<CopilotPromptTemplateDto[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templatesError, setTemplatesError] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [templateDraft, setTemplateDraft] = useState({
+    name: "",
+    templateType: "general",
+    prompt: "",
+    isActive: true,
+  });
+  const [creatingTemplate, setCreatingTemplate] = useState(false);
   // Which candidate's AI reasoning detail is expanded inline (only one at a time, so opening a detail
   // does not push every other row's height).
   const [expandedCandidateId, setExpandedCandidateId] = useState<string | null>(null);
@@ -420,6 +553,51 @@ function AiCopilotScreen() {
     };
   }, [selectedJobId]);
 
+  const loadArtifacts = useCallback(async () => {
+    if (!selectedJobId) {
+      setArtifacts([]);
+      return;
+    }
+
+    setArtifactsLoading(true);
+    setArtifactsError("");
+    try {
+      const response = await copilotService.getGeneratedArtifacts({
+        jobId: selectedJobId,
+        artifactType: artifactTypeFilter || undefined,
+        take: 10,
+      });
+      setArtifacts(response.data ?? []);
+    } catch (error) {
+      setArtifacts([]);
+      setArtifactsError(getToastErrorMessage(error, "Không tải được artifact history."));
+    } finally {
+      setArtifactsLoading(false);
+    }
+  }, [artifactTypeFilter, selectedJobId]);
+
+  const loadPromptTemplates = useCallback(async () => {
+    setTemplatesLoading(true);
+    setTemplatesError("");
+    try {
+      const response = await copilotService.getPromptTemplates();
+      setPromptTemplates(response.data ?? []);
+    } catch (error) {
+      setPromptTemplates([]);
+      setTemplatesError(getToastErrorMessage(error, "Không tải được prompt templates."));
+    } finally {
+      setTemplatesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadArtifacts();
+  }, [loadArtifacts]);
+
+  useEffect(() => {
+    void loadPromptTemplates();
+  }, [loadPromptTemplates]);
+
   const rankedByCandidateId = useMemo(() => {
     return new Map(
       (ranking?.results ?? []).map((result) => [
@@ -449,6 +627,21 @@ function AiCopilotScreen() {
   const hasStructuredCriteria =
     priorityCriteria.length > 0 || negativeCriteria.length > 0;
   const activeSavedRules = savedRules.filter((rule) => rule.isActive);
+  const candidateByApplicationId = useMemo(() => {
+    return new Map(
+      (pool?.candidates ?? []).map((candidate) => [
+        candidate.applicationId,
+        candidate,
+      ]),
+    );
+  }, [pool]);
+  const selectedTemplate = useMemo(
+    () =>
+      promptTemplates.find((template) => template.templateId === selectedTemplateId)
+      ?? promptTemplates[0]
+      ?? null,
+    [promptTemplates, selectedTemplateId],
+  );
 
   async function submitPrompt(nextPrompt = prompt) {
     if (!conversation || !selectedJobId) {
@@ -603,6 +796,146 @@ function AiCopilotScreen() {
       toast.error("Không thể xóa mẫu.");
     } finally {
       setDeletingRuleId(null);
+    }
+  }
+
+  async function createPromptTemplate() {
+    const name = templateDraft.name.trim();
+    const promptText = templateDraft.prompt.trim();
+    if (!name || !promptText) {
+      toast.info("Tên template và nội dung prompt là bắt buộc.");
+      return;
+    }
+
+    setCreatingTemplate(true);
+    try {
+      const response = await copilotService.createPromptTemplate({
+        name,
+        templateType: templateDraft.templateType.trim() || "general",
+        prompt: promptText,
+        isActive: templateDraft.isActive,
+      });
+
+      if (response.data) {
+        setPromptTemplates((current) => [response.data!, ...current]);
+        setSelectedTemplateId(response.data.templateId);
+        setTemplateDraft({
+          name: "",
+          templateType: "general",
+          prompt: "",
+          isActive: true,
+        });
+        toast.success("Đã tạo prompt template.");
+      }
+    } catch (error) {
+      toast.error(getToastErrorMessage(error, "Không tạo được prompt template."));
+    } finally {
+      setCreatingTemplate(false);
+    }
+  }
+
+  async function runV2Tool(tool: "search" | "fit" | "questions" | "shortlist" | "email") {
+    if (!selectedJobId) return;
+    const firstCandidate = visibleCandidates[0];
+
+    setAiToolLoading(tool);
+    try {
+      if (tool === "search") {
+        const response = await copilotService.searchCandidates({
+          jobId: selectedJobId,
+          query: prompt.trim() || "Find the strongest candidates for this job",
+          maxResults: 5,
+        });
+        const data = response.data;
+        setAiToolResult({
+          title: "NL candidate search",
+          body: data?.results
+            .map((item) => `${item.fullName}: ${Math.round(item.matchScore)} - ${item.evidence}`)
+            .join("\n") || "Không có kết quả phù hợp.",
+          auditId: data?.ai.auditId,
+          artifactId: data?.ai.artifactId,
+        });
+        void loadArtifacts();
+        return;
+      }
+
+      if (tool === "fit") {
+        const response = await copilotService.analyzeFit(selectedJobId, {
+          applicationIds: firstCandidate ? [firstCandidate.applicationId] : [],
+          prompt: prompt.trim(),
+        });
+        const first = response.data?.analyses[0];
+        setAiToolResult({
+          title: "Fit analysis",
+          body: first
+            ? `${first.fullName}: ${first.fitLabel} (${Math.round(first.totalScore)})\n${first.summary}`
+            : "Không có ứng viên để phân tích.",
+          auditId: response.data?.ai.auditId,
+          artifactId: response.data?.ai.artifactId,
+        });
+        void loadArtifacts();
+        return;
+      }
+
+      if (tool === "questions") {
+        const response = await copilotService.generateInterviewQuestions(selectedJobId, {
+          applicationId: firstCandidate?.applicationId,
+          focus: prompt.trim() || "job-fit",
+          questionCount: 5,
+        });
+        setAiToolResult({
+          title: "Interview questions",
+          body: response.data?.questions
+            .map((item, index) => `${index + 1}. [${item.category}] ${item.question}`)
+            .join("\n") || "Không tạo được câu hỏi.",
+          auditId: response.data?.ai.auditId,
+          artifactId: response.data?.ai.artifactId,
+        });
+        void loadArtifacts();
+        return;
+      }
+
+      if (tool === "shortlist") {
+        const response = await copilotService.generateShortlist(selectedJobId, {
+          prompt: prompt.trim(),
+          maxCandidates: 3,
+        });
+        setAiToolResult({
+          title: "Shortlist suggestions",
+          body: response.data?.suggestions
+            .map((item) => `${item.rankPosition}. ${item.fullName} (${Math.round(item.score)}) - ${item.rationale[0] ?? item.recommendation}`)
+            .join("\n") || "Không có shortlist.",
+          auditId: response.data?.ai.auditId,
+          artifactId: response.data?.ai.artifactId,
+        });
+        void loadArtifacts();
+        return;
+      }
+
+      if (!firstCandidate) {
+        setAiToolResult({
+          title: "Email draft",
+          body: "Chưa có ứng viên để tạo email draft.",
+        });
+        return;
+      }
+
+      const response = await copilotService.draftEmail(firstCandidate.applicationId, {
+        templateType: "interview_invite",
+        tone: "warm",
+        additionalInstruction: prompt.trim(),
+      });
+      setAiToolResult({
+        title: "Email draft",
+        body: response.data ? `${response.data.subject}\n\n${response.data.body}` : "Không tạo được email draft.",
+        auditId: response.data?.ai.auditId,
+        artifactId: response.data?.ai.artifactId,
+      });
+      void loadArtifacts();
+    } catch (error) {
+      toast.error(getToastErrorMessage(error, "Không chạy được công cụ AI v2."));
+    } finally {
+      setAiToolLoading(null);
     }
   }
 
@@ -1058,6 +1391,288 @@ function AiCopilotScreen() {
               </div>
             </div>
           ) : null}
+
+          <div className="rounded-[16px] border border-[#ececec] bg-white p-4 shadow-[var(--shadow-xs)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b90014]">
+                  v2 tools
+                </p>
+                <h3 className="mt-1 text-[14px] font-semibold text-[#1a1c1c]">
+                  Copilot P0 actions
+                </h3>
+              </div>
+              {aiToolLoading ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#f0c8c4] border-t-[#b90014]" />
+              ) : null}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[
+                ["search", "Search"],
+                ["fit", "Fit"],
+                ["questions", "Questions"],
+                ["shortlist", "Shortlist"],
+                ["email", "Email"],
+              ].map(([tool, label]) => (
+                <button
+                  key={tool}
+                  type="button"
+                  className="rounded-[10px] border border-[#e2dfde] bg-[#faf9f8] px-3 py-2 text-[12px] font-semibold text-[#1a1c1c] transition-colors hover:border-[#b90014] disabled:opacity-50"
+                  disabled={Boolean(aiToolLoading) || !selectedJobId}
+                  onClick={() => void runV2Tool(tool as "search" | "fit" | "questions" | "shortlist" | "email")}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {aiToolResult ? (
+              <div className="mt-4 rounded-[12px] border border-[#e2dfde] bg-[#faf9f8] p-3">
+                <p className="text-[12px] font-semibold text-[#1a1c1c]">
+                  {aiToolResult.title}
+                </p>
+                <pre className="mt-2 max-h-44 whitespace-pre-wrap overflow-auto text-[12px] leading-5 text-[#3f3d3d]">
+                  {aiToolResult.body}
+                </pre>
+                {aiToolResult.auditId ? (
+                  <p className="mt-2 truncate text-[10px] text-[#8a8786]">
+                    audit {aiToolResult.auditId}
+                  </p>
+                ) : null}
+                {aiToolResult.artifactId ? (
+                  <p className="mt-1 truncate text-[10px] text-[#8a8786]">
+                    artifact {aiToolResult.artifactId}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="rounded-[16px] border border-[#ececec] bg-white p-4 shadow-[var(--shadow-xs)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b90014]">
+                  Artifact history
+                </p>
+                <h3 className="mt-1 text-[14px] font-semibold text-[#1a1c1c]">
+                  Output đã lưu
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#5f5e5e] hover:bg-[#f3f3f3]"
+                title="Tải lại artifact"
+                onClick={() => void loadArtifacts()}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  refresh
+                </span>
+              </button>
+            </div>
+
+            <CommonSelect
+              className="mt-3 w-full"
+              options={ARTIFACT_TYPE_OPTIONS}
+              value={artifactTypeFilter}
+              onChange={(event) => setArtifactTypeFilter(event.target.value)}
+            />
+
+            <div className="mt-3 space-y-3">
+              {artifactsLoading ? (
+                <div className="rounded-[12px] border border-dashed border-[#d6d1cf] p-4 text-[12px] text-[#5f5e5e]">
+                  Đang tải artifact history...
+                </div>
+              ) : artifactsError ? (
+                <div className="rounded-[12px] border border-[#ffdad6] bg-[#fff5f4] p-4 text-[12px] text-[#ba1a1a]">
+                  {artifactsError}
+                </div>
+              ) : artifacts.length === 0 ? (
+                <div className="rounded-[12px] border border-dashed border-[#d6d1cf] p-4 text-[12px] leading-5 text-[#5f5e5e]">
+                  Chưa có artifact nào cho job/filter hiện tại.
+                </div>
+              ) : (
+                artifacts.map((artifact) => {
+                  const relatedCandidate = artifact.applicationId
+                    ? candidateByApplicationId.get(artifact.applicationId)
+                    : null;
+                  return (
+                    <article
+                      key={artifact.artifactId}
+                      className="rounded-[12px] border border-[#e2dfde] bg-[#faf9f8] p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-[12px] font-semibold text-[#1a1c1c]">
+                            {artifactTitle(artifact)}
+                          </p>
+                          <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#8a8786]">
+                            {artifact.artifactType.replace(/_/g, " ")}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                          artifact.fallbackUsed
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-emerald-50 text-emerald-700"
+                        }`}>
+                          {artifact.fallbackUsed ? "fallback" : "provider"}
+                        </span>
+                      </div>
+                      <pre className="mt-3 max-h-28 whitespace-pre-wrap overflow-auto text-[12px] leading-5 text-[#3f3d3d]">
+                        {artifactPreview(artifact) || "Không có preview."}
+                      </pre>
+                      <div className="mt-3 space-y-1 text-[10px] text-[#8a8786]">
+                        {relatedCandidate ? (
+                          <p className="truncate">
+                            {relatedCandidate.fullName} · application {relatedCandidate.applicationId}
+                          </p>
+                        ) : artifact.applicationId ? (
+                          <p className="truncate">application {artifact.applicationId}</p>
+                        ) : artifact.jobId ? (
+                          <p className="truncate">job {artifact.jobId}</p>
+                        ) : null}
+                        <p>{formatDateTimeLabel(artifact.createdAt)}</p>
+                        <p className="truncate">
+                          provider/model {formatProviderMetadata(artifact.providerName, artifact.modelName)}
+                        </p>
+                        <p>fallback={artifact.fallbackUsed ? "true" : "false"}</p>
+                        <p className="truncate">audit {artifact.artifactId}</p>
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[16px] border border-[#ececec] bg-white p-4 shadow-[var(--shadow-xs)]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b90014]">
+                  Prompt templates
+                </p>
+                <h3 className="mt-1 text-[14px] font-semibold text-[#1a1c1c]">
+                  Mẫu prompt
+                </h3>
+              </div>
+              {templatesLoading ? (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#f0c8c4] border-t-[#b90014]" />
+              ) : null}
+            </div>
+
+            <div className="mt-3 grid gap-2">
+              <input
+                className="h-10 rounded-[10px] border border-[#dcd7d5] px-3 text-[12px] outline-none focus:border-[#b90014]"
+                placeholder="Tên template"
+                value={templateDraft.name}
+                onChange={(event) =>
+                  setTemplateDraft((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+              />
+              <input
+                className="h-10 rounded-[10px] border border-[#dcd7d5] px-3 text-[12px] outline-none focus:border-[#b90014]"
+                placeholder="Use case/type"
+                value={templateDraft.templateType}
+                onChange={(event) =>
+                  setTemplateDraft((current) => ({
+                    ...current,
+                    templateType: event.target.value,
+                  }))
+                }
+              />
+              <textarea
+                className="min-h-[92px] rounded-[10px] border border-[#dcd7d5] px-3 py-2 text-[12px] leading-5 outline-none focus:border-[#b90014]"
+                placeholder="Nội dung prompt"
+                value={templateDraft.prompt}
+                onChange={(event) =>
+                  setTemplateDraft((current) => ({
+                    ...current,
+                    prompt: event.target.value,
+                  }))
+                }
+              />
+              <label className="inline-flex items-center gap-2 text-[12px] font-semibold text-[#1a1c1c]">
+                <input
+                  type="checkbox"
+                  checked={templateDraft.isActive}
+                  onChange={(event) =>
+                    setTemplateDraft((current) => ({
+                      ...current,
+                      isActive: event.target.checked,
+                    }))
+                  }
+                />
+                Active
+              </label>
+              <button
+                type="button"
+                className="rounded-[10px] bg-[#b90014] px-3 py-2 text-[12px] font-semibold text-white disabled:opacity-50"
+                disabled={creatingTemplate}
+                onClick={() => void createPromptTemplate()}
+              >
+                {creatingTemplate ? "Đang tạo..." : "Tạo template"}
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {templatesError ? (
+                <div className="rounded-[12px] border border-[#ffdad6] bg-[#fff5f4] p-4 text-[12px] text-[#ba1a1a]">
+                  {templatesError}
+                </div>
+              ) : promptTemplates.length === 0 ? (
+                <div className="rounded-[12px] border border-dashed border-[#d6d1cf] p-4 text-[12px] leading-5 text-[#5f5e5e]">
+                  Chưa có prompt template nào.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {promptTemplates.map((template) => (
+                    <button
+                      key={template.templateId}
+                      type="button"
+                      className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${
+                        selectedTemplate?.templateId === template.templateId
+                          ? "border-[#b90014] bg-[#fff1ef] text-[#b90014]"
+                          : "border-[#e2dfde] bg-[#faf9f8] text-[#1a1c1c]"
+                      }`}
+                      onClick={() => setSelectedTemplateId(template.templateId)}
+                    >
+                      {template.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedTemplate ? (
+                <article className="rounded-[12px] border border-[#e2dfde] bg-[#faf9f8] p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[12px] font-semibold text-[#1a1c1c]">
+                        {selectedTemplate.name}
+                      </p>
+                      <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#8a8786]">
+                        {selectedTemplate.templateType}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
+                      selectedTemplate.isActive
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-[#f1eeed] text-[#5f5e5e]"
+                    }`}>
+                      {selectedTemplate.isActive ? "active" : "inactive"}
+                    </span>
+                  </div>
+                  <pre className="mt-3 max-h-32 whitespace-pre-wrap overflow-auto text-[12px] leading-5 text-[#3f3d3d]">
+                    {selectedTemplate.prompt}
+                  </pre>
+                  <div className="mt-3 space-y-1 text-[10px] text-[#8a8786]">
+                    <p>created {formatDateTimeLabel(selectedTemplate.createdAt)}</p>
+                    <p>updated {formatDateTimeLabel(selectedTemplate.updatedAt)}</p>
+                  </div>
+                </article>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-[#ececec] bg-white p-4">
@@ -1172,6 +1787,7 @@ function AiCopilotScreen() {
 
             <textarea
               className="h-24 w-full resize-none rounded-2xl border border-[#dcd7d5] bg-[#faf9f8] p-4 pr-14 text-[14px] outline-none transition-all focus:border-[#b90014] focus:bg-white focus:ring-4 focus:ring-[#b90014]/10"
+              aria-label="Nội dung tin nhắn AI Copilot"
               placeholder={
                 rankingEnabled
                   ? "Yêu cầu xếp hạng, hoặc để trống để xếp hạng theo tiêu chí đang bật..."

@@ -104,10 +104,21 @@ export const endpoints = {
   },
   copilot: {
     jobs: "/copilot/jobs",
+    candidateSearch: "/copilot/candidate-search",
     conversations: "/copilot/conversations",
     conversationDetail: (conversationId: string) =>
       `/copilot/conversations/${conversationId}`,
     candidates: (jobId: string) => `/copilot/jobs/${jobId}/candidates`,
+    fitAnalysis: (jobId: string) => `/copilot/jobs/${jobId}/fit-analysis`,
+    interviewQuestions: (jobId: string) =>
+      `/copilot/jobs/${jobId}/interview-questions`,
+    shortlists: (jobId: string) => `/copilot/jobs/${jobId}/shortlists`,
+    emailDraft: (applicationId: string) =>
+      `/copilot/applications/${applicationId}/emails/draft`,
+    latestFitAnalysis: (applicationId: string) =>
+      `/copilot/applications/${applicationId}/fit-analysis/latest`,
+    artifacts: "/copilot/artifacts",
+    promptTemplates: "/copilot/prompt-templates",
     rankings: (conversationId: string) =>
       `/copilot/conversations/${conversationId}/rankings`,
     rankingSession: (rankingSessionId: string) =>

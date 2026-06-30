@@ -1,26 +1,36 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { Route } from "react-router-dom";
 
 import RequireAuth from "../guards/RequireAuth";
 import RouteGuard from "../guards/RouteGuard";
 import { PERMISSIONS } from "../permissions/permissions";
 
-import HrDashboardScreen from "../pages/hr/HrDashboardScreen";
-import CandidateListScreen from "../pages/hr/CandidateListScreen";
-import CandidateImportScreen from "../pages/hr/CandidateImportScreen";
-import CandidateProfileScreen from "../pages/hr/CandidateProfileScreen";
-import CandidateApplicationScreen from "../pages/hr/CandidateApplicationScreen";
-import CandidateReviewDetailScreen from "../pages/hr/CandidateReviewDetailScreen";
-import SendOfferScreen from "../pages/hr/SendOfferScreen";
-import ManagerCandidateReviewListScreen from "../pages/hr/ManagerCandidateReviewListScreen";
-import ManagerDashboardScreen from "../pages/manager/ManagerDashboardScreen";
-import ManagerJobApprovalDetailScreen from "../pages/manager/ManagerJobApprovalDetailScreen";
-import ManagerRecruitmentAnalyticsScreen from "../pages/manager/ManagerRecruitmentAnalyticsScreen";
-import JobCreatingScreen from "../pages/hr/JobCreatingScreen";
-import JobInterviewListScreen from "../pages/hr/JobInterviewListScreen";
-import InterviewScheduleScreen from "../pages/hr/InterviewScheduleScreen";
-import AiCopilotScreen from "../pages/hr/AiCopilotScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
 import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
+
+const HrDashboardScreen = lazy(() => import("../pages/hr/HrDashboardScreen"));
+const CandidateListScreen = lazy(() => import("../pages/hr/CandidateListScreen"));
+const CandidateImportScreen = lazy(() => import("../pages/hr/CandidateImportScreen"));
+const CandidateProfileScreen = lazy(() => import("../pages/hr/CandidateProfileScreen"));
+const CandidateApplicationScreen = lazy(() => import("../pages/hr/CandidateApplicationScreen"));
+const CandidateReviewDetailScreen = lazy(() => import("../pages/hr/CandidateReviewDetailScreen"));
+const SendOfferScreen = lazy(() => import("../pages/hr/SendOfferScreen"));
+const ManagerCandidateReviewListScreen = lazy(() => import("../pages/hr/ManagerCandidateReviewListScreen"));
+const ManagerDashboardScreen = lazy(() => import("../pages/manager/ManagerDashboardScreen"));
+const ManagerJobApprovalDetailScreen = lazy(() => import("../pages/manager/ManagerJobApprovalDetailScreen"));
+const ManagerRecruitmentAnalyticsScreen = lazy(() => import("../pages/manager/ManagerRecruitmentAnalyticsScreen"));
+const JobCreatingScreen = lazy(() => import("../pages/hr/JobCreatingScreen"));
+const JobInterviewListScreen = lazy(() => import("../pages/hr/JobInterviewListScreen"));
+const InterviewScheduleScreen = lazy(() => import("../pages/hr/InterviewScheduleScreen"));
+const AiCopilotScreen = lazy(() => import("../pages/hr/AiCopilotScreen"));
+
+function lazyRoute(element: ReactNode) {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-[#5f6368]">Loading...</div>}>
+      {element}
+    </Suspense>
+  );
+}
 
 const hrRoutes = (
   <Route element={<RequireAuth />}>
@@ -32,11 +42,11 @@ const hrRoutes = (
       >
         <Route
           path="/hr/dashboard"
-          element={<HrDashboardScreen />}
+          element={lazyRoute(<HrDashboardScreen />)}
         />
         <Route
           path="/manager/dashboard"
-          element={<ManagerDashboardScreen />}
+          element={lazyRoute(<ManagerDashboardScreen />)}
         />
       </Route>
 
@@ -59,7 +69,7 @@ const hrRoutes = (
       >
         <Route
           path="/hr/jobs/create"
-          element={<JobCreatingScreen />}
+          element={lazyRoute(<JobCreatingScreen />)}
         />
       </Route>
 
@@ -68,11 +78,11 @@ const hrRoutes = (
       >
         <Route
           path="/hr/candidates"
-          element={<CandidateListScreen />}
+          element={lazyRoute(<CandidateListScreen />)}
         />
         <Route
           path="/hr/candidates/import"
-          element={<CandidateImportScreen />}
+          element={lazyRoute(<CandidateImportScreen />)}
         />
       </Route>
 
@@ -81,11 +91,11 @@ const hrRoutes = (
       >
         <Route
           path="/hr/candidates/:candidateId"
-          element={<CandidateProfileScreen />}
+          element={lazyRoute(<CandidateProfileScreen />)}
         />
         <Route
           path="/manager/candidates/:candidateId"
-          element={<CandidateProfileScreen />}
+          element={lazyRoute(<CandidateProfileScreen />)}
         />
       </Route>
 
@@ -94,27 +104,27 @@ const hrRoutes = (
       >
         <Route
           path="/hr/applications"
-          element={<CandidateApplicationScreen />}
+          element={lazyRoute(<CandidateApplicationScreen />)}
         />
         <Route
           path="/manager/applications"
-          element={<ManagerCandidateReviewListScreen />}
+          element={lazyRoute(<ManagerCandidateReviewListScreen />)}
         />
         <Route
           path="/hr/applications/:applicationId"
-          element={<CandidateReviewDetailScreen />}
+          element={lazyRoute(<CandidateReviewDetailScreen />)}
         />
         <Route
           path="/hr/applications/:applicationId/send-offer"
-          element={<SendOfferScreen />}
+          element={lazyRoute(<SendOfferScreen />)}
         />
         <Route
           path="/manager/applications/:applicationId"
-          element={<CandidateReviewDetailScreen />}
+          element={lazyRoute(<CandidateReviewDetailScreen />)}
         />
         <Route
           path="/hr/ai-copilot"
-          element={<AiCopilotScreen />}
+          element={lazyRoute(<AiCopilotScreen />)}
         />
       </Route>
 
@@ -123,7 +133,7 @@ const hrRoutes = (
       >
         <Route
           path="/hr/interviews"
-          element={<JobInterviewListScreen />}
+          element={lazyRoute(<JobInterviewListScreen />)}
         />
       </Route>
 
@@ -132,7 +142,7 @@ const hrRoutes = (
       >
         <Route
           path="/manager/reports"
-          element={<ManagerRecruitmentAnalyticsScreen />}
+          element={lazyRoute(<ManagerRecruitmentAnalyticsScreen />)}
         />
       </Route>
 
@@ -141,7 +151,7 @@ const hrRoutes = (
       >
         <Route
           path="/manager/jobs/:jobId/approval"
-          element={<ManagerJobApprovalDetailScreen />}
+          element={lazyRoute(<ManagerJobApprovalDetailScreen />)}
         />
       </Route>
 
@@ -158,7 +168,7 @@ const hrRoutes = (
         >
         <Route
           path="/hr/interviews/schedule"
-          element={<InterviewScheduleScreen />}
+          element={lazyRoute(<InterviewScheduleScreen />)}
         />
       </Route>
 

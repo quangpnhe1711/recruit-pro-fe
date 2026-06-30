@@ -1,15 +1,25 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { Route } from "react-router-dom";
 
 import RequireAuth from "../guards/RequireAuth";
 import RouteGuard from "../guards/RouteGuard";
 import { PERMISSIONS } from "../permissions/permissions";
 
-import DashboardCandidateScreen from "../pages/candidate/DashboardCandidateScreen";
-import MyApplicationScreen from "../pages/candidate/MyApplicationScreen";
-import CandidateProfileAndCVManagementScreen from "../pages/candidate/candidate-profile-screen/CandidateProfileAndCVManagementScreen";
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
-import CandidateInterviewScreen from "../pages/candidate/CandidateInterviewScreen";
-import ApplyJobScreen from "../pages/candidate/ApplyJobScreen";
+
+const DashboardCandidateScreen = lazy(() => import("../pages/candidate/DashboardCandidateScreen"));
+const MyApplicationScreen = lazy(() => import("../pages/candidate/MyApplicationScreen"));
+const CandidateProfileAndCVManagementScreen = lazy(() => import("../pages/candidate/candidate-profile-screen/CandidateProfileAndCVManagementScreen"));
+const CandidateInterviewScreen = lazy(() => import("../pages/candidate/CandidateInterviewScreen"));
+const ApplyJobScreen = lazy(() => import("../pages/candidate/ApplyJobScreen"));
+
+function lazyRoute(element: ReactNode) {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-[#5f6368]">Loading...</div>}>
+      {element}
+    </Suspense>
+  );
+}
 
 const candidateRoutes = (
   <Route element={<RequireAuth />}>
@@ -19,18 +29,18 @@ const candidateRoutes = (
       >
         <Route
           path="/candidate/dashboard"
-          element={<DashboardCandidateScreen />}
+          element={lazyRoute(<DashboardCandidateScreen />)}
         />
       </Route>
 
       <Route
         element={<RouteGuard permissions={PERMISSIONS.APPLICATION_VIEW_OWN} />}
       >
-        <Route path="/jobs/:jobId/apply" element={<ApplyJobScreen />} />
+        <Route path="/jobs/:jobId/apply" element={lazyRoute(<ApplyJobScreen />)} />
 
         <Route
           path="/candidate/my-applications"
-          element={<MyApplicationScreen />}
+          element={lazyRoute(<MyApplicationScreen />)}
         />
       </Route>
 
@@ -39,7 +49,7 @@ const candidateRoutes = (
       >
         <Route
           path="/candidate/interviews"
-          element={<CandidateInterviewScreen />}
+          element={lazyRoute(<CandidateInterviewScreen />)}
         />
       </Route>
 
@@ -50,7 +60,7 @@ const candidateRoutes = (
       >
         <Route
           path="/candidate/profile/*"
-          element={<CandidateProfileAndCVManagementScreen />}
+          element={lazyRoute(<CandidateProfileAndCVManagementScreen />)}
         />
       </Route>
     </Route>

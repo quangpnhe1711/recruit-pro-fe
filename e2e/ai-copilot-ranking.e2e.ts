@@ -167,7 +167,7 @@ test("E2E-AI-005 run AI review updates the row score", async ({ page }) => {
   await page.goto("/hr/ai-copilot");
   await expect(page.getByText("Chưa chấm").first()).toBeVisible();
 
-  await page.locator("textarea").first().fill("Rank these candidates");
+  await page.getByLabel("Nội dung tin nhắn AI Copilot").fill("Rank these candidates");
   await page.getByRole("button", { name: "Gửi tin nhắn cho AI Copilot" }).click();
 
   // The row updates from the mocked ranking response.

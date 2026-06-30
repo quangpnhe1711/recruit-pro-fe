@@ -38,6 +38,10 @@ import type {
 } from "../../modules/jobs/jobsSchema";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
+import {
+  copilotService,
+  type CandidateFitAnalysisSnapshotDto,
+} from "../../services/copilot/copilotService";
 import { hrService } from "../../services/hr/hrService";
 
 function formatDateLabel(value: string | null) {
@@ -64,6 +68,12 @@ function formatDateTimeLabel(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatProviderMetadata(providerName: string | null | undefined, modelName: string | null | undefined) {
+  const provider = providerName?.trim() || "unknown-provider";
+  const model = modelName?.trim() || "unknown-model";
+  return `${provider}/${model}`;
 }
 
 function formatApplicationStatusVi(status: string) {
@@ -166,6 +176,21 @@ function decisionIcon(decision: ApplicationReviewDecision) {
   }
 }
 
+function fitLabelTone(label: string): "neutral" | "success" | "info" | "warning" | "danger" {
+  switch (label.toLowerCase()) {
+    case "strongfit":
+      return "success";
+    case "potentialfit":
+      return "info";
+    case "riskfit":
+      return "warning";
+    case "notrecommended":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
 function SectionCard({
   title,
   children,
@@ -246,6 +271,8 @@ function CandidateReviewDetailScreen() {
       : "/hr/candidates";
 
   const [detail, setDetail] = useState<ApplicationReviewDetailDto | null>(null);
+  const [fitAnalysis, setFitAnalysis] =
+    useState<CandidateFitAnalysisSnapshotDto | null>(null);
   const [resumeFile, setResumeFile] = useState<{
     resumeId: string;
     fileName: string;
@@ -273,14 +300,16 @@ function CandidateReviewDetailScreen() {
       setLoading(true);
 
       try {
-        const [detailResponse, resumeResponse] = await Promise.all([
+        const [detailResponse, resumeResponse, fitResponse] = await Promise.all([
           hrService.getApplicationDetail(applicationId),
           hrService.getApplicationCv(applicationId).catch(() => null),
+          copilotService.getLatestFitAnalysis(applicationId).catch(() => null),
         ]);
 
         if (!mounted) return;
 
         setDetail(detailResponse.data);
+        setFitAnalysis(fitResponse?.data ?? null);
         setResumeFile(
           resumeResponse?.data
             ? {
@@ -296,6 +325,7 @@ function CandidateReviewDetailScreen() {
         if (!mounted) return;
         toast.error("Không thể tải chi tiết hồ sơ ứng tuyển.");
         setDetail(null);
+        setFitAnalysis(null);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -800,6 +830,115 @@ function CandidateReviewDetailScreen() {
               </div>
             </SectionCard>
           </div>
+
+          <SectionCard
+            title="AI fit analysis"
+            action={
+              fitAnalysis ? (
+                <Badge tone={fitLabelTone(fitAnalysis.fitLabel)}>
+                  {fitAnalysis.fitLabel}
+                </Badge>
+              ) : null
+            }
+          >
+            {fitAnalysis ? (
+              <div className="space-y-5">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-[8px] bg-[#faf9f8] px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+                      Tổng điểm
+                    </p>
+                    <p className="mt-1 text-[18px] font-bold text-[#1a1c1c]">
+                      {Math.round(fitAnalysis.totalScore)}
+                    </p>
+                  </div>
+                  <div className="rounded-[8px] bg-[#faf9f8] px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+                      Độ tin cậy
+                    </p>
+                    <p className="mt-1 text-[18px] font-bold text-[#1a1c1c]">
+                      {Math.round(fitAnalysis.confidenceScore)}%
+                    </p>
+                  </div>
+                  <div className="rounded-[8px] bg-[#faf9f8] px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+                      Cập nhật
+                    </p>
+                    <p className="mt-1 text-[13px] font-semibold text-[#1a1c1c]">
+                      {fitAnalysis.createdAt
+                        ? formatDateTimeLabel(fitAnalysis.createdAt)
+                        : "Chưa có"}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-sm leading-6 text-[#1a1c1c]">
+                  {fitAnalysis.summary}
+                </p>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1a1c1c]">
+                      Điểm mạnh
+                    </p>
+                    <ul className="mt-2 space-y-2 text-sm text-[#4b4a49]">
+                      {fitAnalysis.strengths.length ? (
+                        fitAnalysis.strengths.map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <span className="material-symbols-outlined text-[17px] text-emerald-600">
+                              check_circle
+                            </span>
+                            <span>{item}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li>Chưa có điểm mạnh được lưu.</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold text-[#1a1c1c]">
+                      Khoảng trống
+                    </p>
+                    <ul className="mt-2 space-y-2 text-sm text-[#4b4a49]">
+                      {fitAnalysis.gaps.length ? (
+                        fitAnalysis.gaps.map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <span className="material-symbols-outlined text-[17px] text-amber-600">
+                              warning
+                            </span>
+                            <span>{item}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li>Chưa có khoảng trống đáng chú ý.</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="border-t border-[#e2dfde] pt-4">
+                  <p className="text-sm font-semibold text-[#1a1c1c]">
+                    Evidence
+                  </p>
+                  <div className="mt-2 space-y-2 text-sm text-[#4b4a49]">
+                    {fitAnalysis.evidence.map((item) => (
+                      <p key={item}>{item}</p>
+                    ))}
+                  </div>
+                  <p className="mt-3 truncate text-[11px] text-[#8a8786]">
+                    audit {fitAnalysis.auditId} · provider/model {formatProviderMetadata(fitAnalysis.providerName, fitAnalysis.modelName)}
+                    {" · "}fallback={fitAnalysis.fallbackUsed ? "true" : "false"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-[#d6d1cf] p-5 text-sm leading-6 text-[#5f5e5e]">
+                Chưa có fit analysis đã lưu cho hồ sơ này. Hãy tạo phân tích từ AI Copilot để phần này tự động hiển thị lại.
+              </div>
+            )}
+          </SectionCard>
 
           <SectionCard
             title={resumeFile?.fileName ?? "CV ứng viên"}

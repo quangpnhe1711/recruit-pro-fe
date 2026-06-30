@@ -125,6 +125,127 @@ export type CopilotSavedRuleDto = {
   rule: CopilotPromptResponseDto["normalizedRules"];
 };
 
+export type CopilotAiMetadataDto = {
+  auditId: string;
+  artifactId: string | null;
+  fallbackUsed: boolean;
+  providerName: string;
+  modelName: string;
+  warnings: string[];
+};
+
+export type CopilotPromptTemplateDto = {
+  templateId: string;
+  name: string;
+  templateType: string;
+  prompt: string;
+  isActive: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type CandidateFitAnalysisSnapshotDto = {
+  fitAnalysisId: string;
+  auditId: string;
+  jobId: string;
+  candidateUserId: string;
+  applicationId: string;
+  fullName: string;
+  fitLabel: string;
+  confidenceScore: number;
+  totalScore: number;
+  strengths: string[];
+  gaps: string[];
+  evidence: string[];
+  summary: string;
+  providerName: string;
+  modelName: string;
+  fallbackUsed: boolean;
+  createdAt: string | null;
+};
+
+export type CopilotGeneratedArtifactDto = {
+  artifactId: string;
+  ownerUserId: string;
+  jobId: string | null;
+  applicationId: string | null;
+  artifactType: string;
+  prompt: string;
+  payloadJson: string;
+  providerName: string;
+  modelName: string;
+  fallbackUsed: boolean;
+  createdAt: string | null;
+};
+
+export type NaturalLanguageCandidateSearchResponseDto = {
+  normalizedIntent: string;
+  query: string;
+  extractedFilters: CopilotPromptResponseDto["normalizedRules"];
+  results: Array<{
+    candidateUserId: string;
+    applicationId: string;
+    fullName: string;
+    matchScore: number;
+    matchedSkills: string[];
+    missingSkills: string[];
+    evidence: string;
+  }>;
+  ai: CopilotAiMetadataDto;
+};
+
+export type CandidateFitAnalysisResponseDto = {
+  jobId: string;
+  analyses: Array<{
+    candidateUserId: string;
+    applicationId: string;
+    fullName: string;
+    fitLabel: string;
+    confidenceScore: number;
+    totalScore: number;
+    strengths: string[];
+    gaps: string[];
+    evidence: string[];
+    summary: string;
+  }>;
+  ai: CopilotAiMetadataDto;
+};
+
+export type InterviewQuestionSetDto = {
+  jobId: string;
+  candidateUserId: string | null;
+  focus: string;
+  questions: Array<{
+    category: string;
+    question: string;
+    evidence: string;
+  }>;
+  ai: CopilotAiMetadataDto;
+};
+
+export type ShortlistSuggestionResponseDto = {
+  jobId: string;
+  suggestions: Array<{
+    candidateUserId: string;
+    applicationId: string;
+    fullName: string;
+    rankPosition: number;
+    score: number;
+    recommendation: string;
+    rationale: string[];
+  }>;
+  ai: CopilotAiMetadataDto;
+};
+
+export type HrEmailDraftResponseDto = {
+  applicationId: string;
+  templateType: string;
+  subject: string;
+  body: string;
+  evidence: string[];
+  ai: CopilotAiMetadataDto;
+};
+
 export const copilotService = {
   getJobs: async (): Promise<ApiResponse<CopilotJobOptionDto[]>> => {
     return request.get<ApiResponse<CopilotJobOptionDto[]>>(endpoints.copilot.jobs);
@@ -152,6 +273,91 @@ export const copilotService = {
   ): Promise<ApiResponse<CopilotCandidatePoolDto>> => {
     return request.get<ApiResponse<CopilotCandidatePoolDto>>(
       endpoints.copilot.candidates(jobId),
+    );
+  },
+
+  searchCandidates: async (
+    payload: { jobId: string; query: string; maxResults?: number },
+  ): Promise<ApiResponse<NaturalLanguageCandidateSearchResponseDto>> => {
+    return request.post<ApiResponse<NaturalLanguageCandidateSearchResponseDto>, typeof payload>(
+      endpoints.copilot.candidateSearch,
+      payload,
+    );
+  },
+
+  analyzeFit: async (
+    jobId: string,
+    payload: { candidateUserIds?: string[]; applicationIds?: string[]; prompt?: string },
+  ): Promise<ApiResponse<CandidateFitAnalysisResponseDto>> => {
+    return request.post<ApiResponse<CandidateFitAnalysisResponseDto>, typeof payload>(
+      endpoints.copilot.fitAnalysis(jobId),
+      payload,
+    );
+  },
+
+  generateInterviewQuestions: async (
+    jobId: string,
+    payload: { candidateUserId?: string; applicationId?: string; focus?: string; questionCount?: number },
+  ): Promise<ApiResponse<InterviewQuestionSetDto>> => {
+    return request.post<ApiResponse<InterviewQuestionSetDto>, typeof payload>(
+      endpoints.copilot.interviewQuestions(jobId),
+      payload,
+    );
+  },
+
+  generateShortlist: async (
+    jobId: string,
+    payload: { prompt?: string; maxCandidates?: number },
+  ): Promise<ApiResponse<ShortlistSuggestionResponseDto>> => {
+    return request.post<ApiResponse<ShortlistSuggestionResponseDto>, typeof payload>(
+      endpoints.copilot.shortlists(jobId),
+      payload,
+    );
+  },
+
+  draftEmail: async (
+    applicationId: string,
+    payload: { templateType?: string; tone?: string; additionalInstruction?: string },
+  ): Promise<ApiResponse<HrEmailDraftResponseDto>> => {
+    return request.post<ApiResponse<HrEmailDraftResponseDto>, typeof payload>(
+      endpoints.copilot.emailDraft(applicationId),
+      payload,
+    );
+  },
+
+  getPromptTemplates: async (): Promise<ApiResponse<CopilotPromptTemplateDto[]>> => {
+    return request.get<ApiResponse<CopilotPromptTemplateDto[]>>(
+      endpoints.copilot.promptTemplates,
+    );
+  },
+
+  createPromptTemplate: async (
+    payload: { name: string; templateType?: string; prompt: string; isActive?: boolean },
+  ): Promise<ApiResponse<CopilotPromptTemplateDto>> => {
+    return request.post<ApiResponse<CopilotPromptTemplateDto>, typeof payload>(
+      endpoints.copilot.promptTemplates,
+      {
+        ...payload,
+        templateType: payload.templateType ?? "general",
+        isActive: payload.isActive ?? true,
+      },
+    );
+  },
+
+  getLatestFitAnalysis: async (
+    applicationId: string,
+  ): Promise<ApiResponse<CandidateFitAnalysisSnapshotDto>> => {
+    return request.get<ApiResponse<CandidateFitAnalysisSnapshotDto>>(
+      endpoints.copilot.latestFitAnalysis(applicationId),
+    );
+  },
+
+  getGeneratedArtifacts: async (
+    params?: { jobId?: string; applicationId?: string; artifactType?: string; take?: number },
+  ): Promise<ApiResponse<CopilotGeneratedArtifactDto[]>> => {
+    return request.get<ApiResponse<CopilotGeneratedArtifactDto[]>>(
+      endpoints.copilot.artifacts,
+      { params },
     );
   },
 
