@@ -26,6 +26,17 @@ type Candidate = {
   status: CandidateReviewState;
 };
 
+type CandidateListItemDto = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatarUrl?: string;
+  source: string;
+  appliedDate?: string;
+  status: string;
+};
+
 const CANDIDATE_REVIEW_STATE_META: Record<
   CandidateReviewState,
   { label: string; wrapper: string; icon: string }
@@ -98,6 +109,18 @@ function sourceChip(source: CandidateSource) {
     default:
       return { wrapper: "bg-gray-50 text-gray-700", icon: "help" };
   }
+}
+
+function normalizeCandidateSource(source: string): CandidateSource {
+  if (source === "BulkImport" || source === "Import hàng loạt") {
+    return "Import hàng loạt";
+  }
+
+  if (source === "LinkedIn") {
+    return "LinkedIn";
+  }
+
+  return "Portal";
 }
 
 function buildCandidateTableColumns(
@@ -192,9 +215,13 @@ function buildCandidateTableColumns(
 function CandidateListScreen() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
-  const canImportCandidates = hasPermission(PERMISSIONS.CANDIDATE_IMPORT);
-  const canCreateCandidates = hasPermission(PERMISSIONS.CANDIDATE_CREATE);
   const canEditCandidates = hasPermission(PERMISSIONS.CANDIDATE_UPDATE);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<"all" | CandidateReviewState>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("Tất cả nguồn");
+  const [page, setPage] = useState<number>(1);
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     let mounted = true;
@@ -207,13 +234,13 @@ function CandidateListScreen() {
         const items = Array.isArray(res.data?.items) ? res.data.items : [];
 
         setCandidates(
-          items.map((item: any) => ({
+          (items as CandidateListItemDto[]).map((item) => ({
             id: item.id,
             firstName: item.firstName,
             lastName: item.lastName,
             email: item.email,
             avatar: item.avatarUrl,
-            source: item.source === "BulkImport" ? "Import hàng loạt" : item.source,
+            source: normalizeCandidateSource(item.source),
             appliedDate: item.appliedDate
               ? new Date(item.appliedDate).toLocaleDateString()
               : "",
@@ -232,12 +259,6 @@ function CandidateListScreen() {
       mounted = false;
     };
   }, []);
-
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<"all" | CandidateReviewState>("all");
-  const [sourceFilter, setSourceFilter] = useState<string>("Tất cả nguồn");
-  const [page, setPage] = useState<number>(1);
 
   const filtered = useMemo(() => {
     return candidates
@@ -274,7 +295,7 @@ function CandidateListScreen() {
   const stats = useMemo(() => {
     const totalCandidates = candidates.length;
     const recentlyAdded = candidates.filter((c) => {
-      const daysOld = (Date.now() - c.appliedAt) / (1000 * 60 * 60 * 24);
+      const daysOld = (now - c.appliedAt) / (1000 * 60 * 60 * 24);
       return daysOld <= 7;
     }).length;
     const pendingReviews = candidates.filter(
@@ -286,7 +307,7 @@ function CandidateListScreen() {
       recentlyAdded,
       pendingReviews,
     };
-  }, [candidates]);
+  }, [candidates, now]);
 
   function resetToFirstPage() {
     setPage(1);

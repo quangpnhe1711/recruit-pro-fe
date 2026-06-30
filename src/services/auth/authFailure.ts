@@ -9,7 +9,7 @@ export function forceLogoutAndRedirectToLogin() {
 
   if (
     isRedirectingToLogin ||
-    currentPath === "/home"
+    currentPath === "/"
   ) {
     return;
   }
@@ -19,7 +19,7 @@ export function forceLogoutAndRedirectToLogin() {
   const currentVariant = localStorage.getItem(
     "current_variant",
   ) as Variant | null;
-  const redirectPath = currentVariant === "internal" ? "/home" : "/home";
+  const redirectPath = currentVariant === "internal" ? "/" : "/";
 
   store.dispatch(logout());
   store.dispatch(clearProfile());

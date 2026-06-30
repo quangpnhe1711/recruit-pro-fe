@@ -13,8 +13,9 @@ import PublicLayout from "../common/components/layout/PublicLayout";
 
 const publicRoutes = (
   <>
-    <Route element={<PublicLayout />}>
-      <Route path="/home" element={<LandingPageScreen />} />
+  <Route element={<PublicLayout />}>
+      <Route path="/" element={<LandingPageScreen />} />
+      <Route path="/home" element={<Navigate to="/" replace />} />
     </Route>
 
     <Route element={<AdaptiveLayout />}>

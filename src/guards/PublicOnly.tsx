@@ -12,7 +12,7 @@ function PublicOnly() {
   if (hasStoredToken() && !hasValidStoredSession()) {
     dispatch(logout());
     dispatch(clearProfile());
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (isAuthenticated) {

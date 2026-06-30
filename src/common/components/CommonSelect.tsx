@@ -46,7 +46,6 @@ function CommonSelect({
   onChange,
   onFocus,
   onValueChange,
-  ...props
 }: CommonSelectProps) {
   const fallbackId = useId();
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -186,7 +185,6 @@ function CommonSelect({
       data-common-select=""
     >
       <button
-        {...props}
         aria-controls={`${fallbackId}-menu`}
         aria-expanded={open}
         className={`group flex h-11 w-full items-center rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 pr-11 text-left text-[14px] text-[#1a1c1c] outline-none transition-all hover:border-[#c8c2c0] focus:border-[#b90014] focus:ring-4 focus:ring-[#b90014]/10 disabled:cursor-not-allowed disabled:border-[#ece7e5] disabled:bg-[#f6f3f2] disabled:text-[#8f8a88] ${open ? "border-[#b90014] ring-4 ring-[#b90014]/10" : ""} ${className}`.trim()}

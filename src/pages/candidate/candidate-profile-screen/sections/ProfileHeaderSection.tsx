@@ -204,6 +204,3 @@ function ProfileHeaderSection({
 }
 
 export default ProfileHeaderSection;
-              {errors.headline ? (
-                <p className="text-[12px] text-[#ba1a1a]">{errors.headline}</p>
-              ) : null}

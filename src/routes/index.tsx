@@ -7,8 +7,6 @@ import hrRoutes from "./hr.routes";
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/home" replace />} />
-
       {publicRoutes}
       {candidateRoutes}
       {hrRoutes}
@@ -20,7 +18,7 @@ export default function AppRoutes() {
 
       <Route
         path="*"
-        element={<Navigate to="/home" replace />}
+        element={<Navigate to="/" replace />}
       />
     </Routes>
   );

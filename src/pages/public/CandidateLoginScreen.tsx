@@ -295,7 +295,7 @@ function CandidateLoginScreen() {
             <div className="mt-5 flex justify-center">
               <Link
                 className="inline-flex items-center gap-1 text-[13px] font-medium text-[#8a8786] transition-colors hover:text-[#1a1c1c]"
-                to="/home"
+                to="/"
               >
                 <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                 Quay lại trang chủ

@@ -13,7 +13,7 @@ function Footer() {
     "Contact",
   ];
 
-  if (!authState.isAuthenticated || location.pathname === "/home") {
+  if (!authState.isAuthenticated || location.pathname === "/") {
     return (
       <footer
         id="footer"
