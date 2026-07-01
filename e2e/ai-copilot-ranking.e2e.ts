@@ -14,6 +14,7 @@ type Candidate = {
   skills: string[];
   cvSummary: string;
   resumeUrl: string | null;
+  status: string;
 };
 
 const JOB = {
@@ -35,6 +36,7 @@ function candidate(over: Partial<Candidate> = {}): Candidate {
     skills: ["Communication", "English", "Excel"],
     cvSummary: "HR specialist",
     resumeUrl: null,
+    status: "Screening",
     ...over,
   };
 }
@@ -65,6 +67,9 @@ function rankingResult(candidateUserId: string, fullName: string, totalScore: nu
     rejectReason: null,
     strengths: ["Strong communication", "Relevant HR background"],
     weaknesses: ["Limited backend exposure"],
+    fitLabel: "StrongFit",
+    confidenceScore: totalScore,
+    evidence: ["Điểm tổng cao dựa trên bằng chứng hồ sơ."],
     summary: "Solid HR profile with transferable skills.",
     isAiGenerated: true,
   };
@@ -128,8 +133,8 @@ test("E2E-AI-003 skills render as chips with +N overflow", async ({ page }) => {
 
   await page.goto("/hr/ai-copilot");
   await expect(page.getByText("C#", { exact: true })).toBeVisible();
-  // 6 chips shown, remaining 2 collapsed into "+2".
-  await expect(page.getByText("+2", { exact: true })).toBeVisible();
+  // SkillTags shows the first 5 chips; the remaining 3 collapse into "+3".
+  await expect(page.getByText("+3", { exact: true })).toBeVisible();
   await expect(page.getByText("Kafka", { exact: true })).toHaveCount(0);
 });
 
@@ -167,12 +172,71 @@ test("E2E-AI-005 run AI review updates the row score", async ({ page }) => {
   await page.goto("/hr/ai-copilot");
   await expect(page.getByText("Chưa chấm").first()).toBeVisible();
 
-  await page.getByLabel("Nội dung tin nhắn AI Copilot").fill("Rank these candidates");
-  await page.getByRole("button", { name: "Gửi tin nhắn cho AI Copilot" }).click();
+  // The chat composer lives in the assistant drawer (v2 UI); open it first.
+  await page.getByRole("button", { name: /Trợ lý AI/ }).click();
+  await page.getByLabel("Tin nhắn cho trợ lý AI").fill("Rank these candidates");
+  await page.getByRole("button", { name: "Gửi", exact: true }).click();
 
   // The row updates from the mocked ranking response.
   await expect(page.getByText("88/100")).toBeVisible();
   await expect(page.getByText("Đã chấm").first()).toBeVisible();
+});
+
+// E2E-AI-007 — v2 hardening: deprecated tools are gone; Pass CV → Head Review selection + action work.
+test("E2E-AI-007 deprecated tools removed and Pass CV to Head Review works", async ({ page }) => {
+  const passCvRequests: string[] = [];
+  await seedSession(page, "hr");
+  await installApiMocks(
+    page,
+    baseMocks([candidate()], [
+      {
+        method: "POST",
+        match: /\/api\/copilot\/conversations\/conv-1\/rankings$/,
+        json: ok({
+          conversationId: "conv-1",
+          rankingSessionId: "rank-1",
+          didRank: true,
+          assistantMessage: "Đã xếp hạng 1 ứng viên.",
+          normalizedRules: EMPTY_RULES,
+          results: [rankingResult("cand-1", "Bùi Hoàng Phúc", 88)],
+        }),
+      },
+      {
+        method: "POST",
+        match: /\/api\/copilot\/ranking-sessions\/rank-1\/pass-cv$/,
+        json: ok({
+          updated: [{ applicationId: "app-1", oldStatus: "Screening", newStatus: "ManagerReview" }],
+          skipped: [],
+        }),
+      },
+    ]),
+    {
+      onRequest: (method, url) => {
+        if (method === "POST" && /\/pass-cv$/.test(url.pathname)) passCvRequests.push(url.pathname);
+      },
+    },
+  );
+
+  await page.goto("/hr/ai-copilot");
+  await expect(page.getByText("Bùi Hoàng Phúc")).toBeVisible();
+
+  // The deprecated per-row AI email-draft tool is removed (fit + questions remain).
+  await expect(page.getByTitle("Soạn email")).toHaveCount(0);
+
+  // Run ranking from the primary toolbar action (no drawer overlay in the way).
+  await page.getByRole("button", { name: /Xếp hạng/ }).first().click();
+  await expect(page.getByText("88/100")).toBeVisible();
+
+  // Pass CV → Head Review: select the screening candidate and trigger the explicit HR action.
+  const headReviewButton = page.getByRole("button", { name: /Chuyển sang Head Review/ });
+  await expect(headReviewButton).toBeVisible();
+  await page.getByRole("checkbox").first().check();
+  await headReviewButton.click();
+  await expect.poll(() => passCvRequests.length).toBeGreaterThan(0);
+
+  // The deprecated candidate-search tool is removed from the assistant drawer.
+  await page.getByRole("button", { name: /Trợ lý AI/ }).click();
+  await expect(page.getByRole("button", { name: /Tìm ứng viên/ })).toHaveCount(0);
 });
 
 // E2E-AI-006 — malformed education JSON must not crash the UI; it falls back gracefully.

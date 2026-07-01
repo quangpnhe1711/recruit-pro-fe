@@ -38,6 +38,9 @@ export type CopilotCandidateDto = {
   skills: string[];
   cvSummary: string;
   resumeUrl: string | null;
+  // v2: ATS status ("Screening", "ManagerReview", ...). Ranking only evaluates Screening; the
+  // "Pass CV / Chuyển sang Head Review" action is only enabled for Screening candidates.
+  status: string;
 };
 
 export type CopilotCandidatePoolDto = {
@@ -66,6 +69,11 @@ export type CopilotRankingResultDto = {
   rejectReason: string | null;
   strengths: string[];
   weaknesses: string[];
+  // v2: fit-style evaluation generated at ranking time. Machine values (StrongFit/PotentialFit/
+  // RiskFit/NotRecommended) stay in English; summary/evidence prose is Vietnamese.
+  fitLabel: string;
+  confidenceScore: number;
+  evidence: string[];
   summary: string;
   isAiGenerated: boolean;
 };
@@ -90,6 +98,15 @@ export type CopilotPromptResponseDto = {
     minTotalScore: number | null;
   };
   results: CopilotRankingResultDto[];
+  // v2 idempotency: true when unchanged input returned the latest matching session instead of a
+  // fresh AI ranking. Warnings surface metadata such as "ranking-session:reused".
+  reusedRankingSession?: boolean;
+  warnings?: string[];
+};
+
+export type PassCvResultDto = {
+  updated: Array<{ applicationId: string; oldStatus: string; newStatus: string }>;
+  skipped: Array<{ applicationId: string; reason: string }>;
 };
 
 export type CopilotRuleCriterionDto = {
@@ -393,6 +410,17 @@ export const copilotService = {
       {
         timeout: 190000,
       },
+    );
+  },
+
+  // v2 §7: explicit HR action — pass selected ranked candidates from CV screening to Head Review.
+  passCvToHeadReview: async (
+    rankingSessionId: string,
+    payload: { applicationIds: string[]; note?: string },
+  ): Promise<ApiResponse<PassCvResultDto>> => {
+    return request.post<ApiResponse<PassCvResultDto>, typeof payload>(
+      endpoints.copilot.passCv(rankingSessionId),
+      payload,
     );
   },
 

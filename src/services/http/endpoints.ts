@@ -123,6 +123,8 @@ export const endpoints = {
       `/copilot/conversations/${conversationId}/rankings`,
     rankingSession: (rankingSessionId: string) =>
       `/copilot/ranking-sessions/${rankingSessionId}`,
+    passCv: (rankingSessionId: string) =>
+      `/copilot/ranking-sessions/${rankingSessionId}/pass-cv`,
     rules: (jobId: string) => `/copilot/jobs/${jobId}/rules`,
     ruleDetail: (ruleId: string) => `/copilot/rules/${ruleId}`,
   },

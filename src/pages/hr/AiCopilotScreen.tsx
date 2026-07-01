@@ -42,7 +42,11 @@ import {
   type ToolResult,
 } from "./aiCopilot/copilotUi";
 
-const CANDIDATE_TOOLS: ToolName[] = ["fit", "questions", "email"];
+// v2: candidate search and AI email draft are removed from the active Copilot flow. Only fit and
+// interview-question tools remain as per-candidate actions.
+const CANDIDATE_TOOLS: ToolName[] = ["fit", "questions"];
+
+const SCREENING_STATUS = "Screening";
 
 function AiCopilotScreen() {
   // --- Core data -----------------------------------------------------------
@@ -81,6 +85,10 @@ function AiCopilotScreen() {
   const [toolName, setToolName] = useState<ToolName | null>(null);
   const [toolResult, setToolResult] = useState<ToolResult | null>(null);
   const [runningToolKey, setRunningToolKey] = useState<string | null>(null);
+
+  // --- Pass CV / Head Review -----------------------------------------------
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState<string[]>([]);
+  const [passingCv, setPassingCv] = useState(false);
 
   /* ----------------------------------------------------------------------- */
   /* Load jobs                                                               */
@@ -223,8 +231,14 @@ function AiCopilotScreen() {
         return;
       }
       setRanking(response.data);
+      setSelectedApplicationIds([]);
       setCriteriaOpen(false);
-      toast.success(`Đã xếp hạng ${response.data.results.length} ứng viên.`);
+      if (response.data.reusedRankingSession) {
+        // v2 §8 — unchanged effective input returns the latest matching session.
+        toast.info("Tiêu chí chưa thay đổi nên hệ thống đang hiển thị lại kết quả xếp hạng mới nhất.");
+      } else {
+        toast.success(`Đã xếp hạng ${response.data.results.length} ứng viên.`);
+      }
     } catch (error) {
       toast.error(getToastErrorMessage(error, "Không thể xếp hạng ứng viên."));
     } finally {
@@ -232,6 +246,53 @@ function AiCopilotScreen() {
       setLoadingStatus("");
     }
   }, [callCopilot, conversation, hasCriteria, negativeCriteria, priorityCriteria, selectedJobId]);
+
+  /* ----------------------------------------------------------------------- */
+  /* Pass CV / Send to Head Review (v2 §7)                                  */
+  /* ----------------------------------------------------------------------- */
+  const reloadCandidatePool = useCallback(async () => {
+    if (!selectedJobId) return;
+    try {
+      const poolResponse = await copilotService.getCandidatePool(selectedJobId);
+      setPool(poolResponse.data);
+    } catch {
+      // Best-effort refresh; the transition already succeeded.
+    }
+  }, [selectedJobId]);
+
+  const toggleCandidateSelection = useCallback((applicationId: string) => {
+    setSelectedApplicationIds((current) =>
+      current.includes(applicationId)
+        ? current.filter((id) => id !== applicationId)
+        : [...current, applicationId],
+    );
+  }, []);
+
+  const passSelectedToHeadReview = useCallback(async () => {
+    if (!ranking?.rankingSessionId || selectedApplicationIds.length === 0) return;
+    setPassingCv(true);
+    try {
+      const response = await copilotService.passCvToHeadReview(ranking.rankingSessionId, {
+        applicationIds: selectedApplicationIds,
+      });
+      const updated = response.data?.updated ?? [];
+      const skipped = response.data?.skipped ?? [];
+      if (updated.length > 0) {
+        toast.success(`Đã chuyển ${updated.length} ứng viên sang Head Review.`);
+      }
+      if (skipped.length > 0) {
+        toast.info(`${skipped.length} hồ sơ bị bỏ qua: ${skipped.map((item) => item.reason).join("; ")}`);
+      }
+      setSelectedApplicationIds([]);
+      // Refresh the pool + ranking so moved candidates leave the default screening list.
+      await reloadCandidatePool();
+      await runRanking();
+    } catch (error) {
+      toast.error(getToastErrorMessage(error, "Không thể chuyển ứng viên sang Head Review."));
+    } finally {
+      setPassingCv(false);
+    }
+  }, [ranking, selectedApplicationIds, reloadCandidatePool, runRanking]);
 
   const submitChat = useCallback(async () => {
     const trimmed = prompt.trim();
@@ -607,6 +668,27 @@ function AiCopilotScreen() {
               )}
               {ranking ? "Xếp hạng lại" : "Xếp hạng"}
             </button>
+            {ranking ? (
+              <button
+                type="button"
+                className="btn btn-secondary h-11"
+                disabled={passingCv || selectedApplicationIds.length === 0}
+                onClick={() => void passSelectedToHeadReview()}
+                title="Chuyển các ứng viên đã chọn từ CV screening sang vòng Head Review"
+              >
+                {passingCv ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#f0c8c4] border-t-[#b90014]" />
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">forward_to_inbox</span>
+                )}
+                Chuyển sang Head Review
+                {selectedApplicationIds.length > 0 ? (
+                  <span className="ml-0.5 rounded-full bg-[#b90014] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {selectedApplicationIds.length}
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -628,6 +710,9 @@ function AiCopilotScreen() {
             <table className="w-full min-w-[1080px] border-separate border-spacing-0 text-left">
               <thead>
                 <tr className="bg-[#f0eceb]">
+                  <th className="w-10 border-b border-[#ddd7d5] px-3 py-4 pl-6 text-[11px] font-bold uppercase tracking-[0.11em] text-[#5f5e5e]">
+                    <span className="sr-only">Chọn</span>
+                  </th>
                   {["Ứng viên", "Học vấn", "Kỹ năng", "Đánh giá AI", "Điểm", "Trạng thái", "Công cụ AI"].map(
                     (header, index) => (
                       <th
@@ -652,10 +737,29 @@ function AiCopilotScreen() {
                     result && (result.summary?.trim() || result.strengths.length || result.weaknesses.length),
                   );
                   const rowBg = index % 2 === 1 ? "bg-[#f8f6f5]" : "bg-white";
+                  // v2 §7: only Screening candidates that are not auto-rejected can be passed to Head Review.
+                  const canSelect = candidate.status === SCREENING_STATUS && !result?.isAutoRejected;
+                  const isSelected = selectedApplicationIds.includes(candidate.applicationId);
 
                   return (
                     <Fragment key={candidate.candidateUserId}>
                       <tr className={`${rowBg} ${result?.isAutoRejected ? "opacity-70" : ""}`}>
+                        {/* Select for Pass CV */}
+                        <td className="border-b border-[#eee9e7] px-3 py-4 pl-6 align-top">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 cursor-pointer accent-[#b90014] disabled:cursor-not-allowed disabled:opacity-40"
+                            checked={isSelected}
+                            disabled={!canSelect || passingCv}
+                            onChange={() => toggleCandidateSelection(candidate.applicationId)}
+                            title={
+                              canSelect
+                                ? "Chọn để chuyển sang Head Review"
+                                : "Chỉ ứng viên đang ở vòng CV screening mới có thể chuyển"
+                            }
+                            aria-label={`Chọn ${candidate.fullName} để chuyển sang Head Review`}
+                          />
+                        </td>
                         {/* Candidate */}
                         <td className="border-b border-[#eee9e7] px-5 py-4 align-top first:pl-6">
                           <div className="flex items-center gap-3">
@@ -757,10 +861,35 @@ function AiCopilotScreen() {
 
                       {isExpanded && result ? (
                         <tr className={rowBg}>
-                          <td colSpan={7} className="border-b border-[#eee9e7] px-5 pb-5 pt-0 first:pl-6 last:pr-6">
+                          <td colSpan={8} className="border-b border-[#eee9e7] px-5 pb-5 pt-0 first:pl-6 last:pr-6">
                             <div className="rounded-xl border border-[#eee9e7] bg-[#faf9f8] p-4">
+                              {/* v2 §4: fit label + confidence generated at ranking time */}
+                              {result.fitLabel || result.confidenceScore ? (
+                                <div className="mb-3 flex flex-wrap items-center gap-2">
+                                  {result.fitLabel ? (
+                                    <span className="inline-flex items-center rounded-full bg-[#e2f0ff] px-2.5 py-1 text-[11px] font-bold text-[#005f93]">
+                                      {result.fitLabel}
+                                    </span>
+                                  ) : null}
+                                  {result.confidenceScore ? (
+                                    <span className="inline-flex items-center rounded-full bg-[#f2efed] px-2.5 py-1 text-[11px] font-semibold text-[#5f5e5e]">
+                                      Độ tin cậy {Math.round(result.confidenceScore)}%
+                                    </span>
+                                  ) : null}
+                                </div>
+                              ) : null}
                               {result.summary?.trim() ? (
                                 <p className="text-[13px] leading-6 text-[#1a1c1c]">{result.summary.trim()}</p>
+                              ) : null}
+                              {result.evidence?.length ? (
+                                <ul className="mt-2 space-y-1 text-[12px] text-[#5f5e5e]">
+                                  {result.evidence.map((item, i) => (
+                                    <li key={`ev-${i.toString()}`} className="flex gap-1.5">
+                                      <span className="text-[#8a8785]">•</span>
+                                      {item}
+                                    </li>
+                                  ))}
+                                </ul>
                               ) : null}
                               <div className="mt-3 grid gap-4 sm:grid-cols-2">
                                 {result.strengths.length ? (

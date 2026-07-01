@@ -83,9 +83,10 @@ function AssistantDrawer(props: AssistantDrawerProps) {
           </button>
         </div>
 
-        {/* Job-level quick tools */}
+        {/* Job-level quick tools. v2: candidate search removed from the active flow; only the
+            ranking-derived shortlist remains. */}
         <div className="flex gap-2 border-b border-[#eee9e7] px-5 py-3">
-          {(["search", "shortlist"] as const).map((tool) => (
+          {(["shortlist"] as const).map((tool) => (
             <button
               key={tool}
               type="button"

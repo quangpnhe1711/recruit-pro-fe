@@ -186,7 +186,9 @@ export function countRuleCriteria(rule: CopilotSavedRuleDto) {
 
 export function matchReasonText(result?: CopilotRankingResultDto): string | null {
   if (!result) return null;
-  if (result.isAiGenerated && result.summary?.trim()) return result.summary.trim();
+  // v2 §4: ranking always carries a detailed Vietnamese fit summary (deterministic or provider),
+  // so surface it whether or not it was AI-generated.
+  if (result.summary?.trim()) return result.summary.trim();
   return null;
 }
 
