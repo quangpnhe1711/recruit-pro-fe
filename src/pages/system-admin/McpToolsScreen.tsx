@@ -46,16 +46,37 @@ function McpToolsScreen() {
   return (
     <div className="app-container animate-fade-in py-8">
       <PageHeader
-        eyebrow="MCP"
+        eyebrow="Công cụ nội bộ cho Automation/AI"
         icon="hub"
-        title="Danh mục công cụ MCP"
-        subtitle="Bộ công cụ nội bộ (chỉ đọc), gọi qua application service và tuân thủ quyền sở hữu. Mọi lệnh gọi đều được ghi audit."
+        title="MCP Tools"
+        subtitle="Danh mục công cụ nội bộ (chỉ đọc), gọi qua application service và tuân thủ quyền sở hữu. Mọi lệnh gọi đều được ghi audit."
         actions={
           <Link to="/system-admin/mcp/audits" className="btn btn-secondary">
             Nhật ký audit
           </Link>
         }
       />
+
+      <div className="mt-6 card border-[#e3ddf5] bg-[#f7f4fe] p-5">
+        <p className="flex items-center gap-2 text-[14px] font-semibold text-[#5b3fb0]">
+          <span className="material-symbols-outlined text-[20px]">shield</span>
+          Đây là màn hình nâng cao / nội bộ
+        </p>
+        <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">
+          MCP Tools là danh sách công cụ nội bộ mà workflow hoặc AI có thể gọi một cách có kiểm
+          soát. Mỗi lần gọi đều được kiểm tra quyền và ghi audit. Người dùng tuyển dụng thông
+          thường không dùng màn này. Ví dụ:{" "}
+          <code className="text-[12px]">jobs.search</code> (tìm job),{" "}
+          <code className="text-[12px]">applications.get</code> (đọc hồ sơ),{" "}
+          <code className="text-[12px]">applications.get_fit_analysis</code> (độ phù hợp),{" "}
+          <code className="text-[12px]">interviews.get_schedule</code> (lịch phỏng vấn),{" "}
+          <code className="text-[12px]">analytics.get_funnel_summary</code> (số liệu funnel).
+        </p>
+        <p className="mt-2 text-[12.5px] leading-6 text-[#8a8786]">
+          Audit cho biết tool nào được gọi, ai gọi, có được phép không, mất bao lâu, và output tóm
+          tắt là gì.
+        </p>
+      </div>
 
       {loading ? (
         <div className="mt-6">

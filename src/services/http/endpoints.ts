@@ -114,6 +114,8 @@ export const endpoints = {
       retry: (id: string) => `/sysadmin/automation/executions/${id}/retry`,
       events: "/sysadmin/automation/events",
       event: (id: string) => `/sysadmin/automation/events/${id}`,
+      diagnostics: "/sysadmin/automation/diagnostics",
+      workflowDiagnostics: (id: string) => `/sysadmin/automation/workflows/${id}/diagnostics`,
     },
     mcp: {
       tools: "/sysadmin/mcp/tools",

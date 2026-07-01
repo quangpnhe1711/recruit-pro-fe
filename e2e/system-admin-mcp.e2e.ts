@@ -34,7 +34,9 @@ test.describe("SystemAdmin v4 MCP", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, mcpMocks());
     await page.goto("/system-admin/mcp/tools");
-    await expect(page.getByRole("heading", { name: "Danh mục công cụ MCP" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "MCP Tools" })).toBeVisible();
+    // Advanced/internal positioning copy is present.
+    await expect(page.getByText("Đây là màn hình nâng cao / nội bộ")).toBeVisible();
     await expect(page.getByText("jobs.search").first()).toBeVisible();
     await expect(page.getByText("analytics.get_funnel_summary").first()).toBeVisible();
   });

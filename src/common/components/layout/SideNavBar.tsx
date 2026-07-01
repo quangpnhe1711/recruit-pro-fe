@@ -8,6 +8,10 @@ export type SideNavItem = {
   icon: string;
   label: string;
   to: string;
+  /** Optional group header this item belongs to (rendered once per group). */
+  section?: string;
+  /** Exact-match active highlight (NavLink `end`) — use for a group's overview route. */
+  end?: boolean;
 };
 
 type SideNavBrand = {
@@ -60,13 +64,19 @@ const headDepartmentItems: SideNavItem[] = [
 ];
 
 const adminItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Tổng quan", to: "/system-admin/dashboard" },
-  { icon: "account_tree", label: "Tự động hóa", to: "/system-admin/automation" },
-  { icon: "hub", label: "MCP Tools", to: "/system-admin/mcp/tools" },
-  { icon: "group", label: "Người dùng", to: "/system-admin/users" },
-  { icon: "shield_person", label: "Vai trò", to: "/system-admin/roles" },
-  { icon: "admin_panel_settings", label: "Quyền hạn", to: "/system-admin/permissions" },
-  { icon: "history", label: "Nhật ký hệ thống", to: "/system-admin/audit-logs" },
+  // Automation is the product value → its own clear group, business labels.
+  { section: "Tự động hóa tuyển dụng", icon: "space_dashboard", label: "Tổng quan", to: "/system-admin/automation", end: true },
+  { section: "Tự động hóa tuyển dụng", icon: "account_tree", label: "Workflows", to: "/system-admin/automation/workflows" },
+  { section: "Tự động hóa tuyển dụng", icon: "play_circle", label: "Lịch sử chạy", to: "/system-admin/automation/executions" },
+  { section: "Tự động hóa tuyển dụng", icon: "bolt", label: "Sự kiện", to: "/system-admin/automation/events" },
+  { section: "Tự động hóa tuyển dụng", icon: "troubleshoot", label: "Chẩn đoán", to: "/system-admin/automation/diagnostics" },
+  // MCP is advanced/internal tooling, not the main product.
+  { section: "Công cụ nội bộ", icon: "hub", label: "MCP Tools", to: "/system-admin/mcp/tools" },
+  { section: "Công cụ nội bộ", icon: "receipt_long", label: "MCP Audit", to: "/system-admin/mcp/audits" },
+  { section: "Quản trị hệ thống", icon: "group", label: "Người dùng", to: "/system-admin/users" },
+  { section: "Quản trị hệ thống", icon: "shield_person", label: "Vai trò", to: "/system-admin/roles" },
+  { section: "Quản trị hệ thống", icon: "admin_panel_settings", label: "Quyền hạn", to: "/system-admin/permissions" },
+  { section: "Quản trị hệ thống", icon: "history", label: "Nhật ký hệ thống", to: "/system-admin/audit-logs" },
 ];
 
 const candidateItems: SideNavItem[] = [
@@ -209,16 +219,22 @@ function SideNavBar({
 
       {/* Primary nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-hide">
-        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6b6a]">
-          Điều hướng
-        </p>
-        {resolvedItems.map((item) => (
+        {resolvedItems.map((item, index) => {
+          const previousSection = index > 0 ? resolvedItems[index - 1].section : undefined;
+          const sectionHeader =
+            index === 0 ? (item.section ?? "Điều hướng") : item.section !== previousSection ? item.section : undefined;
+          return (
+          <div key={item.label}>
+          {sectionHeader ? (
+            <p className={`px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6b6a] ${index === 0 ? "" : "pt-4"}`}>
+              {sectionHeader}
+            </p>
+          ) : null}
           <NavLink
-            key={item.label}
             className={navLinkClassName}
             to={item.to}
             onClick={onClose}
-            end={item.to === resolvedBrand.to}
+            end={item.end ?? item.to === resolvedBrand.to}
           >
             {({ isActive }) => (
               <>
@@ -238,7 +254,9 @@ function SideNavBar({
               </>
             )}
           </NavLink>
-        ))}
+          </div>
+          );
+        })}
       </nav>
 
       {/* Footer area */}

@@ -1,11 +1,12 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 import type { RootState } from "../../../store";
 import {
@@ -13,6 +14,7 @@ import {
   type NotificationItemDto,
 } from "../../../services/notification/notificationService";
 import { openNotificationStream } from "../../../services/notification/notificationStream";
+import { showSystemNotificationToast } from "../notifications/systemToast";
 import { NotificationContext } from "./NotificationContext";
 
 export function NotificationProvider({ children }: PropsWithChildren) {
@@ -20,11 +22,15 @@ export function NotificationProvider({ children }: PropsWithChildren) {
     (state: RootState) => state.auth.isAuthenticated,
   );
   const userId = useSelector((state: RootState) => state.auth.user?.id ?? null);
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationItemDto[]>([]);
   const [unseenCount, setUnseenCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // Ids already surfaced as a toast — a stream reconnect may re-deliver the same event; we must
+  // not re-toast or double-count it.
+  const toastedIds = useRef<Set<string>>(new Set());
 
   const refreshNotifications = useCallback(
     async (silent = false) => {
@@ -99,8 +105,13 @@ export function NotificationProvider({ children }: PropsWithChildren) {
       onNotification: (notification: NotificationItemDto) => {
         if (cancelled) return;
 
+        // A reconnect may re-deliver an event we already surfaced — process each id once.
+        if (toastedIds.current.has(notification.id)) {
+          return;
+        }
+        toastedIds.current.add(notification.id);
+
         setNotifications((current) => {
-          // Dedupe: a reconnect may re-deliver an event we already have.
           if (current.some((item) => item.id === notification.id)) {
             return current;
           }
@@ -110,7 +121,8 @@ export function NotificationProvider({ children }: PropsWithChildren) {
         // seen/read here — seen happens when the bell opens, read when the item is clicked.
         setUnseenCount((current) => current + 1);
         setUnreadCount((current) => current + (notification.isRead ? 0 : 1));
-        toast.info(notification.title || "Bạn có thông báo mới.");
+        // Polished bottom-right system card (not raw toast.info); SPA-navigates on deep link.
+        showSystemNotificationToast(notification, { navigate });
       },
       onReconnect: () => {
         if (!cancelled) {
@@ -125,7 +137,7 @@ export function NotificationProvider({ children }: PropsWithChildren) {
       cancelled = true;
       closeStream();
     };
-  }, [isAuthenticated, refreshNotifications, userId]);
+  }, [isAuthenticated, refreshNotifications, userId, navigate]);
 
   // Opening the bell: mark all as SEEN only. Do NOT mark as read.
   const markAllSeen = async () => {

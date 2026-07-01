@@ -14,6 +14,8 @@ const WorkflowListScreen = lazy(() => import("../pages/system-admin/WorkflowList
 const WorkflowDetailScreen = lazy(() => import("../pages/system-admin/WorkflowDetailScreen"));
 const ExecutionHistoryScreen = lazy(() => import("../pages/system-admin/ExecutionHistoryScreen"));
 const ExecutionDetailScreen = lazy(() => import("../pages/system-admin/ExecutionDetailScreen"));
+const DiagnosticsScreen = lazy(() => import("../pages/system-admin/DiagnosticsScreen"));
+const EventsScreen = lazy(() => import("../pages/system-admin/EventsScreen"));
 const McpToolsScreen = lazy(() => import("../pages/system-admin/McpToolsScreen"));
 const McpAuditScreen = lazy(() => import("../pages/system-admin/McpAuditScreen"));
 
@@ -81,6 +83,8 @@ const systemAdminRoutes = (
         <Route path="/system-admin/automation/workflows/:id" element={lazyRoute(<WorkflowDetailScreen />)} />
         <Route path="/system-admin/automation/executions" element={lazyRoute(<ExecutionHistoryScreen />)} />
         <Route path="/system-admin/automation/executions/:id" element={lazyRoute(<ExecutionDetailScreen />)} />
+        <Route path="/system-admin/automation/events" element={lazyRoute(<EventsScreen />)} />
+        <Route path="/system-admin/automation/diagnostics" element={lazyRoute(<DiagnosticsScreen />)} />
         <Route path="/system-admin/mcp/tools" element={lazyRoute(<McpToolsScreen />)} />
         <Route path="/system-admin/mcp/audits" element={lazyRoute(<McpAuditScreen />)} />
       </Route>

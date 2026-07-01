@@ -3,8 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "../../common/components/PageHeader";
 import CommonTable from "../../common/components/CommonTable";
 import { SkeletonGrid } from "../../common/components/Skeleton";
-import { getDashboard } from "../../services/system-admin/automationService";
-import type { AutomationDashboardDto, ExecutionSummaryDto } from "../../modules/system-admin/automationSchema";
+import Badge from "../../common/components/Badge";
+import { getDashboard, getDiagnostics } from "../../services/system-admin/automationService";
+import type {
+  AutomationDashboardDto,
+  AutomationDiagnosticsDto,
+  ExecutionSummaryDto,
+} from "../../modules/system-admin/automationSchema";
 import { ErrorState, eventLabel, formatDateTime, modeBadge, shortId, statusBadge } from "./automationUi";
 
 const STAT_DEFS: { key: keyof AutomationDashboardDto; label: string; icon: string; tone: string }[] = [
@@ -18,12 +23,17 @@ const STAT_DEFS: { key: keyof AutomationDashboardDto; label: string; icon: strin
 function AutomationDashboardScreen() {
   const navigate = useNavigate();
   const [data, setData] = useState<AutomationDashboardDto | null>(null);
+  const [diag, setDiag] = useState<AutomationDiagnosticsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
+    // Diagnostics is best-effort — the dashboard still renders if it fails.
+    getDiagnostics()
+      .then(setDiag)
+      .catch(() => setDiag(null));
     getDashboard()
       .then(setData)
       .catch(() => setError("Không tải được dữ liệu bảng điều khiển tự động hóa."))
@@ -41,6 +51,9 @@ function AutomationDashboardScreen() {
         subtitle="Trigger → Điều kiện → Hành động → Nhật ký thực thi. Deterministic-first, AI là tùy chọn."
         actions={
           <>
+            <Link to="/system-admin/automation/diagnostics" className="btn btn-secondary">
+              Chẩn đoán
+            </Link>
             <Link to="/system-admin/automation/workflows" className="btn btn-secondary">
               Danh sách workflow
             </Link>
@@ -50,6 +63,43 @@ function AutomationDashboardScreen() {
           </>
         }
       />
+
+      {diag ? (
+        <div className="mt-6 flex flex-wrap items-center gap-2.5">
+          <Badge tone={diag.automationEnabled ? "success" : "neutral"} dot>
+            Tự động hóa: {diag.automationEnabled ? "Đang bật" : "Đang tắt"}
+          </Badge>
+          <Badge tone={diag.dispatcherHealthy ? "success" : "danger"} dot>
+            Worker: {diag.dispatcherHealthy ? "Đang chạy" : "Cần kiểm tra"}
+          </Badge>
+          <Badge tone={diag.pendingEvents > 0 ? "warning" : "neutral"}>
+            {diag.pendingEvents} sự kiện chờ
+          </Badge>
+        </div>
+      ) : null}
+
+      {diag && diag.warnings.length > 0 ? (
+        <div className="mt-4 card border-[#f6e2c4] bg-[#fdf9f0] p-4">
+          <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-[#7a5320]">
+            <span className="material-symbols-outlined text-[18px]">warning</span>
+            Cần chú ý
+          </p>
+          <ul className="space-y-1">
+            {diag.warnings.map((w, i) => (
+              <li key={i} className="flex items-start gap-2 text-[12.5px] text-[#7a5320]">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b45309]" />
+                {w}
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/system-admin/automation/diagnostics"
+            className="mt-2 inline-block text-[12.5px] font-semibold text-[#b90014] hover:underline"
+          >
+            Xem chẩn đoán chi tiết →
+          </Link>
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="mt-6">
