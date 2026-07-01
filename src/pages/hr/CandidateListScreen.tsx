@@ -56,7 +56,7 @@ const sourceOptions: ("Tất cả nguồn" | CandidateSource)[] = [
 
 // Stable filter keys: "all" + the derived review states. Labels resolved from the meta map.
 const candidateStatusFilterOptions: { label: string; value: "all" | CandidateReviewState }[] = [
-  { label: "All statuses", value: "all" },
+  { label: "Tất cả trạng thái", value: "all" },
   { label: CANDIDATE_REVIEW_STATE_META.new.label, value: "new" },
   { label: CANDIDATE_REVIEW_STATE_META.reviewing.label, value: "reviewing" },
   { label: CANDIDATE_REVIEW_STATE_META.interviewed.label, value: "interviewed" },

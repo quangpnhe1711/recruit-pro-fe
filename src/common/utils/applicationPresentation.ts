@@ -143,7 +143,7 @@ export const applicationStatusOptions: ApplicationStatusLabel[] = [
 ];
 
 export const applicationStatusFilterOptions = [
-  { label: "All statuses", value: "all" },
+  { label: "Tất cả trạng thái", value: "all" },
   { label: "Applied", value: "applied" },
   { label: "Screening", value: "screening" },
   { label: "Head Review", value: "managerreview" },

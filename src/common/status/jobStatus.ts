@@ -72,7 +72,7 @@ export function getJobStatusPresentation(value: unknown): JobStatusPresentation 
 // Stable filter keys for job-status filters ("all" + canonical values). Labels come from
 // getJobStatusPresentation so screens never branch on Vietnamese text.
 export const jobStatusFilterOptions: { label: string; value: "all" | JobStatus }[] = [
-  { label: "All statuses", value: "all" },
+  { label: "Tất cả trạng thái", value: "all" },
   { label: getJobStatusPresentation(JobStatus.Draft).label, value: JobStatus.Draft },
   { label: getJobStatusPresentation(JobStatus.PendingApproval).label, value: JobStatus.PendingApproval },
   { label: getJobStatusPresentation(JobStatus.Approved).label, value: JobStatus.Approved },
