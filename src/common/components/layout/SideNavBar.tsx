@@ -61,6 +61,8 @@ const headDepartmentItems: SideNavItem[] = [
 
 const adminItems: SideNavItem[] = [
   { icon: "dashboard", label: "Tổng quan", to: "/system-admin/dashboard" },
+  { icon: "account_tree", label: "Tự động hóa", to: "/system-admin/automation" },
+  { icon: "hub", label: "MCP Tools", to: "/system-admin/mcp/tools" },
   { icon: "group", label: "Người dùng", to: "/system-admin/users" },
   { icon: "shield_person", label: "Vai trò", to: "/system-admin/roles" },
   { icon: "admin_panel_settings", label: "Quyền hạn", to: "/system-admin/permissions" },

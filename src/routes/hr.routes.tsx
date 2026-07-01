@@ -23,6 +23,13 @@ const JobCreatingScreen = lazy(() => import("../pages/hr/JobCreatingScreen"));
 const JobInterviewListScreen = lazy(() => import("../pages/hr/JobInterviewListScreen"));
 const InterviewScheduleScreen = lazy(() => import("../pages/hr/InterviewScheduleScreen"));
 const AiCopilotScreen = lazy(() => import("../pages/hr/AiCopilotScreen"));
+const AutomationDashboardScreen = lazy(() => import("../pages/system-admin/AutomationDashboardScreen"));
+const WorkflowListScreen = lazy(() => import("../pages/system-admin/WorkflowListScreen"));
+const WorkflowDetailScreen = lazy(() => import("../pages/system-admin/WorkflowDetailScreen"));
+const ExecutionHistoryScreen = lazy(() => import("../pages/system-admin/ExecutionHistoryScreen"));
+const ExecutionDetailScreen = lazy(() => import("../pages/system-admin/ExecutionDetailScreen"));
+const McpToolsScreen = lazy(() => import("../pages/system-admin/McpToolsScreen"));
+const McpAuditScreen = lazy(() => import("../pages/system-admin/McpAuditScreen"));
 
 function lazyRoute(element: ReactNode) {
   return (
@@ -220,6 +227,15 @@ const hrRoutes = (
             />
           }
         />
+
+        {/* v4 Workflow Automation + MCP */}
+        <Route path="/system-admin/automation" element={lazyRoute(<AutomationDashboardScreen />)} />
+        <Route path="/system-admin/automation/workflows" element={lazyRoute(<WorkflowListScreen />)} />
+        <Route path="/system-admin/automation/workflows/:id" element={lazyRoute(<WorkflowDetailScreen />)} />
+        <Route path="/system-admin/automation/executions" element={lazyRoute(<ExecutionHistoryScreen />)} />
+        <Route path="/system-admin/automation/executions/:id" element={lazyRoute(<ExecutionDetailScreen />)} />
+        <Route path="/system-admin/mcp/tools" element={lazyRoute(<McpToolsScreen />)} />
+        <Route path="/system-admin/mcp/audits" element={lazyRoute(<McpAuditScreen />)} />
       </Route>
     </Route>
   </Route>

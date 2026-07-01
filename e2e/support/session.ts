@@ -36,7 +36,7 @@ export type SeedUser = {
   permissions: string[];
 };
 
-export type SessionKey = "candidate" | "headDepartment" | "hr";
+export type SessionKey = "candidate" | "headDepartment" | "hr" | "systemAdmin";
 
 // Permissions are derived from `roles` automatically by the FE
 // (rolePermissions.getEffectivePermissions), so seeding the role is enough.
@@ -77,6 +77,19 @@ export const SESSIONS: Record<SessionKey, { variant: Variant; user: SeedUser }> 
       avatarUrl: null,
       phone: null,
       roles: ["hr"],
+      permissions: [],
+    },
+  },
+  systemAdmin: {
+    variant: "internal",
+    user: {
+      id: "u-admin-1",
+      username: "admin",
+      email: "admin@test.local",
+      fullName: "Quản Trị Hệ Thống",
+      avatarUrl: null,
+      phone: null,
+      roles: ["systemadmin"],
       permissions: [],
     },
   },

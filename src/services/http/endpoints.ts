@@ -102,6 +102,26 @@ export const endpoints = {
     funnel: (jobId: string) => `/hr/jobs/${jobId}/funnel`,
     pendingApproval: "/hr/jobs/pending-approval",
   },
+  sysadmin: {
+    automation: {
+      dashboard: "/sysadmin/automation/dashboard",
+      workflows: "/sysadmin/automation/workflows",
+      workflow: (id: string) => `/sysadmin/automation/workflows/${id}`,
+      publish: (id: string) => `/sysadmin/automation/workflows/${id}/publish`,
+      setEnabled: (id: string) => `/sysadmin/automation/workflows/${id}/enabled`,
+      executions: "/sysadmin/automation/executions",
+      execution: (id: string) => `/sysadmin/automation/executions/${id}`,
+      retry: (id: string) => `/sysadmin/automation/executions/${id}/retry`,
+      events: "/sysadmin/automation/events",
+      event: (id: string) => `/sysadmin/automation/events/${id}`,
+    },
+    mcp: {
+      tools: "/sysadmin/mcp/tools",
+      testTool: (name: string) => `/sysadmin/mcp/tools/${name}/test`,
+      audits: "/sysadmin/mcp/audits",
+      audit: (id: string) => `/sysadmin/mcp/audits/${id}`,
+    },
+  },
   copilot: {
     jobs: "/copilot/jobs",
     candidateSearch: "/copilot/candidate-search",
