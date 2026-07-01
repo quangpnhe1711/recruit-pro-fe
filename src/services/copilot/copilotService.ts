@@ -240,19 +240,6 @@ export type InterviewQuestionSetDto = {
   ai: CopilotAiMetadataDto;
 };
 
-export type ShortlistSuggestionResponseDto = {
-  jobId: string;
-  suggestions: Array<{
-    candidateUserId: string;
-    applicationId: string;
-    fullName: string;
-    rankPosition: number;
-    score: number;
-    recommendation: string;
-    rationale: string[];
-  }>;
-  ai: CopilotAiMetadataDto;
-};
 
 export type HrEmailDraftResponseDto = {
   applicationId: string;
@@ -318,16 +305,6 @@ export const copilotService = {
   ): Promise<ApiResponse<InterviewQuestionSetDto>> => {
     return request.post<ApiResponse<InterviewQuestionSetDto>, typeof payload>(
       endpoints.copilot.interviewQuestions(jobId),
-      payload,
-    );
-  },
-
-  generateShortlist: async (
-    jobId: string,
-    payload: { prompt?: string; maxCandidates?: number },
-  ): Promise<ApiResponse<ShortlistSuggestionResponseDto>> => {
-    return request.post<ApiResponse<ShortlistSuggestionResponseDto>, typeof payload>(
-      endpoints.copilot.shortlists(jobId),
       payload,
     );
   },

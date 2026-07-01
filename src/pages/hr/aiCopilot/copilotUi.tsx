@@ -28,7 +28,7 @@ export type ChatMessage = {
   content: string;
 };
 
-export type ToolName = "fit" | "questions" | "email" | "search" | "shortlist";
+export type ToolName = "fit" | "questions" | "email";
 
 export type ToolResult =
   | {
@@ -56,29 +56,6 @@ export type ToolResult =
       subject: string;
       body: string;
       fallbackUsed: boolean;
-    }
-  | {
-      kind: "search";
-      query: string;
-      results: {
-        fullName: string;
-        matchScore: number;
-        matchedSkills: string[];
-        missingSkills: string[];
-        evidence: string;
-      }[];
-      fallbackUsed: boolean;
-    }
-  | {
-      kind: "shortlist";
-      suggestions: {
-        rankPosition: number;
-        fullName: string;
-        score: number;
-        recommendation: string;
-        rationale: string[];
-      }[];
-      fallbackUsed: boolean;
     };
 
 export const TOOL_META: Record<
@@ -99,16 +76,6 @@ export const TOOL_META: Record<
     label: "Soạn email",
     icon: "mail",
     hint: "Viết nháp email mời phỏng vấn cho ứng viên",
-  },
-  search: {
-    label: "Tìm ứng viên",
-    icon: "person_search",
-    hint: "Tìm ứng viên phù hợp bằng ngôn ngữ tự nhiên",
-  },
-  shortlist: {
-    label: "Gợi ý shortlist",
-    icon: "workspace_premium",
-    hint: "AI đề xuất danh sách rút gọn tốt nhất",
   },
 };
 

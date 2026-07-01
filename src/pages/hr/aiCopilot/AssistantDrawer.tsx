@@ -1,9 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  renderAssistantContent,
-  TOOL_META,
-  type ChatMessage,
-} from "./copilotUi";
+import { renderAssistantContent, type ChatMessage } from "./copilotUi";
 
 type AssistantDrawerProps = {
   open: boolean;
@@ -16,8 +12,6 @@ type AssistantDrawerProps = {
   loadingStatus: string;
   canSend: boolean;
   onSend: () => void;
-  onRunJobTool: (tool: "search" | "shortlist") => void;
-  toolsDisabled: boolean;
 };
 
 function AssistantDrawer(props: AssistantDrawerProps) {
@@ -32,8 +26,6 @@ function AssistantDrawer(props: AssistantDrawerProps) {
     loadingStatus,
     canSend,
     onSend,
-    onRunJobTool,
-    toolsDisabled,
   } = props;
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -81,24 +73,6 @@ function AssistantDrawer(props: AssistantDrawerProps) {
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
-        </div>
-
-        {/* Job-level quick tools. v2: candidate search removed from the active flow; only the
-            ranking-derived shortlist remains. */}
-        <div className="flex gap-2 border-b border-[#eee9e7] px-5 py-3">
-          {(["shortlist"] as const).map((tool) => (
-            <button
-              key={tool}
-              type="button"
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-[10px] border border-[#e2dfde] bg-[#faf9f8] px-3 py-2 text-[12.5px] font-semibold text-[#1a1c1c] transition-colors hover:border-[#b90014] hover:text-[#b90014] disabled:opacity-50"
-              disabled={toolsDisabled}
-              onClick={() => onRunJobTool(tool)}
-              title={TOOL_META[tool].hint}
-            >
-              <span className="material-symbols-outlined text-[17px]">{TOOL_META[tool].icon}</span>
-              {TOOL_META[tool].label}
-            </button>
-          ))}
         </div>
 
         {/* Transcript */}

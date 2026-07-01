@@ -112,7 +112,6 @@ export const endpoints = {
     fitAnalysis: (jobId: string) => `/copilot/jobs/${jobId}/fit-analysis`,
     interviewQuestions: (jobId: string) =>
       `/copilot/jobs/${jobId}/interview-questions`,
-    shortlists: (jobId: string) => `/copilot/jobs/${jobId}/shortlists`,
     emailDraft: (applicationId: string) =>
       `/copilot/applications/${applicationId}/emails/draft`,
     latestFitAnalysis: (applicationId: string) =>

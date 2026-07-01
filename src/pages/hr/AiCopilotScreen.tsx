@@ -489,41 +489,6 @@ function AiCopilotScreen() {
     [selectedJobId],
   );
 
-  const runJobTool = useCallback(
-    async (tool: "search" | "shortlist") => {
-      if (!selectedJobId) return;
-      setToolName(tool);
-      setToolResult(null);
-      setToolLoading(true);
-      setToolOpen(true);
-      try {
-        if (tool === "search") {
-          const query = prompt.trim() || "Những ứng viên mạnh nhất cho vị trí này";
-          const response = await copilotService.searchCandidates({ jobId: selectedJobId, query, maxResults: 5 });
-          setToolResult({
-            kind: "search",
-            query,
-            results: response.data?.results ?? [],
-            fallbackUsed: response.data?.ai.fallbackUsed ?? false,
-          });
-        } else {
-          const response = await copilotService.generateShortlist(selectedJobId, { maxCandidates: 3 });
-          setToolResult({
-            kind: "shortlist",
-            suggestions: response.data?.suggestions ?? [],
-            fallbackUsed: response.data?.ai.fallbackUsed ?? false,
-          });
-        }
-      } catch (error) {
-        setToolOpen(false);
-        toast.error(getToastErrorMessage(error, `Không chạy được: ${TOOL_META[tool].label}.`));
-      } finally {
-        setToolLoading(false);
-      }
-    },
-    [prompt, selectedJobId],
-  );
-
   /* ----------------------------------------------------------------------- */
   /* Render                                                                 */
   /* ----------------------------------------------------------------------- */
@@ -981,8 +946,6 @@ function AiCopilotScreen() {
         loadingStatus={loadingStatus}
         canSend={!chatSending && !!conversation && !!prompt.trim()}
         onSend={() => void submitChat()}
-        onRunJobTool={(tool) => void runJobTool(tool)}
-        toolsDisabled={toolLoading || !pool}
       />
     </div>
   );

@@ -127,127 +127,35 @@ function ResultBody({ result }: { result: ToolResult }) {
     );
   }
 
-  if (result.kind === "email") {
-    return (
-      <div>
-        <div className="rounded-[12px] border border-[#eee9e7]">
-          <div className="flex items-center justify-between gap-3 border-b border-[#eee9e7] px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8a8786]">
-                Tiêu đề
-              </p>
-              <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">{result.subject}</p>
-            </div>
-            <button
-              type="button"
-              className="btn btn-secondary h-9 shrink-0 px-3 text-[12px]"
-              onClick={() => {
-                void navigator.clipboard
-                  ?.writeText(`${result.subject}\n\n${result.body}`)
-                  .then(() => toast.success("Đã sao chép email."))
-                  .catch(() => toast.error("Không sao chép được."));
-              }}
-            >
-              <span className="material-symbols-outlined text-[16px]">content_copy</span>
-              Sao chép
-            </button>
-          </div>
-          <div className="whitespace-pre-wrap px-4 py-3.5 text-[14px] leading-6 text-[#1f2937]">
-            {result.body}
-          </div>
-        </div>
-        <FallbackNote fallbackUsed={result.fallbackUsed} />
-      </div>
-    );
-  }
-
-  if (result.kind === "search") {
-    if (!result.results.length) {
-      return <p className="text-[14px] text-[#5f5e5e]">Không tìm thấy ứng viên phù hợp.</p>;
-    }
-    return (
-      <div>
-        <ul className="space-y-2.5">
-          {result.results.map((item, index) => (
-            <li
-              key={`sr-${index.toString()}`}
-              className="rounded-[12px] border border-[#eee9e7] bg-white p-3.5"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[14px] font-semibold text-[#1a1c1c]">{item.fullName}</p>
-                <span
-                  className={`inline-flex rounded-full border px-2.5 py-0.5 text-[12px] font-bold ${scoreTone(item.matchScore)}`}
-                >
-                  {Math.round(item.matchScore)}
-                </span>
-              </div>
-              {item.evidence ? (
-                <p className="mt-1 text-[13px] leading-5 text-[#5f5e5e]">{item.evidence}</p>
-              ) : null}
-              {item.matchedSkills.length ? (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {item.matchedSkills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                  {item.missingSkills.map((skill) => (
-                    <span
-                      key={`m-${skill}`}
-                      className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-600 line-through"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-        <FallbackNote fallbackUsed={result.fallbackUsed} />
-      </div>
-    );
-  }
-
-  // shortlist
-  if (!result.suggestions.length) {
-    return <p className="text-[14px] text-[#5f5e5e]">AI chưa đề xuất được shortlist.</p>;
-  }
+  // fit / questions handled above; email is the only remaining tool result.
   return (
     <div>
-      <ul className="space-y-2.5">
-        {result.suggestions.map((item, index) => (
-          <li
-            key={`sl-${index.toString()}`}
-            className="flex gap-3 rounded-[12px] border border-[#eee9e7] bg-white p-3.5"
+      <div className="rounded-[12px] border border-[#eee9e7]">
+        <div className="flex items-center justify-between gap-3 border-b border-[#eee9e7] px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8a8786]">
+              Tiêu đề
+            </p>
+            <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">{result.subject}</p>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary h-9 shrink-0 px-3 text-[12px]"
+            onClick={() => {
+              void navigator.clipboard
+                ?.writeText(`${result.subject}\n\n${result.body}`)
+                .then(() => toast.success("Đã sao chép email."))
+                .catch(() => toast.error("Không sao chép được."));
+            }}
           >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#1a1c1c] text-[12px] font-bold text-white">
-              {item.rankPosition}
-            </span>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-[14px] font-semibold text-[#1a1c1c]">{item.fullName}</p>
-                <span
-                  className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold ${scoreTone(item.score)}`}
-                >
-                  {Math.round(item.score)}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[12px] font-medium text-[#b90014]">{item.recommendation}</p>
-              {item.rationale.length ? (
-                <ul className="mt-1.5 space-y-1 text-[13px] text-[#5f5e5e]">
-                  {item.rationale.map((line, lineIndex) => (
-                    <li key={`rt-${lineIndex.toString()}`}>• {line}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ul>
+            <span className="material-symbols-outlined text-[16px]">content_copy</span>
+            Sao chép
+          </button>
+        </div>
+        <div className="whitespace-pre-wrap px-4 py-3.5 text-[14px] leading-6 text-[#1f2937]">
+          {result.body}
+        </div>
+      </div>
       <FallbackNote fallbackUsed={result.fallbackUsed} />
     </div>
   );
