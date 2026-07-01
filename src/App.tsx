@@ -28,6 +28,25 @@ function App() {
           theme="colored"
           style={{ top: "70px" }}
         />
+        {/* Separate container for system / real-time notifications: bottom-right custom cards.
+            Untargeted toast.* calls stay in the default (top-right) container; only
+            showSystemNotificationToast targets containerId="system". */}
+        <ToastContainer
+          containerId="system"
+          position="bottom-right"
+          className="rp-system-container"
+          toastClassName="rp-system-toast"
+          autoClose={6000}
+          limit={4}
+          newestOnTop
+          closeButton={false}
+          hideProgressBar
+          icon={false}
+          closeOnClick={false}
+          pauseOnFocusLoss={false}
+          pauseOnHover
+          draggable
+        />
       </NotificationProvider>
     </Provider>
   );

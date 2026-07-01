@@ -1,6 +1,7 @@
 import type { ApiResponse } from "../../common/types";
 import type {
   AutomationDashboardDto,
+  AutomationDiagnosticsDto,
   CreateWorkflowRequest,
   ExecutionDetailDto,
   ExecutionSummaryDto,
@@ -8,6 +9,7 @@ import type {
   Paginated,
   UpdateWorkflowRequest,
   WorkflowDetailDto,
+  WorkflowDiagnosticsDto,
   WorkflowSummaryDto,
   WorkflowVersionDto,
 } from "../../modules/system-admin/automationSchema";
@@ -79,6 +81,16 @@ export async function getExecution(id: string): Promise<ExecutionDetailDto> {
 
 export async function retryExecution(id: string): Promise<ExecutionDetailDto> {
   const res = await request.post<ApiResponse<ExecutionDetailDto>>(api.retry(id));
+  return res.data!;
+}
+
+export async function getDiagnostics(): Promise<AutomationDiagnosticsDto> {
+  const res = await request.get<ApiResponse<AutomationDiagnosticsDto>>(api.diagnostics);
+  return res.data!;
+}
+
+export async function getWorkflowDiagnostics(id: string): Promise<WorkflowDiagnosticsDto> {
+  const res = await request.get<ApiResponse<WorkflowDiagnosticsDto>>(api.workflowDiagnostics(id));
   return res.data!;
 }
 

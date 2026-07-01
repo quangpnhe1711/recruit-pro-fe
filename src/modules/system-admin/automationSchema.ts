@@ -151,6 +151,66 @@ export type AutomationDashboardDto = {
   recentExecutions: ExecutionSummaryDto[];
 };
 
+// --- Diagnostics (v4 runtime observability) ---
+
+export type WorkerHeartbeatDto = {
+  name: string;
+  lastBeatAt?: string | null;
+  secondsSinceBeat?: number | null;
+  isStale: boolean;
+  status?: string | null;
+  detail?: string | null;
+};
+
+export type DiagEventRef = {
+  eventType: string;
+  status: string;
+  occurredAt: string;
+};
+
+export type DiagExecutionRef = {
+  workflowName: string;
+  status: string;
+  createdAt: string;
+};
+
+export type AutomationDiagnosticsDto = {
+  automationEnabled: boolean;
+  defaultMode: string;
+  workers: WorkerHeartbeatDto[];
+  dispatcherHealthy: boolean;
+  pendingEvents: number;
+  processingEvents: number;
+  failedEvents: number;
+  deadLetterEvents: number;
+  executionsToday: number;
+  failedExecutions: number;
+  unresolvedDeadLetters: number;
+  latestEvent?: DiagEventRef | null;
+  latestExecution?: DiagExecutionRef | null;
+  warnings: string[];
+};
+
+export type WorkflowDiagnosticsDto = {
+  id: string;
+  name: string;
+  isEnabled: boolean;
+  hasActiveVersion: boolean;
+  versionMode?: WorkflowMode | string | null;
+  effectiveMode: WorkflowMode;
+  triggerEventType?: string | null;
+  eventsTodayOfType: number;
+  pendingEventsOfType: number;
+  executionsToday: number;
+  successCount: number;
+  failedCount: number;
+  skippedCount: number;
+  latestMatchingEvent?: DiagEventRef | null;
+  latestExecution?: DiagExecutionRef | null;
+  noExecutionReason?: string | null;
+  healthy: boolean;
+};
+
 export type McpToolDto = {
   name: string;
   description: string;
