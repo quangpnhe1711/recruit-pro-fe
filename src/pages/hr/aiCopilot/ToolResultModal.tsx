@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import LoadingIndicator from "../../../common/components/LoadingIndicator";
 import { scoreTone, TOOL_META, type ToolName, type ToolResult } from "./copilotUi";
@@ -263,7 +264,7 @@ function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultMod
         ? `“${result.query}”`
         : null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1c1c]/45 px-4 py-6 backdrop-blur-sm">
       <div className="animate-scale-in flex max-h-full w-full max-w-[640px] flex-col overflow-hidden rounded-[20px] border border-[#ececec] bg-white shadow-[0_30px_80px_rgba(0,0,0,0.24)]">
         <div className="flex items-start justify-between gap-4 border-b border-[#eee9e7] px-6 py-5">
@@ -305,7 +306,8 @@ function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultMod
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

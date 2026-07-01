@@ -703,8 +703,8 @@ function AiCopilotScreen() {
         ) : visibleCandidates.length === 0 ? (
           <EmptyState
             icon="group_off"
-            title="Chưa có ứng viên cho vị trí này"
-            description="Khi có hồ sơ ứng tuyển, danh sách ứng viên và kết quả chấm điểm AI sẽ hiển thị ở đây."
+            title="Không có ứng viên ở trạng thái Screening"
+            description="AI Copilot chỉ xếp hạng hồ sơ đang ở vòng CV screening. Hãy chuyển hồ sơ sang trạng thái Screening để bắt đầu chấm điểm."
           />
         ) : (
           <div className="overflow-x-auto bg-[#fbfaf9]">
