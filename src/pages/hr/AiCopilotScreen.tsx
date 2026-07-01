@@ -128,6 +128,7 @@ function AiCopilotScreen() {
     setPriorityCriteria([]);
     setNegativeCriteria([]);
     setExpandedCandidateId(null);
+    setSelectedApplicationIds([]);
 
     async function loadJobContext() {
       try {
