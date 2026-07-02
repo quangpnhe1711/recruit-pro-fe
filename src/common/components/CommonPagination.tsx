@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import { useI18n } from "../../i18n";
+
 export type CommonPaginationProps = {
   currentPage: number;
   totalPages: number;
@@ -19,6 +21,7 @@ function CommonPagination({
   onPageChange,
   disabled = false,
 }: CommonPaginationProps) {
+  const { t } = useI18n();
   const visiblePageNumbers = useMemo(() => {
     if (totalPages <= 1) {
       return [1];
@@ -67,12 +70,16 @@ function CommonPagination({
           </span>
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a8786]">
-              Phân trang
+              {t("common.pagination")}
             </p>
             <p className="mt-0.5 text-[13px] font-bold text-[#1a1c1c]">
               {totalItems > 0
-                ? `${rangeStart}-${rangeEnd} trong ${totalItems} mục`
-                : "Chưa có dữ liệu"}
+                ? t("common.rangeOf", {
+                    start: rangeStart,
+                    end: rangeEnd,
+                    total: totalItems,
+                  })
+                : t("common.noData")}
             </p>
           </div>
         </div>
@@ -83,7 +90,7 @@ function CommonPagination({
           className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#ded8d6] bg-white text-[#3a3a3a] transition-all duration-150 hover:-translate-y-0.5 hover:border-[#c8c2c0] hover:bg-[#faf9f8] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage <= 1 || disabled}
-          aria-label="Trang trước"
+          aria-label={t("common.previous")}
         >
           <span className="material-symbols-outlined">chevron_left</span>
         </button>
@@ -139,7 +146,7 @@ function CommonPagination({
           className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#ded8d6] bg-white text-[#3a3a3a] transition-all duration-150 hover:-translate-y-0.5 hover:border-[#c8c2c0] hover:bg-[#faf9f8] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage >= totalPages || disabled}
-          aria-label="Trang sau"
+          aria-label={t("common.next")}
         >
           <span className="material-symbols-outlined">chevron_right</span>
         </button>

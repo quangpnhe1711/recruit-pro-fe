@@ -3,12 +3,14 @@ import { RootState } from "../../../store";
 import { useSelector } from "react-redux";
 import { usePermissions } from "../../../hooks/usePermissions";
 import { ROLE_NAMES } from "../../../permissions/rolePermissions";
+import { useI18n } from "../../../i18n";
 
 export type SideNavItem = {
   icon: string;
+  /** i18n key under `nav.` for the item label. */
   label: string;
   to: string;
-  /** Optional group header this item belongs to (rendered once per group). */
+  /** Optional i18n key (under `nav.`) of the group header this item belongs to. */
   section?: string;
   /** Exact-match active highlight (NavLink `end`) — use for a group's overview route. */
   end?: boolean;
@@ -37,54 +39,54 @@ type SideNavBarProps = {
 };
 
 const hrItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Tổng quan", to: "/hr/dashboard" },
-  { icon: "work", label: "Tin tuyển dụng", to: "/jobs" },
-  { icon: "group", label: "Ứng viên", to: "/hr/candidates" },
-  { icon: "description", label: "Hồ sơ ứng tuyển", to: "/hr/applications" },
-  { icon: "smart_toy", label: "AI Copilot", to: "/hr/ai-copilot" },
-  { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
-  { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
+  { icon: "dashboard", label: "nav.dashboard", to: "/hr/dashboard" },
+  { icon: "work", label: "nav.jobs", to: "/jobs" },
+  { icon: "group", label: "nav.candidates", to: "/hr/candidates" },
+  { icon: "description", label: "nav.applications", to: "/hr/applications" },
+  { icon: "smart_toy", label: "nav.aiCopilot", to: "/hr/ai-copilot" },
+  { icon: "schedule", label: "nav.interviews", to: "/hr/interviews" },
+  { icon: "person", label: "nav.profile", to: "/internal/profile" },
 ];
 
 const managerItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Tổng quan", to: "/manager/dashboard" },
-  { icon: "approval", label: "Duyệt tuyển dụng", to: "/jobs" },
-  { icon: "description", label: "Hồ sơ ứng tuyển", to: "/manager/applications" },
-  { icon: "smart_toy", label: "AI Copilot", to: "/hr/ai-copilot" },
-  { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
-  { icon: "analytics", label: "Báo cáo", to: "/manager/reports" },
-  { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
+  { icon: "dashboard", label: "nav.dashboard", to: "/manager/dashboard" },
+  { icon: "approval", label: "nav.recruitmentApproval", to: "/jobs" },
+  { icon: "description", label: "nav.applications", to: "/manager/applications" },
+  { icon: "smart_toy", label: "nav.aiCopilot", to: "/hr/ai-copilot" },
+  { icon: "schedule", label: "nav.interviews", to: "/hr/interviews" },
+  { icon: "analytics", label: "nav.reports", to: "/manager/reports" },
+  { icon: "person", label: "nav.profile", to: "/internal/profile" },
 ];
 
 const headDepartmentItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Tổng quan", to: "/hr/dashboard" },
-  { icon: "approval", label: "Duyệt tin tuyển dụng", to: "/jobs" },
-  { icon: "schedule", label: "Phỏng vấn", to: "/hr/interviews" },
-  { icon: "person", label: "Hồ sơ", to: "/internal/profile" },
+  { icon: "dashboard", label: "nav.dashboard", to: "/hr/dashboard" },
+  { icon: "approval", label: "nav.jobApproval", to: "/jobs" },
+  { icon: "schedule", label: "nav.interviews", to: "/hr/interviews" },
+  { icon: "person", label: "nav.profile", to: "/internal/profile" },
 ];
 
 const adminItems: SideNavItem[] = [
   // Automation is the product value → its own clear group, business labels.
-  { section: "Tự động hóa tuyển dụng", icon: "space_dashboard", label: "Tổng quan", to: "/system-admin/automation", end: true },
-  { section: "Tự động hóa tuyển dụng", icon: "account_tree", label: "Workflows", to: "/system-admin/automation/workflows" },
-  { section: "Tự động hóa tuyển dụng", icon: "play_circle", label: "Lịch sử chạy", to: "/system-admin/automation/executions" },
-  { section: "Tự động hóa tuyển dụng", icon: "bolt", label: "Sự kiện", to: "/system-admin/automation/events" },
-  { section: "Tự động hóa tuyển dụng", icon: "troubleshoot", label: "Chẩn đoán", to: "/system-admin/automation/diagnostics" },
+  { section: "nav.automationSection", icon: "space_dashboard", label: "nav.automationOverview", to: "/system-admin/automation", end: true },
+  { section: "nav.automationSection", icon: "account_tree", label: "nav.workflows", to: "/system-admin/automation/workflows" },
+  { section: "nav.automationSection", icon: "play_circle", label: "nav.executions", to: "/system-admin/automation/executions" },
+  { section: "nav.automationSection", icon: "bolt", label: "nav.events", to: "/system-admin/automation/events" },
+  { section: "nav.automationSection", icon: "troubleshoot", label: "nav.diagnostics", to: "/system-admin/automation/diagnostics" },
   // MCP is advanced/internal tooling, not the main product.
-  { section: "Công cụ nội bộ", icon: "hub", label: "MCP Tools", to: "/system-admin/mcp/tools" },
-  { section: "Công cụ nội bộ", icon: "receipt_long", label: "MCP Audit", to: "/system-admin/mcp/audits" },
-  { section: "Quản trị hệ thống", icon: "group", label: "Người dùng", to: "/system-admin/users" },
-  { section: "Quản trị hệ thống", icon: "shield_person", label: "Vai trò", to: "/system-admin/roles" },
-  { section: "Quản trị hệ thống", icon: "admin_panel_settings", label: "Quyền hạn", to: "/system-admin/permissions" },
-  { section: "Quản trị hệ thống", icon: "history", label: "Nhật ký hệ thống", to: "/system-admin/audit-logs" },
+  { section: "nav.internalToolsSection", icon: "hub", label: "nav.mcpTools", to: "/system-admin/mcp/tools" },
+  { section: "nav.internalToolsSection", icon: "receipt_long", label: "nav.mcpAudit", to: "/system-admin/mcp/audits" },
+  { section: "nav.systemSection", icon: "group", label: "nav.users", to: "/system-admin/users" },
+  { section: "nav.systemSection", icon: "shield_person", label: "nav.roles", to: "/system-admin/roles" },
+  { section: "nav.systemSection", icon: "admin_panel_settings", label: "nav.permissions", to: "/system-admin/permissions" },
+  { section: "nav.systemSection", icon: "history", label: "nav.auditLogs", to: "/system-admin/audit-logs" },
 ];
 
 const candidateItems: SideNavItem[] = [
-  { icon: "dashboard", label: "Tổng quan", to: "/candidate/dashboard" },
-  { icon: "work", label: "Việc làm", to: "/jobs" },
-  { icon: "description", label: "Đơn ứng tuyển", to: "/candidate/my-applications" },
-  { icon: "schedule", label: "Phỏng vấn", to: "/candidate/interviews" },
-  { icon: "person", label: "Hồ sơ", to: "/candidate/profile" },
+  { icon: "dashboard", label: "nav.dashboard", to: "/candidate/dashboard" },
+  { icon: "work", label: "nav.findJobs", to: "/jobs" },
+  { icon: "description", label: "nav.myApplications", to: "/candidate/my-applications" },
+  { icon: "schedule", label: "nav.interviews", to: "/candidate/interviews" },
+  { icon: "person", label: "nav.profile", to: "/candidate/profile" },
 ];
 
 function getInitials(name: string) {
@@ -97,20 +99,20 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function formatRoleLabel(role: string | null | undefined) {
+function roleLabelKey(role: string | null | undefined) {
   switch (role) {
     case ROLE_NAMES.CANDIDATE:
-      return "Ứng viên";
+      return "roles.candidate";
     case ROLE_NAMES.HR:
-      return "HR";
+      return "roles.hr";
     case ROLE_NAMES.HEAD_DEPARTMENT:
-      return "Trưởng bộ phận";
+      return "roles.headDepartment";
     case ROLE_NAMES.MANAGER:
-      return "Quản lý";
+      return "roles.manager";
     case ROLE_NAMES.SYSTEM_ADMIN:
-      return "Quản trị hệ thống";
+      return "roles.systemAdmin";
     default:
-      return "Người dùng nội bộ";
+      return "roles.internalUser";
   }
 }
 
@@ -124,6 +126,7 @@ function SideNavBar({
   const navigate = useNavigate();
   const authState = useSelector((state: RootState) => state.auth);
   const { defaultPath, portalVariant, primaryRole } = usePermissions();
+  const { t } = useI18n();
 
   const authUser = authState.user;
 
@@ -143,28 +146,28 @@ function SideNavBar({
     title: "RecruitPro",
     subtitle:
       portalVariant === "candidate"
-        ? "Cổng ứng viên"
+        ? t("brand.candidatePortal")
         : primaryRole === ROLE_NAMES.SYSTEM_ADMIN
-          ? "Quản trị hệ thống"
+          ? t("brand.systemAdmin")
           : primaryRole === ROLE_NAMES.HEAD_DEPARTMENT
-            ? "Trưởng bộ phận duyệt tin"
+            ? t("brand.headDepartment")
             : primaryRole === ROLE_NAMES.MANAGER
-              ? "Phê duyệt tuyển dụng"
-              : "Vận hành tuyển dụng",
+              ? t("brand.manager")
+              : t("brand.hr"),
     to: defaultPath,
   };
 
   const resolvedUserName =
     authUser?.fullName ??
-    (portalVariant === "candidate" ? "Ứng viên" : "Người dùng nội bộ");
+    (portalVariant === "candidate" ? t("roles.candidate") : t("roles.internalUser"));
   const resolvedUserAvatarSrc = userAvatarSrc ?? authUser?.avatarUrl ?? undefined;
   const resolvedUserRole =
-    portalVariant === "candidate" ? "Ứng viên" : formatRoleLabel(primaryRole);
+    portalVariant === "candidate" ? t("roles.candidate") : t(roleLabelKey(primaryRole));
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
 
   const resolvedCta =
     portalVariant === "internal" && primaryRole === ROLE_NAMES.HR
-      ? { label: "Đăng tin mới" }
+      ? { label: t("nav.postJob") }
       : null;
 
   const visibilityClass = desktopOnly
@@ -207,7 +210,7 @@ function SideNavBar({
           <button
             type="button"
             className="premium-action -mr-1 text-[#b9b6b5] transition-colors hover:text-white lg:hidden"
-            aria-label="Đóng menu"
+            aria-label={t("nav.closeMenu")}
             onClick={onClose}
           >
             <span className="material-symbols-outlined text-[22px]">close</span>
@@ -222,12 +225,12 @@ function SideNavBar({
         {resolvedItems.map((item, index) => {
           const previousSection = index > 0 ? resolvedItems[index - 1].section : undefined;
           const sectionHeader =
-            index === 0 ? (item.section ?? "Điều hướng") : item.section !== previousSection ? item.section : undefined;
+            index === 0 ? item.section : item.section !== previousSection ? item.section : undefined;
           return (
           <div key={item.label}>
           {sectionHeader ? (
             <p className={`px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6b6a] ${index === 0 ? "" : "pt-4"}`}>
-              {sectionHeader}
+              {t(sectionHeader)}
             </p>
           ) : null}
           <NavLink
@@ -250,7 +253,7 @@ function SideNavBar({
                 >
                   {item.icon}
                 </span>
-                {item.label}
+                {t(item.label)}
               </>
             )}
           </NavLink>
