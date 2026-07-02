@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import AppHeader from "./AppHeader";
-import BottomNavBar from "./BottomNavBar";
 import Footer from "./Footer";
 import Seo from "../Seo";
 import SideNavBar from "./SideNavBar";
@@ -71,15 +70,13 @@ function AuthenticatedLayout() {
 
         <main
           key={location.pathname}
-          className="animate-fade-in flex-1 overflow-x-hidden pb-24 lg:pb-0"
+          className="animate-fade-in flex-1 overflow-x-hidden pb-0"
         >
           <Outlet />
         </main>
 
         <Footer />
       </div>
-
-      <BottomNavBar />
     </div>
   );
 }
