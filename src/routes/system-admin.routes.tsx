@@ -38,6 +38,7 @@ const systemAdminRoutes = (
             <FeaturePlaceholderScreen
               title="System Admin Dashboard"
               description="Bảng điều khiển quản trị hệ thống đang chờ hỗ trợ từ backend."
+              variant="executive"
             />
           }
         />
@@ -47,6 +48,7 @@ const systemAdminRoutes = (
             <FeaturePlaceholderScreen
               title="User Management"
               description="Quản lý người dùng đang chờ hỗ trợ từ backend."
+              variant="executive"
             />
           }
         />
@@ -56,6 +58,7 @@ const systemAdminRoutes = (
             <FeaturePlaceholderScreen
               title="Role Management"
               description="Quản lý vai trò đang chờ hỗ trợ từ backend."
+              variant="executive"
             />
           }
         />
@@ -65,6 +68,7 @@ const systemAdminRoutes = (
             <FeaturePlaceholderScreen
               title="Permission Management"
               description="Quản lý quyền đang chờ hỗ trợ từ backend."
+              variant="executive"
             />
           }
         />
@@ -74,6 +78,7 @@ const systemAdminRoutes = (
             <FeaturePlaceholderScreen
               title="Audit Logs"
               description="Nhật ký kiểm toán đang chờ hỗ trợ từ backend."
+              variant="executive"
             />
           }
         />

@@ -48,7 +48,7 @@ function McpToolsScreen() {
   };
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="hub"
         title={t("automation.mcpToolsTitle")}
@@ -60,8 +60,8 @@ function McpToolsScreen() {
         }
       />
 
-      <div className="card mt-6 border-[#e3ddf5] bg-[#f7f4fe] p-4">
-        <p className="flex items-center gap-2 text-[13px] font-semibold text-[#5b3fb0]">
+      <div className="executive-section mt-6 border-[#eadfdb] bg-[#fff8f6] p-4">
+        <p className="flex items-center gap-2 text-[13px] font-semibold text-[#b90014]">
           <span className="material-symbols-outlined text-[18px]">shield</span>
           {t("automation.mcpAdvancedTitle")}
         </p>
@@ -79,13 +79,13 @@ function McpToolsScreen() {
           <ErrorState message={error} onRetry={load} />
         </div>
       ) : tools.length === 0 ? (
-        <div className="card mt-6">
+        <div className="executive-section mt-6">
           <EmptyState icon="hub" title={t("automation.emptyMcpTools")} />
         </div>
       ) : (
         <div className="stagger mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => (
-            <div key={tool.name} className="card flex flex-col p-5">
+            <div key={tool.name} className="executive-section flex flex-col p-5">
               <div className="flex items-start justify-between">
                 <code className="text-[14px] font-semibold text-[#1a1c1c]">{tool.name}</code>
                 <Badge tone={tool.access === "read" ? "info" : "warning"}>

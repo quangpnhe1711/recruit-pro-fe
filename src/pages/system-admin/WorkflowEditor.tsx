@@ -126,16 +126,20 @@ export default function WorkflowEditor({
   });
 
   return (
-    <div className="animate-fade-in fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[#1a1c1c]/45 p-4 backdrop-blur-[2px]">
+    <div className="animate-fade-in fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[#1a1c1c]/58 p-4 backdrop-blur-[3px]">
       <div
         role="dialog"
         aria-modal="true"
-        className="animate-scale-in my-6 w-full max-w-2xl rounded-2xl border border-[#ececec] bg-white p-6 shadow-[0_32px_80px_-16px_rgba(26,28,28,0.3)]"
+        className="animate-scale-in executive-panel my-6 w-full max-w-4xl p-0"
       >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <h3 className="text-[18px] font-semibold text-[#1a1c1c]">
-            {mode === "create" ? t("automation.createWorkflow") : t("automation.editDraft")}
-          </h3>
+        <div className="border-b border-[#eadfdb] px-5 py-4 sm:px-6">
+          <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="eyebrow text-[#b90014]">{t("automation.workflowActions")}</p>
+            <h3 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-[#1a1c1c]">
+              {mode === "create" ? t("automation.createWorkflow") : t("automation.editDraft")}
+            </h3>
+          </div>
           <button
             type="button"
             className="premium-action text-[#8a8786]"
@@ -144,10 +148,12 @@ export default function WorkflowEditor({
           >
             <span className="material-symbols-outlined">close</span>
           </button>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <div>
+        <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="space-y-4 px-5 py-5 sm:px-6">
+          <section className="executive-section p-4">
             <label className="field-label">{t("automation.workflowName")}</label>
             <input
               className="input-field"
@@ -155,13 +161,13 @@ export default function WorkflowEditor({
               onChange={(e) => setName(e.target.value)}
               placeholder={t("automation.namePlaceholder")}
             />
-          </div>
-          <div>
+          </section>
+          <section className="executive-section p-4">
             <label className="field-label">{t("automation.workflowDescription")}</label>
             <textarea className="input-field" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
+          </section>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <section className="executive-section grid grid-cols-1 gap-3 p-4 sm:grid-cols-2">
             <div>
               <label className="field-label">{t("automation.triggerEvent")}</label>
               <CommonSelect
@@ -182,7 +188,7 @@ export default function WorkflowEditor({
                 ]}
               />
             </div>
-          </div>
+          </section>
 
           {runMode === "Live" ? (
             <p className="rounded-[10px] bg-rose-50 px-3 py-2 text-[13px] text-rose-700">
@@ -191,7 +197,7 @@ export default function WorkflowEditor({
           ) : null}
 
           {/* Conditions */}
-          <div>
+          <section className="executive-section p-4">
             <div className="mb-2 flex items-center justify-between">
               <label className="field-label mb-0">{t("automation.conditions")}</label>
               <button
@@ -227,10 +233,10 @@ export default function WorkflowEditor({
                 ))}
               </div>
             )}
-          </div>
+          </section>
 
           {/* Actions */}
-          <div>
+          <section className="executive-section p-4">
             <div className="mb-2 flex items-center justify-between">
               <label className="field-label mb-0">{t("automation.workflowActions")}</label>
               <button
@@ -244,7 +250,7 @@ export default function WorkflowEditor({
             </div>
             <div className="space-y-3">
               {actions.map((a, i) => (
-                <div key={i} className="rounded-[12px] border border-[#eee9e7] p-3">
+                <div key={i} className="rounded-[14px] border border-[#e6ddd8] bg-[#fffdfc] p-3">
                   <div className="mb-2 flex items-center gap-2">
                     <CommonSelect
                       wrapperClassName="flex-1"
@@ -295,23 +301,33 @@ export default function WorkflowEditor({
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="rounded-[10px] bg-[#fbfaf9] px-3 py-2.5 text-[13px] text-[#3a3a3a]">
-            <span className="font-semibold">{t("automation.previewLabel")}: </span>
-            {preview}
-          </div>
+          </section>
 
           {!valid ? (
-            <ul className="rounded-[10px] bg-amber-50 px-3 py-2 text-[13px] text-amber-700">
+            <ul className="rounded-[12px] border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-700">
               {errors.map((e, i) => (
                 <li key={i}>• {e}</li>
               ))}
             </ul>
           ) : null}
         </div>
+        <aside className="border-t border-[#eadfdb] bg-[#fbf7f5] p-5 lg:border-l lg:border-t-0">
+          <div className="sticky top-5">
+            <p className="eyebrow text-[#b90014]">{t("automation.previewLabel")}</p>
+            <div className="mt-3 rounded-[16px] border border-[#e3dad6] bg-white p-4 text-[13px] leading-6 text-[#3a3a3a] shadow-[var(--shadow-xs)]">
+              {preview}
+            </div>
+            <div className="mt-4 rounded-[16px] border border-[#e3dad6] bg-white p-4">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
+                {t("automation.mode")}
+              </p>
+              <p className="mt-2 text-[15px] font-semibold text-[#1a1c1c]">{runMode}</p>
+            </div>
+          </div>
+        </aside>
+        </div>
 
-        <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2.5 border-t border-[#eadfdb] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={busy}>
             {t("common.cancel")}
           </button>

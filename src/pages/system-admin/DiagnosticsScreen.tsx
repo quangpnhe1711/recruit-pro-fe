@@ -32,7 +32,7 @@ function WorkerStatus({ data }: { data: AutomationDiagnosticsDto }) {
   const dispatcher = data.workers.find((w) => w.name === "dispatcher");
   const healthy = data.dispatcherHealthy && dispatcher && !dispatcher.isStale;
   return (
-    <div className="card p-5">
+    <div className="executive-section p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[13px] text-[#5f5e5e]">{t("automation.workerHealth")}</p>
@@ -61,7 +61,7 @@ function WorkerStatus({ data }: { data: AutomationDiagnosticsDto }) {
 function AutomationStatus({ data }: { data: AutomationDiagnosticsDto }) {
   const { t } = useI18n();
   return (
-    <div className="card p-5">
+    <div className="executive-section p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[13px] text-[#5f5e5e]">{t("automation.title")}</p>
@@ -81,7 +81,7 @@ function AutomationStatus({ data }: { data: AutomationDiagnosticsDto }) {
 function WorkflowDiagnosticCard({ d }: { d: WorkflowDiagnosticsDto }) {
   const { t } = useI18n();
   return (
-    <div className="card p-5">
+    <div className="executive-section p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <Link
@@ -159,7 +159,7 @@ function DiagnosticsScreen() {
   useEffect(() => load(), [load]);
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="troubleshoot"
         title={t("automation.diagnosticsTitle")}
@@ -189,7 +189,7 @@ function DiagnosticsScreen() {
 
           <div className="stagger mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {STAT_DEFS.map((s) => (
-              <div key={s.key} className="card p-5">
+              <div key={s.key} className="executive-metric">
                 <span
                   className="flex h-10 w-10 items-center justify-center rounded-xl"
                   style={{ background: `${s.tone}14`, color: s.tone }}
@@ -205,7 +205,7 @@ function DiagnosticsScreen() {
           </div>
 
           {data.warnings.length > 0 ? (
-            <div className="card mt-4 border-[#f6e2c4] bg-[#fdf9f0] p-5">
+            <div className="executive-section mt-4 border-[#f6e2c4] bg-[#fdf9f0] p-5">
               <p className="mb-2 flex items-center gap-2 text-[14px] font-semibold text-[#7a5320]">
                 <span className="material-symbols-outlined text-[20px]">warning</span>
                 {t("automation.attention")}
@@ -222,7 +222,7 @@ function DiagnosticsScreen() {
           ) : null}
 
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="card p-5">
+            <div className="executive-section p-5">
               <p className="text-[13px] text-[#5f5e5e]">{t("automation.latestEvent")}</p>
               {data.latestEvent ? (
                 <div className="mt-2">
@@ -240,7 +240,7 @@ function DiagnosticsScreen() {
                 <p className="mt-2 text-[14px] text-[#a8a4a2]">{t("automation.emptyEvents")}</p>
               )}
             </div>
-            <div className="card p-5">
+            <div className="executive-section p-5">
               <p className="text-[13px] text-[#5f5e5e]">{t("automation.latestExecution")}</p>
               {data.latestExecution ? (
                 <div className="mt-2">

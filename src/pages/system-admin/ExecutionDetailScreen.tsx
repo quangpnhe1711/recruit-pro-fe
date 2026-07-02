@@ -54,14 +54,14 @@ function ExecutionDetailScreen() {
 
   if (loading) {
     return (
-      <div className="app-container py-8">
+      <div className="sysadmin-page">
         <SkeletonText lines={6} />
       </div>
     );
   }
   if (error || !exec) {
     return (
-      <div className="app-container py-8">
+      <div className="sysadmin-page">
         <ErrorState message={error ?? t("automation.executionNotFound")} onRetry={load} />
       </div>
     );
@@ -70,7 +70,7 @@ function ExecutionDetailScreen() {
   const isShadow = exec.mode === "Shadow";
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="bolt"
         title={`${t("automation.executionDetail")} · ${exec.workflowName}`}
@@ -84,7 +84,7 @@ function ExecutionDetailScreen() {
         }
       />
 
-      <div className="card mt-6 p-5">
+      <div className="executive-panel mt-6 p-5">
         <dl className="grid grid-cols-2 gap-4 text-[14px] md:grid-cols-4">
           <div>
             <dt className="text-[12px] uppercase tracking-wide text-[#a8a4a2]">{t("common.status")}</dt>
@@ -130,7 +130,7 @@ function ExecutionDetailScreen() {
       <h2 className="mt-6 text-[16px] font-semibold text-[#1a1c1c]">{t("automation.stepResults")}</h2>
       <ol className="mt-3 space-y-3">
         {exec.steps.map((s) => (
-          <li key={s.id} className="card p-4">
+          <li key={s.id} className="executive-section p-4">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-[14px] font-medium text-[#1a1c1c]">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f0eceb] text-[12px] font-bold">{s.stepNo}</span>
@@ -146,7 +146,7 @@ function ExecutionDetailScreen() {
       </ol>
 
       {exec.versionSnapshot ? (
-        <div className="card mt-6 p-5">
+        <div className="executive-section mt-6 p-5">
           <h3 className="text-[15px] font-semibold text-[#1a1c1c]">
             {t("automation.versionSnapshot", { version: exec.versionSnapshot.versionNo })}
           </h3>

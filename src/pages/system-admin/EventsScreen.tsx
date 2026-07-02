@@ -46,14 +46,14 @@ function EventsScreen() {
   const rangeEnd = Math.min(page * pageSize, total);
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="bolt"
         title={t("automation.eventsTitle")}
         subtitle={t("automation.eventsSubtitle")}
       />
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
+      <div className="executive-filter-bar mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
         <CommonSelect
           value={status}
           onValueChange={(v) => { setStatus(v); setPage(1); }}
@@ -87,6 +87,7 @@ function EventsScreen() {
         <>
           <div className="mt-4">
             <CommonTable<OutboxEventDto>
+              variant="executive"
               data={data?.items ?? []}
               loading={loading}
               keyExtractor={(e) => e.id}
@@ -129,7 +130,7 @@ function EventsScreen() {
           </div>
 
           {expanded ? (
-            <div className="card mt-4 p-5">
+            <div className="executive-panel mt-4 p-5">
               {(() => {
                 const ev = data?.items.find((e) => e.id === expanded);
                 if (!ev) return null;

@@ -42,6 +42,7 @@ export type CommonTableProps<T> = {
   showPagination?: boolean;
   tableHeaderBg?: string;
   tableWrapperClassName?: string;
+  variant?: "default" | "executive";
 };
 
 function CommonTable<T>({
@@ -59,6 +60,7 @@ function CommonTable<T>({
   showPagination = false,
   tableHeaderBg = "",
   tableWrapperClassName = "card overflow-hidden ring-1 ring-black/[0.02]",
+  variant = "default",
 }: CommonTableProps<T>) {
   const { t } = useI18n();
   const resolvedEmptyMessage = emptyMessage || t("common.noData");
@@ -78,23 +80,35 @@ function CommonTable<T>({
     (c) => c.isAction || c.key === "actions",
   );
 
+  const isExecutive = variant === "executive";
+  const resolvedTableWrapperClassName =
+    tableWrapperClassName === "card overflow-hidden ring-1 ring-black/[0.02]" && isExecutive
+      ? "admin-table-shell"
+      : tableWrapperClassName;
+
   return (
-    <section className={tableWrapperClassName}>
+    <section className={resolvedTableWrapperClassName}>
       {/* -------- Desktop / tablet: table -------- */}
-      <div className="hidden overflow-x-auto bg-[#fbfaf9] md:block">
+      <div className={`hidden overflow-x-auto md:block ${isExecutive ? "bg-[#fffdfc]" : "bg-[#fbfaf9]"}`}>
         <table className="w-full min-w-[860px] border-separate border-spacing-0 text-left">
           <thead>
             <tr
               className={
                 headerClassName
                   ? `${headerClassName} ${tableHeaderBg}`
-                  : "bg-[#f0eceb]"
+                  : isExecutive
+                    ? "admin-table-header"
+                    : "bg-[#f0eceb]"
               }
             >
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`border-b border-[#ddd7d5] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.11em] text-[#5f5e5e] first:pl-6 last:pr-6 ${
+                  className={`border-b px-5 text-[11px] font-bold uppercase tracking-[0.11em] first:pl-6 last:pr-6 ${
+                    isExecutive
+                      ? "border-[#ded6d2] py-[18px] text-[#6f6763]"
+                      : "border-[#ddd7d5] py-4 text-[#5f5e5e]"
+                  } ${
                     col.alignRight ? "text-right" : ""
                   } ${col.headerClassName || ""}`}
                 >
@@ -120,9 +134,13 @@ function CommonTable<T>({
             ) : (
               data.map((item, idx) => {
                 const rowBg =
-                  zebra && idx % 2 === 1 ? "bg-[#f8f6f5]" : "bg-white";
+                  zebra && idx % 2 === 1
+                    ? isExecutive ? "bg-[#fbf7f5]" : "bg-[#f8f6f5]"
+                    : isExecutive ? "bg-[#fffdfc]" : "bg-white";
                 const rowHover = hover
-                  ? "hover:relative hover:z-[1] hover:bg-[#fffafa] hover:shadow-[0_10px_24px_-18px_rgba(26,28,28,0.45)]"
+                  ? isExecutive
+                    ? "hover:relative hover:z-[1] hover:bg-[#fff6f4] hover:shadow-[0_16px_34px_-28px_rgba(26,28,28,0.62)]"
+                    : "hover:relative hover:z-[1] hover:bg-[#fffafa] hover:shadow-[0_10px_24px_-18px_rgba(26,28,28,0.45)]"
                   : "";
                 const rowCursor = onRowClick ? "cursor-pointer" : "";
 
@@ -135,7 +153,9 @@ function CommonTable<T>({
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`border-b border-[#eee9e7] px-5 py-[18px] align-middle text-[#3a3a3a] first:pl-6 last:pr-6 ${
+                        className={`border-b px-5 align-middle text-[#3a3a3a] first:pl-6 last:pr-6 ${
+                          isExecutive ? "border-[#ebe3df] py-4" : "border-[#eee9e7] py-[18px]"
+                        } ${
                           col.alignRight ? "text-right" : ""
                         } ${col.cellClassName || ""}`}
                       >
@@ -153,7 +173,7 @@ function CommonTable<T>({
       </div>
 
       {/* -------- Mobile: stacked cards -------- */}
-      <div className="bg-[#fbfaf9] p-3 md:hidden">
+      <div className={`${isExecutive ? "bg-[#fffdfc]" : "bg-[#fbfaf9]"} p-3 md:hidden`}>
         {loading ? (
           <SkeletonRows rows={5} />
         ) : data.length === 0 ? (
@@ -196,7 +216,7 @@ function CommonTable<T>({
                           <dd className="mt-1 min-w-0 break-words text-[13px] text-[#3a3a3a]">
                             {col.renderCell
                               ? col.renderCell(item, idx)
-                              : String(item[col.key as keyof T] || "—")}
+                              : String(item[col.key as keyof T] || "-")}
                           </dd>
                         </div>
                       ))}

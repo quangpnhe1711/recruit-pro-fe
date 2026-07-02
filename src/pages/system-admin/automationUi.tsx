@@ -130,9 +130,9 @@ export function JsonDetails({ label, json }: { label: string; json?: string | nu
     /* leave as-is */
   }
   return (
-    <details className="mt-2 rounded-[10px] border border-[#eee9e7] bg-[#fbfaf9] px-3 py-2 text-[13px]">
-      <summary className="cursor-pointer select-none font-medium text-[#5f5e5e]">{label}</summary>
-      <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-[12px] text-[#3a3a3a]">
+    <details className="mt-2 rounded-[12px] border border-[#e7ded9] bg-[#161313] px-3 py-2 text-[13px]">
+      <summary className="cursor-pointer select-none font-medium text-[#f0d8d5]">{label}</summary>
+      <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words text-[12px] text-[#f7efec]">
         {pretty}
       </pre>
     </details>
@@ -163,12 +163,12 @@ export function ConfirmModal({
 }) {
   if (!open) return null;
   return (
-    <div className="animate-fade-in fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1c1c]/45 p-4 backdrop-blur-[2px]">
+    <div className="animate-fade-in fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1c1c]/58 p-4 backdrop-blur-[3px]">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="animate-scale-in w-full max-w-md rounded-2xl border border-[#ececec] bg-white p-6 shadow-[0_32px_80px_-16px_rgba(26,28,28,0.3)]"
+        className="animate-scale-in executive-panel w-full max-w-md p-6"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h3 className="text-[18px] font-semibold text-[#1a1c1c]">{title}</h3>
@@ -205,7 +205,7 @@ export function ConfirmModal({
 /** Standard error panel for a failed data load. */
 export function ErrorState({ message, onRetry }: { message?: string; onRetry?: () => void }) {
   return (
-    <div role="alert" className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
+    <div role="alert" className="executive-panel flex flex-col items-center gap-3 px-6 py-12 text-center">
       <span className="material-symbols-outlined text-[36px] text-[#b90014]">error</span>
       <p className="text-[14px] text-[#3a3a3a]">
         {message || translate("common.loadFailed")}

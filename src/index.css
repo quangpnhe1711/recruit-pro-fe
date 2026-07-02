@@ -96,6 +96,55 @@
     @apply w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12;
   }
 
+  .sysadmin-canvas {
+    background:
+      linear-gradient(135deg, rgba(185, 0, 20, 0.075), transparent 28%),
+      radial-gradient(circle at 88% 8%, rgba(26, 28, 28, 0.09), transparent 28%),
+      linear-gradient(180deg, #f7f5f3 0%, #efebe8 100%);
+  }
+
+  .sysadmin-page {
+    @apply w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8 xl:px-10 2xl:px-12;
+  }
+
+  .executive-panel {
+    @apply relative overflow-hidden rounded-[18px] border border-[#e2dad6] bg-white;
+    box-shadow:
+      0 22px 70px -38px rgba(26, 28, 28, 0.65),
+      0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  }
+
+  .executive-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(185, 0, 20, 0.8), rgba(26, 28, 28, 0.18), transparent);
+  }
+
+  .executive-section {
+    @apply rounded-[16px] border border-[#e5dedb] bg-[#fffdfc];
+    box-shadow: 0 12px 40px -32px rgba(26, 28, 28, 0.5);
+  }
+
+  .executive-filter-bar {
+    @apply rounded-[16px] border border-[#e3dbd7] bg-[#fffdfc] p-3;
+    box-shadow: 0 10px 32px -28px rgba(26, 28, 28, 0.55);
+  }
+
+  .executive-metric {
+    @apply relative overflow-hidden rounded-[16px] border border-[#e4dcd8] bg-[#fffdfc] p-5;
+    box-shadow: 0 16px 44px -34px rgba(26, 28, 28, 0.55);
+  }
+
+  .executive-metric::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: linear-gradient(90deg, #b90014, rgba(185, 0, 20, 0.08));
+  }
+
   .page-title {
     @apply text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#1a1c1c] md:text-[32px];
   }
@@ -116,6 +165,16 @@
   .surface-card {
     @apply rounded-[16px] border border-[#e7e1df] bg-white;
     box-shadow: var(--shadow-md);
+  }
+
+  .admin-table-shell {
+    @apply overflow-hidden rounded-[18px] border border-[#ded6d2] bg-[#fffdfc];
+    box-shadow: 0 18px 54px -36px rgba(26, 28, 28, 0.65);
+  }
+
+  .admin-table-header {
+    background:
+      linear-gradient(180deg, rgba(250, 247, 245, 0.98), rgba(241, 236, 233, 0.98));
   }
 
   .card {
@@ -197,13 +256,17 @@
       focus:border-[#b90014] focus:outline-none focus:ring-4 focus:ring-[#b90014]/10;
   }
 
+  .auth-input {
+    @apply h-12 rounded-[12px] border-[#d8cfca] bg-[#fffdfc] shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] focus:border-[#b90014] focus:ring-[#b90014]/15;
+  }
+
   .field-label {
     @apply mb-1.5 block text-[13px] font-semibold text-[#3a3a3a];
   }
 
   /* ---- Badges --------------------------------------------------------- */
   .badge {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-transparent px-2.5 py-1 text-[11px] font-semibold leading-none;
   }
   .badge-dot {
     @apply h-1.5 w-1.5 rounded-full;

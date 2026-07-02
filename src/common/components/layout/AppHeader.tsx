@@ -110,6 +110,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
   const canViewInternalProfile = hasPermission(
     PERMISSIONS.PROFILE_VIEW_INTERNAL,
   );
+  const isSystemAdmin = primaryRole === ROLE_NAMES.SYSTEM_ADMIN;
 
   useEffect(() => {
     if (!open) {
@@ -167,8 +168,18 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#ececec] bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70">
-      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+    <header
+      className={`sticky top-0 z-40 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70 ${
+        isSystemAdmin
+          ? "border-b border-[#ded6d2] bg-[#fbf8f6]/86 shadow-[0_10px_36px_-32px_rgba(26,28,28,0.55)]"
+          : "border-b border-[#ececec] bg-white/80"
+      }`}
+    >
+      <div
+        className={`flex w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 ${
+          isSystemAdmin ? "h-[72px]" : "h-16"
+        }`}
+      >
         <div className="flex flex-1 items-center gap-2">
           {onMenuToggle ? (
             <button
@@ -183,7 +194,13 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
 
           {/* Compact brand for mobile (candidate portal has no sidebar on mobile) */}
           <div className="flex items-center gap-2 lg:hidden">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-gradient-to-br from-[#f0353d] to-[#b90014] text-white">
+            <span
+              className={`flex h-8 w-8 items-center justify-center text-white ${
+                isSystemAdmin
+                  ? "rounded-[10px] bg-[#b90014]"
+                  : "rounded-[9px] bg-gradient-to-br from-[#f0353d] to-[#b90014]"
+              }`}
+            >
               <span className="material-symbols-outlined text-[18px]">hub</span>
             </span>
             <span className="text-[16px] font-bold tracking-[-0.01em] text-[#1a1c1c]">
@@ -192,18 +209,38 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
           </div>
         </div>
 
+        {isSystemAdmin ? (
+          <div className="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
+            <span className="flex h-9 w-9 items-center justify-center rounded-[12px] border border-[#eadfdb] bg-white text-[#b90014]">
+              <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-semibold text-[#1a1c1c]">
+                {t("nav.adminConsole")}
+              </p>
+              <p className="truncate text-[12px] text-[#756f6c]">
+                {t("automation.dashboardTitle")}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex items-center gap-3 md:gap-5">
           <LanguageSwitcher />
 
           {showNotifications ? (
             <div
               ref={panelRef}
-              className="relative flex items-center gap-4 border-r border-[#e2dfde] pr-4 md:pr-6"
+              className={`relative flex items-center gap-4 border-r pr-4 md:pr-6 ${
+                isSystemAdmin ? "border-[#ded6d2]" : "border-[#e2dfde]"
+              }`}
             >
               <button
                 aria-controls={buttonId}
                 aria-expanded={open}
-                className="premium-action relative flex h-10 w-10 items-center justify-center rounded-lg text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014]"
+                className={`premium-action relative flex h-10 w-10 items-center justify-center rounded-lg text-[#5f5e5e] transition-colors hover:text-[#b90014] ${
+                  isSystemAdmin ? "border border-[#e5ddd9] bg-white hover:bg-[#fff6f4]" : "hover:bg-[#f3f0ef]"
+                }`}
                 type="button"
                 onClick={handleBellClick}
               >

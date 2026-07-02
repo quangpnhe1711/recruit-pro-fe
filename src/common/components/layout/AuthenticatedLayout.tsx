@@ -5,11 +5,15 @@ import BottomNavBar from "./BottomNavBar";
 import Footer from "./Footer";
 import Seo from "../Seo";
 import SideNavBar from "./SideNavBar";
+import { usePermissions } from "../../../hooks/usePermissions";
+import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 
 function AuthenticatedLayout() {
   const location = useLocation();
+  const { primaryRole } = usePermissions();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const isSystemAdmin = primaryRole === ROLE_NAMES.SYSTEM_ADMIN;
 
   // Close the drawer whenever the route changes (also covered by nav item onClose).
   useEffect(() => {
@@ -32,7 +36,11 @@ function AuthenticatedLayout() {
   }, [drawerOpen]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f7f6f5] text-[#1a1c1c]">
+    <div
+      className={`min-h-screen overflow-x-hidden text-[#1a1c1c] ${
+        isSystemAdmin ? "sysadmin-canvas" : "bg-[#f7f6f5]"
+      }`}
+    >
       {/* Default for authenticated pages: private, not indexable. Rendered
           before the Outlet so a page-level <Seo> (e.g. public job pages in
           AdaptiveLayout) runs later and overrides it. */}
@@ -45,7 +53,7 @@ function AuthenticatedLayout() {
       <div className="lg:hidden">
         {drawerOpen ? (
           <div
-            className="animate-fade-in fixed inset-0 z-40 bg-[#1a1c1c]/50 backdrop-blur-[2px]"
+            className="animate-fade-in fixed inset-0 z-[60] bg-[#1a1c1c]/50 backdrop-blur-[2px]"
             aria-hidden="true"
             data-testid="mobile-drawer-backdrop"
             onClick={closeDrawer}
@@ -54,7 +62,11 @@ function AuthenticatedLayout() {
         <SideNavBar isOpen={drawerOpen} onClose={closeDrawer} />
       </div>
 
-      <div className="flex min-h-screen flex-col lg:pl-[260px]">
+      <div
+        className={`flex min-h-screen flex-col ${
+          isSystemAdmin ? "lg:pl-[286px]" : "lg:pl-[260px]"
+        }`}
+      >
         <AppHeader onMenuToggle={() => setDrawerOpen(true)} />
 
         <main

@@ -164,6 +164,7 @@ function SideNavBar({
   const resolvedUserRole =
     portalVariant === "candidate" ? t("roles.candidate") : t(roleLabelKey(primaryRole));
   const resolvedInitials = resolvedUserName ? getInitials(resolvedUserName) : "";
+  const isSystemAdmin = primaryRole === ROLE_NAMES.SYSTEM_ADMIN;
 
   const resolvedCta =
     portalVariant === "internal" && primaryRole === ROLE_NAMES.HR
@@ -176,25 +177,43 @@ function SideNavBar({
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) => {
     const common =
-      "group relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-all duration-150";
+      "group relative flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-[13px] font-medium transition-all duration-150";
 
     return `${common} ${
-      isActive
-        ? "bg-white/[0.09] text-white"
-        : "text-[#b9b6b5] hover:bg-white/[0.05] hover:text-white"
+      isSystemAdmin
+        ? isActive
+          ? "bg-[#2a1719] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
+          : "text-[#a9a19d] hover:bg-white/[0.055] hover:text-white"
+        : isActive
+          ? "bg-white/[0.09] text-white"
+          : "text-[#b9b6b5] hover:bg-white/[0.05] hover:text-white"
     }`;
   };
 
   return (
     <aside
-      className={`fixed left-0 top-0 z-50 h-screen w-[260px] flex-col bg-[#161718] shadow-[12px_0_48px_rgba(26,28,28,0.16)] transition-transform duration-300 ease-out ${
+      className={`fixed left-0 top-0 z-[70] h-screen flex-col transition-transform duration-300 ease-out ${
+        isSystemAdmin
+          ? "w-[286px] border-r border-white/[0.08] bg-[#121313] shadow-[18px_0_64px_rgba(18,19,19,0.28)]"
+          : "w-[260px] bg-[#161718] shadow-[12px_0_48px_rgba(26,28,28,0.16)]"
+      } ${
         authState.isAuthenticated ? "" : "hidden"
       } ${visibilityClass}`}
     >
       {/* Brand */}
-      <div className="flex items-center justify-between px-5 pb-5 pt-6">
+      <div
+        className={`flex items-center justify-between ${
+          isSystemAdmin ? "px-5 pb-5 pt-5" : "px-5 pb-5 pt-6"
+        }`}
+      >
         <NavLink to={resolvedBrand.to} className="flex items-center gap-3" onClick={onClose}>
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#f0353d] to-[#b90014] text-white shadow-[0_8px_20px_-6px_rgba(227,27,35,0.6)]">
+          <span
+            className={`flex h-10 w-10 items-center justify-center text-white ${
+              isSystemAdmin
+                ? "rounded-[14px] border border-white/10 bg-[#b90014] shadow-[0_14px_32px_-18px_rgba(255,70,80,0.85)]"
+                : "rounded-xl bg-gradient-to-br from-[#f0353d] to-[#b90014] shadow-[0_8px_20px_-6px_rgba(227,27,35,0.6)]"
+            }`}
+          >
             <span className="material-symbols-outlined text-[22px]">hub</span>
           </span>
           <span className="leading-tight">
@@ -218,10 +237,32 @@ function SideNavBar({
         ) : null}
       </div>
 
+      {isSystemAdmin ? (
+        <div className="mx-4 mb-3 rounded-[14px] border border-white/[0.07] bg-white/[0.035] px-3.5 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7d7672]">
+                {t("nav.adminConsole")}
+              </p>
+              <p className="mt-1 text-[13px] font-semibold text-[#f5efed]">
+                {t("brand.systemAdmin")}
+              </p>
+            </div>
+            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#2a1a1c] text-[#ffdad6]">
+              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+            </span>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mx-5 h-px bg-white/[0.06]" />
 
       {/* Primary nav */}
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-hide">
+      <nav
+        className={`flex-1 space-y-1 overflow-y-auto scrollbar-hide ${
+          isSystemAdmin ? "px-3 pb-4 pt-2" : "px-3 py-4"
+        }`}
+      >
         {resolvedItems.map((item, index) => {
           const previousSection = index > 0 ? resolvedItems[index - 1].section : undefined;
           const sectionHeader =
@@ -229,7 +270,9 @@ function SideNavBar({
           return (
           <div key={item.label}>
           {sectionHeader ? (
-            <p className={`px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6b6a] ${index === 0 ? "" : "pt-4"}`}>
+            <p className={`px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+              isSystemAdmin ? "text-[#756c68]" : "text-[#6f6b6a]"
+            } ${index === 0 ? "" : "pt-4"}`}>
               {t(sectionHeader)}
             </p>
           ) : null}
@@ -248,7 +291,7 @@ function SideNavBar({
                 />
                 <span
                   className={`material-symbols-outlined text-[21px] transition-transform duration-150 group-hover:scale-105 ${
-                    isActive ? "text-white" : "text-[#9a9695]"
+                    isActive ? "text-[#ffdad6]" : "text-[#8f8580]"
                   }`}
                 >
                   {item.icon}
