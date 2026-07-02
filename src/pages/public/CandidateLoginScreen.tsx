@@ -13,6 +13,7 @@ import { useLoading } from "../../hooks/useLoading";
 import { useI18n } from "../../i18n";
 import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
+import BrandLogo from "../../common/components/layout/BrandLogo";
 
 const rememberedCandidateUsernameKey = "rp_candidate_remembered_username";
 
@@ -125,11 +126,8 @@ function CandidateLoginScreen() {
 
           <div className="relative z-10 flex w-full flex-col justify-between p-10">
             <div>
-              <Link
-                to="/"
-                className="text-[48px] font-black leading-[56px] tracking-[-0.02em] text-[#b90014]"
-              >
-                RecruitPro
+              <Link to="/" aria-label="RecruitPro">
+                <BrandLogo compact showText={false} />
               </Link>
             </div>
 
@@ -156,12 +154,7 @@ function CandidateLoginScreen() {
           <div className="animate-fade-in-up w-full max-w-md">
             {/* Mobile Logo */}
             <div className="mb-10 flex items-center justify-center gap-2.5 md:hidden">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#f0353d] to-[#b90014] text-white">
-                <span className="material-symbols-outlined">hub</span>
-              </span>
-              <span className="text-[24px] font-bold tracking-[-0.01em] text-[#1a1c1c]">
-                RecruitPro
-              </span>
+              <BrandLogo compact />
             </div>
 
             <div className="mb-8">

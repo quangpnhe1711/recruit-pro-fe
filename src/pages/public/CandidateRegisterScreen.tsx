@@ -8,6 +8,7 @@ import {
 } from "../../common/validation/formValidation";
 import { useI18n } from "../../i18n";
 import { candidateService } from "../../services/candidate/candidateService";
+import BrandLogo from "../../common/components/layout/BrandLogo";
 
 type UserInfoValues = {
   username: string;
@@ -113,12 +114,12 @@ function CandidateRegisterScreen() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-12">
-            <span className="material-symbols-outlined text-[#b90014] text-4xl">
-              rocket_launch
-            </span>
-            <span className="text-[20px] leading-7 font-semibold text-white tracking-tighter uppercase">
-              RecruitPro <span className="font-normal opacity-60">Internal</span>
-            </span>
+            <BrandLogo
+              compact
+              subtitle={t("auth.internalPortalTag")}
+              subtitleClassName="text-white/60"
+              titleClassName="text-white"
+            />
           </div>
 
           <div className="max-w-md">
@@ -157,12 +158,7 @@ function CandidateRegisterScreen() {
       <section className="w-full lg:w-1/2 flex flex-col bg-white">
         <header className="flex justify-between items-center h-16 px-4 md:px-[40px] border-b border-[#e2dfde]">
           <div className="flex items-center gap-2 lg:hidden">
-            <span className="material-symbols-outlined text-[#b90014]">
-              rocket_launch
-            </span>
-            <span className="text-[20px] leading-7 font-semibold text-[#1a1c1c]">
-              RecruitPro
-            </span>
+            <BrandLogo compact />
           </div>
 
           <Link

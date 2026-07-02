@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { useI18n } from "../../../i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
+import BrandLogo from "./BrandLogo";
 
 const navLinks = [
   { label: "landing.navCandidates", href: "#careers", active: true },
@@ -19,8 +20,8 @@ function PublicHeader() {
     <header className="sticky top-0 z-50 border-b border-[#edd8d4] bg-white/95 backdrop-blur-sm">
       <nav className="mx-auto flex h-20 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex items-center gap-8">
-          <Link to="/" className="text-[28px] font-extrabold tracking-[-0.04em] text-[#b90014] md:text-[34px]">
-            RecruitPro
+          <Link to="/" aria-label="RecruitPro" className="shrink-0">
+            <BrandLogo compact />
           </Link>
           <div className="hidden items-center gap-8 md:flex">
             {navLinks.map((link) => (

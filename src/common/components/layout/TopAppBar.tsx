@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import BrandLogo from "./BrandLogo";
 
 type TopNavItem = {
   label: string;
@@ -37,11 +38,8 @@ function TopAppBar({ navItems = defaultNavItems }: TopAppBarProps) {
         </nav>
 
         <div className="justify-self-center">
-          <Link
-            className="text-[24px] font-extrabold tracking-[-0.02em] text-[#b90014] md:text-[30px]"
-            to="/"
-          >
-            RecruitPro
+          <Link to="/" aria-label="RecruitPro">
+            <BrandLogo compact />
           </Link>
         </div>
 

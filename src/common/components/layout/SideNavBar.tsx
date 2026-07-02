@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { usePermissions } from "../../../hooks/usePermissions";
 import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 import { useI18n } from "../../../i18n";
+import BrandLogo from "./BrandLogo";
 
 export type SideNavItem = {
   icon: string;
@@ -207,23 +208,12 @@ function SideNavBar({
         }`}
       >
         <NavLink to={resolvedBrand.to} className="flex items-center gap-3" onClick={onClose}>
-          <span
-            className={`flex h-10 w-10 items-center justify-center text-white ${
-              isSystemAdmin
-                ? "rounded-[14px] border border-white/10 bg-[#b90014] shadow-[0_14px_32px_-18px_rgba(255,70,80,0.85)]"
-                : "rounded-xl bg-gradient-to-br from-[#f0353d] to-[#b90014] shadow-[0_8px_20px_-6px_rgba(227,27,35,0.6)]"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[22px]">hub</span>
-          </span>
-          <span className="leading-tight">
-            <span className="block text-[17px] font-bold tracking-[-0.01em] text-white">
-              {resolvedBrand.title}
-            </span>
-            <span className="block text-[11px] font-medium text-[#8a8786]">
-              {resolvedBrand.subtitle}
-            </span>
-          </span>
+          <BrandLogo
+            compact
+            subtitle={resolvedBrand.subtitle}
+            subtitleClassName="text-[#8a8786]"
+            titleClassName="text-white"
+          />
         </NavLink>
         {!desktopOnly && onClose ? (
           <button

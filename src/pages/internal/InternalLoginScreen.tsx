@@ -15,6 +15,7 @@ import {
 } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
 import LanguageSwitcher from "../../common/components/layout/LanguageSwitcher";
+import BrandLogo from "../../common/components/layout/BrandLogo";
 
 const rememberedInternalIdentifierKey = "rp_internal_remembered_identifier";
 
@@ -112,12 +113,18 @@ function InternalLoginScreen() {
       <main className="relative z-10 grid flex-1 items-center gap-8 px-5 pb-8 pt-5 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(430px,0.62fr)] lg:pb-10">
         <section className="animate-fade-in-up hidden max-w-2xl text-white lg:block">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[12px] font-semibold text-[#ffdad6]">
-            <span className="material-symbols-outlined text-[16px]">shield_person</span>
+            <img alt="RecruitPro logo" className="h-4 w-4 rounded-[4px] object-cover" src="/logo.jpg" />
             {t("auth.internalPortalTag")}
           </div>
-          <h1 className="mt-7 max-w-[12ch] text-[58px] font-semibold leading-[0.98] tracking-[-0.04em]">
-            RecruitPro Internal
-          </h1>
+          <div className="mt-7">
+            <BrandLogo
+              compact
+              showText
+              subtitle={t("auth.internalPortalTag")}
+              subtitleClassName="text-[#d7cfcc]"
+              titleClassName="text-white"
+            />
+          </div>
           <p className="mt-5 max-w-md text-[15px] leading-7 text-[#d7cfcc]">
             {t("auth.internalLoginSubtitle")}
           </p>
@@ -136,13 +143,11 @@ function InternalLoginScreen() {
 
         <div className="animate-fade-in-up mx-auto flex w-full max-w-[480px] flex-col lg:mr-0">
           <div className="mb-5 flex items-center gap-3 lg:hidden">
-            <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#b90014] text-white shadow-[0_16px_34px_-18px_rgba(185,0,20,0.8)]">
-              <span className="material-symbols-outlined">shield_person</span>
-            </span>
+            <img alt="RecruitPro logo" className="h-11 w-11 rounded-[14px] object-cover shadow-[0_16px_34px_-18px_rgba(185,0,20,0.8)]" src="/logo.jpg" />
             <div>
-              <h1 className="text-[25px] font-bold tracking-[-0.03em] text-white">
+              <p className="text-[16px] font-bold tracking-[-0.03em] text-white">
                 RecruitPro Internal
-              </h1>
+              </p>
               <p className="text-[12px] font-semibold text-[#ffdad6]">
                 {t("auth.internalPortalTag")}
               </p>
@@ -159,9 +164,7 @@ function InternalLoginScreen() {
                   {t("auth.internalLoginSubtitle")}
                 </p>
               </div>
-              <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-[15px] border border-[#eadfdb] bg-[#fff7f6] text-[#b90014] sm:flex">
-                <span className="material-symbols-outlined">lock_person</span>
-              </span>
+              <img alt="RecruitPro logo" className="hidden h-12 w-12 shrink-0 rounded-[15px] border border-[#eadfdb] object-cover sm:flex" src="/logo.jpg" />
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>

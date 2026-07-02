@@ -12,6 +12,7 @@ import type { NotificationItemDto } from "../../../services/notification/notific
 import { getDateLocale, useI18n } from "../../../i18n";
 import { NotificationContext } from "./NotificationContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import BrandLogo from "./BrandLogo";
 
 export type AppHeaderMenuItem = {
   label: string;
@@ -194,18 +195,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
 
           {/* Compact brand for mobile (candidate portal has no sidebar on mobile) */}
           <div className="flex items-center gap-2 lg:hidden">
-            <span
-              className={`flex h-8 w-8 items-center justify-center text-white ${
-                isSystemAdmin
-                  ? "rounded-[10px] bg-[#b90014]"
-                  : "rounded-[9px] bg-gradient-to-br from-[#f0353d] to-[#b90014]"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">hub</span>
-            </span>
-            <span className="text-[16px] font-bold tracking-[-0.01em] text-[#1a1c1c]">
-              RecruitPro
-            </span>
+            <BrandLogo compact />
           </div>
         </div>
 
