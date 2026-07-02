@@ -209,9 +209,9 @@ function SideNavBar({
       >
         <NavLink to={resolvedBrand.to} className="flex items-center gap-3" onClick={onClose}>
           <BrandLogo
-            compact
+            size="lg"
             subtitle={resolvedBrand.subtitle}
-            subtitleClassName="text-[#8a8786]"
+            subtitleClassName="text-[#9c9490]"
             titleClassName="text-white"
           />
         </NavLink>

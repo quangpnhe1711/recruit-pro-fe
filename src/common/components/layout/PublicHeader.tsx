@@ -21,7 +21,7 @@ function PublicHeader() {
       <nav className="mx-auto flex h-20 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex items-center gap-8">
           <Link to="/" aria-label="RecruitPro" className="shrink-0">
-            <BrandLogo compact />
+            <BrandLogo compact size="sm" />
           </Link>
           <div className="hidden items-center gap-8 md:flex">
             {navLinks.map((link) => (

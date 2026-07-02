@@ -7,6 +7,7 @@ type BrandLogoProps = {
   showText?: boolean;
   subtitle?: string;
   compact?: boolean;
+  size?: "sm" | "md" | "lg";
 };
 
 function BrandLogo({
@@ -18,8 +19,11 @@ function BrandLogo({
   showText = true,
   subtitle,
   compact = false,
+  size,
 }: BrandLogoProps) {
-  const sizeClass = compact ? "h-8 w-8" : "h-10 w-10";
+  const resolvedSize = size ?? (compact ? "sm" : "md");
+  const sizeClass =
+    resolvedSize === "lg" ? "h-12 w-12" : resolvedSize === "md" ? "h-10 w-10" : "h-8 w-8";
 
   return (
     <div className={`flex items-center gap-3 ${className}`.trim()}>
@@ -31,7 +35,9 @@ function BrandLogo({
       {showText ? (
         <div className={`min-w-0 leading-tight ${textClassName}`.trim()}>
           <p
-            className={`truncate font-bold tracking-[-0.01em] ${compact ? "text-[16px]" : "text-[17px]"} ${titleClassName}`.trim()}
+            className={`truncate font-bold tracking-[-0.01em] ${
+              resolvedSize === "lg" ? "text-[18px]" : compact ? "text-[16px]" : "text-[17px]"
+            } ${titleClassName}`.trim()}
           >
             RecruitPro
           </p>

@@ -195,7 +195,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
 
           {/* Compact brand for mobile (candidate portal has no sidebar on mobile) */}
           <div className="flex items-center gap-2 lg:hidden">
-            <BrandLogo compact />
+            <BrandLogo compact size="sm" />
           </div>
         </div>
 

@@ -39,7 +39,7 @@ function TopAppBar({ navItems = defaultNavItems }: TopAppBarProps) {
 
         <div className="justify-self-center">
           <Link to="/" aria-label="RecruitPro">
-            <BrandLogo compact />
+            <BrandLogo compact size="sm" />
           </Link>
         </div>
 
