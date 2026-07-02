@@ -8,7 +8,9 @@ import { authService } from "../../services/auth/authService";
 import { toast } from "react-toastify";
 import { setCredentials } from "../../store/slices/authSlice";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
+import Seo from "../../common/components/Seo";
 import { useLoading } from "../../hooks/useLoading";
+import { useI18n } from "../../i18n";
 import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
 
@@ -21,14 +23,15 @@ function CandidateLoginScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useI18n();
 
   const schema = yup
     .object({
-      username: yup.string().required("Vui lòng nhập username"),
+      username: yup.string().required(t("auth.usernameRequired")),
       password: yup
         .string()
-        .required("Vui lòng nhập mật khẩu")
-        .min(6, "Tối thiểu 6 ký tự"),
+        .required(t("auth.passwordRequired"))
+        .min(6, t("auth.passwordMin")),
       remember: yup.boolean(),
     })
     .required();
@@ -87,22 +90,22 @@ function CandidateLoginScreen() {
         replace: true,
       });
     } catch {
-      setLoginError("Tên đăng nhập hoặc mật khẩu không đúng");
+      setLoginError(t("auth.loginFailed"));
       return;
     }
-    toast.success("Đăng nhập thành công");
-    
+    toast.success(t("auth.loginSuccess"));
   };
 
   async function handleForgotPassword(identifier: string) {
     const response = await authService.candidateForgotPassword({ identifier });
-    toast.success(response.message || "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.");
+    toast.success(response.message || t("auth.forgotPasswordSent"));
   }
 
   type LoginForm = yup.InferType<typeof schema>;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f9f9f9] text-[#1a1c1c]">
+      <Seo title={t("auth.login")} noindex />
       <main className="flex flex-1 flex-col md:flex-row">
         {/* Left Side: Image + Messaging */}
         <section className="relative hidden overflow-hidden bg-[#1a1c1c] md:flex md:w-1/2">
@@ -132,19 +135,17 @@ function CandidateLoginScreen() {
 
             <div className="max-w-xl">
               <h1 className="mb-6 text-[48px] font-black leading-[56px] tracking-[-0.02em] text-white">
-                Đồng hành cùng tương lai tuyển dụng
+                {t("auth.candidateHeroTitle")}
               </h1>
               <p className="text-[16px] leading-[24px] text-[#c8c6c5]">
-                Tham gia nền tảng kết nối ứng viên chất lượng với các cơ hội
-                nghề nghiệp phù hợp thông qua quy trình tuyển dụng rõ ràng và
-                hiệu quả.
+                {t("auth.candidateHeroBody")}
               </p>
             </div>
 
             <div className="flex items-center gap-6">
               <div className="h-1 w-24 bg-[#b90014]" />
               <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#e5e2e1]">
-                Cổng tuyển dụng doanh nghiệp
+                {t("auth.candidateHeroTag")}
               </span>
             </div>
           </div>
@@ -165,10 +166,10 @@ function CandidateLoginScreen() {
 
             <div className="mb-8">
               <h2 className="mb-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1c1c] md:text-[32px]">
-                Chào mừng bạn quay lại
+                {t("auth.loginTitle")}
               </h2>
               <p className="text-[14px] leading-6 text-[#5f5e5e]">
-                Nhập thông tin đăng nhập để vào cổng ứng viên.
+                {t("auth.candidateLoginSubtitle")}
               </p>
             </div>
 
@@ -176,7 +177,7 @@ function CandidateLoginScreen() {
               {/* Tên đăng nhập */}
               <div>
                 <label className="field-label" htmlFor="username">
-                  Tên đăng nhập
+                  {t("auth.username")}
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
@@ -187,7 +188,7 @@ function CandidateLoginScreen() {
                     {...register("username")}
                     type="text"
                     autoComplete="username"
-                    placeholder="ten.dangnhap"
+                    placeholder={t("auth.usernamePlaceholder")}
                     className="input-field h-12 pl-10"
                   />
                 </div>
@@ -202,14 +203,14 @@ function CandidateLoginScreen() {
               <div>
                 <div className="flex items-center justify-between">
                   <label className="field-label" htmlFor="password">
-                    Mật khẩu
+                    {t("auth.password")}
                   </label>
                   <button
                     type="button"
                     className="text-[12px] font-semibold text-[#b90014] transition-colors hover:underline"
                     onClick={() => setForgotPasswordOpen(true)}
                   >
-                    Quên mật khẩu?
+                    {t("auth.forgotPassword")}
                   </button>
                 </div>
                 <div className="relative">
@@ -228,7 +229,7 @@ function CandidateLoginScreen() {
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8786] transition-colors hover:text-[#1a1c1c]"
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       {showPassword ? "visibility_off" : "visibility"}
@@ -254,7 +255,7 @@ function CandidateLoginScreen() {
                   htmlFor="remember"
                   className="ml-2.5 select-none text-[14px] text-[#5f5e5e]"
                 >
-                  Ghi nhớ đăng nhập trong 30 ngày
+                  {t("auth.rememberMe30")}
                 </label>
               </div>
 
@@ -272,10 +273,10 @@ function CandidateLoginScreen() {
                 className="btn btn-primary h-12 w-full text-[14px]"
               >
                 {loading ? (
-                  <LoadingIndicator label="Đang đăng nhập..." size="sm" tone="light" />
+                  <LoadingIndicator label={t("auth.signingIn")} size="sm" tone="light" />
                 ) : (
                   <>
-                    Đăng nhập
+                    {t("auth.login")}
                     <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                   </>
                 )}
@@ -284,9 +285,9 @@ function CandidateLoginScreen() {
               {/* Create account */}
               <div className="border-t border-[#ececec] pt-5 text-center">
                 <p className="text-[14px] text-[#5f5e5e]">
-                  Chưa có tài khoản?
+                  {t("auth.noAccount")}
                   <Link to="/register" className="ml-1 font-semibold text-[#b90014] hover:underline">
-                    Tạo tài khoản
+                    {t("auth.register")}
                   </Link>
                 </p>
               </div>
@@ -298,16 +299,16 @@ function CandidateLoginScreen() {
                 to="/"
               >
                 <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                Quay lại trang chủ
+                {t("common.goHome")}
               </Link>
             </div>
           </div>
         </section>
       </main>
       <ForgotPasswordDialog
-        title="Khôi phục mật khẩu ứng viên"
-        label="Tên đăng nhập"
-        placeholder="ten.dangnhap"
+        title={t("auth.forgotPasswordCandidateTitle")}
+        label={t("auth.username")}
+        placeholder={t("auth.usernamePlaceholder")}
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

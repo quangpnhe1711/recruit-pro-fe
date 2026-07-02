@@ -36,7 +36,7 @@ test.describe("SystemAdmin v4 MCP", () => {
     await page.goto("/system-admin/mcp/tools");
     await expect(page.getByRole("heading", { name: "MCP Tools" })).toBeVisible();
     // Advanced/internal positioning copy is present.
-    await expect(page.getByText("Đây là màn hình nâng cao / nội bộ")).toBeVisible();
+    await expect(page.getByText("Màn hình nâng cao / nội bộ")).toBeVisible();
     await expect(page.getByText("jobs.search").first()).toBeVisible();
     await expect(page.getByText("analytics.get_funnel_summary").first()).toBeVisible();
   });
@@ -55,7 +55,7 @@ test.describe("SystemAdmin v4 MCP", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, mcpMocks());
     await page.goto("/system-admin/mcp/audits");
-    await expect(page.getByRole("heading", { name: "Nhật ký audit MCP" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "MCP Audit" })).toBeVisible();
     await expect(page.getByText("jobs.search").first()).toBeVisible();
     await expect(page.getByText("Bị từ chối").first()).toBeVisible();
     await expect(page.getByText("Caller lacks SystemAdmin").first()).toBeVisible();
@@ -65,6 +65,6 @@ test.describe("SystemAdmin v4 MCP", () => {
     await seedSession(page, "hr");
     await installApiMocks(page, mcpMocks());
     await page.goto("/system-admin/mcp/tools");
-    await expect(page.getByRole("heading", { name: "Danh mục công cụ MCP" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "MCP Tools" })).toHaveCount(0);
   });
 });

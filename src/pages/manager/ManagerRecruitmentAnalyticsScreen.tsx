@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import EmptyState from "../../common/components/EmptyState";
+import ErrorState from "../../common/components/ErrorState";
 import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
+import { useI18n } from "../../i18n";
 
 import {
   managerService,
@@ -35,8 +36,10 @@ function formatSigned(value: number, suffix = "") {
 
 function ManagerRecruitmentAnalyticsScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [analytics, setAnalytics] = useState<ManagerRecruitmentAnalyticsDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -63,50 +66,50 @@ function ManagerRecruitmentAnalyticsScreen() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const summaryCards = useMemo(() => {
     const overview = analytics?.overview;
     if (!overview) {
       return [
-        { label: "Chu kỳ duyệt TB", value: "0d", helper: "Chưa có đủ dữ liệu", delta: 0, suffix: "%" },
-        { label: "Ứng viên đang xử lý", value: "0", helper: "Đang ở trong pipeline", delta: 0, suffix: "" },
-        { label: "Phỏng vấn chờ tới", value: "0", helper: "Lịch phỏng vấn sắp diễn ra", delta: 0, suffix: "" },
-        { label: "Tỷ lệ nhận offer", value: "0%", helper: "Tính từ hồ sơ ở giai đoạn offer", delta: 0, suffix: "%" },
+        { label: t("analytics.avgReviewCycle"), value: "0d", helper: t("analytics.avgReviewCycleHelper"), delta: 0, suffix: "%" },
+        { label: t("analytics.activeCandidates"), value: "0", helper: t("analytics.activeCandidatesHelper"), delta: 0, suffix: "" },
+        { label: t("analytics.pendingInterviews"), value: "0", helper: t("analytics.pendingInterviewsHelper"), delta: 0, suffix: "" },
+        { label: t("analytics.offerAcceptRate"), value: "0%", helper: t("analytics.offerAcceptHelper"), delta: 0, suffix: "%" },
       ];
     }
 
     return [
       {
-        label: "Chu kỳ duyệt TB",
+        label: t("analytics.avgReviewCycle"),
         value: `${overview.averageReviewCycleDays}d`,
-        helper: "Average from application date to latest completed interview",
+        helper: t("analytics.avgReviewCycleHelper"),
         delta: overview.averageReviewCycleDeltaPercent,
         suffix: "%",
       },
       {
-        label: "Ứng viên đang xử lý",
+        label: t("analytics.activeCandidates"),
         value: String(overview.activeCandidates),
-        helper: "Distinct candidates still moving through the pipeline",
+        helper: t("analytics.activeCandidatesHelper"),
         delta: overview.activeCandidatesDelta,
         suffix: "",
       },
       {
-        label: "Phỏng vấn chờ tới",
+        label: t("analytics.pendingInterviews"),
         value: String(overview.pendingInterviews),
-        helper: "Upcoming interviews waiting to be completed",
+        helper: t("analytics.pendingInterviewsHelper"),
         delta: overview.pendingInterviewsDelta,
         suffix: "",
       },
       {
-        label: "Tỷ lệ nhận offer",
+        label: t("analytics.offerAcceptRate"),
         value: `${overview.offerAcceptanceRate}%`,
-        helper: "Accepted versus all offer-stage applications",
+        helper: t("analytics.offerAcceptHelper"),
         delta: overview.offerAcceptanceDeltaPercent,
         suffix: "%",
       },
     ];
-  }, [analytics]);
+  }, [analytics, t]);
 
   const trendMax = Math.max(
     ...(analytics?.trend.applications ?? [0]),
@@ -142,13 +145,7 @@ function ManagerRecruitmentAnalyticsScreen() {
   if (!analytics) {
     return (
       <div className="app-container py-10">
-        <div className="surface-card p-10">
-          <EmptyState
-            icon="bar_chart"
-            title="Phân tích tuyển dụng"
-            description="Không thể tải dữ liệu phân tích. Vui lòng thử lại."
-          />
-        </div>
+        <ErrorState onRetry={() => setReloadKey((key) => key + 1)} />
       </div>
     );
   }
@@ -165,15 +162,15 @@ function ManagerRecruitmentAnalyticsScreen() {
     <div className="app-container animate-fade-in py-8">
       <PageHeader
         className="mb-7"
-        eyebrow="Phân tích"
+        eyebrow={t("analytics.eyebrow")}
         icon="monitoring"
-        title="Phân tích tuyển dụng"
-        subtitle="Theo dõi hiệu suất tuyển dụng từ job, hồ sơ, phỏng vấn và tải công việc theo phòng ban."
+        title={t("analytics.title")}
+        subtitle={t("analytics.subtitle")}
         actions={
           <>
             <button type="button" className="btn btn-secondary">
               <span className="material-symbols-outlined text-[18px]">calendar_month</span>
-              Dữ liệu hiện tại
+              {t("analytics.currentData")}
             </button>
             <button
               type="button"
@@ -181,7 +178,7 @@ function ManagerRecruitmentAnalyticsScreen() {
               onClick={() => navigate("/manager/dashboard")}
             >
               <span className="material-symbols-outlined text-[18px]">dashboard</span>
-              Về bảng điều khiển
+              {t("analytics.backToDashboard")}
             </button>
           </>
         }
@@ -209,17 +206,17 @@ function ManagerRecruitmentAnalyticsScreen() {
         <div className="card col-span-12 flex min-h-[400px] flex-col p-6 lg:col-span-8">
           <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h2 className="section-title">Application vs Completed Interview Trend</h2>
-              <p className="text-[14px] text-[#5f5e5e]">Monthly movement across the current six-month operating window.</p>
+              <h2 className="section-title">{t("analytics.trendTitle")}</h2>
+              <p className="text-[14px] text-[#5f5e5e]">{t("analytics.trendSubtitle")}</p>
             </div>
             <div className="flex gap-4">
               <span className="flex items-center gap-1 text-[12px] font-bold text-[#b90014]">
                 <span className="h-3 w-3 rounded-full bg-[#b90014]" />
-                Applications
+                {t("analytics.legendApplications")}
               </span>
               <span className="flex items-center gap-1 text-[12px] font-bold text-[#005f93]">
                 <span className="h-3 w-3 rounded-full bg-[#005f93]" />
-                Completed Interviews
+                {t("analytics.legendCompletedInterviews")}
               </span>
             </div>
           </div>
@@ -242,8 +239,8 @@ function ManagerRecruitmentAnalyticsScreen() {
         </div>
 
         <div className="card col-span-12 flex flex-col p-6 lg:col-span-4">
-          <h2 className="section-title mb-2">Conversion Funnel</h2>
-          <p className="mb-8 text-[14px] text-[#5f5e5e]">Pipeline conversion based on actual application statuses.</p>
+          <h2 className="section-title mb-2">{t("analytics.funnelTitle")}</h2>
+          <p className="mb-8 text-[14px] text-[#5f5e5e]">{t("analytics.funnelSubtitle")}</p>
           <div className="space-y-6">
             {funnel.map((item, index) => (
               <div key={item.label}>
@@ -264,16 +261,16 @@ function ManagerRecruitmentAnalyticsScreen() {
         </div>
 
         <div className="card col-span-12 overflow-hidden p-6 lg:col-span-6">
-          <h2 className="section-title mb-5">Department Pipeline Performance</h2>
+          <h2 className="section-title mb-5">{t("analytics.perfTitle")}</h2>
           <div className="-mx-2 overflow-x-auto">
             <table className="w-full min-w-[440px]">
               <thead>
                 <tr className="border-b border-[#ececec] text-left">
-                  <th className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Department</th>
-                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Active</th>
-                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Offer</th>
-                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Hired</th>
-                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Conv %</th>
+                  <th className="px-2 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colDepartment")}</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colActive")}</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colOffer")}</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colHired")}</th>
+                  <th className="px-2 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colConversion")}</th>
                 </tr>
               </thead>
               <tbody className="text-[14px]">
@@ -293,14 +290,14 @@ function ManagerRecruitmentAnalyticsScreen() {
 
         <div className="card col-span-12 flex flex-col p-6 lg:col-span-6">
           <div className="mb-6">
-            <h2 className="section-title">Pipeline Status Distribution</h2>
-            <p className="text-[14px] text-[#5f5e5e]">Status mix across HR screening, manager review, interview, offer, and hired stages.</p>
+            <h2 className="section-title">{t("analytics.distTitle")}</h2>
+            <p className="text-[14px] text-[#5f5e5e]">{t("analytics.distSubtitle")}</p>
           </div>
           <div className="flex flex-1 items-center gap-12">
             <div className="relative flex h-48 w-48 items-center justify-center rounded-full border-[16px] border-[#b90014]">
               <div className="text-center">
                 <span className="text-[32px] font-bold leading-10 text-[#1a1c1c]">{analytics.distribution.total}</span>
-                <span className="block text-[12px] text-[#5f5e5e]">TOTAL ACTIVE</span>
+                <span className="block text-[12px] uppercase text-[#5f5e5e]">{t("analytics.totalActive")}</span>
               </div>
             </div>
             <div className="flex-1 space-y-4">
@@ -321,13 +318,13 @@ function ManagerRecruitmentAnalyticsScreen() {
       <section className="mt-6">
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between border-b border-[#f0eceb] px-5 py-4">
-            <h2 className="section-title">Departmental Breakdown</h2>
+            <h2 className="section-title">{t("analytics.breakdownTitle")}</h2>
             <button
               type="button"
               className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] transition-colors hover:gap-1.5"
               onClick={() => navigate("/manager/dashboard")}
             >
-              Open Dashboard
+              {t("analytics.openDashboard")}
               <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </button>
           </div>
@@ -335,11 +332,11 @@ function ManagerRecruitmentAnalyticsScreen() {
             <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-[#ececec] text-left">
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Department</th>
-                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Open Roles</th>
-                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Avg Review Cycle</th>
-                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Active Pipeline</th>
-                  <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">Recruiter</th>
+                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colDepartment")}</th>
+                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colOpenRoles")}</th>
+                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colAvgCycle")}</th>
+                  <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colActivePipeline")}</th>
+                  <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">{t("analytics.colRecruiter")}</th>
                 </tr>
               </thead>
               <tbody className="text-[14px]">
@@ -348,7 +345,9 @@ function ManagerRecruitmentAnalyticsScreen() {
                     <td className="px-5 py-3.5 font-semibold text-[#1a1c1c]">{item.departmentName}</td>
                     <td className="px-5 py-3.5 text-right text-[#5f5e5e]">{item.openRoles}</td>
                     <td className={`px-5 py-3.5 text-right font-bold ${item.averageReviewCycleDays >= 20 ? "text-[#b90014]" : "text-emerald-700"}`}>
-                      {item.averageReviewCycleDays > 0 ? `${item.averageReviewCycleDays} Days` : "N/A"}
+                      {item.averageReviewCycleDays > 0
+                        ? t("analytics.daysCount", { count: item.averageReviewCycleDays })
+                        : t("analytics.notAvailable")}
                     </td>
                     <td className="px-5 py-3.5 text-right text-[#1a1c1c]">
                       <div className="flex items-center justify-end gap-1">

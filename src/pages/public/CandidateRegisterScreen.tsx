@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import Seo from "../../common/components/Seo";
 import {
   candidateRegisterSchema,
   validateWithSchema,
 } from "../../common/validation/formValidation";
+import { useI18n } from "../../i18n";
 import { candidateService } from "../../services/candidate/candidateService";
 
 type UserInfoValues = {
@@ -34,6 +36,7 @@ const initialValues: RegisterValues = {
 const baseInputClass = "input-field h-11";
 
 function CandidateRegisterScreen() {
+  const { t } = useI18n();
   const [values, setValues] = useState<RegisterValues>(initialValues);
   const [errors, setErrors] = useState<ErrorMap>({});
   const [submitState, setSubmitState] = useState("idle");
@@ -87,21 +90,22 @@ function CandidateRegisterScreen() {
       });
 
       setSubmitState("success");
-      toast.success("Tạo tài khoản thành công");
+      toast.success(t("authPages.registerSuccessToast"));
       window.setTimeout(() => setSubmitState("idle"), 2000);
     } catch (error) {
-      console.error("Lỗi khi gửi dữ liệu lên Backend:", error);
-      toast.error("Không thể tạo tài khoản");
+      console.error("Register request failed:", error);
+      toast.error(t("authPages.registerFailedToast"));
       setSubmitState("idle");
     }
   };
 
   const errorBorder = (name: keyof UserInfoValues) =>
-    errors[name] ? "!border-[#ba1a1a]" : "";
+    errors[name] ? "!border-[#b90014]" : "";
 
   return (
     <main className="flex min-h-screen w-full bg-white text-[#1a1c1c]">
-      <section className="hidden lg:flex lg:w-1/2 relative bg-[#1A1A1A] overflow-hidden flex-col p-[40px] justify-between">
+      <Seo title={t("auth.registerTitle")} noindex />
+      <section className="hidden lg:flex lg:w-1/2 relative bg-[#1a1c1c] overflow-hidden flex-col p-[40px] justify-between">
         <div className="absolute top-0 right-0 w-full h-full opacity-20 pointer-events-none">
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#b90014] rounded-full blur-[120px]" />
           <div className="absolute top-1/2 -left-24 w-64 h-64 bg-[#b90014] rounded-full blur-[100px] opacity-40" />
@@ -119,11 +123,10 @@ function CandidateRegisterScreen() {
 
           <div className="max-w-md">
             <h1 className="text-[48px] leading-[56px] tracking-[-0.02em] font-bold text-white mb-6">
-              Tạo tài khoản và bắt đầu ứng tuyển nhanh hơn.
+              {t("authPages.registerHeroTitle")}
             </h1>
             <p className="text-[16px] leading-6 text-[#c8c6c5]">
-              Chỉ cần thông tin cơ bản để vào hệ thống. Hồ sơ nghề nghiệp có thể
-              bổ sung sau trong trang profile.
+              {t("authPages.registerHeroBody")}
             </p>
           </div>
         </div>
@@ -133,26 +136,21 @@ function CandidateRegisterScreen() {
             <div className="flex gap-4 items-center">
               <div className="w-12 h-12 rounded-lg bg-[#e2e2e2] overflow-hidden">
                 <img
-                  alt="Testimonial Avatar"
+                  alt=""
                   className="w-full h-full object-cover"
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlAlZV1e91hDMF4fGRTMRqbIGBrPzXs9i5fRgbCNlH-1RL86zpclPUynmUXMnHHAHPQ8Y4ECs1hB5Omj4jl6I9UkUaPOz8B1ukb0XunGwOfUvdmesc6DFhyRbrmw3-gr9sbaGlRpnlSTyOLqTeLj9FnFgfS-KgKMBUzBeZ40E4FbhQfyY7uq_xfn3f_SH2SotuDxdZN2B9g_50Jw3mV_SIyggRn3P3sUfWCBR080gWime6hIkv91ns0eZmfvAx2F1VivefADfYzA"
                 />
               </div>
               <div>
                 <p className="text-[12px] tracking-[0.05em] font-semibold text-white">
-                  Đăng ký nhanh, hoàn thiện hồ sơ sau
+                  {t("authPages.registerQuoteTitle")}
                 </p>
                 <p className="text-[14px] leading-5 text-[#c8c6c5]">
-                  &quot;Flow gọn hơn giúp tôi vào hệ thống ngay và cập nhật profile
-                  khi thật sự cần.&quot;
+                  {t("authPages.registerQuote")}
                 </p>
               </div>
             </div>
           </div>
-
-          <p className="text-[12px] tracking-[0.18em] uppercase text-[#c8c6c5] opacity-50">
-            Enterprise Talent Solutions v4.2
-          </p>
         </div>
       </section>
 
@@ -174,12 +172,12 @@ function CandidateRegisterScreen() {
             <span className="material-symbols-outlined text-[18px]">
               arrow_back
             </span>
-            Về trang chủ
+            {t("common.goHome")}
           </Link>
 
           <div className="hidden md:block">
             <span className="text-[14px] leading-5 text-[#5f5e5e]">
-              Đăng ký tài khoản ứng viên
+              {t("authPages.registerHeaderNote")}
             </span>
           </div>
         </header>
@@ -188,11 +186,10 @@ function CandidateRegisterScreen() {
           <div className="w-full max-w-lg">
             <div className="mb-8">
               <h2 className="text-[32px] leading-10 tracking-[-0.01em] font-semibold text-[#1a1c1c] mb-2">
-                Tạo tài khoản
+                {t("auth.registerTitle")}
               </h2>
               <p className="text-[14px] leading-5 text-[#5f5e5e]">
-                Nhập thông tin cơ bản để bắt đầu. Bạn có thể cập nhật CV và hồ
-                sơ nghề nghiệp sau khi đăng nhập.
+                {t("authPages.registerIntro")}
               </p>
             </div>
 
@@ -205,9 +202,9 @@ function CandidateRegisterScreen() {
                     </span>
                   </span>
                   <div>
-                    <h3 className="section-title">Thông tin tài khoản</h3>
+                    <h3 className="section-title">{t("authPages.accountSectionTitle")}</h3>
                     <p className="text-[12px] text-[#8a8786]">
-                      Chỉ cần các trường cần thiết để tạo tài khoản.
+                      {t("authPages.accountSectionHint")}
                     </p>
                   </div>
                 </div>
@@ -218,7 +215,7 @@ function CandidateRegisterScreen() {
                       className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="username"
                     >
-                      Tên đăng nhập <span className="text-[#b90014] font-bold">*</span>
+                      {t("auth.username")} <span className="text-[#b90014] font-bold">*</span>
                     </label>
                     <input
                       id="username"
@@ -231,7 +228,7 @@ function CandidateRegisterScreen() {
                       onChange={(event) => validateAndSetField("username", event.target.value)}
                     />
                     {errors.username ? (
-                      <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                      <p className="mt-1.5 text-[12px] text-[#b90014]">
                         {errors.username}
                       </p>
                     ) : null}
@@ -242,7 +239,7 @@ function CandidateRegisterScreen() {
                       className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="fullName"
                     >
-                      Họ và tên <span className="text-[#b90014] font-bold">*</span>
+                      {t("auth.fullName")} <span className="text-[#b90014] font-bold">*</span>
                     </label>
                     <input
                       id="fullName"
@@ -255,7 +252,7 @@ function CandidateRegisterScreen() {
                       onChange={(event) => validateAndSetField("fullName", event.target.value)}
                     />
                     {errors.fullName ? (
-                      <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                      <p className="mt-1.5 text-[12px] text-[#b90014]">
                         {errors.fullName}
                       </p>
                     ) : null}
@@ -266,7 +263,7 @@ function CandidateRegisterScreen() {
                       className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="email"
                     >
-                      Email <span className="text-[#b90014] font-bold">*</span>
+                      {t("auth.email")} <span className="text-[#b90014] font-bold">*</span>
                     </label>
                     <input
                       id="email"
@@ -279,7 +276,7 @@ function CandidateRegisterScreen() {
                       onChange={(event) => validateAndSetField("email", event.target.value)}
                     />
                     {errors.email ? (
-                      <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                      <p className="mt-1.5 text-[12px] text-[#b90014]">
                         {errors.email}
                       </p>
                     ) : null}
@@ -290,7 +287,7 @@ function CandidateRegisterScreen() {
                       className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="password"
                     >
-                      Mật khẩu <span className="text-[#b90014] font-bold">*</span>
+                      {t("auth.password")} <span className="text-[#b90014] font-bold">*</span>
                     </label>
                     <input
                       id="password"
@@ -303,7 +300,7 @@ function CandidateRegisterScreen() {
                       onChange={(event) => validateAndSetField("password", event.target.value)}
                     />
                     {errors.password ? (
-                      <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                      <p className="mt-1.5 text-[12px] text-[#b90014]">
                         {errors.password}
                       </p>
                     ) : null}
@@ -314,7 +311,7 @@ function CandidateRegisterScreen() {
                       className="field-label group-focus-within:text-[#b90014]"
                       htmlFor="phone"
                     >
-                      Số điện thoại
+                      {t("auth.phone")}
                     </label>
                     <input
                       id="phone"
@@ -326,7 +323,7 @@ function CandidateRegisterScreen() {
                       onChange={(event) => validateAndSetField("phone", event.target.value)}
                     />
                     {errors.phone ? (
-                      <p className="mt-1.5 text-[12px] text-[#ba1a1a]">
+                      <p className="mt-1.5 text-[12px] text-[#b90014]">
                         {errors.phone}
                       </p>
                     ) : null}
@@ -345,18 +342,18 @@ function CandidateRegisterScreen() {
                       <span className="material-symbols-outlined animate-spin text-[18px]">
                         progress_activity
                       </span>
-                      Đang xử lý...
+                      {t("common.processing")}
                     </>
                   ) : submitState === "success" ? (
                     <>
                       <span className="material-symbols-outlined text-[18px]">
                         check_circle
                       </span>
-                      Thành công!
+                      {t("authPages.registerSuccessShort")}
                     </>
                   ) : (
                     <>
-                      Tạo tài khoản
+                      {t("auth.register")}
                       <span className="material-symbols-outlined text-[18px]">
                         check_circle
                       </span>
@@ -365,12 +362,12 @@ function CandidateRegisterScreen() {
                 </button>
 
                 <p className="mt-3 text-center text-[14px] leading-5 text-[#5f5e5e]">
-                  Đã có tài khoản?{" "}
+                  {t("auth.haveAccount")}{" "}
                   <Link
                     className="text-[#1a1c1c] font-semibold underline hover:text-[#b90014] transition-colors"
                     to="/login"
                   >
-                    Đăng nhập
+                    {t("auth.login")}
                   </Link>
                 </p>
               </div>
@@ -378,9 +375,9 @@ function CandidateRegisterScreen() {
 
             <footer className="mt-16 pt-8 border-t border-[#e2dfde] mb-8">
               <p className="text-center text-[12px] tracking-[0.05em] text-[#5f5e5e] opacity-60">
-                © 2024 RecruitPro Internal. Dành cho người dùng được cấp quyền.
+                {t("authPages.registerFooter1", { year: new Date().getFullYear() })}
                 <br />
-                Lưu ý bảo mật nội bộ: hệ thống có ghi nhận IP khi gửi biểu mẫu.
+                {t("authPages.registerFooter2")}
               </p>
             </footer>
           </div>
