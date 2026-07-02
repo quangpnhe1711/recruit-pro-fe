@@ -39,4 +39,4 @@ Screen/
 test-results/
 playwright-report/
 blob-report/
-playwright/.cache/
+playwright/.cache/tsconfig.tsbuildinfo
