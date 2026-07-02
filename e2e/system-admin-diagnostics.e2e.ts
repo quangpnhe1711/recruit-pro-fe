@@ -63,9 +63,9 @@ test.describe("SystemAdmin Diagnostics", () => {
 
     await page.goto("/system-admin/automation/diagnostics");
 
-    await expect(page.getByText("Chẩn đoán tự động hóa")).toBeVisible();
-    await expect(page.getByText("Trạng thái tự động hóa")).toBeVisible();
-    await expect(page.getByText("Worker xử lý (dispatcher)")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Chẩn đoán", exact: true })).toBeVisible();
+    await expect(page.getByText("Tự động hóa workflow")).toBeVisible();
+    await expect(page.getByText("Trạng thái worker").first()).toBeVisible();
     await expect(page.getByText("Có 1 sự kiện đang chờ xử lý.")).toBeVisible();
   });
 

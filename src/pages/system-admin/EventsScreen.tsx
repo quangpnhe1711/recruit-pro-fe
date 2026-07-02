@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import PageHeader from "../../common/components/PageHeader";
 import CommonTable from "../../common/components/CommonTable";
+import CommonSelect from "../../common/components/CommonSelect";
 import { SkeletonGrid } from "../../common/components/Skeleton";
 import { listEvents } from "../../services/system-admin/automationService";
 import type { OutboxEventDto, Paginated } from "../../modules/system-admin/automationSchema";
+import { TRIGGER_EVENT_TYPES } from "../../modules/system-admin/automationSchema";
+import { useI18n } from "../../i18n";
 import { ErrorState, eventLabel, formatDateTime, JsonDetails, shortId, statusBadge } from "./automationUi";
 
 function EventsScreen() {
+  const { t } = useI18n();
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState("");
+  const [eventType, setEventType] = useState("");
   const [data, setData] = useState<Paginated<OutboxEventDto> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,24 +22,60 @@ function EventsScreen() {
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    listEvents({ page, pageSize: 20 })
+    listEvents({
+      page,
+      pageSize: 20,
+      status: status || undefined,
+      eventType: eventType || undefined,
+    })
       .then(setData)
-      .catch(() => setError("Không tải được danh sách sự kiện."))
+      .catch(() => setError(t("common.loadFailed")))
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, status, eventType, t]);
 
   useEffect(() => load(), [load]);
+
+  // The expanded panel only makes sense for rows on the current page.
+  useEffect(() => {
+    setExpanded(null);
+  }, [page, status, eventType]);
+
+  const total = data?.totalItems ?? 0;
+  const pageSize = data?.pageSize ?? 20;
+  const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, total);
 
   return (
     <div className="app-container animate-fade-in py-8">
       <PageHeader
-        eyebrow="SystemAdmin"
         icon="bolt"
-        title="Sự kiện nghiệp vụ (outbox)"
-        subtitle="Các sự kiện bền vững sinh ra từ thao tác nghiệp vụ. Workflow xử lý các sự kiện Pending này."
+        title={t("automation.eventsTitle")}
+        subtitle={t("automation.eventsSubtitle")}
       />
 
-      {loading ? (
+      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
+        <CommonSelect
+          value={status}
+          onValueChange={(v) => { setStatus(v); setPage(1); }}
+          options={[
+            { label: t("automation.filterAllStatuses"), value: "" },
+            { label: t("automation.statusPending"), value: "Pending" },
+            { label: t("automation.statusProcessing"), value: "Processing" },
+            { label: t("automation.statusProcessed"), value: "Processed" },
+            { label: t("automation.statusFailed"), value: "Failed" },
+          ]}
+        />
+        <CommonSelect
+          value={eventType}
+          onValueChange={(v) => { setEventType(v); setPage(1); }}
+          options={[
+            { label: t("automation.filterAllTriggers"), value: "" },
+            ...TRIGGER_EVENT_TYPES.map((tr) => ({ label: eventLabel(tr), value: tr })),
+          ]}
+        />
+      </div>
+
+      {loading && !data ? (
         <div className="mt-6">
           <SkeletonGrid count={4} columns={2} />
         </div>
@@ -41,26 +83,38 @@ function EventsScreen() {
         <div className="mt-6">
           <ErrorState message={error} onRetry={load} />
         </div>
-      ) : data ? (
+      ) : (
         <>
-          <div className="mt-6">
+          <div className="mt-4">
             <CommonTable<OutboxEventDto>
-              data={data.items}
+              data={data?.items ?? []}
+              loading={loading}
               keyExtractor={(e) => e.id}
-              emptyMessage="Chưa có sự kiện nào. Hãy thực hiện một thao tác nghiệp vụ (ví dụ Pass CV)."
+              emptyMessage={t("automation.emptyEvents")}
+              emptyIcon="bolt"
               onRowClick={(e) => setExpanded((cur) => (cur === e.id ? null : e.id))}
+              showPagination
+              pagination={{
+                enabled: true,
+                currentPage: page,
+                totalPages: data?.totalPages ?? 1,
+                totalItems: total,
+                rangeStart,
+                rangeEnd,
+                onPageChange: setPage,
+              }}
               columns={[
                 {
                   key: "eventType",
-                  header: "Sự kiện",
+                  header: t("automation.eventType"),
                   primary: true,
                   renderCell: (e) => <strong>{eventLabel(e.eventType)}</strong>,
                 },
-                { key: "status", header: "Trạng thái", renderCell: (e) => statusBadge(e.status) },
-                { key: "occurredAt", header: "Thời điểm", renderCell: (e) => formatDateTime(e.occurredAt) },
+                { key: "status", header: t("common.status"), renderCell: (e) => statusBadge(e.status) },
+                { key: "occurredAt", header: t("automation.occurredAt"), renderCell: (e) => formatDateTime(e.occurredAt) },
                 {
                   key: "processedAt",
-                  header: "Đã xử lý",
+                  header: t("automation.processedAt"),
                   hideOnMobile: true,
                   renderCell: (e) => formatDateTime(e.processedAt),
                 },
@@ -75,9 +129,9 @@ function EventsScreen() {
           </div>
 
           {expanded ? (
-            <div className="mt-4 card p-5">
+            <div className="card mt-4 p-5">
               {(() => {
-                const ev = data.items.find((e) => e.id === expanded);
+                const ev = data?.items.find((e) => e.id === expanded);
                 if (!ev) return null;
                 return (
                   <>
@@ -86,40 +140,16 @@ function EventsScreen() {
                       {statusBadge(ev.status)}
                     </div>
                     {ev.errorReason ? (
-                      <p className="mt-2 text-[13px] text-[#c50f1b]">Lỗi: {ev.errorReason}</p>
+                      <p className="mt-2 text-[13px] text-[#c50f1b]">{ev.errorReason}</p>
                     ) : null}
-                    <JsonDetails label="Payload sự kiện (kỹ thuật)" json={ev.payloadJson} />
+                    <JsonDetails label={t("automation.eventPayload")} json={ev.payloadJson} />
                   </>
                 );
               })()}
             </div>
           ) : null}
-
-          <div className="mt-5 flex items-center justify-between">
-            <p className="text-[13px] text-[#8a8786]">
-              Trang {data.currentPage}/{Math.max(1, data.totalPages)} · {data.totalItems} sự kiện
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                Trước
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={page >= data.totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Sau
-              </button>
-            </div>
-          </div>
         </>
-      ) : null}
+      )}
     </div>
   );
 }

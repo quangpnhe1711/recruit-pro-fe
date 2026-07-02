@@ -118,7 +118,7 @@ test.describe("SystemAdmin mobile drawer + responsive layout", () => {
     ]);
 
     await page.goto("/system-admin/automation");
-    await expect(page.getByRole("heading", { name: "Tự động hóa tuyển dụng" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tổng quan tự động hóa" })).toBeVisible();
 
     const noOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth + 1,

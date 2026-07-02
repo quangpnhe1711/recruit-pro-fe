@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from "react";
+import RouteFallback from "../common/components/RouteFallback";
 import { Route } from "react-router-dom";
 
 import RequireAuth from "../guards/RequireAuth";
@@ -21,7 +22,7 @@ const McpAuditScreen = lazy(() => import("../pages/system-admin/McpAuditScreen")
 
 function lazyRoute(element: ReactNode) {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-[#5f6368]">Loading...</div>}>
+    <Suspense fallback={<RouteFallback />}>
       {element}
     </Suspense>
   );

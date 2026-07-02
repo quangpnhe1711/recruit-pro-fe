@@ -2,52 +2,59 @@ import { NavLink } from 'react-router-dom'
 
 import { usePermissions } from '../../../hooks/usePermissions'
 import { ROLE_NAMES } from '../../../permissions/rolePermissions'
+import { useI18n } from '../../../i18n'
 
 type BottomNavItem = {
   icon: string
+  /** i18n key for the item label. */
   label: string
   to: string
+  /** Exact-match active highlight (NavLink `end`). */
+  end?: boolean
 }
 
 const defaultItems: BottomNavItem[] = [
-  { icon: 'dashboard', label: 'Tổng quan', to: '/candidate/dashboard' },
-  { icon: 'work', label: 'Việc làm', to: '/jobs' },
-  { icon: 'inbox', label: 'Đơn của tôi', to: '/candidate/my-applications' },
-  { icon: 'event', label: 'Phỏng vấn', to: '/candidate/interviews' },
-  { icon: 'person', label: 'Hồ sơ', to: '/candidate/profile' },
+  { icon: 'dashboard', label: 'nav.dashboard', to: '/candidate/dashboard' },
+  { icon: 'work', label: 'nav.findJobs', to: '/jobs' },
+  { icon: 'inbox', label: 'nav.myApplications', to: '/candidate/my-applications' },
+  { icon: 'event', label: 'nav.interviews', to: '/candidate/interviews' },
+  { icon: 'person', label: 'nav.profile', to: '/candidate/profile' },
 ]
 
 const hrItems: BottomNavItem[] = [
-  { icon: 'dashboard', label: 'Tổng quan', to: '/hr/dashboard' },
-  { icon: 'work', label: 'Jobs', to: '/jobs' },
-  { icon: 'group', label: 'Ứng viên', to: '/hr/candidates' },
-  { icon: 'smart_toy', label: 'AI', to: '/hr/ai-copilot' },
-  { icon: 'schedule', label: 'Phỏng vấn', to: '/hr/interviews' },
+  { icon: 'dashboard', label: 'nav.dashboard', to: '/hr/dashboard' },
+  { icon: 'work', label: 'nav.jobs', to: '/jobs' },
+  { icon: 'group', label: 'nav.candidates', to: '/hr/candidates' },
+  { icon: 'smart_toy', label: 'nav.aiCopilot', to: '/hr/ai-copilot' },
+  { icon: 'schedule', label: 'nav.interviews', to: '/hr/interviews' },
 ]
 
 const managerItems: BottomNavItem[] = [
-  { icon: 'dashboard', label: 'Tổng quan', to: '/manager/dashboard' },
-  { icon: 'approval', label: 'Duyệt job', to: '/jobs' },
-  { icon: 'description', label: 'Hồ sơ', to: '/manager/applications' },
-  { icon: 'smart_toy', label: 'AI', to: '/hr/ai-copilot' },
-  { icon: 'analytics', label: 'Báo cáo', to: '/manager/reports' },
+  { icon: 'dashboard', label: 'nav.dashboard', to: '/manager/dashboard' },
+  { icon: 'approval', label: 'nav.jobApproval', to: '/jobs' },
+  { icon: 'description', label: 'nav.applications', to: '/manager/applications' },
+  { icon: 'smart_toy', label: 'nav.aiCopilot', to: '/hr/ai-copilot' },
+  { icon: 'analytics', label: 'nav.reports', to: '/manager/reports' },
 ]
 
 const headDepartmentItems: BottomNavItem[] = [
-  { icon: 'dashboard', label: 'Tổng quan', to: '/hr/dashboard' },
-  { icon: 'schedule', label: 'Phỏng vấn', to: '/hr/interviews' },
-  { icon: 'person', label: 'Hồ sơ', to: '/internal/profile' },
+  { icon: 'dashboard', label: 'nav.dashboard', to: '/hr/dashboard' },
+  { icon: 'schedule', label: 'nav.interviews', to: '/hr/interviews' },
+  { icon: 'person', label: 'nav.profile', to: '/internal/profile' },
 ]
 
+// Mobile sysadmin nav surfaces the real product (automation), not the
+// backend-pending placeholder screens.
 const adminItems: BottomNavItem[] = [
-  { icon: 'dashboard', label: 'Tổng quan', to: '/system-admin/dashboard' },
-  { icon: 'group', label: 'Users', to: '/system-admin/users' },
-  { icon: 'shield_person', label: 'Vai trò', to: '/system-admin/roles' },
-  { icon: 'history', label: 'Logs', to: '/system-admin/audit-logs' },
+  { icon: 'space_dashboard', label: 'nav.dashboard', to: '/system-admin/automation', end: true },
+  { icon: 'account_tree', label: 'nav.workflows', to: '/system-admin/automation/workflows' },
+  { icon: 'play_circle', label: 'nav.executions', to: '/system-admin/automation/executions' },
+  { icon: 'troubleshoot', label: 'nav.diagnostics', to: '/system-admin/automation/diagnostics' },
 ]
 
 function BottomNavBar() {
   const { portalVariant, primaryRole } = usePermissions()
+  const { t } = useI18n()
 
   const items =
     portalVariant === 'candidate'
@@ -78,6 +85,7 @@ function BottomNavBar() {
               }`
             }
             to={item.to}
+            end={item.end}
           >
             {({ isActive }) => (
               <>
@@ -102,7 +110,7 @@ function BottomNavBar() {
                     {item.icon}
                   </span>
                 </span>
-                <span className="max-w-full truncate leading-none">{item.label}</span>
+                <span className="max-w-full truncate leading-none">{t(item.label)}</span>
               </>
             )}
           </NavLink>

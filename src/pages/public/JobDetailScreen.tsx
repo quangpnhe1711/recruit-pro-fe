@@ -16,6 +16,7 @@ import {
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import EmptyState from "../../common/components/EmptyState";
+import Seo from "../../common/components/Seo";
 import { Skeleton } from "../../common/components/Skeleton";
 import type {
   DepartmentDto,
@@ -329,6 +330,54 @@ function JobDetailScreen() {
     };
   }, [detail]);
 
+  // schema.org JobPosting for public, open jobs — real data only, no fabricated fields.
+  const jobJsonLd = useMemo(() => {
+    if (
+      !detail ||
+      isInternalPortal ||
+      !isOpenForApplicationJobStatus(normalizeJobStatus(detail.status))
+    ) {
+      return null;
+    }
+    const employmentTypeMap: Record<string, string> = {
+      "Full-time": "FULL_TIME",
+      "Part-time": "PART_TIME",
+      Internship: "INTERN",
+      Contract: "CONTRACTOR",
+    };
+    const jsonLd: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "JobPosting",
+      title: detail.title,
+      description: detail.description || detail.summary,
+      datePosted: detail.createdAt,
+      employmentType: employmentTypeMap[detail.employmentType] ?? detail.employmentType,
+      hiringOrganization: {
+        "@type": "Organization",
+        name: "RecruitPro",
+      },
+      jobLocation: {
+        "@type": "Place",
+        address: { "@type": "PostalAddress", addressLocality: detail.location },
+      },
+    };
+    if (detail.workMode === "Remote") jsonLd.jobLocationType = "TELECOMMUTE";
+    if (detail.deadline) jsonLd.validThrough = detail.deadline;
+    if (detail.salaryMin != null || detail.salaryMax != null) {
+      jsonLd.baseSalary = {
+        "@type": "MonetaryAmount",
+        currency: "VND",
+        value: {
+          "@type": "QuantitativeValue",
+          minValue: detail.salaryMin ?? undefined,
+          maxValue: detail.salaryMax ?? undefined,
+          unitText: "MONTH",
+        },
+      };
+    }
+    return jsonLd;
+  }, [detail, isInternalPortal]);
+
   const totalApplications = useMemo(() => {
     if (detail?.applicationCount) {
       return detail.applicationCount;
@@ -504,6 +553,18 @@ function JobDetailScreen() {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-[#1a1c1c]">
+      {detail ? (
+        <Seo
+          title={detail.title}
+          description={(detail.summary || detail.description || "").slice(0, 160) || undefined}
+          canonical={`/jobs/${jobId}`}
+          noindex={
+            isInternalPortal ||
+            !isOpenForApplicationJobStatus(normalizeJobStatus(detail.status))
+          }
+          jsonLd={jobJsonLd}
+        />
+      ) : null}
       <main className="flex min-h-screen flex-col">
         <div
           className={`${isInternalPortal ? "w-full" : "mx-auto w-full max-w-[1440px]"} animate-fade-in flex flex-1 flex-col px-4 py-8 md:px-10`}

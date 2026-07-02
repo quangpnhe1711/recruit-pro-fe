@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import CommonPagination from "./CommonPagination";
 import EmptyState from "./EmptyState";
 import { SkeletonRows } from "./Skeleton";
+import { useI18n } from "../../i18n";
 
 export type TableColumn<T> = {
   key: string;
@@ -48,7 +49,7 @@ function CommonTable<T>({
   data,
   keyExtractor,
   loading = false,
-  emptyMessage = "Không có dữ liệu",
+  emptyMessage,
   emptyIcon = "inbox",
   headerClassName = "",
   zebra = false,
@@ -59,6 +60,8 @@ function CommonTable<T>({
   tableHeaderBg = "",
   tableWrapperClassName = "card overflow-hidden ring-1 ring-black/[0.02]",
 }: CommonTableProps<T>) {
+  const { t } = useI18n();
+  const resolvedEmptyMessage = emptyMessage || t("common.noData");
   const shouldShowPagination = showPagination && pagination?.enabled;
 
   // Resolve which column is primary (card title) and which are actions on mobile.
@@ -111,10 +114,7 @@ function CommonTable<T>({
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="p-0">
-                  <EmptyState
-                    icon={emptyIcon}
-                    title={emptyMessage || "Chưa có dữ liệu"}
-                  />
+                  <EmptyState icon={emptyIcon} title={resolvedEmptyMessage} />
                 </td>
               </tr>
             ) : (
@@ -157,7 +157,7 @@ function CommonTable<T>({
         {loading ? (
           <SkeletonRows rows={5} />
         ) : data.length === 0 ? (
-          <EmptyState icon={emptyIcon} title={emptyMessage || "Chưa có dữ liệu"} />
+          <EmptyState icon={emptyIcon} title={resolvedEmptyMessage} />
         ) : (
           <ul className="space-y-3">
             {data.map((item, idx) => {

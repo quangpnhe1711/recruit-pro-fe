@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /hr/
+Disallow: /manager/
+Disallow: /candidate/
+Disallow: /internal/
+Disallow: /system-admin/

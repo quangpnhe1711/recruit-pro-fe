@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import AppHeader from "./AppHeader";
 import BottomNavBar from "./BottomNavBar";
 import Footer from "./Footer";
+import Seo from "../Seo";
 import SideNavBar from "./SideNavBar";
 
 function AuthenticatedLayout() {
@@ -32,6 +33,11 @@ function AuthenticatedLayout() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f7f6f5] text-[#1a1c1c]">
+      {/* Default for authenticated pages: private, not indexable. Rendered
+          before the Outlet so a page-level <Seo> (e.g. public job pages in
+          AdaptiveLayout) runs later and overrides it. */}
+      <Seo title="RecruitPro" noindex />
+
       {/* Desktop: fixed sidebar. */}
       <SideNavBar desktopOnly />
 

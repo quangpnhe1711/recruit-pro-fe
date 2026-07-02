@@ -44,15 +44,20 @@ const VERSION = {
   createdAt: "2026-07-01T07:00:00Z",
 };
 
-function detail(id: string, mode = "Shadow") {
+function detail(id: string, modeOverride?: string) {
   const wf = WORKFLOWS.find((w) => w.id === id) ?? WORKFLOWS[0];
+  const mode = modeOverride ?? wf.mode;
   return {
     id: wf.id,
     name: wf.name,
     description: "Quy trình tự động demo",
     isEnabled: wf.isEnabled,
     activeVersion: { ...VERSION, mode },
-    versions: [{ ...VERSION, mode }],
+    versions: [
+      { ...VERSION, mode },
+      // Unpublished draft — keeps the detail screen's Publish button enabled.
+      { ...VERSION, id: "ver-draft", versionNo: 2, publishedAt: null, isActive: false, mode },
+    ],
     recentExecutions: [EXEC],
     createdAt: "2026-07-01T07:00:00Z",
     updatedAt: null,
@@ -87,8 +92,8 @@ test.describe("SystemAdmin v4 Workflow Automation", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks());
     await page.goto("/system-admin/automation");
-    await expect(page.getByRole("heading", { name: "Tự động hóa tuyển dụng" })).toBeVisible();
-    await expect(page.getByText("Tổng workflow")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tổng quan tự động hóa" })).toBeVisible();
+    await expect(page.getByText("Workflows").first()).toBeVisible();
     await expect(page.getByText("Dead-letter").first()).toBeVisible();
     await expect(page.getByTestId("most-common-failed")).toHaveText("notify_user");
   });
@@ -97,7 +102,7 @@ test.describe("SystemAdmin v4 Workflow Automation", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks());
     await page.goto("/system-admin/automation/workflows");
-    await expect(page.getByRole("heading", { name: "Danh sách workflow" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Workflows" })).toBeVisible();
     for (const w of WORKFLOWS) {
       await expect(page.getByText(w.name).first()).toBeVisible();
     }
@@ -119,30 +124,35 @@ test.describe("SystemAdmin v4 Workflow Automation", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks());
     await page.goto("/system-admin/automation/workflows");
-    await page.getByRole("button", { name: "+ Tạo workflow" }).click();
-    await expect(page.getByText("Tên workflow là bắt buộc.")).toBeVisible();
+    await page.getByRole("button", { name: "Tạo workflow" }).click();
+    await expect(page.getByText("Nhập tên workflow.")).toBeVisible();
     await expect(page.getByTestId("save-workflow")).toBeDisabled();
-    await page.getByPlaceholder("VD: Pass CV → Notify Head Review").fill("WF Test");
+    await page.getByPlaceholder("VD: Pass CV → Thông báo Trưởng bộ phận").fill("WF Test");
     await expect(page.getByTestId("save-workflow")).toBeEnabled();
   });
 
   test("publish shows confirmation, and Live mode shows a warning", async ({ page }) => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks());
-    await page.goto("/system-admin/automation/workflows");
-    // wf-3 is Live.
-    const liveRow = page.locator("tr", { hasText: "High-fit Candidate Alert" });
-    await liveRow.getByRole("button", { name: "Xuất bản" }).click();
-    await expect(page.getByText("Chế độ Live sẽ gửi thông báo thật. Hãy kiểm tra kỹ trước khi xuất bản.")).toBeVisible();
+    // Publishing lives on the detail screen (the list rows can't know whether
+    // a draft exists). wf-3 is Live and the mocked detail includes a draft.
+    await page.goto("/system-admin/automation/workflows/wf-3");
+    await page.getByRole("button", { name: "Xuất bản phiên bản" }).click();
+    await expect(
+      page.getByText("Chế độ Live sẽ gửi thông báo thật. Hãy kiểm tra kỹ trước khi tiếp tục."),
+    ).toBeVisible();
   });
 
-  test("enable/disable calls the API", async ({ page }) => {
+  test("enable/disable asks for confirmation, then calls the API", async ({ page }) => {
     const calls: string[] = [];
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks(), { onRequest: (m, u) => calls.push(`${m} ${u.pathname}`) });
     await page.goto("/system-admin/automation/workflows");
     const row = page.locator("tr", { hasText: "Pass CV → Notify Head Review" });
     await row.getByRole("button", { name: "Tắt" }).click();
+    // Confirm modal guards the state change (and double submits).
+    await expect(page.getByRole("heading", { name: "Tắt workflow" })).toBeVisible();
+    await page.getByRole("button", { name: "Tắt", exact: true }).last().click();
     await expect.poll(() => calls.some((c) => c.startsWith("PATCH") && c.endsWith("/enabled"))).toBe(true);
   });
 
@@ -150,7 +160,7 @@ test.describe("SystemAdmin v4 Workflow Automation", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks());
     await page.goto("/system-admin/automation/executions");
-    await expect(page.getByRole("heading", { name: "Lịch sử thực thi" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Lịch sử chạy" })).toBeVisible();
     await expect(page.getByText("Pass CV → Notify Head Review").first()).toBeVisible();
     await expect(page.getByText("Thất bại").first()).toBeVisible();
   });
@@ -159,7 +169,7 @@ test.describe("SystemAdmin v4 Workflow Automation", () => {
     await seedSession(page, "systemAdmin");
     await installApiMocks(page, baseMocks());
     await page.goto(`/system-admin/automation/executions/${EXEC.id}`);
-    await expect(page.getByRole("heading", { name: "Dòng thời gian các bước" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Kết quả từng bước" })).toBeVisible();
     await expect(page.getByText("Đánh giá điều kiện").first()).toBeVisible();
     await expect(page.getByText("Chế độ Shadow", { exact: false }).first()).toBeVisible();
   });
@@ -180,7 +190,7 @@ test.describe("SystemAdmin v4 Workflow Automation", () => {
     await seedSession(page, "hr");
     await installApiMocks(page, baseMocks());
     await page.goto("/system-admin/automation");
-    await expect(page.getByRole("heading", { name: "Tự động hóa tuyển dụng" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Tổng quan tự động hóa" })).toHaveCount(0);
     await expect(page).not.toHaveURL(/\/system-admin\/automation$/);
   });
 

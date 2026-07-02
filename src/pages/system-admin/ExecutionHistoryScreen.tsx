@@ -7,20 +7,13 @@ import CommonSelect from "../../common/components/CommonSelect";
 import { listExecutions, retryExecution } from "../../services/system-admin/automationService";
 import type { ExecutionSummaryDto, Paginated } from "../../modules/system-admin/automationSchema";
 import { TRIGGER_EVENT_TYPES } from "../../modules/system-admin/automationSchema";
+import { useI18n } from "../../i18n";
 import { ConfirmModal, ErrorState, eventLabel, formatDateTime, modeBadge, shortId, statusBadge } from "./automationUi";
-
-const STATUS_OPTIONS = [
-  { label: "Tất cả trạng thái", value: "" },
-  { label: "Thành công", value: "Success" },
-  { label: "Bỏ qua", value: "Skipped" },
-  { label: "Thất bại", value: "Failed" },
-  { label: "Đang thử lại", value: "Retrying" },
-  { label: "Dead-letter", value: "DeadLetter" },
-];
 
 function ExecutionHistoryScreen() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { t } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
   const workflowId = searchParams.get("workflowId") ?? undefined;
 
   const [page, setPage] = useState(1);
@@ -49,9 +42,9 @@ function ExecutionHistoryScreen() {
       pageSize: 20,
     })
       .then(setData)
-      .catch(() => setError("Không tải được lịch sử thực thi."))
+      .catch(() => setError(t("common.loadFailed")))
       .finally(() => setLoading(false));
-  }, [workflowId, status, eventType, mode, from, to, page]);
+  }, [workflowId, status, eventType, mode, from, to, page, t]);
 
   useEffect(() => load(), [load]);
 
@@ -60,14 +53,20 @@ function ExecutionHistoryScreen() {
     setBusy(true);
     try {
       await retryExecution(retryTarget.id);
-      toast.success("Đã gửi yêu cầu thử lại.");
+      toast.success(t("automation.retrySent"));
       setRetryTarget(null);
       load();
     } catch {
-      toast.error("Không thể thử lại lần thực thi này.");
+      toast.error(t("automation.retryFailed"));
     } finally {
       setBusy(false);
     }
+  };
+
+  const clearWorkflowFilter = () => {
+    searchParams.delete("workflowId");
+    setSearchParams(searchParams, { replace: true });
+    setPage(1);
   };
 
   const total = data?.totalItems ?? 0;
@@ -75,24 +74,61 @@ function ExecutionHistoryScreen() {
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(page * pageSize, total);
 
+  const STATUS_OPTIONS = [
+    { label: t("automation.filterAllStatuses"), value: "" },
+    { label: t("automation.statusSucceeded"), value: "Success" },
+    { label: t("automation.statusSkipped"), value: "Skipped" },
+    { label: t("automation.statusFailed"), value: "Failed" },
+    { label: t("automation.statusRetrying"), value: "Retrying" },
+    { label: t("automation.statusDead"), value: "DeadLetter" },
+  ];
+
   return (
     <div className="app-container animate-fade-in py-8">
-      <PageHeader eyebrow="SystemAdmin" icon="manage_history" title="Lịch sử thực thi" subtitle="Theo dõi, lọc và thử lại các lần chạy workflow." />
+      <PageHeader
+        icon="manage_history"
+        title={t("automation.executionsTitle")}
+        subtitle={t("automation.executionsSubtitle")}
+      />
+
+      {/* Deep-link scope from a workflow detail page — visible and clearable. */}
+      {workflowId ? (
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#e0d4d2] bg-[#fff1f0] py-1.5 pl-3.5 pr-1.5 text-[13px] font-semibold text-[#b90014]">
+          {t("automation.filteredByWorkflow")}
+          <code className="text-[12px] font-normal">{shortId(workflowId)}</code>
+          <button
+            type="button"
+            className="premium-action flex h-6 w-6 items-center justify-center rounded-full hover:bg-[#ffdad6]"
+            aria-label={t("automation.clearFilter")}
+            onClick={clearWorkflowFilter}
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      ) : null}
 
       <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-5">
         <CommonSelect value={status} onValueChange={(v) => { setStatus(v); setPage(1); }} options={STATUS_OPTIONS} />
         <CommonSelect
           value={eventType}
           onValueChange={(v) => { setEventType(v); setPage(1); }}
-          options={[{ label: "Tất cả sự kiện", value: "" }, ...TRIGGER_EVENT_TYPES.map((t) => ({ label: eventLabel(t), value: t }))]}
+          options={[
+            { label: t("automation.filterAllTriggers"), value: "" },
+            ...TRIGGER_EVENT_TYPES.map((tr) => ({ label: eventLabel(tr), value: tr })),
+          ]}
         />
         <CommonSelect
           value={mode}
           onValueChange={(v) => { setMode(v); setPage(1); }}
-          options={[{ label: "Tất cả chế độ", value: "" }, { label: "Shadow", value: "Shadow" }, { label: "Live", value: "Live" }, { label: "Disabled", value: "Disabled" }]}
+          options={[
+            { label: t("automation.filterAllModes"), value: "" },
+            { label: "Shadow", value: "Shadow" },
+            { label: "Live", value: "Live" },
+            { label: t("automation.disabled"), value: "Disabled" },
+          ]}
         />
-        <input aria-label="Từ ngày" className="input-field" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setPage(1); }} />
-        <input aria-label="Đến ngày" className="input-field" type="date" value={to} onChange={(e) => { setTo(e.target.value); setPage(1); }} />
+        <input aria-label={t("automation.fromDate")} className="input-field" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setPage(1); }} />
+        <input aria-label={t("automation.toDate")} className="input-field" type="date" value={to} onChange={(e) => { setTo(e.target.value); setPage(1); }} />
       </div>
 
       {error ? (
@@ -105,7 +141,7 @@ function ExecutionHistoryScreen() {
             data={data?.items ?? []}
             loading={loading}
             keyExtractor={(e) => e.id}
-            emptyMessage="Không có lần thực thi nào"
+            emptyMessage={t("automation.emptyExecutions")}
             emptyIcon="manage_history"
             onRowClick={(e) => navigate(`/system-admin/automation/executions/${e.id}`)}
             showPagination
@@ -120,16 +156,26 @@ function ExecutionHistoryScreen() {
             }}
             columns={[
               { key: "id", header: "ID", primary: true, renderCell: (e) => <code className="text-[12px]">{shortId(e.id)}</code> },
-              { key: "workflowName", header: "Workflow", renderCell: (e) => e.workflowName },
-              { key: "eventType", header: "Sự kiện", renderCell: (e) => eventLabel(e.eventType) },
-              { key: "mode", header: "Chế độ", renderCell: (e) => modeBadge(e.mode) },
-              { key: "status", header: "Trạng thái", renderCell: (e) => statusBadge(e.status) },
-              { key: "durationMs", header: "Thời lượng", hideOnMobile: true, renderCell: (e) => (e.durationMs != null ? `${e.durationMs} ms` : "—") },
-              { key: "createdAt", header: "Bắt đầu", renderCell: (e) => formatDateTime(e.startedAt ?? e.createdAt) },
-              { key: "errorReason", header: "Lỗi", hideOnMobile: true, renderCell: (e) => <span className="line-clamp-1 text-[13px] text-rose-600">{e.errorReason ?? ""}</span> },
+              { key: "workflowName", header: t("automation.workflow"), renderCell: (e) => e.workflowName },
+              { key: "eventType", header: t("automation.eventType"), renderCell: (e) => eventLabel(e.eventType) },
+              { key: "mode", header: t("automation.mode"), renderCell: (e) => modeBadge(e.mode) },
+              { key: "status", header: t("common.status"), renderCell: (e) => statusBadge(e.status) },
+              {
+                key: "durationMs",
+                header: t("automation.duration"),
+                hideOnMobile: true,
+                renderCell: (e) => (e.durationMs != null ? `${e.durationMs} ms` : "-"),
+              },
+              { key: "createdAt", header: t("automation.startedAt"), renderCell: (e) => formatDateTime(e.startedAt ?? e.createdAt) },
+              {
+                key: "errorReason",
+                header: t("automation.errorColumn"),
+                hideOnMobile: true,
+                renderCell: (e) => <span className="line-clamp-1 text-[13px] text-rose-600">{e.errorReason ?? ""}</span>,
+              },
               {
                 key: "actions",
-                header: "Thao tác",
+                header: t("common.actions"),
                 isAction: true,
                 renderCell: (e) =>
                   e.retryAvailable ? (
@@ -141,10 +187,10 @@ function ExecutionHistoryScreen() {
                         setRetryTarget(e);
                       }}
                     >
-                      Thử lại
+                      {t("common.retry")}
                     </button>
                   ) : (
-                    <span className="text-[13px] text-[#a8a4a2]">—</span>
+                    <span className="text-[13px] text-[#a8a4a2]">-</span>
                   ),
               },
             ]}
@@ -154,13 +200,13 @@ function ExecutionHistoryScreen() {
 
       <ConfirmModal
         open={!!retryTarget}
-        title="Thử lại thực thi"
-        confirmLabel="Thử lại"
+        title={t("automation.retryTitle")}
+        confirmLabel={t("common.retry")}
         busy={busy}
         onConfirm={doRetry}
         onClose={() => setRetryTarget(null)}
       >
-        <p>Chạy lại các hành động của lần thực thi thất bại/dead-letter này?</p>
+        <p>{t("automation.retryBody")}</p>
       </ConfirmModal>
     </div>
   );

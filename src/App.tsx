@@ -4,15 +4,20 @@ import { ToastContainer } from "react-toastify";
 // message text renders invisible/empty. Importing it is what makes toasts actually show copy.
 import "react-toastify/dist/ReactToastify.css";
 
+import AppErrorBoundary from "./common/components/AppErrorBoundary";
 import { NotificationProvider } from "./common/components/layout/NotificationProvider";
+import { I18nProvider } from "./i18n";
 import { store } from "./store";
 import AppRoutes from "./routes";
 
 function App() {
   return (
     <Provider store={store}>
+      <I18nProvider>
       <NotificationProvider>
-        <AppRoutes />
+        <AppErrorBoundary>
+          <AppRoutes />
+        </AppErrorBoundary>
         {/* Single global container. `theme="colored"` gives distinct success/error/warning/info
             styling + icons. pauseOnFocusLoss/pauseOnHover are disabled so the auto-close timer
             keeps running when the tab loses focus (toast still closes while you're on another tab). */}
@@ -48,6 +53,7 @@ function App() {
           draggable
         />
       </NotificationProvider>
+      </I18nProvider>
     </Provider>
   );
 }

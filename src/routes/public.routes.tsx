@@ -1,4 +1,5 @@
 import { lazy, Suspense, type ReactNode } from "react";
+import RouteFallback from "../common/components/RouteFallback";
 import { Navigate, Route } from "react-router-dom";
 
 import PublicOnly from "../guards/PublicOnly";
@@ -15,7 +16,7 @@ const LandingPageScreen = lazy(() => import("../pages/public/LandingPageScreen")
 
 function lazyRoute(element: ReactNode) {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-[#5f6368]">Loading...</div>}>
+    <Suspense fallback={<RouteFallback />}>
       {element}
     </Suspense>
   );

@@ -9,7 +9,9 @@ import { ROLE_NAMES } from "../../../permissions/rolePermissions";
 import HeaderAvatarDropDown from "../../../pages/internal/HeaderAvatarDropDown";
 import type { RootState } from "../../../store";
 import type { NotificationItemDto } from "../../../services/notification/notificationService";
+import { getDateLocale, useI18n } from "../../../i18n";
 import { NotificationContext } from "./NotificationContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export type AppHeaderMenuItem = {
   label: string;
@@ -32,29 +34,25 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-const defaultMenuItems: AppHeaderMenuItem[] = [
-  { label: "Hồ sơ", to: "/candidate/profile" },
-];
-
-function formatRoleLabel(
+function roleLabelKey(
   role: string | null | undefined,
   portalVariant: "candidate" | "internal",
 ) {
   if (portalVariant === "candidate") {
-    return "Ứng viên";
+    return "roles.candidate";
   }
 
   switch (role) {
     case ROLE_NAMES.HR:
-      return "HR";
+      return "roles.hr";
     case ROLE_NAMES.HEAD_DEPARTMENT:
-      return "Trưởng bộ phận";
+      return "roles.headDepartment";
     case ROLE_NAMES.MANAGER:
-      return "Quản lý";
+      return "roles.manager";
     case ROLE_NAMES.SYSTEM_ADMIN:
-      return "Quản trị hệ thống";
+      return "roles.systemAdmin";
     default:
-      return "Người dùng nội bộ";
+      return "roles.internalUser";
   }
 }
 
@@ -97,12 +95,13 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
   } = useContext(NotificationContext);
   const { defaultPath, hasPermission, portalVariant, primaryRole } =
     usePermissions();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const buttonId = useId();
 
-  const userName = authUser?.fullName ?? "Chưa có người dùng";
-  const userRole = formatRoleLabel(primaryRole, portalVariant);
+  const userName = authUser?.fullName ?? t("roles.noUser");
+  const userRole = t(roleLabelKey(primaryRole, portalVariant));
   const avatarSrc = authUser?.avatarUrl ?? undefined;
   const resolvedInitials = getInitials(userName);
   const canViewOwnProfile = hasPermission(
@@ -130,17 +129,17 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
   const resolvedMenuItems =
     menuItems ??
     (portalVariant === "candidate"
-      ? defaultMenuItems
+      ? [{ label: t("nav.profile"), to: "/candidate/profile" }]
       : [
           ...(canViewInternalProfile
-            ? [{ label: "Hồ sơ", to: "/internal/profile" }]
+            ? [{ label: t("nav.profile"), to: "/internal/profile" }]
             : canViewOwnProfile
-              ? [{ label: "Hồ sơ", to: "/candidate/profile" }]
+              ? [{ label: t("nav.profile"), to: "/candidate/profile" }]
               : []),
           ...(primaryRole === ROLE_NAMES.SYSTEM_ADMIN
-            ? [{ label: "Bảng điều khiển Admin", to: "/system-admin/dashboard" }]
+            ? [{ label: t("nav.adminConsole"), to: "/system-admin/dashboard" }]
             : []),
-          { label: "Tổng quan", to: defaultPath },
+          { label: t("nav.dashboard"), to: defaultPath },
         ]);
 
   function handleBellClick() {
@@ -163,7 +162,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
       setOpen(false);
       navigate(url);
     } else {
-      toast.info("Không tìm thấy đường dẫn thông báo.", { toastId: "noti-no-url" });
+      toast.info(t("header.noNotificationLink"), { toastId: "noti-no-url" });
     }
   }
 
@@ -175,7 +174,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
             <button
               type="button"
               className="premium-action -ml-2 flex h-10 w-10 items-center justify-center text-[#5f5e5e] transition-colors hover:bg-[#f3f0ef] hover:text-[#b90014] lg:hidden"
-              aria-label="Mở menu điều hướng"
+              aria-label={t("nav.openMenu")}
               onClick={onMenuToggle}
             >
               <span className="material-symbols-outlined text-[26px]">menu</span>
@@ -193,7 +192,9 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
           </div>
         </div>
 
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-5">
+          <LanguageSwitcher />
+
           {showNotifications ? (
             <div
               ref={panelRef}
@@ -222,12 +223,12 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                   <div className="flex items-center justify-between border-b border-[#f0eceb] px-4 py-4">
                     <div>
                       <p className="text-[15px] font-semibold text-[#1a1c1c]">
-                        Thông báo
+                        {t("header.notifications")}
                       </p>
                       <p className="text-[12px] text-[#6f6b6a]">
                         {unreadCount > 0
-                          ? `${unreadCount} thông báo chưa đọc`
-                          : "Bạn đã xem hết thông báo"}
+                          ? t("header.unreadCount", { count: unreadCount })
+                          : t("header.allRead")}
                       </p>
                     </div>
                     <button
@@ -236,14 +237,14 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                       disabled={!unreadCount}
                       onClick={() => void markAllAsRead()}
                     >
-                      Đánh dấu tất cả đã đọc
+                      {t("header.markAllRead")}
                     </button>
                   </div>
 
                   <div className="max-h-[420px] overflow-y-auto">
                     {loading ? (
                       <div className="px-4 py-8 text-center text-[13px] text-[#6f6b6a]">
-                        Đang tải thông báo...
+                        {t("header.loadingNotifications")}
                       </div>
                     ) : notifications.length ? (
                       notifications.map((notification) => (
@@ -272,7 +273,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                               </p>
                               <p className="mt-2 text-[11px] uppercase tracking-[0.04em] text-[#9a8e8c]">
                                 {new Date(notification.createdAt).toLocaleString(
-                                  "vi-VN",
+                                  getDateLocale(),
                                   {
                                     day: "2-digit",
                                     month: "2-digit",
@@ -288,13 +289,13 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                       ))
                     ) : (
                       <div className="px-4 py-8 text-center text-[13px] text-[#6f6b6a]">
-                        Chưa có thông báo nào.
+                        {t("header.emptyNotifications")}
                       </div>
                     )}
                   </div>
 
                   <div className="border-t border-[#f0eceb] px-4 py-3 text-right text-[11px] text-[#9a8e8c]">
-                    {refreshing ? "Đang làm mới..." : "Cập nhật realtime"}
+                    {refreshing ? t("header.refreshingShort") : t("header.realtime")}
                   </div>
                 </div>
               ) : null}

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import Seo from "../../common/components/Seo";
 import { Skeleton } from "../../common/components/Skeleton";
+import { useI18n } from "../../i18n";
 import {
   getEmploymentTypeBadgeClass,
   getWorkModeChipClass,
@@ -28,34 +30,14 @@ const MISSION_IMAGE_TOP =
 const MISSION_IMAGE_BOTTOM =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBNwKwKvx8QWCBWsgaeLzzMl4AhStc9WVkWEn_kVaXnA6sPLEj-kbsuTJ0h97Vu2enufLJIVXnts1zXbWhWmg7P9VR6QcFciQVbWMUgxIO69HGELN3dhKHAVcqkXH_isZw9qXLY0XwnXSRI-JJu9bONxCu3jlGsj6_9_VTYxe6RHEW9unLMZfZf8UDwD1V0Q7GkxwpDHXM5DbqXmnOZxpQK7tCQSs5jgqgHTOvTNopDfbXMZE8CGlz9ibNi40n3bXpCHG1LPxgy7Q";
 
-const missionHighlights = [
-  {
-    title: "Guaranteed Feedback",
-    description: "Every internal applicant receives a 1-on-1 with the hiring manager.",
-  },
-  {
-    title: "Shadowing Program",
-    description: "Test drive a new role for a week before you officially apply.",
-  },
-];
+// i18n key suffixes; titles/descriptions resolved via t("landing.*") in the component.
+const missionHighlightKeys = ["highlight1", "highlight2"] as const;
 
-const heroFeatures = [
-  {
-    icon: "auto_awesome",
-    title: "AI-Powered Matching",
-    description: "Find roles that fit you best",
-  },
-  {
-    icon: "swap_horiz",
-    title: "Internal Mobility",
-    description: "Move up, across, or explore",
-  },
-  {
-    icon: "bolt",
-    title: "One-Click Apply",
-    description: "Simple, fast, internal",
-  },
-];
+const heroFeatureItems = [
+  { icon: "auto_awesome", key: "feature1" },
+  { icon: "swap_horiz", key: "feature2" },
+  { icon: "bolt", key: "feature3" },
+] as const;
 
 /** Renders the hero title, coloring any "RecruitPro" occurrence in brand crimson. */
 function renderHeroTitle(title: string) {
@@ -221,6 +203,8 @@ function LandingMetricCard({
 }
 
 function FeaturedJobCard({ job }: { job: FeaturedJobCardModel }) {
+  const { t } = useI18n();
+
   return (
     <article className="group flex h-full flex-col rounded-[16px] border border-[#ebd7d4] bg-white p-6 shadow-[var(--shadow-xs)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -231,7 +215,7 @@ function FeaturedJobCard({ job }: { job: FeaturedJobCardModel }) {
         <button
           type="button"
           className="text-[#7f7c7b] transition-colors hover:text-[#b90014]"
-          aria-label={`Lưu vị trí ${job.title}`}
+          aria-label={t("landing.saveJobAria", { title: job.title })}
         >
           <span className="material-symbols-outlined text-[20px]">bookmark</span>
         </button>
@@ -244,7 +228,7 @@ function FeaturedJobCard({ job }: { job: FeaturedJobCardModel }) {
       <p className="mt-3 line-clamp-3 text-[14px] leading-6 text-[#5f5e5e]">
         {job.summary?.trim()
           ? job.summary
-          : `${job.department} đang tìm kiếm nhân sự nội bộ phù hợp để tăng tốc đội ngũ và mở rộng ảnh hưởng trong những dự án quan trọng.`}
+          : t("landing.jobFallbackSummary", { department: job.department })}
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -262,7 +246,7 @@ function FeaturedJobCard({ job }: { job: FeaturedJobCardModel }) {
           className="text-[14px] font-bold text-[#b90014] transition-colors hover:text-[#930614]"
           to={`/jobs/${job.id}`}
         >
-          Apply Now
+          {t("landing.applyNow")}
         </Link>
       </div>
     </article>
@@ -290,6 +274,7 @@ function HighlightItem({
 }
 
 function LandingPageScreen() {
+  const { t } = useI18n();
   const [homeData, setHomeData] = useState<HomeResponseDto | null>(null);
   const [featuredJobs, setFeaturedJobs] = useState<FeaturedJobCardModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -342,15 +327,17 @@ function LandingPageScreen() {
     };
   }, []);
 
-  const heroTitle =
-    homeData?.hero?.title ?? "Grow Your Career Inside RecruitPro.";
-  const heroSubtitle =
-    homeData?.hero?.subtitle ??
-    "Discover internal opportunities, connect with the right people, and take the next step in your professional journey—without leaving the company you love.";
+  const heroTitle = homeData?.hero?.title ?? t("landing.heroTitle");
+  const heroSubtitle = homeData?.hero?.subtitle ?? t("landing.heroSubtitle");
   const heroImage = homeData?.hero?.backgroundImageUrl || DEFAULT_HERO_IMAGE;
 
   return (
     <div className="overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+      <Seo
+        title={t("seo.defaultTitle")}
+        description={t("seo.defaultDescription")}
+        canonical="/"
+      />
       <main>
         <section
           id="home"
@@ -365,7 +352,7 @@ function LandingPageScreen() {
               <div className="max-w-[640px] space-y-7">
                 <span className="inline-flex items-center gap-2 rounded-full border border-[#ffc9c3] bg-white/70 px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#b90014] backdrop-blur-sm animate-fade-in-up">
                   <span className="material-symbols-outlined text-[16px]">groups</span>
-                  Internal Mobility First
+                  {t("landing.badge")}
                 </span>
 
                 <div className="space-y-5">
@@ -379,8 +366,8 @@ function LandingPageScreen() {
 
                 {/* feature highlights */}
                 <div className="grid grid-cols-1 gap-4 animate-fade-in-up sm:grid-cols-3">
-                  {heroFeatures.map((feature) => (
-                    <div key={feature.title} className="flex items-start gap-3">
+                  {heroFeatureItems.map((feature) => (
+                    <div key={feature.key} className="flex items-start gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#fff1f0] text-[#b90014]">
                         <span className="material-symbols-outlined text-[18px]">
                           {feature.icon}
@@ -388,10 +375,10 @@ function LandingPageScreen() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-[13px] font-bold leading-tight text-[#1a1c1c]">
-                          {feature.title}
+                          {t(`landing.${feature.key}Title`)}
                         </p>
                         <p className="mt-0.5 text-[12px] leading-tight text-[#6a6766]">
-                          {feature.description}
+                          {t(`landing.${feature.key}Desc`)}
                         </p>
                       </div>
                     </div>
@@ -400,14 +387,14 @@ function LandingPageScreen() {
 
                 <div className="flex flex-col gap-4 pt-1 animate-fade-in-up sm:flex-row">
                   <Link to="/jobs" className="btn btn-primary h-13 px-8 py-4 text-[16px]">
-                    Browse Openings
+                    {t("landing.ctaBrowseJobs")}
                     <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
                   </Link>
                   <Link
                     to="/internal/login"
                     className="btn h-13 border-2 border-[#1a1c1c] bg-white px-8 py-4 text-[16px] font-bold text-[#1a1c1c] transition-colors hover:bg-[#f5f3f2]"
                   >
-                    Explore Talent Pool
+                    {t("landing.ctaTalentPool")}
                   </Link>
                 </div>
               </div>
@@ -417,7 +404,7 @@ function LandingPageScreen() {
                 <div className="relative overflow-hidden rounded-[20px] border-4 border-white shadow-[0_30px_70px_-25px_rgba(185,0,20,0.35)] animate-scale-in">
                   <img
                     className="aspect-[4/3] w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                    alt="RecruitPro internal mobility platform hero"
+                    alt={t("landing.heroImageAlt")}
                     src={heroImage}
                   />
                 </div>
@@ -440,9 +427,11 @@ function LandingPageScreen() {
                       />
                     </svg>
                   </div>
-                  <p className="mt-2 text-[13px] font-bold text-[#1a1c1c]">Match Score</p>
+                  <p className="mt-2 text-[13px] font-bold text-[#1a1c1c]">
+                    {t("landing.matchScoreLabel")}
+                  </p>
                   <p className="text-[11px] leading-tight text-[#8a8786]">
-                    Great match for your skills
+                    {t("landing.matchScoreHint")}
                   </p>
                 </div>
 
@@ -453,16 +442,16 @@ function LandingPageScreen() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#b90014]">
-                      Internal Transfer
+                      {t("landing.transferLabel")}
                     </p>
                     <span className="material-symbols-outlined text-[16px] text-[#b90014]">
                       arrow_forward
                     </span>
                   </div>
                   <p className="mt-2 text-[14px] font-bold text-[#1a1c1c]">
-                    Senior Backend Engineer
+                    {t("landing.transferRole")}
                   </p>
-                  <p className="text-[11px] text-[#8a8786]">Engineering · Full-time</p>
+                  <p className="text-[11px] text-[#8a8786]">{t("landing.transferMeta")}</p>
                 </div>
 
                 {/* floating card — Interview Scheduled (bottom) */}
@@ -474,11 +463,13 @@ function LandingPageScreen() {
                     <span className="material-symbols-outlined text-[20px]">event</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-[#1a1c1c]">Interview Scheduled</p>
-                    <p className="text-[11px] text-[#8a8786]">Tomorrow, 10:00 AM</p>
+                    <p className="text-[13px] font-bold text-[#1a1c1c]">
+                      {t("landing.interviewLabel")}
+                    </p>
+                    <p className="text-[11px] text-[#8a8786]">{t("landing.interviewTime")}</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-[#1a1c1c]">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      Product Designer
+                      {t("landing.interviewRole")}
                     </p>
                   </div>
                 </div>
@@ -497,8 +488,8 @@ function LandingPageScreen() {
               <div className="grid divide-y divide-[#f1e2e0] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 <LandingMetricCard
                   icon="groups"
-                  label="Internal Hires"
-                  sublabel="Last 12 months"
+                  label={t("landing.statInternalHires")}
+                  sublabel={t("landing.statInternalHiresHint")}
                   value={homeData?.stats?.internalHires ?? 500}
                   suffix="+"
                   active={stats.inView}
@@ -506,15 +497,15 @@ function LandingPageScreen() {
                 />
                 <LandingMetricCard
                   icon="domain"
-                  label="Departments"
-                  sublabel="Across the organization"
+                  label={t("landing.statDepartments")}
+                  sublabel={t("landing.statDepartmentsHint")}
                   value={homeData?.stats?.departments ?? 15}
                   active={stats.inView}
                   delay={220}
                 />
                 <LandingMetricCard
                   icon="star"
-                  label="Avg. Employee Rating"
+                  label={t("landing.statRating")}
                   value={homeData?.stats?.avgEmployeeRating ?? 4.8}
                   decimals={1}
                   stars
@@ -531,17 +522,17 @@ function LandingPageScreen() {
             <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-[34px] font-semibold tracking-[-0.03em] text-[#1a1c1c]">
-                  Featured Internal Openings
+                  {t("landing.featuredTitle")}
                 </h2>
                 <p className="mt-2 text-[17px] text-[#6a6766]">
-                  Your next big career jump is just a click away.
+                  {t("landing.featuredSubtitle")}
                 </p>
               </div>
               <Link
                 className="inline-flex items-center gap-2 self-start text-[15px] font-bold text-[#b90014] transition-all hover:gap-3"
                 to="/jobs"
               >
-                View All Jobs
+                {t("landing.viewAllJobs")}
                 <span className="material-symbols-outlined text-[18px]">trending_flat</span>
               </Link>
             </div>
@@ -579,10 +570,10 @@ function LandingPageScreen() {
             ) : (
               <div className="rounded-[16px] border border-[#ebd7d4] bg-white p-8 text-center shadow-[var(--shadow-xs)]">
                 <p className="text-[20px] font-semibold text-[#1a1c1c]">
-                  Chưa có vị trí nổi bật để hiển thị
+                  {t("landing.emptyFeaturedTitle")}
                 </p>
                 <p className="mt-3 text-[15px] leading-7 text-[#5f5e5e]">
-                  Khi hệ thống có dữ liệu tuyển dụng public, phần Featured Internal Openings sẽ tự động hiển thị từ API hiện tại.
+                  {t("landing.emptyFeaturedBody")}
                 </p>
               </div>
             )}
@@ -595,18 +586,19 @@ function LandingPageScreen() {
               <div className="relative">
                 <div className="absolute left-0 top-0 h-28 w-28 rounded-full bg-[#b90014]/20 blur-3xl" />
                 <h2 className="max-w-[11ch] text-[46px] font-semibold leading-[1.02] tracking-[-0.05em] text-white sm:text-[58px]">
-                  Ready to script your <span className="text-[#ffb4ac]">next chapter?</span>
+                  {t("landing.missionTitleLead")}{" "}
+                  <span className="text-[#ffb4ac]">{t("landing.missionTitleAccent")}</span>
                 </h2>
                 <p className="mt-8 max-w-[600px] text-[18px] leading-8 text-white/72">
-                  At RecruitPro, we believe the best talent is already here. We prioritize internal growth, providing the mentorship, resources, and transparency needed to pivot into new roles or scale up your current path.
+                  {t("landing.missionBody")}
                 </p>
 
                 <div className="mt-10 space-y-6">
-                  {missionHighlights.map((item) => (
+                  {missionHighlightKeys.map((key) => (
                     <HighlightItem
-                      key={item.title}
-                      title={item.title}
-                      description={item.description}
+                      key={key}
+                      title={t(`landing.${key}Title`)}
+                      description={t(`landing.${key}Desc`)}
                     />
                   ))}
                 </div>
@@ -617,14 +609,14 @@ function LandingPageScreen() {
                   <div className="overflow-hidden rounded-[16px]">
                     <img
                       className="aspect-[3/4] w-full object-cover"
-                      alt="RecruitPro mobility analytics"
+                      alt={t("landing.missionImageTopAlt")}
                       src={MISSION_IMAGE_TOP}
                     />
                   </div>
                   <div className="rounded-[16px] border border-[#6e2e35] bg-[#4c161d] p-6">
                     <p className="text-[40px] font-semibold tracking-[-0.04em] text-white">74%</p>
                     <p className="mt-2 text-[15px] leading-6 text-white/70">
-                      Managers promoted internally last year
+                      {t("landing.statPromoted")}
                     </p>
                   </div>
                 </div>
@@ -632,13 +624,13 @@ function LandingPageScreen() {
                   <div className="rounded-[16px] border border-white/10 bg-white/10 p-6">
                     <p className="text-[40px] font-semibold tracking-[-0.04em] text-white">3k+</p>
                     <p className="mt-2 text-[15px] leading-6 text-white/70">
-                      Mentorship sessions completed
+                      {t("landing.statMentorship")}
                     </p>
                   </div>
                   <div className="overflow-hidden rounded-[16px]">
                     <img
                       className="aspect-[3/4] w-full object-cover"
-                      alt="RecruitPro collaboration team"
+                      alt={t("landing.missionImageBottomAlt")}
                       src={MISSION_IMAGE_BOTTOM}
                     />
                   </div>
@@ -652,20 +644,20 @@ function LandingPageScreen() {
           <div className="mx-auto w-full max-w-[1440px] px-4 py-20 text-center sm:px-6 lg:px-10">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-[44px] font-semibold tracking-[-0.04em] text-[#1a1c1c] sm:text-[56px]">
-                Your future self is calling.
+                {t("landing.ctaTitle")}
               </h2>
               <p className="mt-5 text-[18px] leading-8 text-[#5f5e5e]">
-                Join the thousands of RecruitPro teammates who have redefined their careers within our walls.
+                {t("landing.ctaBody")}
               </p>
               <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
                 <Link to="/jobs" className="btn btn-primary h-14 px-10 text-[18px]">
-                  Explore Career Paths
+                  {t("landing.ctaExplore")}
                 </Link>
                 <Link
                   to="/internal/login"
                   className="btn h-14 border-2 border-[#b90014] bg-white px-10 text-[18px] font-bold text-[#b90014] transition-colors hover:bg-[#fff6f5]"
                 >
-                  Contact Talent Ops
+                  {t("landing.ctaContact")}
                 </Link>
               </div>
             </div>

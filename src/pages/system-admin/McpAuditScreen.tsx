@@ -6,9 +6,11 @@ import CommonSelect from "../../common/components/CommonSelect";
 import Badge from "../../common/components/Badge";
 import { listAudits } from "../../services/system-admin/mcpService";
 import type { McpAuditDto, Paginated } from "../../modules/system-admin/automationSchema";
+import { useI18n } from "../../i18n";
 import { ErrorState, formatDateTime, JsonDetails } from "./automationUi";
 
 function McpAuditScreen() {
+  const { t } = useI18n();
   const [page, setPage] = useState(1);
   const [allowed, setAllowed] = useState("");
   const [data, setData] = useState<Paginated<McpAuditDto> | null>(null);
@@ -24,9 +26,9 @@ function McpAuditScreen() {
       pageSize: 20,
     })
       .then(setData)
-      .catch(() => setError("Không tải được nhật ký audit MCP."))
+      .catch(() => setError(t("common.loadFailed")))
       .finally(() => setLoading(false));
-  }, [allowed, page]);
+  }, [allowed, page, t]);
 
   useEffect(() => load(), [load]);
 
@@ -38,13 +40,12 @@ function McpAuditScreen() {
   return (
     <div className="app-container animate-fade-in py-8">
       <PageHeader
-        eyebrow="MCP"
         icon="fact_check"
-        title="Nhật ký audit MCP"
-        subtitle="Mọi lệnh gọi công cụ (được phép và bị từ chối) đều được ghi lại kèm độ trễ và tóm tắt kết quả."
+        title={t("automation.mcpAuditTitle")}
+        subtitle={t("automation.mcpAuditSubtitle")}
         actions={
           <Link to="/system-admin/mcp/tools" className="btn btn-secondary">
-            Danh mục công cụ
+            {t("automation.mcpToolsTitle")}
           </Link>
         }
       />
@@ -54,9 +55,9 @@ function McpAuditScreen() {
           value={allowed}
           onValueChange={(v) => { setAllowed(v); setPage(1); }}
           options={[
-            { label: "Tất cả", value: "" },
-            { label: "Được phép", value: "true" },
-            { label: "Bị từ chối", value: "false" },
+            { label: t("common.all"), value: "" },
+            { label: t("automation.allowed"), value: "true" },
+            { label: t("automation.denied"), value: "false" },
           ]}
         />
       </div>
@@ -71,7 +72,7 @@ function McpAuditScreen() {
             data={data?.items ?? []}
             loading={loading}
             keyExtractor={(a) => a.id}
-            emptyMessage="Chưa có bản ghi audit"
+            emptyMessage={t("automation.emptyMcpAudit")}
             emptyIcon="fact_check"
             showPagination
             pagination={{
@@ -84,17 +85,44 @@ function McpAuditScreen() {
               onPageChange: setPage,
             }}
             columns={[
-              { key: "toolName", header: "Công cụ", primary: true, renderCell: (a) => <code className="text-[13px]">{a.toolName}</code> },
-              { key: "callerUserId", header: "Người gọi", hideOnMobile: true, renderCell: (a) => <span className="text-[12px]">{a.callerUserId ?? "—"}</span> },
-              { key: "allowed", header: "Kết quả", renderCell: (a) => <Badge tone={a.allowed ? "success" : "danger"}>{a.allowed ? "Được phép" : "Bị từ chối"}</Badge> },
-              { key: "latencyMs", header: "Độ trễ", renderCell: (a) => (a.latencyMs != null ? `${a.latencyMs} ms` : "—") },
-              { key: "createdAt", header: "Thời gian", renderCell: (a) => formatDateTime(a.createdAt) },
-              { key: "deniedReason", header: "Lý do từ chối", hideOnMobile: true, renderCell: (a) => <span className="text-[13px] text-rose-600">{a.deniedReason ?? ""}</span> },
+              {
+                key: "toolName",
+                header: t("automation.toolName"),
+                primary: true,
+                renderCell: (a) => <code className="text-[13px]">{a.toolName}</code>,
+              },
+              {
+                key: "callerUserId",
+                header: t("automation.caller"),
+                hideOnMobile: true,
+                renderCell: (a) => <span className="text-[12px]">{a.callerUserId ?? "-"}</span>,
+              },
+              {
+                key: "allowed",
+                header: t("automation.lastResult"),
+                renderCell: (a) => (
+                  <Badge tone={a.allowed ? "success" : "danger"}>
+                    {a.allowed ? t("automation.allowed") : t("automation.denied")}
+                  </Badge>
+                ),
+              },
+              {
+                key: "latencyMs",
+                header: t("automation.latency"),
+                renderCell: (a) => (a.latencyMs != null ? `${a.latencyMs} ms` : "-"),
+              },
+              { key: "createdAt", header: t("automation.invokedAt"), renderCell: (a) => formatDateTime(a.createdAt) },
+              {
+                key: "deniedReason",
+                header: t("automation.deniedReason"),
+                hideOnMobile: true,
+                renderCell: (a) => <span className="text-[13px] text-rose-600">{a.deniedReason ?? ""}</span>,
+              },
               {
                 key: "output",
-                header: "Tóm tắt",
+                header: t("automation.resultSummary"),
                 isAction: true,
-                renderCell: (a) => <JsonDetails label="Chi tiết" json={a.outputSummaryJson ?? a.inputJson} />,
+                renderCell: (a) => <JsonDetails label={t("common.viewDetail")} json={a.outputSummaryJson ?? a.inputJson} />,
               },
             ]}
           />

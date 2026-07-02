@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
 import type { RootState } from "../../store";
+import { useI18n } from "../../i18n";
 
 type AvatarMenuItem = {
   label: string;
@@ -52,6 +53,7 @@ function HeaderAvatarDropDown({
   const currentVariant = useSelector(
     (state: RootState) => state.auth.currentVariant,
   );
+  const { t } = useI18n();
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -194,7 +196,7 @@ function HeaderAvatarDropDown({
                   onClick={handleLogout}
                 >
                   <span className="material-symbols-outlined text-[18px]">logout</span>
-                  Đăng xuất
+                  {t("auth.logout")}
                 </button>
               </div>
             </div>,

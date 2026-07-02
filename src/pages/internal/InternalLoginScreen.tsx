@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
 import { setCredentials } from "../../store/slices/authSlice";
 import { toast } from "react-toastify";
+import Seo from "../../common/components/Seo";
+import { useI18n } from "../../i18n";
 import {
   getPrimaryRole,
   getRoleHomePath,
@@ -24,13 +26,14 @@ type InternalLoginForm = {
 function InternalLoginScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const schema = yup.object({
-    username: yup.string().required("Vui lòng nhập username"),
-    password: yup.string().required("Vui lòng nhập mật khẩu"),
+    username: yup.string().required(t("auth.usernameRequired")),
+    password: yup.string().required(t("auth.passwordRequired")),
     remember: yup.boolean().default(false),
   });
 
@@ -47,7 +50,7 @@ function InternalLoginScreen() {
     },
   });
 
-  const usernamePlaceholder = useMemo(() => "ten.dangnhap", []);
+  const usernamePlaceholder = useMemo(() => t("auth.usernamePlaceholder"), [t]);
 
   async function onSubmit(data: InternalLoginForm) {
     try {
@@ -69,26 +72,25 @@ function InternalLoginScreen() {
       } else {
         localStorage.removeItem(rememberedInternalIdentifierKey);
       }
-      toast.success("Đăng nhập thành công");
+      toast.success(t("auth.loginSuccess"));
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
       navigate(getRoleHomePath(primaryRole) ?? "/hr/dashboard", {
         replace: true,
       });
     } catch {
-      toast.error("Tên đăng nhập hoặc mật khẩu không đúng");
+      toast.error(t("auth.loginFailed"));
     }
   }
 
   async function handleForgotPassword(identifier: string) {
     const response = await authService.internalForgotPassword({ identifier });
-    toast.success(
-      response.message || "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.",
-    );
+    toast.success(response.message || t("auth.forgotPasswordSent"));
   }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+      <Seo title={t("auth.internalLoginTitle")} noindex />
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.05]"
         aria-hidden="true"
@@ -105,23 +107,23 @@ function InternalLoginScreen() {
             <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#1a1c1c] md:text-[36px]">
               RecruitPro <span className="text-[#b90014]">Internal</span>
             </h1>
-            <p className="eyebrow mt-2">Cổng nội bộ doanh nghiệp</p>
+            <p className="eyebrow mt-2">{t("auth.internalPortalTag")}</p>
           </div>
 
           <div className="card w-full p-6 md:p-8">
             <div className="mb-6">
               <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-[#1a1c1c]">
-                Đăng nhập cổng nội bộ
+                {t("auth.internalLoginTitle")}
               </h2>
               <p className="mt-1.5 text-[14px] leading-6 text-[#5f5e5e]">
-                Nhập thông tin tài khoản nội bộ để tiếp tục.
+                {t("auth.internalLoginSubtitle")}
               </p>
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
               <div>
                 <label className="field-label" htmlFor="username">
-                  Tên đăng nhập
+                  {t("auth.username")}
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
@@ -145,14 +147,14 @@ function InternalLoginScreen() {
               <div>
                 <div className="flex items-center justify-between">
                   <label className="field-label" htmlFor="password">
-                    Mật khẩu
+                    {t("auth.password")}
                   </label>
                   <button
                     type="button"
                     className="text-[12px] font-semibold text-[#b90014] transition-colors hover:underline"
                     onClick={() => setForgotPasswordOpen(true)}
                   >
-                    Quên mật khẩu?
+                    {t("auth.forgotPassword")}
                   </button>
                 </div>
                 <div className="relative">
@@ -170,7 +172,7 @@ function InternalLoginScreen() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a8786] transition-colors hover:text-[#1a1c1c]"
-                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       {showPassword ? "visibility_off" : "visibility"}
@@ -195,7 +197,7 @@ function InternalLoginScreen() {
                   htmlFor="remember"
                   className="ml-2.5 select-none text-[14px] text-[#5f5e5e]"
                 >
-                  Ghi nhớ tài khoản này
+                  {t("auth.rememberAccount")}
                 </label>
               </div>
 
@@ -203,7 +205,7 @@ function InternalLoginScreen() {
                 type="submit"
                 className="btn btn-primary h-12 w-full text-[14px]"
               >
-                Đăng nhập
+                {t("auth.login")}
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -213,9 +215,9 @@ function InternalLoginScreen() {
         </div>
       </main>
       <ForgotPasswordDialog
-        title="Khôi phục mật khẩu nội bộ"
-        label="Tên đăng nhập"
-        placeholder="ten.dangnhap"
+        title={t("auth.forgotPasswordInternalTitle")}
+        label={t("auth.username")}
+        placeholder={t("auth.usernamePlaceholder")}
         open={forgotPasswordOpen}
         onClose={() => setForgotPasswordOpen(false)}
         onSubmit={handleForgotPassword}

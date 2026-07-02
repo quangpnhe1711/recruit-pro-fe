@@ -103,6 +103,9 @@ export async function seedSession(page: Page, key: SessionKey): Promise<void> {
     localStorage.setItem("refresh_token", data.token);
     localStorage.setItem("current_variant", data.variant);
     localStorage.setItem("auth_user", data.user);
+    // Specs assert Vietnamese copy; Playwright's default locale is en-US, which
+    // the i18n auto-detect would otherwise resolve to English.
+    localStorage.setItem("rp.lang", "vi");
   }, payload);
 }
 

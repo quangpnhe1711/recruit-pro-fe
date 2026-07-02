@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import CommonPagination from "../../common/components/CommonPagination";
 import CommonSelect from "../../common/components/CommonSelect";
 import EmptyState from "../../common/components/EmptyState";
+import Seo from "../../common/components/Seo";
 import { SkeletonCard } from "../../common/components/Skeleton";
 import SkillPicker from "../../common/components/SkillPicker";
 import {
@@ -14,6 +15,7 @@ import {
 import type { EmploymentType, JobListItemDto, JobSearchFilterOption, SkillDto } from "../../modules/jobs/jobsSchema";
 import { employmentTypeLabels } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
+import { translate } from "../../i18n";
 
 const pageSize = 5;
 const SALARY_FILTER_MIN = 5_000_000;
@@ -341,6 +343,11 @@ function JobListingCandidateScreen() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1440px] gap-6 px-4 py-8 md:px-10">
+      <Seo
+        title={translate("seo.jobsTitle")}
+        description={translate("seo.jobsDescription")}
+        canonical="/jobs"
+      />
       <aside className="hidden w-72 flex-shrink-0 space-y-6 xl:block">
         <div className="card p-6">
           <div className="mb-6 flex items-center justify-between">

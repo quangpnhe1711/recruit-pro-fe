@@ -4,9 +4,10 @@ import PageHeader from "../../common/components/PageHeader";
 import CommonTable from "../../common/components/CommonTable";
 import CommonSelect from "../../common/components/CommonSelect";
 import { toast } from "react-toastify";
-import { listWorkflows, publishWorkflow, setWorkflowEnabled } from "../../services/system-admin/automationService";
+import { listWorkflows, setWorkflowEnabled } from "../../services/system-admin/automationService";
 import type { WorkflowSummaryDto } from "../../modules/system-admin/automationSchema";
 import { TRIGGER_EVENT_TYPES } from "../../modules/system-admin/automationSchema";
+import { useI18n } from "../../i18n";
 import WorkflowEditor from "./WorkflowEditor";
 import {
   ConfirmModal,
@@ -20,13 +21,14 @@ import {
 
 function WorkflowListScreen() {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
   const [rows, setRows] = useState<WorkflowSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [enabledFilter, setEnabledFilter] = useState("");
   const [triggerFilter, setTriggerFilter] = useState("");
   const [modeFilter, setModeFilter] = useState("");
-  const [publishTarget, setPublishTarget] = useState<WorkflowSummaryDto | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<WorkflowSummaryDto | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -39,52 +41,50 @@ function WorkflowListScreen() {
       mode: modeFilter || undefined,
     })
       .then(setRows)
-      .catch(() => setError("Không tải được danh sách workflow."))
+      .catch(() => setError(t("common.loadFailed")))
       .finally(() => setLoading(false));
-  }, [enabledFilter, triggerFilter, modeFilter]);
+  }, [enabledFilter, triggerFilter, modeFilter, t]);
 
   useEffect(() => load(), [load]);
 
-  const toggleEnabled = async (wf: WorkflowSummaryDto) => {
-    try {
-      await setWorkflowEnabled(wf.id, !wf.isEnabled);
-      toast.success(wf.isEnabled ? "Đã tắt workflow." : "Đã bật workflow.");
-      load();
-    } catch {
-      toast.error("Không thể thay đổi trạng thái workflow.");
-    }
-  };
-
-  const confirmPublish = async () => {
-    if (!publishTarget) return;
+  const confirmToggle = async () => {
+    if (!toggleTarget) return;
     setBusy(true);
     try {
-      await publishWorkflow(publishTarget.id);
-      toast.success("Đã xuất bản phiên bản workflow.");
-      setPublishTarget(null);
+      await setWorkflowEnabled(toggleTarget.id, !toggleTarget.isEnabled);
+      toast.success(
+        toggleTarget.isEnabled
+          ? t("automation.workflowDisabled")
+          : t("automation.workflowEnabled"),
+      );
+      setToggleTarget(null);
       load();
     } catch {
-      toast.error("Không thể xuất bản workflow (cần có bản nháp).");
+      toast.error(t("automation.toggleFailed"));
     } finally {
       setBusy(false);
     }
   };
 
   const triggerOptions = useMemo(
-    () => [{ label: "Tất cả trigger", value: "" }, ...TRIGGER_EVENT_TYPES.map((t) => ({ label: eventLabel(t), value: t }))],
-    [],
+    () => [
+      { label: t("automation.filterAllTriggers"), value: "" },
+      ...TRIGGER_EVENT_TYPES.map((tr) => ({ label: eventLabel(tr), value: tr })),
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- eventLabel output depends on lang
+    [t, lang],
   );
 
   return (
     <div className="app-container animate-fade-in py-8">
       <PageHeader
-        eyebrow="SystemAdmin"
         icon="account_tree"
-        title="Danh sách workflow"
-        subtitle="Quản lý các quy trình tự động. Chỉ SystemAdmin cấu hình; HR/Manager chỉ nhận kết quả."
+        title={t("automation.workflowsTitle")}
+        subtitle={t("automation.workflowsSubtitle")}
         actions={
           <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
-            + Tạo workflow
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            {t("automation.createWorkflow")}
           </button>
         }
       />
@@ -94,9 +94,9 @@ function WorkflowListScreen() {
           value={enabledFilter}
           onValueChange={setEnabledFilter}
           options={[
-            { label: "Tất cả trạng thái", value: "" },
-            { label: "Đã bật", value: "true" },
-            { label: "Đã tắt", value: "false" },
+            { label: t("automation.filterAllStatuses"), value: "" },
+            { label: t("automation.enabled"), value: "true" },
+            { label: t("automation.disabled"), value: "false" },
           ]}
         />
         <CommonSelect value={triggerFilter} onValueChange={setTriggerFilter} options={triggerOptions} />
@@ -104,10 +104,10 @@ function WorkflowListScreen() {
           value={modeFilter}
           onValueChange={setModeFilter}
           options={[
-            { label: "Tất cả chế độ", value: "" },
+            { label: t("automation.filterAllModes"), value: "" },
             { label: "Shadow", value: "Shadow" },
             { label: "Live", value: "Live" },
-            { label: "Đã tắt (Disabled)", value: "Disabled" },
+            { label: t("automation.disabled"), value: "Disabled" },
           ]}
         />
       </div>
@@ -122,19 +122,47 @@ function WorkflowListScreen() {
             data={rows}
             loading={loading}
             keyExtractor={(w) => w.id}
-            emptyMessage="Không có workflow nào"
+            emptyMessage={t("automation.emptyWorkflows")}
             emptyIcon="account_tree"
+            onRowClick={(w) => navigate(`/system-admin/automation/workflows/${w.id}`)}
             columns={[
-              { key: "name", header: "Tên workflow", primary: true, renderCell: (w) => <strong>{w.name}</strong> },
-              { key: "isEnabled", header: "Trạng thái", renderCell: (w) => enabledBadge(w.isEnabled) },
-              { key: "activeVersionNo", header: "Phiên bản", renderCell: (w) => (w.activeVersionNo ? `v${w.activeVersionNo}` : "—") },
-              { key: "triggerEventType", header: "Trigger", renderCell: (w) => eventLabel(w.triggerEventType) },
-              { key: "mode", header: "Chế độ chạy", renderCell: (w) => modeBadge(w.mode) },
-              { key: "lastRunAt", header: "Chạy gần nhất", hideOnMobile: true, renderCell: (w) => formatDateTime(w.lastRunAt) },
-              { key: "lastStatus", header: "Kết quả", renderCell: (w) => statusBadge(w.lastStatus) },
+              {
+                key: "name",
+                header: t("automation.workflowName"),
+                primary: true,
+                renderCell: (w) => <strong>{w.name}</strong>,
+              },
+              {
+                key: "isEnabled",
+                header: t("common.status"),
+                renderCell: (w) => enabledBadge(w.isEnabled),
+              },
+              {
+                key: "activeVersionNo",
+                header: t("automation.version"),
+                hideOnMobile: true,
+                renderCell: (w) => (w.activeVersionNo ? `v${w.activeVersionNo}` : "-"),
+              },
+              {
+                key: "triggerEventType",
+                header: t("automation.triggerEvent"),
+                renderCell: (w) => eventLabel(w.triggerEventType),
+              },
+              { key: "mode", header: t("automation.mode"), renderCell: (w) => modeBadge(w.mode) },
+              {
+                key: "lastRunAt",
+                header: t("automation.lastRun"),
+                hideOnMobile: true,
+                renderCell: (w) => formatDateTime(w.lastRunAt),
+              },
+              {
+                key: "lastStatus",
+                header: t("automation.lastResult"),
+                renderCell: (w) => statusBadge(w.lastStatus),
+              },
               {
                 key: "actions",
-                header: "Thao tác",
+                header: t("common.actions"),
                 isAction: true,
                 renderCell: (w) => (
                   <div className="flex flex-wrap items-center justify-end gap-1.5">
@@ -146,27 +174,18 @@ function WorkflowListScreen() {
                         navigate(`/system-admin/automation/workflows/${w.id}`);
                       }}
                     >
-                      Xem
+                      {t("common.view")}
                     </button>
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"
+                      disabled={busy}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleEnabled(w);
+                        setToggleTarget(w);
                       }}
                     >
-                      {w.isEnabled ? "Tắt" : "Bật"}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPublishTarget(w);
-                      }}
-                    >
-                      Xuất bản
+                      {w.isEnabled ? t("automation.disable") : t("automation.enable")}
                     </button>
                   </div>
                 ),
@@ -187,27 +206,31 @@ function WorkflowListScreen() {
         />
       ) : null}
 
+      {/* Enable/disable always goes through an explicit confirm — same safety
+          level as the detail screen, and the modal's busy state prevents
+          double submits. Publishing lives on the detail screen, where the
+          draft state is actually known. */}
       <ConfirmModal
-        open={!!publishTarget}
-        title="Xuất bản phiên bản workflow"
-        confirmLabel="Xuất bản"
-        danger={publishTarget?.mode === "Live"}
+        open={!!toggleTarget}
+        title={
+          toggleTarget?.isEnabled
+            ? t("automation.disableConfirmTitle")
+            : t("automation.enableConfirmTitle")
+        }
+        confirmLabel={toggleTarget?.isEnabled ? t("automation.disable") : t("automation.enable")}
+        danger={toggleTarget?.mode === "Live"}
         busy={busy}
-        onConfirm={confirmPublish}
-        onClose={() => setPublishTarget(null)}
+        onConfirm={confirmToggle}
+        onClose={() => setToggleTarget(null)}
       >
         <p>
-          Xuất bản bản nháp mới nhất của <strong>{publishTarget?.name}</strong> và kích hoạt phiên bản này.
+          <strong>{toggleTarget?.name}</strong>
         </p>
-        {publishTarget?.mode === "Live" ? (
+        {toggleTarget?.mode === "Live" && !toggleTarget?.isEnabled ? (
           <p className="mt-3 rounded-[10px] bg-rose-50 px-3 py-2 text-[13px] text-rose-700">
-            Chế độ Live sẽ gửi thông báo thật. Hãy kiểm tra kỹ trước khi xuất bản.
+            {t("automation.liveWarning")}
           </p>
-        ) : (
-          <p className="mt-3 rounded-[10px] bg-sky-50 px-3 py-2 text-[13px] text-sky-700">
-            Workflow đang ở chế độ Shadow nên hệ thống chỉ ghi log, chưa gửi thông báo thật.
-          </p>
-        )}
+        ) : null}
       </ConfirmModal>
     </div>
   );
