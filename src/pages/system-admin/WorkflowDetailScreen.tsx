@@ -10,6 +10,7 @@ import {
   setWorkflowEnabled,
 } from "../../services/system-admin/automationService";
 import type { ExecutionSummaryDto, WorkflowDetailDto, WorkflowVersionDto } from "../../modules/system-admin/automationSchema";
+import { useI18n } from "../../i18n";
 import WorkflowEditor from "./WorkflowEditor";
 import {
   actionLabel,
@@ -20,11 +21,12 @@ import {
   formatDateTime,
   JsonDetails,
   modeBadge,
-  OPERATOR_LABELS,
+  operatorLabel,
   statusBadge,
 } from "./automationUi";
 
 function VersionCard({ version, title }: { version: WorkflowVersionDto; title: string }) {
+  const { t } = useI18n();
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between">
@@ -35,19 +37,23 @@ function VersionCard({ version, title }: { version: WorkflowVersionDto; title: s
       </div>
       <dl className="mt-4 space-y-3 text-[14px]">
         <div>
-          <dt className="text-[12px] font-semibold uppercase tracking-wide text-[#a8a4a2]">Trigger</dt>
+          <dt className="text-[12px] font-semibold uppercase tracking-wide text-[#a8a4a2]">
+            {t("automation.triggerEvent")}
+          </dt>
           <dd className="mt-1 text-[#1a1c1c]">{eventLabel(version.triggerEventType)}</dd>
         </div>
         <div>
-          <dt className="text-[12px] font-semibold uppercase tracking-wide text-[#a8a4a2]">Điều kiện</dt>
+          <dt className="text-[12px] font-semibold uppercase tracking-wide text-[#a8a4a2]">
+            {t("automation.conditions")}
+          </dt>
           <dd className="mt-1">
             {version.conditions.length === 0 ? (
-              <span className="text-[#8a8786]">Không có (luôn chạy)</span>
+              <span className="text-[#8a8786]">{t("automation.noConditions")}</span>
             ) : (
               <ul className="space-y-1">
                 {version.conditions.map((c, i) => (
                   <li key={i} className="text-[#3a3a3a]">
-                    <code className="text-[13px]">{c.field}</code> {OPERATOR_LABELS[c.operator] ?? c.operator}{" "}
+                    <code className="text-[13px]">{c.field}</code> {operatorLabel(c.operator)}{" "}
                     <code className="text-[13px]">{c.value ?? ""}</code>
                   </li>
                 ))}
@@ -56,12 +62,14 @@ function VersionCard({ version, title }: { version: WorkflowVersionDto; title: s
           </dd>
         </div>
         <div>
-          <dt className="text-[12px] font-semibold uppercase tracking-wide text-[#a8a4a2]">Hành động</dt>
+          <dt className="text-[12px] font-semibold uppercase tracking-wide text-[#a8a4a2]">
+            {t("automation.workflowActions")}
+          </dt>
           <dd className="mt-1 space-y-2">
             {version.actions.map((a, i) => (
               <div key={i} className="rounded-[8px] bg-[#fbfaf9] px-3 py-2">
                 <span className="font-medium text-[#1a1c1c]">{actionLabel(a.type)}</span>
-                <JsonDetails label="Cấu hình (JSON)" json={a.configJson} />
+                <JsonDetails label={t("automation.configJson")} json={a.configJson} />
               </div>
             ))}
           </dd>
@@ -74,6 +82,7 @@ function VersionCard({ version, title }: { version: WorkflowVersionDto; title: s
 function WorkflowDetailScreen() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [wf, setWf] = useState<WorkflowDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,9 +95,9 @@ function WorkflowDetailScreen() {
     setError(null);
     getWorkflow(id)
       .then(setWf)
-      .catch(() => setError("Không tải được chi tiết workflow."))
+      .catch(() => setError(t("common.loadFailed")))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => load(), [load]);
 
@@ -96,11 +105,11 @@ function WorkflowDetailScreen() {
     setBusy(true);
     try {
       await publishWorkflow(id);
-      toast.success("Đã xuất bản phiên bản workflow.");
+      toast.success(t("automation.published"));
       setConfirm(null);
       load();
     } catch {
-      toast.error("Không thể xuất bản workflow.");
+      toast.error(t("automation.publishFailed"));
     } finally {
       setBusy(false);
     }
@@ -111,11 +120,13 @@ function WorkflowDetailScreen() {
     setBusy(true);
     try {
       await setWorkflowEnabled(id, !wf.isEnabled);
-      toast.success(wf.isEnabled ? "Đã tắt workflow." : "Đã bật workflow.");
+      toast.success(
+        wf.isEnabled ? t("automation.workflowDisabled") : t("automation.workflowEnabled"),
+      );
       setConfirm(null);
       load();
     } catch {
-      toast.error("Không thể đổi trạng thái workflow.");
+      toast.error(t("automation.toggleFailed"));
     } finally {
       setBusy(false);
     }
@@ -131,31 +142,38 @@ function WorkflowDetailScreen() {
   if (error || !wf) {
     return (
       <div className="app-container py-8">
-        <ErrorState message={error ?? "Không tìm thấy workflow."} onRetry={load} />
+        <ErrorState message={error ?? t("automation.workflowNotFound")} onRetry={load} />
       </div>
     );
   }
 
   const liveMode = (wf.activeVersion?.mode ?? "Shadow") === "Live";
+  // A draft is any version that has never been published.
+  const hasDraft = wf.versions.some((v) => !v.publishedAt);
 
   return (
     <div className="app-container animate-fade-in py-8">
       <PageHeader
-        eyebrow="Workflow"
         icon="account_tree"
         title={wf.name}
-        subtitle={wf.description ?? "—"}
+        subtitle={wf.description ?? undefined}
         actions={
           <>
             {enabledBadge(wf.isEnabled)}
             <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>
-              Sửa bản nháp
+              {t("automation.editDraft")}
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => setConfirm("toggle")}>
-              {wf.isEnabled ? "Tắt" : "Bật"}
+              {wf.isEnabled ? t("automation.disable") : t("automation.enable")}
             </button>
-            <button type="button" className="btn btn-primary" onClick={() => setConfirm("publish")}>
-              Xuất bản phiên bản
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!hasDraft}
+              title={hasDraft ? undefined : t("automation.noDraftHint")}
+              onClick={() => setConfirm("publish")}
+            >
+              {t("automation.publishVersion")}
             </button>
           </>
         }
@@ -163,31 +181,42 @@ function WorkflowDetailScreen() {
 
       {liveMode ? (
         <p className="mt-4 rounded-[10px] bg-rose-50 px-3 py-2 text-[13px] text-rose-700">
-          Phiên bản đang hoạt động ở chế độ Live — hệ thống sẽ gửi thông báo thật cho sự kiện này.
+          {t("automation.liveBanner")}
         </p>
       ) : (
         <p className="mt-4 rounded-[10px] bg-sky-50 px-3 py-2 text-[13px] text-sky-700">
-          Workflow đang ở chế độ Shadow nên hệ thống chỉ ghi log, chưa gửi thông báo thật.
+          {t("automation.shadowBanner")}
         </p>
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {wf.activeVersion ? (
-          <VersionCard version={wf.activeVersion} title="Phiên bản đang hoạt động" />
+          <VersionCard version={wf.activeVersion} title={t("automation.activeVersion")} />
         ) : (
-          <div className="card p-5 text-[14px] text-[#8a8786]">Chưa có phiên bản hoạt động. Hãy tạo bản nháp và xuất bản.</div>
+          <div className="card p-5 text-[14px] text-[#8a8786]">
+            {t("automation.noActiveVersion")}
+          </div>
         )}
 
         <div className="card p-5">
-          <h3 className="text-[15px] font-semibold text-[#1a1c1c]">Lịch sử phiên bản</h3>
+          <h3 className="text-[15px] font-semibold text-[#1a1c1c]">
+            {t("automation.versionHistory")}
+          </h3>
           <ul className="mt-3 space-y-2 text-[14px]">
             {wf.versions.map((v) => (
               <li key={v.id} className="flex items-center justify-between rounded-[8px] bg-[#fbfaf9] px-3 py-2">
                 <span>
-                  v{v.versionNo} · {v.publishedAt ? `xuất bản ${formatDateTime(v.publishedAt)}` : "bản nháp"}
+                  v{v.versionNo} ·{" "}
+                  {v.publishedAt
+                    ? t("automation.publishedOn", { time: formatDateTime(v.publishedAt) })
+                    : t("automation.statusDraft")}
                 </span>
                 <span className="flex items-center gap-2">
-                  {v.isActive ? <span className="text-[12px] font-semibold text-emerald-600">Đang dùng</span> : null}
+                  {v.isActive ? (
+                    <span className="text-[12px] font-semibold text-emerald-600">
+                      {t("automation.inUse")}
+                    </span>
+                  ) : null}
                   {modeBadge(v.mode)}
                 </span>
               </li>
@@ -197,22 +226,33 @@ function WorkflowDetailScreen() {
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <h2 className="text-[16px] font-semibold text-[#1a1c1c]">Thực thi gần đây</h2>
+        <h2 className="text-[16px] font-semibold text-[#1a1c1c]">
+          {t("automation.recentExecutions")}
+        </h2>
         <Link to={`/system-admin/automation/executions?workflowId=${wf.id}`} className="btn btn-ghost">
-          Xem tất cả
+          {t("automation.viewAll")}
         </Link>
       </div>
       <div className="mt-3">
         <CommonTable<ExecutionSummaryDto>
           data={wf.recentExecutions}
           keyExtractor={(e) => e.id}
-          emptyMessage="Chưa có lần thực thi nào"
+          emptyMessage={t("automation.emptyExecutions")}
           onRowClick={(e) => navigate(`/system-admin/automation/executions/${e.id}`)}
           columns={[
-            { key: "eventType", header: "Sự kiện", primary: true, renderCell: (e) => eventLabel(e.eventType) },
-            { key: "mode", header: "Chế độ", renderCell: (e) => modeBadge(e.mode) },
-            { key: "status", header: "Trạng thái", renderCell: (e) => statusBadge(e.status) },
-            { key: "createdAt", header: "Thời gian", renderCell: (e) => formatDateTime(e.createdAt) },
+            {
+              key: "eventType",
+              header: t("automation.eventType"),
+              primary: true,
+              renderCell: (e) => eventLabel(e.eventType),
+            },
+            { key: "mode", header: t("automation.mode"), renderCell: (e) => modeBadge(e.mode) },
+            { key: "status", header: t("common.status"), renderCell: (e) => statusBadge(e.status) },
+            {
+              key: "createdAt",
+              header: t("common.time"),
+              renderCell: (e) => formatDateTime(e.createdAt),
+            },
           ]}
         />
       </div>
@@ -231,34 +271,30 @@ function WorkflowDetailScreen() {
 
       <ConfirmModal
         open={confirm === "publish"}
-        title="Xuất bản phiên bản workflow"
-        confirmLabel="Xuất bản"
+        title={t("automation.publishVersion")}
+        confirmLabel={t("automation.publish")}
         danger={liveMode}
         busy={busy}
         onConfirm={doPublish}
         onClose={() => setConfirm(null)}
       >
-        <p>Xuất bản bản nháp mới nhất và kích hoạt phiên bản này.</p>
+        <p>{t("automation.publishBody")}</p>
         {liveMode ? (
           <p className="mt-3 rounded-[10px] bg-rose-50 px-3 py-2 text-[13px] text-rose-700">
-            Chế độ Live sẽ gửi thông báo thật. Hãy kiểm tra kỹ trước khi xuất bản.
+            {t("automation.liveWarning")}
           </p>
         ) : null}
       </ConfirmModal>
 
       <ConfirmModal
         open={confirm === "toggle"}
-        title={wf.isEnabled ? "Tắt workflow" : "Bật workflow"}
-        confirmLabel={wf.isEnabled ? "Tắt" : "Bật"}
+        title={wf.isEnabled ? t("automation.disableConfirmTitle") : t("automation.enableConfirmTitle")}
+        confirmLabel={wf.isEnabled ? t("automation.disable") : t("automation.enable")}
         busy={busy}
         onConfirm={doToggle}
         onClose={() => setConfirm(null)}
       >
-        <p>
-          {wf.isEnabled
-            ? "Workflow sẽ ngừng chạy cho các sự kiện mới."
-            : "Workflow sẽ bắt đầu chạy cho các sự kiện phù hợp."}
-        </p>
+        <p>{wf.isEnabled ? t("automation.disableBody") : t("automation.enableBody")}</p>
       </ConfirmModal>
     </div>
   );

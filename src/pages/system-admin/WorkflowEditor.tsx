@@ -10,7 +10,8 @@ import {
   type WorkflowMode,
 } from "../../modules/system-admin/automationSchema";
 import { createWorkflow, updateWorkflow } from "../../services/system-admin/automationService";
-import { actionLabel, eventLabel, OPERATOR_LABELS, RECIPIENT_LABELS } from "./automationUi";
+import { useI18n } from "../../i18n";
+import { actionLabel, eventLabel, operatorLabel, recipientLabel } from "./automationUi";
 
 type EditableCondition = { field: string; operator: string; value: string };
 type EditableAction = {
@@ -60,6 +61,7 @@ export default function WorkflowEditor({
   onClose: () => void;
   onSaved: (id: string) => void;
 }) {
+  const { t } = useI18n();
   const source = workflow?.activeVersion ?? workflow?.versions?.[0] ?? null;
   const [name, setName] = useState(workflow?.name ?? "");
   const [description, setDescription] = useState(workflow?.description ?? "");
@@ -75,19 +77,21 @@ export default function WorkflowEditor({
 
   const errors = useMemo(() => {
     const e: string[] = [];
-    if (!name.trim()) e.push("Tên workflow là bắt buộc.");
-    if (!TRIGGER_EVENT_TYPES.includes(trigger as (typeof TRIGGER_EVENT_TYPES)[number])) e.push("Trigger không hợp lệ.");
-    if (actions.length === 0) e.push("Cần ít nhất một hành động.");
+    if (!name.trim()) e.push(t("automation.validationNameRequired"));
+    if (!TRIGGER_EVENT_TYPES.includes(trigger as (typeof TRIGGER_EVENT_TYPES)[number]))
+      e.push(t("automation.validationTriggerRequired"));
+    if (actions.length === 0) e.push(t("automation.validationActionRequired"));
     conditions.forEach((c, i) => {
-      if (!c.field.trim()) e.push(`Điều kiện #${i + 1} thiếu tên trường.`);
+      if (!c.field.trim())
+        e.push(t("automation.validationConditionField", { index: i + 1 }));
     });
     return e;
-  }, [name, trigger, actions, conditions]);
+  }, [name, trigger, actions, conditions, t]);
 
   const valid = errors.length === 0;
 
   const save = async () => {
-    if (!valid) return;
+    if (!valid || busy) return;
     setBusy(true);
     const payload = {
       name: name.trim(),
@@ -99,59 +103,82 @@ export default function WorkflowEditor({
     };
     try {
       const result = mode === "create" ? await createWorkflow(payload) : await updateWorkflow(workflow!.id, payload);
-      toast.success(mode === "create" ? "Đã tạo workflow (bản nháp)." : "Đã lưu bản nháp workflow.");
+      toast.success(mode === "create" ? t("automation.workflowCreated") : t("automation.draftSaved"));
       onSaved(result.id);
     } catch {
-      toast.error("Không thể lưu workflow. Kiểm tra lại cấu hình.");
+      toast.error(t("automation.saveFailed"));
     } finally {
       setBusy(false);
     }
   };
 
-  const preview = `Khi "${eventLabel(trigger)}"${
-    conditions.length ? `, nếu ${conditions.map((c) => `${c.field} ${OPERATOR_LABELS[c.operator] ?? c.operator} ${c.value}`).join(" và ")}` : ""
-  }, thì ${actions.map((a) => actionLabel(a.type)).join(", ") || "(chưa có hành động)"}.`;
+  const conditionsPart = conditions.length
+    ? t("automation.previewIf", {
+        list: conditions
+          .map((c) => `${c.field} ${operatorLabel(c.operator)} ${c.value}`.trim())
+          .join(` ${t("automation.previewAnd")} `),
+      })
+    : "";
+  const preview = t("automation.previewTemplate", {
+    event: eventLabel(trigger),
+    conditions: conditionsPart,
+    actions: actions.map((a) => actionLabel(a.type)).join(", ") || t("automation.previewNoActions"),
+  });
 
   return (
     <div className="animate-fade-in fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[#1a1c1c]/45 p-4 backdrop-blur-[2px]">
-      <div className="animate-scale-in my-6 w-full max-w-2xl rounded-2xl border border-[#ececec] bg-white p-6 shadow-[0_32px_80px_-16px_rgba(26,28,28,0.3)]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="animate-scale-in my-6 w-full max-w-2xl rounded-2xl border border-[#ececec] bg-white p-6 shadow-[0_32px_80px_-16px_rgba(26,28,28,0.3)]"
+      >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h3 className="text-[18px] font-semibold text-[#1a1c1c]">
-            {mode === "create" ? "Tạo workflow" : "Sửa bản nháp workflow"}
+            {mode === "create" ? t("automation.createWorkflow") : t("automation.editDraft")}
           </h3>
-          <button type="button" className="premium-action text-[#8a8786]" onClick={onClose} aria-label="Đóng">
+          <button
+            type="button"
+            className="premium-action text-[#8a8786]"
+            onClick={onClose}
+            aria-label={t("common.close")}
+          >
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="field-label">Tên workflow</label>
-            <input className="input-field" value={name} onChange={(e) => setName(e.target.value)} placeholder="VD: Pass CV → Notify Head Review" />
+            <label className="field-label">{t("automation.workflowName")}</label>
+            <input
+              className="input-field"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder={t("automation.namePlaceholder")}
+            />
           </div>
           <div>
-            <label className="field-label">Mô tả</label>
+            <label className="field-label">{t("automation.workflowDescription")}</label>
             <textarea className="input-field" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="field-label">Trigger (sự kiện)</label>
+              <label className="field-label">{t("automation.triggerEvent")}</label>
               <CommonSelect
                 value={trigger}
                 onValueChange={setTrigger}
-                options={TRIGGER_EVENT_TYPES.map((t) => ({ label: eventLabel(t), value: t }))}
+                options={TRIGGER_EVENT_TYPES.map((tr) => ({ label: eventLabel(tr), value: tr }))}
               />
             </div>
             <div>
-              <label className="field-label">Chế độ chạy</label>
+              <label className="field-label">{t("automation.mode")}</label>
               <CommonSelect
                 value={runMode}
                 onValueChange={(v) => setRunMode(v as WorkflowMode)}
                 options={[
-                  { label: "Shadow (chỉ ghi log)", value: "Shadow" },
-                  { label: "Live (gửi thật)", value: "Live" },
-                  { label: "Disabled (tắt)", value: "Disabled" },
+                  { label: t("automation.modeShadowOption"), value: "Shadow" },
+                  { label: t("automation.modeLiveOption"), value: "Live" },
+                  { label: t("automation.modeDisabledOption"), value: "Disabled" },
                 ]}
               />
             </div>
@@ -159,32 +186,41 @@ export default function WorkflowEditor({
 
           {runMode === "Live" ? (
             <p className="rounded-[10px] bg-rose-50 px-3 py-2 text-[13px] text-rose-700">
-              Chế độ Live sẽ gửi thông báo thật. Hãy kiểm tra kỹ trước khi xuất bản.
+              {t("automation.liveWarning")}
             </p>
           ) : null}
 
           {/* Conditions */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="field-label mb-0">Điều kiện</label>
+              <label className="field-label mb-0">{t("automation.conditions")}</label>
               <button
                 type="button"
                 className="btn btn-ghost"
                 onClick={() => setConditions((c) => [...c, { field: "", operator: "exists", value: "" }])}
               >
-                + Thêm điều kiện
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                {t("automation.addCondition")}
               </button>
             </div>
             {conditions.length === 0 ? (
-              <p className="text-[13px] text-[#8a8786]">Không có điều kiện — workflow luôn chạy khi có trigger.</p>
+              <p className="text-[13px] text-[#8a8786]">{t("automation.noConditionsEditor")}</p>
             ) : (
               <div className="space-y-2">
                 {conditions.map((c, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] items-center gap-2">
-                    <input className="input-field" placeholder="trường (vd: finalScore)" value={c.field} onChange={(e) => setConditions((arr) => arr.map((x, j) => (j === i ? { ...x, field: e.target.value } : x)))} />
-                    <CommonSelect value={c.operator} onValueChange={(v) => setConditions((arr) => arr.map((x, j) => (j === i ? { ...x, operator: v } : x)))} options={CONDITION_OPERATORS.map((o) => ({ label: OPERATOR_LABELS[o] ?? o, value: o }))} />
-                    <input className="input-field" placeholder="giá trị" value={c.value} onChange={(e) => setConditions((arr) => arr.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))} />
-                    <button type="button" className="premium-action text-[#b90014]" aria-label="Xóa điều kiện" onClick={() => setConditions((arr) => arr.filter((_, j) => j !== i))}>
+                  <div
+                    key={i}
+                    className="grid grid-cols-1 items-center gap-2 rounded-[12px] border border-[#eee9e7] p-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:rounded-none sm:border-0 sm:p-0"
+                  >
+                    <input className="input-field" placeholder={t("automation.fieldPlaceholder")} value={c.field} onChange={(e) => setConditions((arr) => arr.map((x, j) => (j === i ? { ...x, field: e.target.value } : x)))} />
+                    <CommonSelect value={c.operator} onValueChange={(v) => setConditions((arr) => arr.map((x, j) => (j === i ? { ...x, operator: v } : x)))} options={CONDITION_OPERATORS.map((o) => ({ label: operatorLabel(o), value: o }))} />
+                    <input className="input-field" placeholder={t("automation.valuePlaceholder")} value={c.value} onChange={(e) => setConditions((arr) => arr.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))} />
+                    <button
+                      type="button"
+                      className="premium-action justify-self-end text-[#b90014]"
+                      aria-label={t("automation.removeCondition")}
+                      onClick={() => setConditions((arr) => arr.filter((_, j) => j !== i))}
+                    >
                       <span className="material-symbols-outlined">delete</span>
                     </button>
                   </div>
@@ -196,13 +232,14 @@ export default function WorkflowEditor({
           {/* Actions */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="field-label mb-0">Hành động</label>
+              <label className="field-label mb-0">{t("automation.workflowActions")}</label>
               <button
                 type="button"
                 className="btn btn-ghost"
                 onClick={() => setActions((a) => [...a, actionToEditable("notify_user", "{}")])}
               >
-                + Thêm hành động
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                {t("automation.addAction")}
               </button>
             </div>
             <div className="space-y-3">
@@ -213,15 +250,20 @@ export default function WorkflowEditor({
                       wrapperClassName="flex-1"
                       value={a.type}
                       onValueChange={(v) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, type: v } : x)))}
-                      options={ACTION_TYPES.map((t) => ({ label: actionLabel(t), value: t }))}
+                      options={ACTION_TYPES.map((ty) => ({ label: actionLabel(ty), value: ty }))}
                     />
-                    <button type="button" className="premium-action text-[#b90014]" aria-label="Xóa hành động" onClick={() => setActions((arr) => arr.filter((_, j) => j !== i))}>
+                    <button
+                      type="button"
+                      className="premium-action text-[#b90014]"
+                      aria-label={t("automation.removeAction")}
+                      onClick={() => setActions((arr) => arr.filter((_, j) => j !== i))}
+                    >
                       <span className="material-symbols-outlined">delete</span>
                     </button>
                   </div>
 
                   {a.type === "notify_role" ? (
-                    <input className="input-field mb-2" placeholder="Vai trò (VD: HR, Manager)" value={a.roles} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, roles: e.target.value } : x)))} />
+                    <input className="input-field mb-2" placeholder={t("automation.rolesPlaceholder")} value={a.roles} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, roles: e.target.value } : x)))} />
                   ) : (
                     <div className="mb-2 flex flex-wrap gap-3">
                       {RECIPIENT_SELECTORS.map((sel) => (
@@ -239,16 +281,16 @@ export default function WorkflowEditor({
                               )
                             }
                           />
-                          {RECIPIENT_LABELS[sel]}
+                          {recipientLabel(sel)}
                         </label>
                       ))}
                     </div>
                   )}
 
-                  <input className="input-field mb-2" placeholder="Tiêu đề thông báo" value={a.title} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} />
-                  <input className="input-field" placeholder="Nội dung thông báo" value={a.body} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} />
+                  <input className="input-field mb-2" placeholder={t("automation.titlePlaceholder")} value={a.title} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} />
+                  <input className="input-field" placeholder={t("automation.bodyPlaceholder")} value={a.body} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, body: e.target.value } : x)))} />
                   {a.type === "send_reminder" ? (
-                    <input className="input-field mt-2" type="number" placeholder="Cooldown (giờ)" value={a.cooldownHours} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, cooldownHours: e.target.value } : x)))} />
+                    <input className="input-field mt-2" type="number" placeholder={t("automation.cooldownPlaceholder")} value={a.cooldownHours} onChange={(e) => setActions((arr) => arr.map((x, j) => (j === i ? { ...x, cooldownHours: e.target.value } : x)))} />
                   ) : null}
                 </div>
               ))}
@@ -256,7 +298,7 @@ export default function WorkflowEditor({
           </div>
 
           <div className="rounded-[10px] bg-[#fbfaf9] px-3 py-2.5 text-[13px] text-[#3a3a3a]">
-            <span className="font-semibold">Xem trước: </span>
+            <span className="font-semibold">{t("automation.previewLabel")}: </span>
             {preview}
           </div>
 
@@ -271,10 +313,10 @@ export default function WorkflowEditor({
 
         <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={busy}>
-            Hủy
+            {t("common.cancel")}
           </button>
           <button type="button" className="btn btn-primary" onClick={save} disabled={busy || !valid} data-testid="save-workflow">
-            {busy ? "Đang lưu..." : "Lưu bản nháp"}
+            {busy ? t("automation.savingWorkflow") : t("automation.saveDraft")}
           </button>
         </div>
       </div>

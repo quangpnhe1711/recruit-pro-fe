@@ -10,18 +10,20 @@ import type {
   AutomationDiagnosticsDto,
   ExecutionSummaryDto,
 } from "../../modules/system-admin/automationSchema";
+import { useI18n } from "../../i18n";
 import { ErrorState, eventLabel, formatDateTime, modeBadge, shortId, statusBadge } from "./automationUi";
 
-const STAT_DEFS: { key: keyof AutomationDashboardDto; label: string; icon: string; tone: string }[] = [
-  { key: "totalWorkflows", label: "Tổng workflow", icon: "account_tree", tone: "#b90014" },
-  { key: "enabledWorkflows", label: "Đang bật", icon: "toggle_on", tone: "#059669" },
-  { key: "executionsToday", label: "Thực thi hôm nay", icon: "play_circle", tone: "#0284c7" },
-  { key: "failedExecutions", label: "Thực thi thất bại", icon: "error", tone: "#e11d48" },
-  { key: "deadLetterCount", label: "Dead-letter", icon: "report", tone: "#d97706" },
+const STAT_DEFS: { key: keyof AutomationDashboardDto; labelKey: string; icon: string; tone: string }[] = [
+  { key: "totalWorkflows", labelKey: "automation.totalWorkflows", icon: "account_tree", tone: "#b90014" },
+  { key: "enabledWorkflows", labelKey: "automation.activeWorkflows", icon: "toggle_on", tone: "#059669" },
+  { key: "executionsToday", labelKey: "automation.executionsToday", icon: "play_circle", tone: "#0284c7" },
+  { key: "failedExecutions", labelKey: "automation.failedExecutions", icon: "error", tone: "#e11d48" },
+  { key: "deadLetterCount", labelKey: "automation.statusDead", icon: "report", tone: "#d97706" },
 ];
 
 function AutomationDashboardScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [data, setData] = useState<AutomationDashboardDto | null>(null);
   const [diag, setDiag] = useState<AutomationDiagnosticsDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,29 +38,28 @@ function AutomationDashboardScreen() {
       .catch(() => setDiag(null));
     getDashboard()
       .then(setData)
-      .catch(() => setError("Không tải được dữ liệu bảng điều khiển tự động hóa."))
+      .catch(() => setError(t("common.loadFailed")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   useEffect(() => load(), [load]);
 
   return (
     <div className="app-container animate-fade-in py-8">
       <PageHeader
-        eyebrow="SystemAdmin"
         icon="account_tree"
-        title="Tự động hóa tuyển dụng"
-        subtitle="Trigger → Điều kiện → Hành động → Nhật ký thực thi. Deterministic-first, AI là tùy chọn."
+        title={t("automation.dashboardTitle")}
+        subtitle={t("automation.dashboardSubtitle")}
         actions={
           <>
             <Link to="/system-admin/automation/diagnostics" className="btn btn-secondary">
-              Chẩn đoán
+              {t("nav.diagnostics")}
             </Link>
             <Link to="/system-admin/automation/workflows" className="btn btn-secondary">
-              Danh sách workflow
+              {t("nav.workflows")}
             </Link>
             <Link to="/system-admin/automation/executions" className="btn btn-primary">
-              Lịch sử thực thi
+              {t("automation.executionsTitle")}
             </Link>
           </>
         }
@@ -67,22 +68,22 @@ function AutomationDashboardScreen() {
       {diag ? (
         <div className="mt-6 flex flex-wrap items-center gap-2.5">
           <Badge tone={diag.automationEnabled ? "success" : "neutral"} dot>
-            Tự động hóa: {diag.automationEnabled ? "Đang bật" : "Đang tắt"}
+            {t("automation.title")}: {diag.automationEnabled ? t("automation.enabled") : t("automation.disabled")}
           </Badge>
           <Badge tone={diag.dispatcherHealthy ? "success" : "danger"} dot>
-            Worker: {diag.dispatcherHealthy ? "Đang chạy" : "Cần kiểm tra"}
+            Worker: {diag.dispatcherHealthy ? t("automation.workerOnline") : t("automation.workerNeedsAttention")}
           </Badge>
           <Badge tone={diag.pendingEvents > 0 ? "warning" : "neutral"}>
-            {diag.pendingEvents} sự kiện chờ
+            {t("automation.pendingEventsCount", { count: diag.pendingEvents })}
           </Badge>
         </div>
       ) : null}
 
       {diag && diag.warnings.length > 0 ? (
-        <div className="mt-4 card border-[#f6e2c4] bg-[#fdf9f0] p-4">
+        <div className="card mt-4 border-[#f6e2c4] bg-[#fdf9f0] p-4">
           <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-[#7a5320]">
             <span className="material-symbols-outlined text-[18px]">warning</span>
-            Cần chú ý
+            {t("automation.attention")}
           </p>
           <ul className="space-y-1">
             {diag.warnings.map((w, i) => (
@@ -96,7 +97,7 @@ function AutomationDashboardScreen() {
             to="/system-admin/automation/diagnostics"
             className="mt-2 inline-block text-[12.5px] font-semibold text-[#b90014] hover:underline"
           >
-            Xem chẩn đoán chi tiết →
+            {t("automation.viewDiagnostics")}
           </Link>
         </div>
       ) : null}
@@ -105,55 +106,69 @@ function AutomationDashboardScreen() {
         <div className="mt-6">
           <SkeletonGrid count={5} columns={5} />
         </div>
-      ) : error ? (
+      ) : error || !data ? (
+        // `data == null` after a "successful" call is still a failed load —
+        // never leave the page silently blank.
         <div className="mt-6">
-          <ErrorState message={error} onRetry={load} />
+          <ErrorState message={error ?? undefined} onRetry={load} />
         </div>
-      ) : data ? (
+      ) : (
         <>
-          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+          <div className="stagger mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
             {STAT_DEFS.map((s) => (
               <div key={s.key} className="card p-5">
-                <div className="flex items-start justify-between">
-                  <span
-                    className="flex h-10 w-10 items-center justify-center rounded-xl"
-                    style={{ background: `${s.tone}14`, color: s.tone }}
-                  >
-                    <span className="material-symbols-outlined text-[22px]">{s.icon}</span>
-                  </span>
-                </div>
-                <p className="mt-3 text-[28px] font-bold text-[#1a1c1c]">{data[s.key] as number}</p>
-                <p className="text-[13px] text-[#5f5e5e]">{s.label}</p>
+                <span
+                  className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ background: `${s.tone}14`, color: s.tone }}
+                >
+                  <span className="material-symbols-outlined text-[22px]">{s.icon}</span>
+                </span>
+                <p className="mt-3 text-[28px] font-bold tabular-nums text-[#1a1c1c]">
+                  {data[s.key] as number}
+                </p>
+                <p className="text-[13px] text-[#5f5e5e]">{t(s.labelKey)}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 card p-5">
-            <p className="text-[13px] text-[#5f5e5e]">Hành động lỗi phổ biến nhất</p>
+          <div className="card mt-4 p-5">
+            <p className="text-[13px] text-[#5f5e5e]">{t("automation.mostCommonFailedAction")}</p>
             <p className="mt-1 text-[15px] font-semibold text-[#1a1c1c]" data-testid="most-common-failed">
-              {data.mostCommonFailedAction ?? "Không có"}
+              {data.mostCommonFailedAction ?? t("common.none")}
             </p>
           </div>
 
           <div className="mt-6">
-            <h2 className="mb-3 text-[16px] font-semibold text-[#1a1c1c]">Thực thi gần đây</h2>
+            <h2 className="mb-3 text-[16px] font-semibold text-[#1a1c1c]">
+              {t("automation.recentExecutions")}
+            </h2>
             <CommonTable<ExecutionSummaryDto>
               data={data.recentExecutions}
               keyExtractor={(e) => e.id}
-              emptyMessage="Chưa có lần thực thi nào"
+              emptyMessage={t("automation.noRecentActivity")}
               onRowClick={(e) => navigate(`/system-admin/automation/executions/${e.id}`)}
               columns={[
-                { key: "workflowName", header: "Workflow", primary: true, renderCell: (e) => <strong>{e.workflowName}</strong> },
-                { key: "eventType", header: "Sự kiện", renderCell: (e) => eventLabel(e.eventType) },
-                { key: "mode", header: "Chế độ chạy", renderCell: (e) => modeBadge(e.mode) },
-                { key: "status", header: "Trạng thái", renderCell: (e) => statusBadge(e.status) },
-                { key: "createdAt", header: "Thời gian", renderCell: (e) => formatDateTime(e.createdAt) },
-                { key: "id", header: "ID", hideOnMobile: true, renderCell: (e) => <code className="text-[12px]">{shortId(e.id)}</code> },
+                {
+                  key: "workflowName",
+                  header: t("automation.workflow"),
+                  primary: true,
+                  renderCell: (e) => <strong>{e.workflowName}</strong>,
+                },
+                { key: "eventType", header: t("automation.eventType"), renderCell: (e) => eventLabel(e.eventType) },
+                { key: "mode", header: t("automation.mode"), renderCell: (e) => modeBadge(e.mode) },
+                { key: "status", header: t("common.status"), renderCell: (e) => statusBadge(e.status) },
+                { key: "createdAt", header: t("common.time"), renderCell: (e) => formatDateTime(e.createdAt) },
+                {
+                  key: "id",
+                  header: "ID",
+                  hideOnMobile: true,
+                  renderCell: (e) => <code className="text-[12px]">{shortId(e.id)}</code>,
+                },
               ]}
             />
           </div>
         </>
-      ) : null}
+      )}
     </div>
   );
 }
