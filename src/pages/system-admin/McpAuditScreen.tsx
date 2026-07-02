@@ -38,7 +38,7 @@ function McpAuditScreen() {
   const rangeEnd = Math.min(page * pageSize, total);
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="fact_check"
         title={t("automation.mcpAuditTitle")}
@@ -50,7 +50,7 @@ function McpAuditScreen() {
         }
       />
 
-      <div className="mt-5 max-w-xs">
+      <div className="executive-filter-bar mt-5 max-w-xs">
         <CommonSelect
           value={allowed}
           onValueChange={(v) => { setAllowed(v); setPage(1); }}
@@ -69,6 +69,7 @@ function McpAuditScreen() {
       ) : (
         <div className="mt-4">
           <CommonTable<McpAuditDto>
+            variant="executive"
             data={data?.items ?? []}
             loading={loading}
             keyExtractor={(a) => a.id}

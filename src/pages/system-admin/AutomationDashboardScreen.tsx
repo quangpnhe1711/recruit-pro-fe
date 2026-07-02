@@ -45,7 +45,7 @@ function AutomationDashboardScreen() {
   useEffect(() => load(), [load]);
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="account_tree"
         title={t("automation.dashboardTitle")}
@@ -66,7 +66,7 @@ function AutomationDashboardScreen() {
       />
 
       {diag ? (
-        <div className="mt-6 flex flex-wrap items-center gap-2.5">
+        <div className="mt-6 flex flex-wrap items-center gap-2.5 rounded-[16px] border border-[#e5dedb] bg-[#fffdfc] px-4 py-3 shadow-[0_14px_36px_-32px_rgba(26,28,28,0.55)]">
           <Badge tone={diag.automationEnabled ? "success" : "neutral"} dot>
             {t("automation.title")}: {diag.automationEnabled ? t("automation.enabled") : t("automation.disabled")}
           </Badge>
@@ -80,7 +80,7 @@ function AutomationDashboardScreen() {
       ) : null}
 
       {diag && diag.warnings.length > 0 ? (
-        <div className="card mt-4 border-[#f6e2c4] bg-[#fdf9f0] p-4">
+        <div className="executive-section mt-4 border-[#f6e2c4] bg-[#fdf9f0] p-4">
           <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-[#7a5320]">
             <span className="material-symbols-outlined text-[18px]">warning</span>
             {t("automation.attention")}
@@ -116,7 +116,7 @@ function AutomationDashboardScreen() {
         <>
           <div className="stagger mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
             {STAT_DEFS.map((s) => (
-              <div key={s.key} className="card p-5">
+              <div key={s.key} className="executive-metric">
                 <span
                   className="flex h-10 w-10 items-center justify-center rounded-xl"
                   style={{ background: `${s.tone}14`, color: s.tone }}
@@ -131,11 +131,26 @@ function AutomationDashboardScreen() {
             ))}
           </div>
 
-          <div className="card mt-4 p-5">
-            <p className="text-[13px] text-[#5f5e5e]">{t("automation.mostCommonFailedAction")}</p>
-            <p className="mt-1 text-[15px] font-semibold text-[#1a1c1c]" data-testid="most-common-failed">
-              {data.mostCommonFailedAction ?? t("common.none")}
-            </p>
+          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,0.38fr)]">
+            <div className="executive-panel p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[13px] text-[#5f5e5e]">{t("automation.mostCommonFailedAction")}</p>
+                  <p className="mt-1 text-[17px] font-semibold text-[#1a1c1c]" data-testid="most-common-failed">
+                    {data.mostCommonFailedAction ?? t("common.none")}
+                  </p>
+                </div>
+                <span className="flex h-11 w-11 items-center justify-center rounded-[13px] bg-[#fff1f0] text-[#b90014]">
+                  <span className="material-symbols-outlined text-[22px]">rule</span>
+                </span>
+              </div>
+            </div>
+            <div className="executive-panel p-5">
+              <p className="text-[13px] text-[#5f5e5e]">{t("automation.recentExecutions")}</p>
+              <p className="mt-1 text-[17px] font-semibold text-[#1a1c1c]">
+                {data.recentExecutions.length}
+              </p>
+            </div>
           </div>
 
           <div className="mt-6">
@@ -143,6 +158,7 @@ function AutomationDashboardScreen() {
               {t("automation.recentExecutions")}
             </h2>
             <CommonTable<ExecutionSummaryDto>
+              variant="executive"
               data={data.recentExecutions}
               keyExtractor={(e) => e.id}
               emptyMessage={t("automation.noRecentActivity")}

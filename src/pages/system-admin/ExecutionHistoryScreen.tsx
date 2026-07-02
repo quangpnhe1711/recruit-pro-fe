@@ -84,7 +84,7 @@ function ExecutionHistoryScreen() {
   ];
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="manage_history"
         title={t("automation.executionsTitle")}
@@ -107,7 +107,7 @@ function ExecutionHistoryScreen() {
         </div>
       ) : null}
 
-      <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <div className="executive-filter-bar mt-5 grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-5">
         <CommonSelect value={status} onValueChange={(v) => { setStatus(v); setPage(1); }} options={STATUS_OPTIONS} />
         <CommonSelect
           value={eventType}
@@ -138,6 +138,7 @@ function ExecutionHistoryScreen() {
       ) : (
         <div className="mt-4">
           <CommonTable<ExecutionSummaryDto>
+            variant="executive"
             data={data?.items ?? []}
             loading={loading}
             keyExtractor={(e) => e.id}

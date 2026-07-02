@@ -76,7 +76,7 @@ function WorkflowListScreen() {
   );
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="account_tree"
         title={t("automation.workflowsTitle")}
@@ -89,7 +89,7 @@ function WorkflowListScreen() {
         }
       />
 
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="executive-filter-bar mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <CommonSelect
           value={enabledFilter}
           onValueChange={setEnabledFilter}
@@ -119,6 +119,7 @@ function WorkflowListScreen() {
       ) : (
         <div className="mt-4">
           <CommonTable<WorkflowSummaryDto>
+            variant="executive"
             data={rows}
             loading={loading}
             keyExtractor={(w) => w.id}

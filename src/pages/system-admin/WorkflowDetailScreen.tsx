@@ -28,7 +28,7 @@ import {
 function VersionCard({ version, title }: { version: WorkflowVersionDto; title: string }) {
   const { t } = useI18n();
   return (
-    <div className="card p-5">
+    <div className="executive-section p-5">
       <div className="flex items-center justify-between">
         <h3 className="text-[15px] font-semibold text-[#1a1c1c]">
           {title} (v{version.versionNo})
@@ -67,7 +67,7 @@ function VersionCard({ version, title }: { version: WorkflowVersionDto; title: s
           </dt>
           <dd className="mt-1 space-y-2">
             {version.actions.map((a, i) => (
-              <div key={i} className="rounded-[8px] bg-[#fbfaf9] px-3 py-2">
+              <div key={i} className="rounded-[12px] border border-[#eee5e1] bg-[#fbf7f5] px-3 py-2">
                 <span className="font-medium text-[#1a1c1c]">{actionLabel(a.type)}</span>
                 <JsonDetails label={t("automation.configJson")} json={a.configJson} />
               </div>
@@ -134,14 +134,14 @@ function WorkflowDetailScreen() {
 
   if (loading) {
     return (
-      <div className="app-container py-8">
+      <div className="sysadmin-page">
         <SkeletonText lines={6} />
       </div>
     );
   }
   if (error || !wf) {
     return (
-      <div className="app-container py-8">
+      <div className="sysadmin-page">
         <ErrorState message={error ?? t("automation.workflowNotFound")} onRetry={load} />
       </div>
     );
@@ -152,7 +152,7 @@ function WorkflowDetailScreen() {
   const hasDraft = wf.versions.some((v) => !v.publishedAt);
 
   return (
-    <div className="app-container animate-fade-in py-8">
+    <div className="sysadmin-page animate-fade-in">
       <PageHeader
         icon="account_tree"
         title={wf.name}
@@ -193,18 +193,18 @@ function WorkflowDetailScreen() {
         {wf.activeVersion ? (
           <VersionCard version={wf.activeVersion} title={t("automation.activeVersion")} />
         ) : (
-          <div className="card p-5 text-[14px] text-[#8a8786]">
+          <div className="executive-section p-5 text-[14px] text-[#8a8786]">
             {t("automation.noActiveVersion")}
           </div>
         )}
 
-        <div className="card p-5">
+        <div className="executive-section p-5">
           <h3 className="text-[15px] font-semibold text-[#1a1c1c]">
             {t("automation.versionHistory")}
           </h3>
           <ul className="mt-3 space-y-2 text-[14px]">
             {wf.versions.map((v) => (
-              <li key={v.id} className="flex items-center justify-between rounded-[8px] bg-[#fbfaf9] px-3 py-2">
+              <li key={v.id} className="flex items-center justify-between rounded-[12px] border border-[#eee5e1] bg-[#fbf7f5] px-3 py-2">
                 <span>
                   v{v.versionNo} ·{" "}
                   {v.publishedAt
@@ -235,6 +235,7 @@ function WorkflowDetailScreen() {
       </div>
       <div className="mt-3">
         <CommonTable<ExecutionSummaryDto>
+          variant="executive"
           data={wf.recentExecutions}
           keyExtractor={(e) => e.id}
           emptyMessage={t("automation.emptyExecutions")}

@@ -14,6 +14,7 @@ import {
   getRoleHomePath,
 } from "../../permissions/rolePermissions";
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
+import LanguageSwitcher from "../../common/components/layout/LanguageSwitcher";
 
 const rememberedInternalIdentifierKey = "rp_internal_remembered_identifier";
 
@@ -30,6 +31,7 @@ function InternalLoginScreen() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const schema = yup.object({
     username: yup.string().required(t("auth.usernameRequired")),
@@ -40,7 +42,7 @@ function InternalLoginScreen() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<InternalLoginForm>({
     resolver: yupResolver(schema) as Resolver<InternalLoginForm>,
     defaultValues: {
@@ -53,6 +55,7 @@ function InternalLoginScreen() {
   const usernamePlaceholder = useMemo(() => t("auth.usernamePlaceholder"), [t]);
 
   async function onSubmit(data: InternalLoginForm) {
+    setLoginError(null);
     try {
       const res = await authService.internalLogin({
         username: data.username,
@@ -79,6 +82,7 @@ function InternalLoginScreen() {
         replace: true,
       });
     } catch {
+      setLoginError(t("auth.loginFailed"));
       toast.error(t("auth.loginFailed"));
     }
   }
@@ -89,38 +93,85 @@ function InternalLoginScreen() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#161313] text-[#1a1c1c]">
       <Seo title={t("auth.internalLoginTitle")} noindex />
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        className="pointer-events-none absolute inset-0"
         aria-hidden="true"
       >
-        <div className="h-full w-full bg-[#f9f9f9] [background-image:radial-gradient(#e31b23_0.5px,transparent_0.5px)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,#171313_0%,#211719_46%,#f4efeb_46%,#f7f4f1_100%)] max-lg:bg-[linear-gradient(180deg,#171313_0%,#24191b_38%,#f7f4f1_38%,#f7f4f1_100%)]" />
+        <div className="absolute left-[-12%] top-[-18%] h-[420px] w-[420px] rounded-full bg-[#b90014]/25 blur-[120px]" />
+        <div className="absolute right-0 top-0 h-full w-[54%] opacity-[0.34] [background-image:linear-gradient(#d8cfca_1px,transparent_1px),linear-gradient(90deg,#d8cfca_1px,transparent_1px)] [background-size:42px_42px] max-lg:w-full" />
+        <div className="absolute bottom-10 left-12 h-32 w-32 rounded-[28px] border border-white/10 bg-white/[0.03] max-lg:hidden" />
       </div>
 
-      <main className="relative z-10 flex flex-1 items-center justify-center px-5 py-10 md:px-10">
-        <div className="animate-fade-in-up flex w-full max-w-[440px] flex-col items-center">
-          <div className="mb-9 flex flex-col items-center text-center">
-            <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_10px_24px_rgba(185,0,20,0.28)]">
+      <div className="relative z-10 flex justify-end px-5 pt-5 md:px-8">
+        <LanguageSwitcher dark />
+      </div>
+
+      <main className="relative z-10 grid flex-1 items-center gap-8 px-5 pb-8 pt-5 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(430px,0.62fr)] lg:pb-10">
+        <section className="animate-fade-in-up hidden max-w-2xl text-white lg:block">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[12px] font-semibold text-[#ffdad6]">
+            <span className="material-symbols-outlined text-[16px]">shield_person</span>
+            {t("auth.internalPortalTag")}
+          </div>
+          <h1 className="mt-7 max-w-[12ch] text-[58px] font-semibold leading-[0.98] tracking-[-0.04em]">
+            RecruitPro Internal
+          </h1>
+          <p className="mt-5 max-w-md text-[15px] leading-7 text-[#d7cfcc]">
+            {t("auth.internalLoginSubtitle")}
+          </p>
+          <div className="mt-10 grid max-w-lg grid-cols-3 gap-3" aria-hidden="true">
+            {[0, 1, 2].map((item) => (
+              <div
+                key={item}
+                className="rounded-[16px] border border-white/[0.08] bg-white/[0.045] px-4 py-4"
+              >
+                <div className="h-2 w-10 rounded-full bg-white/12" />
+                <div className="mt-8 h-1 rounded-full bg-[#b90014]" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="animate-fade-in-up mx-auto flex w-full max-w-[480px] flex-col lg:mr-0">
+          <div className="mb-5 flex items-center gap-3 lg:hidden">
+            <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#b90014] text-white shadow-[0_16px_34px_-18px_rgba(185,0,20,0.8)]">
               <span className="material-symbols-outlined">shield_person</span>
             </span>
-            <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#1a1c1c] md:text-[36px]">
-              RecruitPro <span className="text-[#b90014]">Internal</span>
-            </h1>
-            <p className="eyebrow mt-2">{t("auth.internalPortalTag")}</p>
+            <div>
+              <h1 className="text-[25px] font-bold tracking-[-0.03em] text-white">
+                RecruitPro Internal
+              </h1>
+              <p className="text-[12px] font-semibold text-[#ffdad6]">
+                {t("auth.internalPortalTag")}
+              </p>
+            </div>
           </div>
 
-          <div className="card w-full p-6 md:p-8">
-            <div className="mb-6">
-              <h2 className="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-[#1a1c1c]">
-                {t("auth.internalLoginTitle")}
-              </h2>
-              <p className="mt-1.5 text-[14px] leading-6 text-[#5f5e5e]">
-                {t("auth.internalLoginSubtitle")}
-              </p>
+          <div className="executive-panel w-full p-5 md:p-7">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.03em] text-[#1a1c1c]">
+                  {t("auth.internalLoginTitle")}
+                </h2>
+                <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">
+                  {t("auth.internalLoginSubtitle")}
+                </p>
+              </div>
+              <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-[15px] border border-[#eadfdb] bg-[#fff7f6] text-[#b90014] sm:flex">
+                <span className="material-symbols-outlined">lock_person</span>
+              </span>
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+              {loginError ? (
+                <div className="flex items-start gap-3 rounded-[14px] border border-[#f3c5c8] bg-[#fff5f5] px-3.5 py-3 text-[13px] leading-5 text-[#a50d18]">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px]">error</span>
+                  <span>{loginError}</span>
+                </div>
+              ) : null}
+
               <div>
                 <label className="field-label" htmlFor="username">
                   {t("auth.username")}
@@ -134,7 +185,8 @@ function InternalLoginScreen() {
                     {...register("username")}
                     type="text"
                     placeholder={usernamePlaceholder}
-                    className="input-field h-12 pl-10"
+                    className="input-field auth-input pl-10"
+                    aria-invalid={!!errors.username}
                   />
                 </div>
                 {errors.username ? (
@@ -166,7 +218,8 @@ function InternalLoginScreen() {
                     {...register("password")}
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••••••"
-                    className="input-field h-12 pl-10 pr-12"
+                    className="input-field auth-input pl-10 pr-12"
+                    aria-invalid={!!errors.password}
                   />
                   <button
                     type="button"
@@ -204,10 +257,11 @@ function InternalLoginScreen() {
               <button
                 type="submit"
                 className="btn btn-primary h-12 w-full text-[14px]"
+                disabled={isSubmitting}
               >
-                {t("auth.login")}
+                {isSubmitting ? t("common.processing") : t("auth.login")}
                 <span className="material-symbols-outlined text-[18px]">
-                  arrow_forward
+                  {isSubmitting ? "progress_activity" : "arrow_forward"}
                 </span>
               </button>
             </form>
