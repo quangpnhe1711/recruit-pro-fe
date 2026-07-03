@@ -8,6 +8,7 @@ import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
+import { useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
 import {
@@ -34,9 +35,11 @@ type Job = {
   departmentHeadName: string | null;
 };
 
-const creatorAllOption = "Tất cả người tạo";
+const creatorAllOption = "allCreators";
+const departmentAllOption = "allDepartments";
 
 function buildJobTableColumns(
+  t: (key: string) => string,
   onOpenJobDetail: (job: Job) => void,
   onOpenApplications: (job: Job) => void,
   onOpenEdit: (job: Job) => void,
@@ -50,7 +53,7 @@ function buildJobTableColumns(
   return [
     {
       key: "title",
-      header: "Công việc",
+      header: t("jobManagement.job"),
       renderCell: (job) => (
         <div>
           <button
@@ -60,43 +63,43 @@ function buildJobTableColumns(
           >
             {job.title}
           </button>
-          <p className="font-mono text-[12px] text-[#5f5e5e]">Mã: {job.id}</p>
+          <p className="font-mono text-[12px] text-[#5f5e5e]">{t("jobManagement.code")}: {job.id}</p>
         </div>
       ),
     },
     {
       key: "department",
-      header: "Phòng ban",
+      header: t("jobManagement.department"),
       renderCell: (job) => (
         <p className="text-[14px] text-[#5f5e5e]">{job.department}</p>
       ),
     },
     {
       key: "owner",
-      header: "Phụ trách",
+      header: t("jobManagement.owners"),
       renderCell: (job) => (
         <div className="space-y-0.5 text-[12px] leading-5">
           <p className="text-[#1a1c1c]">
-            <span className="text-[#8a8786]">Recruiter: </span>
-            {job.recruiterName || job.createdByName || "Chưa phân công"}
+            <span className="text-[#8a8786]">{t("jobManagement.recruiter")}: </span>
+            {job.recruiterName || job.createdByName || t("jobManagement.unassigned")}
           </p>
           <p className="text-[#5f5e5e]">
-            <span className="text-[#8a8786]">Trưởng bộ phận: </span>
-            {job.departmentHeadName || "Chưa có trưởng bộ phận"}
+            <span className="text-[#8a8786]">{t("jobManagement.departmentHead")}: </span>
+            {job.departmentHeadName || t("jobManagement.noDepartmentHead")}
           </p>
         </div>
       ),
     },
     {
       key: "createdDate",
-      header: "Ngày tạo",
+      header: t("common.createdAt"),
       renderCell: (job) => (
         <p className="text-[14px] text-[#5f5e5e]">{job.createdDate}</p>
       ),
     },
     {
       key: "status",
-      header: "Trạng thái duyệt",
+      header: t("jobManagement.approvalStatus"),
       renderCell: (job) => {
         const presentation = getJobStatusPresentation(job.status);
         return (
@@ -108,7 +111,7 @@ function buildJobTableColumns(
     },
     {
       key: "actions",
-      header: "Thao tác",
+      header: t("common.actions"),
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (job) => (
@@ -116,7 +119,7 @@ function buildJobTableColumns(
           <button
             type="button"
             className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#1a1c1c]"
-            title="Xem chi tiết"
+            title={t("common.viewDetail")}
             onClick={() => onOpenJobDetail(job)}
           >
             <span className="material-symbols-outlined">visibility</span>
@@ -125,7 +128,7 @@ function buildJobTableColumns(
             <AsyncActionButton
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
-              title="Xóa"
+              title={t("common.delete")}
               loadingText=""
               onClick={() => onDeleteJob(job)}
               spinnerTone="brand"
@@ -141,6 +144,7 @@ function buildJobTableColumns(
 
 function JobManagementScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreateJobs = hasPermission(PERMISSIONS.JOB_CREATE);
   const canEditJobs = hasPermission(PERMISSIONS.JOB_UPDATE);
@@ -156,7 +160,7 @@ function JobManagementScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] =
-    useState<string>("Tất cả phòng ban");
+    useState<string>(departmentAllOption);
   const [statusFilter, setStatusFilter] = useState<"all" | JobStatus>("all");
   const [creatorFilter, setCreatorFilter] = useState<string>(creatorAllOption);
   const [page, setPage] = useState<number>(1);
@@ -182,7 +186,7 @@ function JobManagementScreen() {
             status: normalizeJobStatus(item.status) ?? JobStatus.PendingApproval,
             applicationsCount: item.applicationCount,
             createdByUserId: item.createdBy.id,
-            createdByName: item.createdBy.fullName || "Không rõ",
+            createdByName: item.createdBy.fullName || t("jobManagement.unknown"),
             recruiterName: item.recruiterName ?? null,
             departmentHeadName:
               item.effectiveDepartmentHeadName ?? item.departmentHeadName ?? null,
@@ -200,7 +204,7 @@ function JobManagementScreen() {
       .catch(() => {
         if (mounted) {
           setJobs([]);
-          toast.error("Không thể tải danh sách job");
+          toast.error(t("jobManagement.loadFailed"));
         }
       })
       .finally(() => {
@@ -217,7 +221,7 @@ function JobManagementScreen() {
   const filtered = useMemo(() => {
     return jobs
       .filter((j) =>
-        departmentFilter === "Tất cả phòng ban"
+        departmentFilter === departmentAllOption
           ? true
           : j.department === departmentFilter,
       )
@@ -246,8 +250,8 @@ function JobManagementScreen() {
       )
       .sort((a, b) => a.label.localeCompare(b.label));
 
-    return [{ label: creatorAllOption, value: creatorAllOption }, ...options];
-  }, [jobs]);
+    return [{ label: t("jobManagement.allCreators"), value: creatorAllOption }, ...options];
+  }, [jobs, t]);
 
   const departmentOptions = useMemo(() => {
     const options = jobs
@@ -259,7 +263,7 @@ function JobManagementScreen() {
       )
       .sort((a, b) => a.localeCompare(b));
 
-    return ["Tất cả phòng ban", ...options];
+    return [departmentAllOption, ...options];
   }, [jobs]);
 
   const pageSize = 10;
@@ -288,15 +292,15 @@ function JobManagementScreen() {
   }
 
   async function deleteJob(job: Job) {
-    const ok = window.confirm(`Xóa job ${job.title} (${job.id})?`);
+    const ok = window.confirm(t("jobManagement.deleteConfirm", { title: job.title, id: job.id }));
     if (!ok) return;
 
     try {
       await jobsService.deleteJob(job.id);
       setJobs((prev) => prev.filter((j) => j.id !== job.id));
-      toast.info("Đã xóa job.");
+      toast.info(t("jobManagement.deleted"));
     } catch {
-      toast.error("Không thể xóa job.");
+      toast.error(t("jobManagement.deleteFailed"));
     }
   }
 
@@ -367,10 +371,10 @@ function JobManagementScreen() {
     <div className="app-container animate-fade-in flex-grow py-8">
       {/* Header section */}
       <PageHeader
-        eyebrow="Tuyển dụng"
+        eyebrow={t("jobManagement.eyebrow")}
         icon="work"
-        title="Quản lý job"
-        subtitle="Quản lý tin tuyển dụng, theo dõi trạng thái duyệt và lượng hồ sơ ứng tuyển."
+        title={t("jobManagement.title")}
+        subtitle={t("jobManagement.subtitle")}
         className="mb-7"
         actions={
           <PermissionGuard permissions={PERMISSIONS.JOB_CREATE}>
@@ -381,7 +385,7 @@ function JobManagementScreen() {
               disabled={!canCreateJobs}
             >
               <span className="material-symbols-outlined text-[18px]">add</span>
-              <span>Đăng job mới</span>
+              <span>{t("jobManagement.postJob")}</span>
             </button>
           </PermissionGuard>
         }
@@ -420,7 +424,7 @@ function JobManagementScreen() {
             className="h-[42px] min-w-[180px] text-sm"
             wrapperClassName="w-full lg:w-auto"
             options={departmentOptions.map((department) => ({
-              label: department,
+              label: department === departmentAllOption ? t("jobManagement.allDepartments") : department,
               value: department,
             }))}
             value={departmentFilter}
@@ -452,11 +456,11 @@ function JobManagementScreen() {
         </div>
 
         <div className="shrink-0 text-[12px] font-semibold tracking-[0.04em] text-[#5f5e5e]">
-          Hiển thị{" "}
+          {t("jobManagement.showing")}{" "}
           <span className="font-bold text-[#1a1c1c]">
             {rangeStart}-{rangeEnd}
           </span>{" "}
-          trên tổng{" "}
+          {t("common.of")}{" "}
           <span className="font-bold text-[#1a1c1c]">{totalItems}</span>
         </div>
       </div>
@@ -464,6 +468,7 @@ function JobManagementScreen() {
       {/* Job table */}
       <CommonTable
         columns={buildJobTableColumns(
+          t,
           openJobDetail,
           openApplications,
           openEdit,
@@ -477,7 +482,7 @@ function JobManagementScreen() {
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={loading}
-        emptyMessage="Không tìm thấy job phù hợp bộ lọc hiện tại."
+        emptyMessage={t("jobManagement.empty")}
         emptyIcon="work_off"
         hover
         onRowClick={(item) => openJobDetail(item)}

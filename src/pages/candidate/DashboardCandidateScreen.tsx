@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store";
+import { useI18n } from "../../i18n";
 import EmptyState from "../../common/components/EmptyState";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import {
@@ -16,6 +17,7 @@ import {
 } from "../../services/candidate/candidateService";
 
 function DashboardCandidateScreen() {
+  const { t } = useI18n();
   const [dashboard, setDashboard] = useState<CandidateDashboardDto | null>(
     null,
   );
@@ -104,8 +106,8 @@ function DashboardCandidateScreen() {
         <div className="card">
           <EmptyState
             icon="dashboard"
-            title="Bảng điều khiển ứng viên"
-            description="Hiện chưa thể tải dữ liệu bảng điều khiển. Vui lòng thử lại."
+            title={t("candidateDashboard.emptyTitle")}
+            description={t("candidateDashboard.emptyDescription")}
           />
         </div>
       </section>
@@ -115,26 +117,31 @@ function DashboardCandidateScreen() {
   const statCards = [
     {
       icon: "assignment",
-      label: "Việc đã ứng tuyển",
+      label: t("candidateDashboard.stats.appliedJobs"),
       value: String(dashboard.stats.appliedJobs).padStart(2, "0"),
-      helper: dashboard.stats.appliedJobs > 0 ? "Đang theo dõi tiến trình" : "Chưa có đơn ứng tuyển",
+      helper:
+        dashboard.stats.appliedJobs > 0
+          ? t("candidateDashboard.stats.appliedJobsActive")
+          : t("candidateDashboard.stats.appliedJobsEmpty"),
     },
     {
       icon: "event",
-      label: "Phỏng vấn",
+      label: t("candidateDashboard.stats.interviews"),
       value: String(dashboard.stats.interviews).padStart(2, "0"),
       helper: dashboard.upcomingInterview
-        ? `Lịch gần nhất lúc ${dashboard.upcomingInterview.time}`
-        : "Không có lịch phỏng vấn sắp tới",
+        ? t("candidateDashboard.stats.interviewsWithTime", {
+            time: dashboard.upcomingInterview.time,
+          })
+        : t("candidateDashboard.stats.interviewsEmpty"),
     },
     {
       icon: "notifications_active",
-      label: "Thông báo chưa đọc",
+      label: t("candidateDashboard.stats.unreadNotifications"),
       value: String(dashboard.stats.unreadNotifications).padStart(2, "0"),
       helper:
         dashboard.stats.unreadNotifications > 0
-          ? "Có cập nhật mới"
-          : "Không có thông báo chưa đọc",
+          ? t("candidateDashboard.stats.unreadNotificationsActive")
+          : t("candidateDashboard.stats.unreadNotificationsEmpty"),
     },
   ];
 
@@ -160,15 +167,19 @@ function DashboardCandidateScreen() {
   return (
     <section className="app-container animate-fade-in py-8">
       <div className="mb-8">
-        <p className="eyebrow mb-1.5">Bảng điều khiển</p>
+        <p className="eyebrow mb-1.5">{t("candidateDashboard.eyebrow")}</p>
         <h1 className="page-title">
-          Chào mừng quay lại,{" "}
-          {dashboard?.greetingName ?? user?.fullName ?? "Ứng viên"}
+          {t("candidateDashboard.welcome", {
+            name: dashboard?.greetingName ?? user?.fullName ?? t("roles.candidate"),
+          })}
         </h1>
         <p className="page-subtitle">
           {stats
-            ? `Bạn có ${stats.interviews} lịch phỏng vấn và ${stats.unreadNotifications} thông báo mới.`
-            : "Chưa có hoạt động nào trên bảng điều khiển."}
+            ? t("candidateDashboard.subtitleActive", {
+                interviews: stats.interviews,
+                notifications: stats.unreadNotifications,
+              })
+            : t("candidateDashboard.subtitleEmpty")}
         </p>
       </div>
 
@@ -203,7 +214,7 @@ function DashboardCandidateScreen() {
             <span className="material-symbols-outlined text-[20px] text-[#b90014]">
               calendar_today
             </span>
-            <h2 className="section-title">Phỏng vấn sắp tới</h2>
+            <h2 className="section-title">{t("candidateDashboard.upcomingInterviewTitle")}</h2>
           </div>
 
           <div className="flex h-full min-h-[280px] flex-col overflow-hidden rounded-[16px] bg-[#1a1c1c] p-6 text-white shadow-[var(--shadow-lg)]">
@@ -211,37 +222,37 @@ function DashboardCandidateScreen() {
               {upcomingInterview ? (
                 <span className="badge bg-[#b90014] text-white">
                   <span className="badge-dot bg-white" />
-                  Sắp diễn ra
+                  {t("candidateDashboard.upcomingStatusScheduled")}
                 </span>
               ) : (
-                <span className="badge bg-white/10 text-white/70">Trống lịch</span>
+                <span className="badge bg-white/10 text-white/70">{t("candidateDashboard.upcomingStatusEmpty")}</span>
               )}
               <h3 className="mt-4 text-[30px] font-semibold leading-9 tracking-[-0.01em]">
-                {upcomingInterview?.time ?? "Chưa có lịch sắp tới"}
+                {upcomingInterview?.time ?? t("candidateDashboard.upcomingTimeEmpty")}
               </h3>
               <p className="mt-1 text-[15px] leading-6 text-[#c8c6c5]">
-                {upcomingInterview?.date ?? "Chưa có lịch phỏng vấn"}
+                {upcomingInterview?.date ?? t("candidateDashboard.upcomingDateEmpty")}
               </p>
             </div>
 
             <div className="mb-8 space-y-4">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff857c]">
-                  Vị trí
+                  {t("candidateDashboard.positionLabel")}
                 </span>
                 <span className="text-[15px] font-semibold">
-                  {upcomingInterview?.jobTitle ?? "Chưa có lịch phỏng vấn"}
+                  {upcomingInterview?.jobTitle ?? t("candidateDashboard.upcomingDateEmpty")}
                 </span>
               </div>
 
               <div className="flex flex-col gap-0.5">
                 <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ff857c]">
-                  Người phỏng vấn
+                  {t("candidateDashboard.interviewerLabel")}
                 </span>
                 <span className="text-[15px]">
                   {upcomingInterview
                     ? `${upcomingInterview.interviewerName}, ${upcomingInterview.interviewerTitle}`
-                    : "Chưa phân công người phỏng vấn"}
+                    : t("candidateDashboard.interviewerEmpty")}
                 </span>
               </div>
             </div>
@@ -257,7 +268,7 @@ function DashboardCandidateScreen() {
               <span className="material-symbols-outlined text-[18px]">
                 video_call
               </span>
-              Tham gia cuộc họp
+              {t("candidateDashboard.joinMeeting")}
             </a>
           </div>
         </div>
@@ -268,13 +279,13 @@ function DashboardCandidateScreen() {
               <span className="material-symbols-outlined text-[20px] text-[#b90014]">
                 recommend
               </span>
-              <h2 className="section-title">Việc làm gợi ý</h2>
+              <h2 className="section-title">{t("candidateDashboard.recommendedTitle")}</h2>
             </div>
             <Link
               className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#b90014] hover:underline"
               to="/jobs"
             >
-              Xem tất cả tin tuyển dụng
+              {t("candidateDashboard.viewAllJobs")}
               <span className="material-symbols-outlined text-[16px]">
                 arrow_forward
               </span>
@@ -285,14 +296,14 @@ function DashboardCandidateScreen() {
             <div className="card">
               <EmptyState
                 icon="work_off"
-                title="Chưa có việc làm gợi ý"
-                description="Khi có vị trí phù hợp với hồ sơ của bạn, chúng sẽ xuất hiện ở đây."
+                title={t("candidateDashboard.recommendedEmptyTitle")}
+                description={t("candidateDashboard.recommendedEmptyDescription")}
                 action={
                   <Link to="/jobs" className="btn btn-primary">
                     <span className="material-symbols-outlined text-[18px]">
                       search
                     </span>
-                    Khám phá việc làm
+                    {t("candidateDashboard.exploreJobs")}
                   </Link>
                 }
               />
@@ -311,7 +322,7 @@ function DashboardCandidateScreen() {
                       );
                     }}
                     disabled={!canGoPreviousRecommended}
-                    aria-label="Xem nhóm việc làm gợi ý trước"
+                    aria-label={t("candidateDashboard.previousRecommendations")}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       chevron_left
@@ -320,17 +331,17 @@ function DashboardCandidateScreen() {
 
                   <div className="min-w-0">
                     <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#b90014]">
-                      Gợi ý nổi bật
+                      {t("candidateDashboard.featuredRecommendations")}
                     </p>
                     <p className="mt-1 text-[13px] font-semibold text-[#5f5e5e]">
-                      <span className="text-[#1a1c1c]">
-                        {safeRecommendedPage * recommendedPageSize + 1}-
-                        {Math.min(
+                      {t("candidateDashboard.recommendationRange", {
+                        start: safeRecommendedPage * recommendedPageSize + 1,
+                        end: Math.min(
                           (safeRecommendedPage + 1) * recommendedPageSize,
                           recommendedJobs.length,
-                        )}
-                      </span>{" "}
-                      trong {recommendedJobs.length} gợi ý phù hợp
+                        ),
+                        total: recommendedJobs.length,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -349,7 +360,7 @@ function DashboardCandidateScreen() {
                       );
                     }}
                     disabled={!canGoNextRecommended}
-                    aria-label="Xem nhóm việc làm gợi ý tiếp theo"
+                    aria-label={t("candidateDashboard.nextRecommendations")}
                   >
                     <span className="material-symbols-outlined text-[20px]">
                       chevron_right
@@ -406,7 +417,7 @@ function DashboardCandidateScreen() {
                       className="btn btn-secondary mt-auto w-full border-rose-200 bg-white/85 text-[#b90014] hover:border-rose-300 hover:bg-white hover:shadow-[0_12px_26px_-18px_rgba(185,0,20,0.75)]"
                       to={`/jobs/${job.id}`}
                     >
-                      {job.actionLabel ?? "Ứng tuyển nhanh"}
+                      {job.actionLabel ?? t("candidateDashboard.quickApply")}
                       <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-0.5">
                         arrow_forward
                       </span>

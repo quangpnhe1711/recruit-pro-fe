@@ -2,6 +2,7 @@
 // Extracted so the screen orchestrator stays readable and each piece is reusable.
 
 import { type ReactNode, Fragment } from "react";
+import { translate } from "../../../i18n";
 import {
   AI_RANKING_COPY,
   normalizeEducation,
@@ -63,19 +64,19 @@ export const TOOL_META: Record<
   { label: string; icon: string; hint: string }
 > = {
   fit: {
-    label: "Phân tích độ phù hợp",
+    label: translate("aiCopilot.tools.fit.label"),
     icon: "insights",
-    hint: "AI chấm điểm mức phù hợp của ứng viên với JD",
+    hint: translate("aiCopilot.tools.fit.hint"),
   },
   questions: {
-    label: "Câu hỏi phỏng vấn",
+    label: translate("aiCopilot.tools.questions.label"),
     icon: "quiz",
-    hint: "Gợi ý bộ câu hỏi phỏng vấn theo hồ sơ",
+    hint: translate("aiCopilot.tools.questions.hint"),
   },
   email: {
-    label: "Soạn email",
+    label: translate("aiCopilot.tools.email.label"),
     icon: "mail",
-    hint: "Viết nháp email mời phỏng vấn cho ứng viên",
+    hint: translate("aiCopilot.tools.email.hint"),
   },
 };
 
@@ -121,11 +122,11 @@ export function buildCriteriaPrompt(
 ) {
   const priorityText = priorityCriteria.map((criterion) => {
     const label = criterion.label || criterion.value;
-    return `Priority ${criterion.field}: ${label}`;
+    return `${translate("aiCopilot.priority")} ${criterion.field}: ${label}`;
   });
   const negativeText = negativeCriteria.map((criterion) => {
     const label = criterion.label || criterion.value;
-    return `${criterion.autoReject ? "Reject" : "Penalize"} ${criterion.field}: ${label}`;
+    return `${criterion.autoReject ? translate("aiCopilot.reject") : translate("aiCopilot.penalize")} ${criterion.field}: ${label}`;
   });
   return [...priorityText, ...negativeText].join(". ");
 }
@@ -137,7 +138,7 @@ export function buildPresetSuggestion(
   const labels = [...priorityCriteria, ...negativeCriteria]
     .map((criterion) => describeCriterion(criterion).trim())
     .filter(Boolean);
-  if (labels.length === 0) return "Bộ tiêu chí đã lưu";
+  if (labels.length === 0) return translate("aiCopilot.savedPreset");
   return labels.length === 1 ? labels[0] : `${labels[0]} +${labels.length - 1}`;
 }
 
@@ -190,10 +191,10 @@ export function rowStatus(
 }
 
 export const ROW_STATUS_LABEL: Record<RankingRowStatus, string> = {
-  ready: "Chưa chấm",
-  reviewing: "Đang chấm",
-  ranked: "Đã chấm",
-  rejected: "Đã loại",
+  ready: translate("aiCopilot.rowStatus.ready"),
+  reviewing: translate("aiCopilot.rowStatus.reviewing"),
+  ranked: translate("aiCopilot.rowStatus.ranked"),
+  rejected: translate("aiCopilot.rowStatus.rejected"),
 };
 
 export const ROW_STATUS_TONE: Record<RankingRowStatus, string> = {
@@ -239,22 +240,22 @@ function buildCandidateAnalysisLine(result: CopilotRankingResultDto) {
   const strengths = result.strengths.slice(0, 2).join(", ");
   const weaknesses = result.weaknesses.slice(0, 2).join(", ");
   if (result.isAutoRejected) {
-    return `- **${result.fullName}**: ${result.rejectReason || weaknesses || "không đạt tiêu chí hiện tại"}.`;
+    return `- **${result.fullName}**: ${result.rejectReason || weaknesses || translate("aiCopilot.notMeetingCriteria")}.`;
   }
   const parts = [
     strengths ? `phù hợp ở ${strengths}` : "",
     weaknesses ? `lưu ý ${weaknesses}` : "",
   ].filter(Boolean);
-  return `- **${result.fullName}**: ${parts.join("; ") || "đã được AI phân tích."}`;
+  return `- **${result.fullName}**: ${parts.join("; ") || translate("aiCopilot.analyzed")}`;
 }
 
 export function buildAssistantSummaryFromResults(results: CopilotRankingResultDto[]) {
   const shortlisted = results.filter((item) => !item.isAutoRejected).slice(0, 3);
   const rejected = results.filter((item) => item.isAutoRejected).slice(0, 2);
   const lines = [
-    ...(shortlisted.length > 0 ? ["Ứng viên nổi bật:"] : []),
+    ...(shortlisted.length > 0 ? [translate("aiCopilot.topCandidates")] : []),
     ...shortlisted.map((item) => buildCandidateAnalysisLine(item)),
-    ...(rejected.length > 0 ? ["", "Ứng viên cần lưu ý:"] : []),
+    ...(rejected.length > 0 ? ["", translate("aiCopilot.flaggedCandidates")] : []),
     ...rejected.map((item) => buildCandidateAnalysisLine(item)),
   ];
   return lines.join("\n");
@@ -262,13 +263,16 @@ export function buildAssistantSummaryFromResults(results: CopilotRankingResultDt
 
 export function buildDefaultAssistantContext(pool: CopilotCandidatePoolDto | null) {
   if (!pool) {
-    return "Chọn một vị trí để tôi nạp mô tả công việc và danh sách ứng viên cho cuộc trao đổi này.";
+    return translate("aiCopilot.selectJobFirst");
   }
   const requiredSkills = pool.job.requiredSkills.slice(0, 5).join(", ");
   const skillsLine = requiredSkills
-    ? `Kỹ năng chính: ${requiredSkills}.`
-    : "Vị trí này chưa cấu hình kỹ năng bắt buộc.";
-  return `Xin chào! Tôi là trợ lý tuyển dụng AI cho vị trí "${pool.job.title}". ${skillsLine} Bạn có thể hỏi tôi về ứng viên, cách sàng lọc, hoặc yêu cầu tôi xếp hạng theo tiêu chí.`;
+    ? translate("aiCopilot.primarySkills", { skills: requiredSkills })
+    : translate("aiCopilot.noRequiredSkillsConfigured");
+  return translate("aiCopilot.defaultAssistantContext", {
+    jobTitle: pool.job.title,
+    skillsLine,
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -346,7 +350,7 @@ export function CandidateAvatar({ name }: { name: string }) {
     .toUpperCase();
   return (
     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[12px] font-bold text-[#b90014]">
-      {initials || "?"}
+      {initials || translate("aiCopilot.unknownInitial")}
     </span>
   );
 }
@@ -419,7 +423,7 @@ export function EducationCell({ education }: { education: string | null }) {
       {entries.slice(0, 2).map((entry, index) => (
         <div key={`edu-${index.toString()}`}>
           <p className="text-[13px] font-medium text-[#1a1c1c]">
-            {entry.school ?? entry.degree ?? entry.text ?? "—"}
+            {entry.school ?? entry.degree ?? entry.text ?? translate("aiCopilot.dash")}
           </p>
           {(entry.degree || entry.fieldOfStudy) && !entry.text ? (
             <p className="text-[12px] text-[#5f5e5e]">
@@ -429,7 +433,9 @@ export function EducationCell({ education }: { education: string | null }) {
         </div>
       ))}
       {entries.length > 2 ? (
-        <p className="text-[12px] font-medium text-[#8a8786]">+{entries.length - 2} mục khác</p>
+        <p className="text-[12px] font-medium text-[#8a8786]">
+          {translate("aiCopilot.moreItems", { count: entries.length - 2 })}
+        </p>
       ) : null}
     </div>
   );

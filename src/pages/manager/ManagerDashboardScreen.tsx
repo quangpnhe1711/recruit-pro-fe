@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import EmptyState from "../../common/components/EmptyState";
 import PageHeader from "../../common/components/PageHeader";
+import { useI18n } from "../../i18n";
 import { managerService, type ManagerDashboardDto } from "../../services/manager/managerService";
 
 function statusChipTone(status: string) {
@@ -20,6 +21,7 @@ function statusChipTone(status: string) {
 
 function ManagerDashboardScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [dashboard, setDashboard] = useState<ManagerDashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -128,8 +130,8 @@ function ManagerDashboardScreen() {
         <div className="surface-card p-10">
           <EmptyState
             icon="error"
-            title="Bảng điều khiển quản lý"
-            description="Hiện chưa thể tải dữ liệu bảng điều khiển. Vui lòng thử lại."
+            title={t("managerDashboard.title")}
+            description={t("managerDashboard.loadFailed")}
           />
         </div>
       </div>
@@ -147,10 +149,10 @@ function ManagerDashboardScreen() {
   return (
     <div className="app-container animate-fade-in space-y-6 py-8">
       <PageHeader
-        eyebrow="Bảng điều khiển"
+        eyebrow={t("managerDashboard.eyebrow")}
         icon="insights"
-        title="Bảng điều khiển quản lý"
-        subtitle="Theo dõi tập trung vào quyết định duyệt job, review ứng viên và sức khỏe pipeline tuyển dụng."
+        title={t("managerDashboard.title")}
+        subtitle={t("managerDashboard.subtitle")}
         actions={
           <>
             <button
@@ -159,7 +161,7 @@ function ManagerDashboardScreen() {
               onClick={() => navigate("/manager/applications")}
             >
               <span className="material-symbols-outlined text-[18px]">description</span>
-              Mở hàng chờ review
+              {t("managerDashboard.openReviewQueue")}
             </button>
             <button
               type="button"
@@ -167,7 +169,7 @@ function ManagerDashboardScreen() {
               onClick={() => navigate("/jobs")}
             >
               <span className="material-symbols-outlined text-[18px]">approval</span>
-              Duyệt job
+              {t("managerDashboard.reviewJobs")}
             </button>
           </>
         }
@@ -198,8 +200,8 @@ function ManagerDashboardScreen() {
         <div className="space-y-6 lg:col-span-2">
           <section className="card overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#f0eceb] px-5 py-4">
-              <h4 className="section-title">Job chờ phê duyệt</h4>
-              <span className="badge bg-[#fff1f0] text-[#b90014]">Cần xử lý</span>
+              <h4 className="section-title">{t("managerDashboard.pendingApprovalsTitle")}</h4>
+              <span className="badge bg-[#fff1f0] text-[#b90014]">{t("managerDashboard.needsAction")}</span>
             </div>
 
             {dashboard.pendingApprovals.length ? (
@@ -227,7 +229,7 @@ function ManagerDashboardScreen() {
                       onClick={() => navigate("/jobs")}
                     >
                       <span className="material-symbols-outlined text-[18px]">visibility</span>
-                      Xem và duyệt
+                      {t("managerDashboard.viewAndReview")}
                     </button>
                   </div>
                 ))}
@@ -235,15 +237,15 @@ function ManagerDashboardScreen() {
             ) : (
               <EmptyState
                 icon="task_alt"
-                title="Không có job chờ duyệt"
-                description="Không có job nào đang chờ phê duyệt."
+                title={t("managerDashboard.noPendingJobs")}
+                description={t("managerDashboard.noPendingJobsDesc")}
               />
             )}
           </section>
 
           <section className="card overflow-hidden">
             <div className="border-b border-[#f0eceb] px-5 py-4">
-              <h4 className="section-title">Cần quyết định cuối</h4>
+              <h4 className="section-title">{t("managerDashboard.finalDecisionsTitle")}</h4>
             </div>
             <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
               {dashboard.finalDecisions.length ? (
@@ -276,7 +278,7 @@ function ManagerDashboardScreen() {
                         className="btn btn-dark mt-3 h-10 w-full"
                         onClick={() => navigate(`/manager/applications/${item.applicationId}`)}
                       >
-                        Mở review
+                        {t("managerDashboard.openReview")}
                       </button>
                     </div>
                   </article>
@@ -285,8 +287,8 @@ function ManagerDashboardScreen() {
                 <div className="md:col-span-2">
                   <EmptyState
                     icon="how_to_reg"
-                    title="Chưa có quyết định cần xử lý"
-                    description="Hiện chưa có ứng viên nào cần quản lý quyết định cuối."
+                    title={t("managerDashboard.noFinalDecisions")}
+                    description={t("managerDashboard.noFinalDecisionsDesc")}
                   />
                 </div>
               )}
@@ -296,7 +298,7 @@ function ManagerDashboardScreen() {
 
         <div className="space-y-6">
           <section className="card p-5">
-            <h4 className="eyebrow mb-5">Chu kỳ duyệt theo phòng ban (ngày)</h4>
+            <h4 className="eyebrow mb-5">{t("managerDashboard.departmentCycleTitle")}</h4>
             <div className="space-y-4">
               {dashboard?.departmentHiringSpeed.length ? (
                 dashboard.departmentHiringSpeed.map((item, index) => (
@@ -314,13 +316,13 @@ function ManagerDashboardScreen() {
                   </div>
                 ))
               ) : (
-                <p className="text-[13px] text-[#5f5e5e]">Chưa có chu kỳ phỏng vấn hoàn tất để thống kê.</p>
+                <p className="text-[13px] text-[#5f5e5e]">{t("managerDashboard.noCycleData")}</p>
               )}
             </div>
           </section>
 
           <section className="card p-5">
-            <h4 className="eyebrow mb-5">Phễu tuyển dụng</h4>
+            <h4 className="eyebrow mb-5">{t("managerDashboard.funnelTitle")}</h4>
             <div className="flex flex-col gap-2">
               {(dashboard?.recruitmentFunnel ?? []).map((item, index) => (
                 <div
@@ -335,12 +337,12 @@ function ManagerDashboardScreen() {
               ))}
             </div>
             <p className="mt-6 text-center text-[12px] text-[#5f5e5e]">
-              Tỷ lệ chuyển đổi tới offer: <span className="font-bold text-[#1a1c1c]">{funnelConversionRate}%</span>
+              {t("managerDashboard.offerConversion")}: <span className="font-bold text-[#1a1c1c]">{funnelConversionRate}%</span>
             </p>
           </section>
 
           <section className="relative overflow-hidden rounded-[16px] bg-gradient-to-br from-[#232525] to-[#161718] p-6 text-white">
-            <p className="eyebrow mb-4 text-white/60">Thao tác nhanh</p>
+            <p className="eyebrow mb-4 text-white/60">{t("managerDashboard.quickActions")}</p>
             <ul className="relative z-10 space-y-3.5">
               <li>
                 <button
@@ -349,7 +351,7 @@ function ManagerDashboardScreen() {
                   onClick={() => navigate("/manager/applications")}
                 >
                   <span className="material-symbols-outlined text-[20px] text-[#b90014]">how_to_reg</span>
-                  Xem quyết định cuối của ứng viên
+                  {t("managerDashboard.viewFinalDecisions")}
                 </button>
               </li>
               <li>
@@ -359,7 +361,7 @@ function ManagerDashboardScreen() {
                   onClick={() => navigate("/jobs")}
                 >
                   <span className="material-symbols-outlined text-[20px] text-[#b90014]">approval</span>
-                  Duyệt các yêu cầu tuyển dụng đang chờ
+                  {t("managerDashboard.reviewPendingJobs")}
                 </button>
               </li>
               <li>
@@ -369,7 +371,7 @@ function ManagerDashboardScreen() {
                   onClick={() => navigate("/manager/reports")}
                 >
                   <span className="material-symbols-outlined text-[20px] text-[#8a8786]">monitoring</span>
-                  Mở báo cáo tuyển dụng
+                  {t("managerDashboard.openReports")}
                 </button>
               </li>
             </ul>

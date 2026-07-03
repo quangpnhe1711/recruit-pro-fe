@@ -8,6 +8,7 @@ import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
 import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
+import { useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 
@@ -41,13 +42,6 @@ const TIMEFRAME_LABELS: Record<Timeframe, string> = {
 };
 
 const STATUS_FILTER_ALL = "ALL_STATUSES";
-
-const interviewStatusOptions = [
-  { label: "Tất cả", value: STATUS_FILTER_ALL },
-  { label: "Confirmed", value: "Scheduled" },
-  { label: "Completed", value: "Completed" },
-  { label: "Canceled", value: "Canceled" },
-];
 
 const timeframeOptions = [
   { label: TIMEFRAME_LABELS["Next 7 Days"], value: "Next 7 Days" },
@@ -122,6 +116,7 @@ function toCsvValue(value: string) {
 }
 
 function buildInterviewTableColumns(
+  t: (key: string) => string,
   statusChipFn: (status: InterviewStatus) => string,
   openMenuId: string | null,
   setOpenMenuId: (id: string | null) => void,
@@ -140,7 +135,7 @@ function buildInterviewTableColumns(
   return [
     {
       key: "candidateName",
-      header: "Ứng viên",
+      header: t("jobInterviewList.candidate"),
       renderCell: (item) => (
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[12px] font-bold text-[#b90014]">
@@ -155,17 +150,17 @@ function buildInterviewTableColumns(
     },
     {
       key: "jobTitle",
-      header: "Vị trí tuyển dụng",
+      header: t("jobInterviewList.jobTitle"),
       renderCell: (item) => item.jobTitle,
     },
     {
       key: "interviewer",
-      header: "Người phỏng vấn",
+      header: t("jobInterviewList.interviewer"),
       renderCell: (item) => item.interviewer,
     },
     {
       key: "dateLabel",
-      header: "Ngày & giờ",
+      header: t("jobInterviewList.dateTime"),
       renderCell: (item) => (
         <div>
           <p className="font-bold">{item.dateLabel}</p>
@@ -175,7 +170,7 @@ function buildInterviewTableColumns(
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("common.status"),
       renderCell: (item) => {
         const timingStatus = getInterviewTimingStatus(
           item.startAt,
@@ -199,7 +194,7 @@ function buildInterviewTableColumns(
     },
     {
       key: "actions",
-      header: "Thao tác",
+      header: t("common.actions"),
       headerClassName: "text-right",
       alignRight: true,
       renderCell: (item) => {
@@ -219,7 +214,7 @@ function buildInterviewTableColumns(
                   e.stopPropagation();
                   setOpenMenuId(openMenuId === item.id ? null : item.id);
                 }}
-                aria-label="Thao tác"
+                aria-label={t("common.actions")}
               >
                 <span className="material-symbols-outlined">more_vert</span>
               </button>
@@ -243,7 +238,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       visibility
                     </span>
-                    Xem chi tiết
+                    {t("common.viewDetail")}
                   </button>
                 ) : null}
                 {actions.canUpdateInterviews ? (
@@ -256,7 +251,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       schedule
                     </span>
-                    Đổi lịch
+                    {t("jobInterviewList.reschedule")}
                   </button>
                 ) : null}
                 {actions.canApproveInterviews ? (
@@ -270,7 +265,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       check_circle
                     </span>
-                    Đánh dấu hoàn tất
+                    {t("jobInterviewList.markCompleted")}
                   </AsyncActionButton>
                 ) : null}
                 {actions.canDeleteInterviews ? (
@@ -284,7 +279,7 @@ function buildInterviewTableColumns(
                     <span className="material-symbols-outlined text-[18px]">
                       close
                     </span>
-                    Hủy lịch
+                    {t("jobInterviewList.cancelInterview")}
                   </AsyncActionButton>
                 ) : null}
               </div>
@@ -298,6 +293,7 @@ function buildInterviewTableColumns(
 
 function JobInterviewListScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { hasPermission } = usePermissions();
   const canViewInterviews = hasPermission(PERMISSIONS.INTERVIEW_VIEW_ALL);
   const canExportInterviews = hasPermission(PERMISSIONS.INTERVIEW_EXPORT);
@@ -305,6 +301,17 @@ function JobInterviewListScreen() {
   const canUpdateInterviews = hasPermission(PERMISSIONS.INTERVIEW_UPDATE);
   const canApproveInterviews = hasPermission(PERMISSIONS.INTERVIEW_APPROVE);
   const canDeleteInterviews = hasPermission(PERMISSIONS.INTERVIEW_DELETE);
+  const interviewStatusOptions = [
+    { label: t("common.all"), value: STATUS_FILTER_ALL },
+    { label: t("jobInterviewList.statusScheduled"), value: "Scheduled" },
+    { label: t("jobInterviewList.statusCompleted"), value: "Completed" },
+    { label: t("jobInterviewList.statusCanceled"), value: "Canceled" },
+  ];
+  const timeframeOptions = [
+    { label: t("jobInterviewList.next7Days"), value: "Next 7 Days" },
+    { label: t("jobInterviewList.last30Days"), value: "Last 30 Days" },
+    { label: t("jobInterviewList.customRange"), value: "Custom Range" },
+  ];
 
   const [items, setItems] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -360,7 +367,7 @@ function JobInterviewListScreen() {
       .catch(() => {
         if (!mounted) return;
         setItems([]);
-        toast.error("Không thể tải danh sách lịch phỏng vấn");
+        toast.error(t("jobInterviewList.loadFailed"));
       })
       .finally(() => {
         if (mounted) {
@@ -472,13 +479,13 @@ function JobInterviewListScreen() {
 
   function exportCsv() {
     const header = [
-      "Ứng viên",
-      "Email",
-      "Vị trí tuyển dụng",
-      "Người phỏng vấn",
-      "Ngày",
-      "Giờ",
-      "Trạng thái",
+      t("jobInterviewList.candidate"),
+      t("common.email"),
+      t("jobInterviewList.jobTitle"),
+      t("jobInterviewList.interviewer"),
+      t("jobInterviewList.date"),
+      t("jobInterviewList.time"),
+      t("common.status"),
     ];
 
     const rows = filtered.map((it) => [
@@ -493,18 +500,18 @@ function JobInterviewListScreen() {
 
     const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
     downloadTextFile("interview_schedule.csv", csv, "text/csv");
-    toast.success("Đã xuất file CSV.");
+    toast.success(t("jobInterviewList.exported"));
   }
 
   function openDetails(it: Interview) {
     toast.info(
-      `Đang mở chi tiết buổi phỏng vấn: ${it.candidateName} · ${it.jobTitle}`,
+      t("jobInterviewList.openingDetails", { candidate: it.candidateName, job: it.jobTitle }),
     );
   }
 
   const markCompleted = useCallback(async (it: Interview) => {
     if (normalizeInterviewStatus(it.status) === "Completed") {
-      toast.info("Buổi phỏng vấn này đã hoàn tất.");
+      toast.info(t("jobInterviewList.alreadyCompleted"));
       return;
     }
 
@@ -513,17 +520,17 @@ function JobInterviewListScreen() {
       setItems((prev) =>
         prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
       );
-      toast.success("Đã đánh dấu hoàn tất.");
+      toast.success(t("jobInterviewList.completedSuccess"));
       setOpenMenuForId(null);
     } catch {
-      toast.error("Không thể cập nhật trạng thái phỏng vấn");
+      toast.error(t("jobInterviewList.completeFailed"));
     }
   }, []);
 
   const reschedule = useCallback(
     (it: Interview) => {
       setOpenMenuForId(null);
-      toast.info("Đang mở lịch phỏng vấn...");
+      toast.info(t("jobInterviewList.openingSchedule"));
       navigate("/hr/interviews/schedule", {
         state: {
           applicationId: it.applicationId,
@@ -535,17 +542,17 @@ function JobInterviewListScreen() {
 
   const cancelInterview = useCallback(async (it: Interview) => {
     const ok = window.confirm(
-      `Bạn có chắc muốn hủy lịch phỏng vấn của ${it.candidateName}?`,
+      t("jobInterviewList.cancelConfirm", { candidate: it.candidateName }),
     );
     if (!ok) return;
 
     try {
       await hrService.deleteInterview(it.id);
       setItems((prev) => prev.filter((x) => x.id !== it.id));
-      toast.info("Đã hủy lịch phỏng vấn.");
+      toast.info(t("jobInterviewList.canceled"));
       setOpenMenuForId(null);
     } catch {
-      toast.error("Không thể hủy lịch phỏng vấn");
+      toast.error(t("jobInterviewList.cancelFailed"));
     }
   }, []);
 
@@ -553,6 +560,7 @@ function JobInterviewListScreen() {
     () =>
       buildInterviewTableColumns(
         statusChip,
+        t,
         openMenuForId,
         setOpenMenuForId,
         openDetails,
@@ -569,6 +577,7 @@ function JobInterviewListScreen() {
       ),
     [
       openMenuForId,
+      t,
       markCompleted,
       reschedule,
       cancelInterview,
@@ -624,10 +633,10 @@ function JobInterviewListScreen() {
     <div className="app-container animate-fade-in py-8">
       {/* Page header */}
       <PageHeader
-        eyebrow="Phỏng vấn"
+        eyebrow={t("jobInterviewList.eyebrow")}
         icon="event"
-        title="Danh sách lịch phỏng vấn"
-        subtitle="Theo dõi, cập nhật và xuất lịch phỏng vấn trên toàn hệ thống."
+        title={t("jobInterviewList.title")}
+        subtitle={t("jobInterviewList.subtitle")}
         className="mb-7"
         actions={
           <>
@@ -636,12 +645,12 @@ function JobInterviewListScreen() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  toast.info("Hãy chọn hồ sơ ứng tuyển để lên lịch phỏng vấn.");
+                  toast.info(t("jobInterviewList.selectApplicationFirst"));
                   navigate("/hr/applications");
                 }}
               >
                 <span className="material-symbols-outlined text-[18px]">add</span>
-                <span>Tạo lịch phỏng vấn</span>
+                <span>{t("jobInterviewList.createSchedule")}</span>
               </button>
             ) : null}
             <button
@@ -651,7 +660,7 @@ function JobInterviewListScreen() {
               disabled={!canExportInterviews}
             >
               <span className="material-symbols-outlined text-[18px]">download</span>
-              <span>Xuất CSV</span>
+              <span>{t("jobInterviewList.exportCsv")}</span>
             </button>
           </>
         }
@@ -687,7 +696,7 @@ function JobInterviewListScreen() {
       <div className="card mb-4 flex flex-col gap-3 p-4 lg:flex-row lg:items-end">
         <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-1 lg:flex-row lg:items-end">
           <div className="w-full lg:w-56">
-            <label className="field-label">Trạng thái</label>
+            <label className="field-label">{t("common.status")}</label>
             <CommonSelect
               value={statusFilter}
               options={interviewStatusOptions}
@@ -697,7 +706,7 @@ function JobInterviewListScreen() {
           </div>
 
           <div className="w-full lg:w-56">
-            <label className="field-label">Thời gian</label>
+            <label className="field-label">{t("common.time")}</label>
             <CommonSelect
               value={timeframe}
               options={timeframeOptions}
@@ -709,7 +718,7 @@ function JobInterviewListScreen() {
           {timeframe === "Custom Range" ? (
             <div className="grid w-full grid-cols-2 gap-3 lg:w-auto">
               <div>
-                <label className="field-label">Từ ngày</label>
+                <label className="field-label">{t("jobInterviewList.fromDate")}</label>
                 <input
                   type="date"
                   value={customRange.start}
@@ -723,7 +732,7 @@ function JobInterviewListScreen() {
                 />
               </div>
               <div>
-                <label className="field-label">Đến ngày</label>
+                <label className="field-label">{t("jobInterviewList.toDate")}</label>
                 <input
                   type="date"
                   value={customRange.end}
@@ -747,7 +756,7 @@ function JobInterviewListScreen() {
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}
-        emptyMessage="Không có lịch phỏng vấn phù hợp."
+        emptyMessage={t("jobInterviewList.empty")}
         emptyIcon="event_busy"
         hover
         onRowClick={openDetails}

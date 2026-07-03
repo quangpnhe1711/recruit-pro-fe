@@ -1,4 +1,5 @@
 import type { ChangeEvent } from "react";
+import { useI18n } from "../../../../i18n";
 import type { CandidateProfileResponseDto } from "../../../../services/candidate/candidateService";
 import { formatSimpleDate } from "../utils";
 
@@ -29,12 +30,14 @@ function ResumeSection({
   onDownloadCurrentResume,
   onOpenResumeHistoryItem,
 }: ResumeSectionProps) {
+  const { t } = useI18n();
+
   return (
     <section className="card p-5 md:p-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-[#f0eceb] pb-4">
         <div>
-          <h2 className="section-title">CV &amp; Phân tích hồ sơ</h2>
-          <p className="page-subtitle">Tải CV và để hệ thống phân tích thành hồ sơ cấu trúc.</p>
+          <h2 className="section-title">{t("candidateProfile.resume.title")}</h2>
+          <p className="page-subtitle">{t("candidateProfile.resume.subtitle")}</p>
         </div>
         {resumeFile ? (
           <button
@@ -43,7 +46,7 @@ function ResumeSection({
             onClick={onClearSelectedResumeFile}
           >
             <span className="material-symbols-outlined text-[14px]">close</span>
-            Bỏ file đã chọn
+            {t("candidateProfile.resume.clearSelected")}
           </button>
         ) : null}
       </div>
@@ -59,25 +62,27 @@ function ResumeSection({
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate text-[18px] font-semibold text-[#1a1c1c]">
-                  {resumeMeta?.fileName ?? "Chưa có CV chính thức"}
+                  {resumeMeta?.fileName ?? t("candidateProfile.resume.noOfficialResume")}
                 </p>
                 {resumeMeta?.isCurrent ? (
                   <span className="rounded-full bg-[#b90014] px-3 py-1 text-[11px] font-semibold text-white">
-                    CV đang dùng
+                    {t("candidateProfile.resume.currentBadge")}
                   </span>
                 ) : null}
               </div>
               <p className="mt-1 text-[13px] leading-6 text-[#5f5e5e]">
                 {resumeMeta?.uploadedAt
-                  ? `Cập nhật lần cuối ngày ${formatSimpleDate(resumeMeta.uploadedAt)}. Đây là bản CV hệ thống sẽ ưu tiên khi bạn ứng tuyển.`
-                  : "Tải CV mới nhất để hệ thống nhận diện đúng kinh nghiệm, kỹ năng và hỗ trợ điền hồ sơ nhanh hơn."}
+                  ? t("candidateProfile.resume.updatedAt", {
+                      date: formatSimpleDate(resumeMeta.uploadedAt),
+                    })
+                  : t("candidateProfile.resume.uploadHint")}
               </p>
               <div className="mt-4 flex flex-wrap gap-2 text-[12px] font-semibold">
                 <span className="rounded-full border border-[#e8d7da] bg-white px-3 py-1 text-[#7b2130]">
-                  {resumeMeta ? `Phiên bản v${resumeMeta.version}` : "PDF, DOC, DOCX"}
+                  {resumeMeta ? t("candidateProfile.resume.version", { version: resumeMeta.version }) : "PDF, DOC, DOCX"}
                 </span>
                 <span className="rounded-full border border-[#e8d7da] bg-white px-3 py-1 text-[#7b2130]">
-                  Parse sang hồ sơ cấu trúc
+                  {t("candidateProfile.resume.structuredParse")}
                 </span>
               </div>
             </div>
@@ -91,7 +96,7 @@ function ResumeSection({
               onClick={onOpenCurrentResume}
             >
               <span className="material-symbols-outlined text-[18px]">visibility</span>
-              Xem CV
+              {t("candidateProfile.resume.viewResume")}
             </button>
             {canManageResume ? (
               <button
@@ -101,7 +106,7 @@ function ResumeSection({
                 onClick={onDownloadCurrentResume}
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
-                Tải xuống
+                {t("candidateProfile.resume.downloadResume")}
               </button>
             ) : null}
           </div>
@@ -124,12 +129,12 @@ function ResumeSection({
               cloud_upload
             </span>
             <span className="text-[15px] font-semibold text-[#1a1c1c]">
-              {resumeFile ? "Đã chọn CV mới" : "Kéo thả hoặc bấm để tải CV"}
+              {resumeFile ? t("candidateProfile.resume.newResumeSelected") : t("candidateProfile.resume.dragOrClick")}
             </span>
             <span className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">
               {resumeFile
                 ? resumeFile.name
-                : "Ưu tiên CV định dạng như ứng viên gửi thực tế để kết quả parse sát hơn."}
+                : t("candidateProfile.resume.formatHint")}
             </span>
             <span className="mt-4 rounded-full bg-white px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#7b2130]">
               PDF, DOC, DOCX
@@ -143,7 +148,7 @@ function ResumeSection({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[15px] font-semibold text-[#b90014]">
-                Xem trước dữ liệu CV trước khi ghi vào hồ sơ
+                {t("candidateProfile.resume.previewBeforeApply")}
               </p>
             </div>
             <button
@@ -153,7 +158,7 @@ function ResumeSection({
               onClick={onParseResume}
             >
               <span className="material-symbols-outlined text-[18px]">psychiatry</span>
-              {isParsingResume ? "Đang phân tích CV..." : "Phân tích CV"}
+              {isParsingResume ? t("candidateProfile.resume.parsing") : t("candidateProfile.resume.parse")}
             </button>
           </div>
         </div>
@@ -161,7 +166,7 @@ function ResumeSection({
 
       {resumeHistory.length ? (
         <div className="mt-6 space-y-3">
-          <p className="eyebrow">Lịch sử CV</p>
+          <p className="eyebrow">{t("candidateProfile.resume.history")}</p>
           {resumeHistory.map((resume) => (
             <button
               key={resume.id}
@@ -178,7 +183,7 @@ function ResumeSection({
                 </p>
               </div>
               <span className="text-[12px] font-semibold text-[#b90014]">
-                {resume.isCurrent ? "Đang dùng" : "Mở"}
+                {resume.isCurrent ? t("candidateProfile.resume.currentBadge") : t("common.view")}
               </span>
             </button>
           ))}

@@ -15,21 +15,11 @@ import type {
   SkillItem,
   CertificationDraft,
 } from "./types";
+import { getDateLocale, translate } from "../../../i18n";
 
-export const monthOptions = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+export const monthOptions = Array.from({ length: 12 }, (_, index) =>
+  translate(`candidateProfile.months.${index + 1}`),
+);
 
 export const initialProfile: ProfileState = {
   username: "",
@@ -133,7 +123,7 @@ export function getInitials(name: string) {
 export function formatPeriod(period: ExperienceEntry["period"]) {
   const startLabel = `${monthOptions[period.startMonth - 1]} ${period.startYear}`;
 
-  if (period.isCurrent) return `${startLabel} - Hiện tại`;
+  if (period.isCurrent) return `${startLabel} - ${translate("candidateProfile.collections.current")}`;
 
   if (period.endMonth && period.endYear) {
     return `${startLabel} - ${monthOptions[period.endMonth - 1]} ${period.endYear}`;
@@ -144,7 +134,7 @@ export function formatPeriod(period: ExperienceEntry["period"]) {
 
 export function formatMonthYear(month?: number | null, year?: number | null) {
   if (!year) {
-    return "Chưa rõ";
+    return translate("candidateProfile.unknown");
   }
 
   if (!month) {
@@ -164,7 +154,7 @@ export function formatDateRange(period: {
   const startLabel = formatMonthYear(period.startMonth, period.startYear);
 
   if (period.isCurrent) {
-    return `${startLabel} - Hiện tại`;
+    return `${startLabel} - ${translate("candidateProfile.collections.current")}`;
   }
 
   return `${startLabel} - ${formatMonthYear(period.endMonth, period.endYear)}`;
@@ -172,7 +162,7 @@ export function formatDateRange(period: {
 
 export function formatSimpleDate(value: string | null | undefined) {
   if (!value) {
-    return "Chưa rõ";
+    return translate("candidateProfile.unknown");
   }
 
   const parsedDate = new Date(value);
@@ -180,7 +170,7 @@ export function formatSimpleDate(value: string | null | undefined) {
     return value;
   }
 
-  return parsedDate.toLocaleDateString("vi-VN", {
+  return parsedDate.toLocaleDateString(getDateLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -239,7 +229,7 @@ export function buildManagedSectionsFromLegacy(
     sections.push({
       id: "",
       sectionKey: "experience",
-      title: "Experience",
+      title: translate("candidateProfile.parsePreview.experience"),
       sectionType: "Timeline",
       source: "System",
       displayOrder: 100,
@@ -269,7 +259,7 @@ export function buildManagedSectionsFromLegacy(
     sections.push({
       id: "",
       sectionKey: "projects",
-      title: "Projects",
+      title: translate("candidateProfile.collections.projects"),
       sectionType: "Portfolio",
       source: "System",
       displayOrder: 200,
@@ -299,7 +289,7 @@ export function buildManagedSectionsFromLegacy(
     sections.push({
       id: "",
       sectionKey: "education",
-      title: "Education",
+      title: translate("candidateProfile.collections.education"),
       sectionType: "Education",
       source: "System",
       displayOrder: 300,
@@ -331,7 +321,7 @@ export function buildManagedSectionsFromLegacy(
     sections.push({
       id: "",
       sectionKey: "certifications",
-      title: "Certifications",
+      title: translate("candidateProfile.collections.certifications"),
       sectionType: "Achievements",
       source: "System",
       displayOrder: 400,
@@ -365,7 +355,7 @@ export function buildManagedSectionsFromLegacy(
     sections.push({
       id: "",
       sectionKey: "languages",
-      title: "Languages",
+      title: translate("candidateProfile.collections.languages"),
       sectionType: "Attributes",
       source: "System",
       displayOrder: 500,

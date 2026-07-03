@@ -1,4 +1,5 @@
 import SkillPicker from "../../../../common/components/SkillPicker";
+import { useI18n } from "../../../../i18n";
 import type { SkillItem, SkillOption } from "../types";
 
 type SkillsSectionProps = {
@@ -18,19 +19,20 @@ function SkillsSection({
   onRemoveSkill,
   onSkillYearsChange,
 }: SkillsSectionProps) {
+  const { t } = useI18n();
   return (
     <section className="card p-5 md:p-6">
       <div className="mb-5 border-b border-[#f0eceb] pb-4">
-        <h2 className="section-title">Skills</h2>
-        <p className="page-subtitle">Kỹ năng và số năm kinh nghiệm tương ứng.</p>
+        <h2 className="section-title">{t("candidateProfileView.skills")}</h2>
+        <p className="page-subtitle">{t("candidateProfile.skills.yearsHelp")}</p>
       </div>
 
       {canManageSkills ? (
         <div className="space-y-4">
           <SkillPicker
-            emptyLabel="Chọn kỹ năng từ hệ thống để thêm vào hồ sơ."
+            emptyLabel={t("candidateProfile.skills.emptyLabel")}
             options={skillOptions}
-            placeholder="Chọn kỹ năng từ danh sách"
+            placeholder={t("candidateProfile.skills.placeholder")}
             selectedLabelByValue={skills.reduce<Record<string, string>>(
               (acc, skill) => {
                 acc[skill.id] = skill.label;
@@ -57,13 +59,13 @@ function SkillsSection({
                         {skill.label}
                       </p>
                       <p className="text-[12px] text-[#8a8786]">
-                        Số năm kinh nghiệm cho kỹ năng này
+                        {t("candidateProfile.skills.yearsLabel")}
                       </p>
                     </div>
                     <input
                       className="input-field h-11 md:w-[180px]"
                       inputMode="decimal"
-                      placeholder="VD: 1.5"
+                      placeholder={t("candidateProfile.skills.exampleYears")}
                       type="text"
                       value={skill.yearsOfExperience ?? ""}
                       onChange={(e) => onSkillYearsChange(skill.id, e.target.value)}
@@ -80,7 +82,9 @@ function SkillsSection({
             .map((skill) => (
               <span key={skill.id} className="badge bg-[#b90014]/10 text-[#b90014]">
                 {skill.label}
-                {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
+                {skill.yearsOfExperience != null
+                  ? ` • ${t("candidateProfile.parsePreview.years", { count: skill.yearsOfExperience })}`
+                  : ""}
               </span>
             ))}
         </div>

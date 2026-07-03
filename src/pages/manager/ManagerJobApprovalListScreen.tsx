@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import CommonTable, { type TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
+import { useI18n } from "../../i18n";
 import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 import { getJobStatusPresentation } from "../../common/status/jobStatus";
@@ -23,11 +24,11 @@ function formatDateLabel(value: string | null) {
   });
 }
 
-function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): TableColumn<ManagerJobApprovalQueueItemDto>[] {
+function buildColumns(t: (key: string) => string, onOpen: (item: ManagerJobApprovalQueueItemDto) => void): TableColumn<ManagerJobApprovalQueueItemDto>[] {
   return [
     {
       key: "title",
-      header: "Hàng chờ duyệt",
+      header: t("managerJobApprovalList.queue"),
       renderCell: (item) => (
         <div>
           <p className="text-[14px] font-bold text-[#1a1c1c]">{item.title}</p>
@@ -37,7 +38,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
     },
     {
       key: "departmentName",
-      header: "Phòng ban",
+      header: t("managerJobApprovalList.department"),
       renderCell: (item) => (
         <div>
           <p className="text-[14px] font-semibold text-[#1a1c1c]">{item.departmentName}</p>
@@ -47,7 +48,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
     },
     {
       key: "hrOwnerName",
-      header: "Người tạo",
+      header: t("managerJobApprovalList.creator"),
       renderCell: (item) => (
         <div>
           <p className="text-[14px] font-semibold text-[#1a1c1c]">{item.hrOwnerName}</p>
@@ -57,18 +58,18 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
     },
     {
       key: "vacancyCount",
-      header: "Phạm vi",
+      header: t("managerJobApprovalList.scope"),
       renderCell: (item) => (
         <div className="space-y-1 text-[12px] text-[#5f5e5e]">
-          <p><span className="font-semibold text-[#1a1c1c]">{item.vacancyCount}</span> vị trí tuyển</p>
-          <p><span className="font-semibold text-[#1a1c1c]">{item.requiredSkillsCount}</span> kỹ năng yêu cầu</p>
-          <p><span className="font-semibold text-[#1a1c1c]">{item.applicationsCount}</span> hồ sơ ứng tuyển</p>
+          <p><span className="font-semibold text-[#1a1c1c]">{item.vacancyCount}</span> {t("managerJobApprovalList.openings")}</p>
+          <p><span className="font-semibold text-[#1a1c1c]">{item.requiredSkillsCount}</span> {t("managerJobApprovalList.requiredSkills")}</p>
+          <p><span className="font-semibold text-[#1a1c1c]">{item.applicationsCount}</span> {t("managerJobApprovalList.applications")}</p>
         </div>
       ),
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("common.status"),
       renderCell: (item) => (
         <div className="space-y-2">
           <span className={`badge ${toneBadgeClassName(getJobStatusPresentation(item.status).tone)}`}>
@@ -76,14 +77,14 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
           </span>
           <p className={`flex items-center gap-1 text-[12px] font-semibold ${item.isOverdue ? "text-[#ba1a1a]" : "text-[#5f5e5e]"}`}>
             <span className="material-symbols-outlined text-[15px]">{item.isOverdue ? "priority_high" : "schedule"}</span>
-            {item.isOverdue ? "Cần ưu tiên xử lý" : "Trong thời hạn duyệt"}
+            {item.isOverdue ? t("managerJobApprovalList.needsPriority") : t("managerJobApprovalList.inReviewWindow")}
           </p>
         </div>
       ),
     },
     {
       key: "action",
-      header: "Thao tác",
+      header: t("common.actions"),
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (item) => (
@@ -95,7 +96,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
             onOpen(item);
           }}
         >
-          Xem bản nháp
+          {t("managerJobApprovalList.viewDraft")}
           <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
         </button>
       ),
@@ -105,6 +106,7 @@ function buildColumns(onOpen: (item: ManagerJobApprovalQueueItemDto) => void): T
 
 function ManagerJobApprovalListScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [items, setItems] = useState<ManagerJobApprovalQueueItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
@@ -154,7 +156,7 @@ function ManagerJobApprovalListScreen() {
         });
         setTotalPages(1);
         setTotalItems(0);
-        toast.error("Không thể tải hàng chờ duyệt.");
+        toast.error(t("managerJobApprovalList.loadFailed"));
       } finally {
         if (mounted) {
           setLoading(false);
@@ -173,8 +175,8 @@ function ManagerJobApprovalListScreen() {
   const rangeEnd = Math.min(page * 8, totalItems);
 
   const columns = useMemo(
-    () => buildColumns((item) => navigate(`/manager/jobs/${item.jobId}/approval`)),
-    [navigate],
+    () => buildColumns(t, (item) => navigate(`/manager/jobs/${item.jobId}/approval`)),
+    [navigate, t],
   );
 
   if (loading) {
@@ -205,10 +207,10 @@ function ManagerJobApprovalListScreen() {
     <div className="app-container animate-fade-in py-8">
       <PageHeader
         className="mb-7"
-        eyebrow="Trưởng bộ phận duyệt tin tuyển dụng"
+        eyebrow={t("managerJobApprovalList.eyebrow")}
         icon="approval"
-        title="Duyệt tin tuyển dụng"
-        subtitle="Xem lại các tin tuyển dụng của phòng ban bạn phụ trách, kiểm tra phạm vi tuyển dụng và kỹ năng, sau đó duyệt, từ chối hoặc trả lại để chỉnh sửa."
+        title={t("managerJobApprovalList.title")}
+        subtitle={t("managerJobApprovalList.subtitle")}
         actions={
           <div className="relative w-full sm:w-72">
             <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
@@ -216,7 +218,7 @@ function ManagerJobApprovalListScreen() {
             </span>
             <input
               className="input-field pl-10"
-              placeholder="Tìm theo tiêu đề, phòng ban, kỹ năng..."
+              placeholder={t("managerJobApprovalList.searchPlaceholder")}
               type="text"
               value={keyword}
               onChange={(event) => {
@@ -250,13 +252,13 @@ function ManagerJobApprovalListScreen() {
       <section className="card overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-[#f0eceb] px-5 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h4 className="section-title">Hàng chờ duyệt</h4>
+            <h4 className="section-title">{t("managerJobApprovalList.queue")}</h4>
             <p className="mt-1 text-[13px] text-[#5f5e5e]">
-              Mở bản nháp để kiểm tra bối cảnh phòng ban, kỹ năng và tác động luồng tuyển trước khi đăng.
+              {t("managerJobApprovalList.queueHint")}
             </p>
           </div>
           <p className="shrink-0 text-[12px] font-semibold text-[#5f5e5e]">
-            Hiển thị <span className="text-[#1a1c1c]">{rangeStart}-{rangeEnd}</span> trên tổng <span className="text-[#1a1c1c]">{totalItems}</span>
+            {t("managerJobApprovalList.showing")} <span className="text-[#1a1c1c]">{rangeStart}-{rangeEnd}</span> {t("common.of")} <span className="text-[#1a1c1c]">{totalItems}</span>
           </p>
         </div>
 
@@ -265,7 +267,7 @@ function ManagerJobApprovalListScreen() {
           data={items}
           keyExtractor={(item) => item.jobId}
           loading={loading}
-          emptyMessage="Không có job nào đang chờ quản lý duyệt."
+          emptyMessage={t("managerJobApprovalList.empty")}
           emptyIcon="approval"
           hover
           zebra

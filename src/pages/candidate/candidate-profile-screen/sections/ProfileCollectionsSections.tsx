@@ -1,5 +1,6 @@
 import CommonSelect from "../../../../common/components/CommonSelect";
 import type { Dispatch, SetStateAction } from "react";
+import { useI18n } from "../../../../i18n";
 import type { ValidationErrors } from "../../../../common/validation/formValidation";
 import type {
   CandidateSection,
@@ -49,10 +50,11 @@ export function ProjectsSection({
   onRemoveProject,
   errors,
 }: ProjectsSectionProps) {
+  const { t } = useI18n();
   return (
     <div>
       <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
-        <h2 className="section-title">Dự án</h2>
+        <h2 className="section-title">{t("candidateProfile.collections.projects")}</h2>
         {canEditProfile ? (
           <button
             className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
@@ -62,7 +64,7 @@ export function ProjectsSection({
             <span className="material-symbols-outlined text-[16px]">
               {showProjectComposer ? "close" : "add"}
             </span>
-            {showProjectComposer ? "Đóng" : "Thêm mục"}
+            {showProjectComposer ? t("common.close") : t("candidateProfile.collections.addItem")}
           </button>
         ) : null}
       </div>
@@ -70,21 +72,21 @@ export function ProjectsSection({
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
             className={fieldClassName(Boolean(errors.name))}
-            placeholder="Tên dự án"
+            placeholder={t("candidateProfile.collections.projectName")}
             value={projectDraft.name}
             onChange={(e) => onProjectDraftChange("name", e.target.value)}
           />
           {errors.name ? <p className="text-sm text-[#dc2626]">{errors.name}</p> : null}
           <input
             className={fieldClassName(Boolean(errors.role))}
-            placeholder="Vai trò"
+            placeholder={t("candidateProfile.collections.role")}
             value={projectDraft.role}
             onChange={(e) => onProjectDraftChange("role", e.target.value)}
           />
           {errors.role ? <p className="text-sm text-[#dc2626]">{errors.role}</p> : null}
           <textarea
             className={`input-field min-h-[90px] resize-none ${errors.description ? "border-[#dc2626]" : ""}`}
-            placeholder="Mô tả dự án"
+            placeholder={t("candidateProfile.collections.projectDescription")}
             value={projectDraft.description}
             onChange={(e) => onProjectDraftChange("description", e.target.value)}
           />
@@ -93,7 +95,7 @@ export function ProjectsSection({
           ) : null}
           <input
             className={fieldClassName(Boolean(errors.technologies))}
-            placeholder="Công nghệ, phân tách bằng dấu phẩy"
+            placeholder={t("candidateProfile.collections.technologies")}
             value={projectDraft.technologies}
             onChange={(e) => onProjectDraftChange("technologies", e.target.value)}
           />
@@ -130,7 +132,7 @@ export function ProjectsSection({
                   onProjectDraftChange("isCurrent", e.target.checked)
                 }
               />
-              Hiện tại
+              {t("candidateProfile.collections.current")}
             </label>
             {projectDraft.isCurrent ? null : (
               <>
@@ -163,14 +165,14 @@ export function ProjectsSection({
               type="button"
               onClick={() => setShowProjectComposer(false)}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               className="btn btn-primary h-11"
               type="button"
               onClick={onAddProject}
             >
-              Thêm mục
+              {t("candidateProfile.collections.addItem")}
             </button>
           </div>
         </div>
@@ -183,7 +185,7 @@ export function ProjectsSection({
                 <div>
                   <p className="text-[15px] font-semibold text-[#1a1c1c]">{project.name}</p>
                   <p className="mt-1 text-[13px] font-medium text-[#b90014]">
-                    {project.role || "Dự án"}
+                    {project.role || t("candidateProfile.collections.projects")}
                   </p>
                 </div>
                 {canEditProfile ? (
@@ -192,7 +194,7 @@ export function ProjectsSection({
                     type="button"
                     onClick={() => onRemoveProject(project.id)}
                   >
-                    Xóa mục
+                    {t("candidateProfile.collections.removeItem")}
                   </button>
                 ) : null}
               </div>
@@ -214,7 +216,7 @@ export function ProjectsSection({
             </div>
           ))
         ) : (
-          <p className="text-[14px] text-[#5f5e5e]">Chưa có project nào trong hồ sơ.</p>
+          <p className="text-[14px] text-[#5f5e5e]">{t("candidateProfile.collections.noProjects")}</p>
         )}
       </div>
     </div>
@@ -243,10 +245,11 @@ export function EducationSection({
   onRemoveEducation,
   errors,
 }: EducationSectionProps) {
+  const { t } = useI18n();
   return (
     <div>
       <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
-        <h2 className="section-title">Học vấn</h2>
+        <h2 className="section-title">{t("candidateProfile.collections.education")}</h2>
         {canEditProfile ? (
           <button
             className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
@@ -256,7 +259,7 @@ export function EducationSection({
             <span className="material-symbols-outlined text-[16px]">
               {showEducationComposer ? "close" : "add"}
             </span>
-            {showEducationComposer ? "Đóng" : "Thêm mục"}
+            {showEducationComposer ? t("common.close") : t("candidateProfile.collections.addItem")}
           </button>
         ) : null}
       </div>
@@ -264,21 +267,21 @@ export function EducationSection({
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
             className={fieldClassName(Boolean(errors.school))}
-            placeholder="Trường học"
+            placeholder={t("candidateProfile.collections.school")}
             value={educationDraft.school}
             onChange={(e) => onEducationDraftChange("school", e.target.value)}
           />
           {errors.school ? <p className="text-sm text-[#dc2626]">{errors.school}</p> : null}
           <input
             className={fieldClassName(Boolean(errors.degree))}
-            placeholder="Bằng cấp"
+            placeholder={t("candidateProfile.collections.degree")}
             value={educationDraft.degree}
             onChange={(e) => onEducationDraftChange("degree", e.target.value)}
           />
           {errors.degree ? <p className="text-sm text-[#dc2626]">{errors.degree}</p> : null}
           <input
             className={fieldClassName(Boolean(errors.fieldOfStudy))}
-            placeholder="Chuyên ngành"
+            placeholder={t("candidateProfile.collections.fieldOfStudy")}
             value={educationDraft.fieldOfStudy}
             onChange={(e) => onEducationDraftChange("fieldOfStudy", e.target.value)}
           />
@@ -288,13 +291,13 @@ export function EducationSection({
           <div className="grid grid-cols-2 gap-3">
             <input
               className={fieldClassName(Boolean(errors.startYear))}
-              placeholder="Năm bắt đầu"
+              placeholder={t("candidateProfile.collections.startYear")}
               value={educationDraft.startYear}
               onChange={(e) => onEducationDraftChange("startYear", e.target.value)}
             />
             <input
               className={fieldClassName(Boolean(errors.endYear))}
-              placeholder="Năm kết thúc"
+              placeholder={t("candidateProfile.collections.endYear")}
               value={educationDraft.endYear}
               onChange={(e) => onEducationDraftChange("endYear", e.target.value)}
             />
@@ -307,7 +310,7 @@ export function EducationSection({
           ) : null}
           <textarea
             className={`input-field min-h-[90px] resize-none ${errors.description ? "border-[#dc2626]" : ""}`}
-            placeholder="Mô tả thêm"
+            placeholder={t("candidateProfile.collections.extraDescription")}
             value={educationDraft.description}
             onChange={(e) => onEducationDraftChange("description", e.target.value)}
           />
@@ -320,14 +323,14 @@ export function EducationSection({
               type="button"
               onClick={() => setShowEducationComposer(false)}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               className="btn btn-primary h-11"
               type="button"
               onClick={onAddEducation}
             >
-              Thêm mục
+              {t("candidateProfile.collections.addItem")}
             </button>
           </div>
         </div>
@@ -350,13 +353,13 @@ export function EducationSection({
                     type="button"
                     onClick={() => onRemoveEducation(education.id)}
                   >
-                    Xóa mục
+                    {t("candidateProfile.collections.removeItem")}
                   </button>
                 ) : null}
               </div>
               <p className="text-[14px] text-[#5f5e5e]">
                 {[education.startYear, education.endYear].filter(Boolean).join(" - ") ||
-                  "Chưa rõ mốc thời gian"}
+                  t("candidateProfile.collections.unknownTimeline")}
               </p>
               {education.description ? (
                 <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">{education.description}</p>
@@ -364,7 +367,7 @@ export function EducationSection({
             </div>
           ))
         ) : (
-          <p className="text-[14px] text-[#5f5e5e]">Chưa có dữ liệu học vấn trong hồ sơ.</p>
+          <p className="text-[14px] text-[#5f5e5e]">{t("candidateProfile.collections.noEducation")}</p>
         )}
       </div>
     </div>
@@ -393,10 +396,11 @@ export function CertificationsSection({
   onRemoveCertification,
   errors,
 }: CertificationsSectionProps) {
+  const { t } = useI18n();
   return (
     <div>
       <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
-        <h2 className="section-title">Chứng chỉ</h2>
+        <h2 className="section-title">{t("candidateProfile.collections.certifications")}</h2>
         {canEditProfile ? (
           <button
             className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
@@ -406,7 +410,7 @@ export function CertificationsSection({
             <span className="material-symbols-outlined text-[16px]">
               {showCertificationComposer ? "close" : "add"}
             </span>
-            {showCertificationComposer ? "Đóng" : "Thêm mục"}
+            {showCertificationComposer ? t("common.close") : t("candidateProfile.collections.addItem")}
           </button>
         ) : null}
       </div>
@@ -414,14 +418,14 @@ export function CertificationsSection({
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
             className={fieldClassName(Boolean(errors.name))}
-            placeholder="Tên chứng chỉ"
+            placeholder={t("candidateProfile.collections.certificationName")}
             value={certificationDraft.name}
             onChange={(e) => onCertificationDraftChange("name", e.target.value)}
           />
           {errors.name ? <p className="text-sm text-[#dc2626]">{errors.name}</p> : null}
           <input
             className={fieldClassName(Boolean(errors.issuer))}
-            placeholder="Đơn vị cấp"
+            placeholder={t("candidateProfile.collections.issuer")}
             value={certificationDraft.issuer}
             onChange={(e) => onCertificationDraftChange("issuer", e.target.value)}
           />
@@ -448,7 +452,7 @@ export function CertificationsSection({
           ) : null}
           <input
             className={fieldClassName(Boolean(errors.credentialId))}
-            placeholder="Mã chứng chỉ"
+            placeholder={t("candidateProfile.collections.credentialId")}
             value={certificationDraft.credentialId}
             onChange={(e) => onCertificationDraftChange("credentialId", e.target.value)}
           />
@@ -457,7 +461,7 @@ export function CertificationsSection({
           ) : null}
           <input
             className={fieldClassName(Boolean(errors.credentialUrl))}
-            placeholder="Liên kết chứng chỉ"
+            placeholder={t("candidateProfile.collections.credentialUrl")}
             value={certificationDraft.credentialUrl}
             onChange={(e) => onCertificationDraftChange("credentialUrl", e.target.value)}
           />
@@ -470,14 +474,14 @@ export function CertificationsSection({
               type="button"
               onClick={() => setShowCertificationComposer(false)}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               className="btn btn-primary h-11"
               type="button"
               onClick={onAddCertification}
             >
-              Thêm mục
+              {t("candidateProfile.collections.addItem")}
             </button>
           </div>
         </div>
@@ -490,7 +494,7 @@ export function CertificationsSection({
                 <div>
                   <p className="text-[15px] font-semibold text-[#1a1c1c]">{certification.name}</p>
                   <p className="mt-1 text-[13px] text-[#5f5e5e]">
-                    {certification.issuer || "Chưa rõ đơn vị cấp"}
+                    {certification.issuer || t("candidateProfile.collections.unknownIssuer")}
                   </p>
                 </div>
                 {canEditProfile ? (
@@ -499,14 +503,14 @@ export function CertificationsSection({
                     type="button"
                     onClick={() => onRemoveCertification(certification.id)}
                   >
-                    Xóa mục
+                    {t("candidateProfile.collections.removeItem")}
                   </button>
                 ) : null}
               </div>
             </div>
           ))
         ) : (
-          <p className="text-[14px] text-[#5f5e5e]">Chưa có chứng chỉ trong hồ sơ.</p>
+          <p className="text-[14px] text-[#5f5e5e]">{t("candidateProfile.collections.noCertifications")}</p>
         )}
       </div>
     </div>
@@ -535,10 +539,11 @@ export function LanguagesSection({
   onRemoveLanguage,
   errors,
 }: LanguagesSectionProps) {
+  const { t } = useI18n();
   return (
     <div>
       <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
-        <h2 className="section-title">Ngoại ngữ</h2>
+        <h2 className="section-title">{t("candidateProfile.collections.languages")}</h2>
         {canEditProfile ? (
           <button
             className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
@@ -548,7 +553,7 @@ export function LanguagesSection({
             <span className="material-symbols-outlined text-[16px]">
               {showLanguageComposer ? "close" : "add"}
             </span>
-            {showLanguageComposer ? "Đóng" : "Thêm mục"}
+            {showLanguageComposer ? t("common.close") : t("candidateProfile.collections.addItem")}
           </button>
         ) : null}
       </div>
@@ -556,14 +561,14 @@ export function LanguagesSection({
         <div className="animate-scale-in mt-4 space-y-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4">
           <input
             className={fieldClassName(Boolean(errors.name))}
-            placeholder="Ngôn ngữ"
+            placeholder={t("candidateProfile.collections.language")}
             value={languageDraft.name}
             onChange={(e) => onLanguageDraftChange("name", e.target.value)}
           />
           {errors.name ? <p className="text-sm text-[#dc2626]">{errors.name}</p> : null}
           <input
             className={fieldClassName(Boolean(errors.proficiency))}
-            placeholder="Trình độ"
+            placeholder={t("candidateProfile.collections.proficiency")}
             value={languageDraft.proficiency}
             onChange={(e) => onLanguageDraftChange("proficiency", e.target.value)}
           />
@@ -576,14 +581,14 @@ export function LanguagesSection({
               type="button"
               onClick={() => setShowLanguageComposer(false)}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               className="btn btn-primary h-11"
               type="button"
               onClick={onAddLanguage}
             >
-              Thêm mục
+              {t("candidateProfile.collections.addItem")}
             </button>
           </div>
         </div>
@@ -599,7 +604,7 @@ export function LanguagesSection({
                 <button
                   className="material-symbols-outlined text-[14px] text-[#b90014] hover:text-[#8a1020]"
                   type="button"
-                  aria-label="Xóa"
+                  aria-label={t("common.delete")}
                   onClick={() => onRemoveLanguage(language.id)}
                 >
                   close
@@ -608,7 +613,7 @@ export function LanguagesSection({
             </div>
           ))
         ) : (
-          <p className="text-[14px] text-[#5f5e5e]">Chưa có ngôn ngữ nào trong hồ sơ.</p>
+          <p className="text-[14px] text-[#5f5e5e]">{t("candidateProfile.collections.noLanguages")}</p>
         )}
       </div>
     </div>
@@ -658,10 +663,11 @@ export function CustomSectionsSection({
   sectionErrors,
   itemErrorsBySection,
 }: CustomSectionsSectionProps) {
+  const { t } = useI18n();
   return (
     <div className="mt-8 border-t border-[#f0eceb] pt-8">
       <div className="flex items-center justify-between gap-3 border-b border-[#f0eceb] pb-3">
-        <h2 className="section-title">Mục linh hoạt</h2>
+        <h2 className="section-title">{t("candidateProfile.collections.customSections")}</h2>
         {canEditProfile ? (
           <button
             className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
@@ -671,7 +677,7 @@ export function CustomSectionsSection({
             <span className="material-symbols-outlined text-[16px]">
               {showCustomSectionComposer ? "close" : "add"}
             </span>
-            {showCustomSectionComposer ? "Đóng" : "Thêm đầu mục lớn"}
+            {showCustomSectionComposer ? t("common.close") : t("candidateProfile.collections.addMainSection")}
           </button>
         ) : null}
       </div>
@@ -680,13 +686,13 @@ export function CustomSectionsSection({
         <div className="animate-scale-in mt-4 grid gap-3 rounded-[12px] border border-[#ececec] bg-[#f7f6f5] p-4 md:grid-cols-2">
           <input
             className={fieldClassName(Boolean(sectionErrors.title))}
-            placeholder="Ví dụ: Vinh danh"
+            placeholder={t("candidateProfile.collections.exampleTitle")}
             value={customSectionDraft.title}
             onChange={(e) => onCustomSectionDraftChange("title", e.target.value)}
           />
           <input
             className={fieldClassName(Boolean(sectionErrors.sectionType))}
-            placeholder="Ví dụ: Thành tích"
+            placeholder={t("candidateProfile.collections.exampleType")}
             value={customSectionDraft.sectionType}
             onChange={(e) =>
               onCustomSectionDraftChange("sectionType", e.target.value)
@@ -704,14 +710,14 @@ export function CustomSectionsSection({
               type="button"
               onClick={() => setShowCustomSectionComposer(false)}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               className="btn btn-primary h-11"
               type="button"
               onClick={onAddCustomSection}
             >
-              Tạo đầu mục
+              {t("candidateProfile.collections.createSection")}
             </button>
           </div>
         </div>
@@ -742,14 +748,14 @@ export function CustomSectionsSection({
                           )
                         }
                       >
-                        {composerOpen ? "Đóng mục con" : "Thêm mục con"}
+                        {composerOpen ? t("candidateProfile.collections.closeSubItem") : t("candidateProfile.collections.addSubItem")}
                       </button>
                       <button
                         className="btn h-9 border border-[#f0c9cf] bg-[#fff5f6] px-3 py-0 text-[12px] text-[#b90014] hover:bg-[#ffe7ec]"
                         type="button"
                         onClick={() => onRemoveCustomSection(section.id)}
                       >
-                        Xóa đầu mục
+                        {t("candidateProfile.collections.removeSection")}
                       </button>
                     </div>
                   ) : null}
@@ -759,37 +765,37 @@ export function CustomSectionsSection({
                   <div className="animate-scale-in mt-4 grid gap-3 rounded-[12px] border border-[#ececec] bg-white p-4 md:grid-cols-2">
                     <input
                       className={fieldClassName(Boolean(itemErrors.title))}
-                      placeholder="Tiêu đề"
+                      placeholder={t("candidateProfile.collections.title")}
                       value={itemDraft.title}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "title", e.target.value)}
                     />
                     <input
                       className={fieldClassName(Boolean(itemErrors.subtitle))}
-                      placeholder="Phụ đề / vai trò"
+                      placeholder={t("candidateProfile.collections.subtitle")}
                       value={itemDraft.subtitle}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "subtitle", e.target.value)}
                     />
                     <input
                       className={fieldClassName(Boolean(itemErrors.organization))}
-                      placeholder="Tổ chức"
+                      placeholder={t("candidateProfile.collections.organization")}
                       value={itemDraft.organization}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "organization", e.target.value)}
                     />
                     <input
                       className={fieldClassName(Boolean(itemErrors.dateLabel))}
-                      placeholder="Mốc thời gian hiển thị"
+                      placeholder={t("candidateProfile.collections.dateLabel")}
                       value={itemDraft.dateLabel}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "dateLabel", e.target.value)}
                     />
                     <input
                       className={fieldClassName(Boolean(itemErrors.location))}
-                      placeholder="Địa điểm"
+                      placeholder={t("candidateProfile.collections.location")}
                       value={itemDraft.location}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "location", e.target.value)}
                     />
                     <input
                       className={fieldClassName(Boolean(itemErrors.tags))}
-                      placeholder="Tags, phân tách bằng dấu phẩy"
+                      placeholder={t("candidateProfile.collections.tags")}
                       value={itemDraft.tags}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "tags", e.target.value)}
                     />
@@ -810,7 +816,7 @@ export function CustomSectionsSection({
                     ) : null}
                     <textarea
                       className={`input-field min-h-[100px] resize-none md:col-span-2 ${itemErrors.description ? "border-[#dc2626]" : ""}`}
-                      placeholder="Mô tả"
+                      placeholder={t("candidateProfile.collections.description")}
                       value={itemDraft.description}
                       onChange={(e) => onCustomSectionItemDraftChange(section.id, "description", e.target.value)}
                     />
@@ -823,14 +829,14 @@ export function CustomSectionsSection({
                         type="button"
                         onClick={() => setOpenCustomSectionItemComposerId(null)}
                       >
-                        Hủy
+                        {t("common.cancel")}
                       </button>
                       <button
                         className="btn btn-primary h-11"
                         type="button"
                         onClick={() => onAddCustomSectionItem(section.id)}
                       >
-                        Thêm mục
+                        {t("candidateProfile.collections.addItem")}
                       </button>
                     </div>
                   </div>
@@ -858,7 +864,7 @@ export function CustomSectionsSection({
                               type="button"
                               onClick={() => onRemoveCustomSectionItem(section.id, item.id)}
                             >
-                              Xóa mục con
+                              {t("candidateProfile.collections.removeSubItem")}
                             </button>
                           ) : null}
                         </div>
@@ -880,7 +886,7 @@ export function CustomSectionsSection({
                       </div>
                     ))
                   ) : (
-                    <p className="text-[14px] text-[#5f5e5e]">Đầu mục này chưa có mục con nào.</p>
+                    <p className="text-[14px] text-[#5f5e5e]">{t("candidateProfile.collections.noSubItems")}</p>
                   )}
                 </div>
               </div>
@@ -888,8 +894,7 @@ export function CustomSectionsSection({
           })
         ) : (
           <p className="text-[14px] text-[#5f5e5e]">
-            Chưa có đầu mục linh hoạt nào. Bạn có thể thêm các nhóm như Vinh danh,
-            Hoạt động, Ấn phẩm, Diễn thuyết, Tình nguyện...
+            {t("candidateProfile.collections.noCustomSections")}
           </p>
         )}
       </div>

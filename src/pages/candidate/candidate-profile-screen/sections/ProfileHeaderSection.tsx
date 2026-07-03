@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { useI18n } from "../../../../i18n";
 import type { ValidationErrors } from "../../../../common/validation/formValidation";
 import type { ProfileState } from "../types";
 
@@ -33,6 +34,8 @@ function ProfileHeaderSection({
   onProfileChange,
   errors,
 }: ProfileHeaderSectionProps) {
+  const { t } = useI18n();
+
   return (
     <section
       id="profile"
@@ -91,14 +94,14 @@ function ProfileHeaderSection({
               ) : null}
               <span className="badge bg-[#b90014]/10 text-[#b90014]">
                 <span className="badge-dot bg-[#b90014]" />
-                Hoàn thiện hồ sơ {completionScore}%
+                {t("candidateProfile.profileCompletion", { completionScore })}
               </span>
             </div>
 
             {isEditingProfile && canEditProfile ? (
               <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
                 <div>
-                  <label className="field-label">Tên đăng nhập</label>
+                  <label className="field-label">{t("auth.username")}</label>
                   <input
                     className="input-field bg-[#f7f6f5] text-[#5f5e5e]"
                     value={profile.username}
@@ -107,7 +110,7 @@ function ProfileHeaderSection({
                   />
                 </div>
                 <div>
-                  <label className="field-label">Email</label>
+                  <label className="field-label">{t("auth.email")}</label>
                   <input
                     className={`input-field ${errors.email ? "border-[#ba1a1a]" : ""}`}
                     value={profile.email}
@@ -118,7 +121,7 @@ function ProfileHeaderSection({
                   ) : null}
                 </div>
                 <div>
-                  <label className="field-label">Số điện thoại</label>
+                  <label className="field-label">{t("auth.phone")}</label>
                   <input
                     className={`input-field ${errors.phone ? "border-[#ba1a1a]" : ""}`}
                     value={profile.phone}
@@ -129,7 +132,7 @@ function ProfileHeaderSection({
                   ) : null}
                 </div>
                 <div>
-                  <label className="field-label">Địa điểm</label>
+                  <label className="field-label">{t("candidateProfile.location")}</label>
                   <input
                     className={`input-field ${errors.location ? "border-[#ba1a1a]" : ""}`}
                     value={profile.location}
@@ -140,7 +143,7 @@ function ProfileHeaderSection({
                   ) : null}
                 </div>
                 <div>
-                  <label className="field-label">Thành viên từ</label>
+                  <label className="field-label">{t("candidateProfile.memberSince")}</label>
                   <input
                     className="input-field"
                     value={profile.memberSince}
@@ -184,7 +187,7 @@ function ProfileHeaderSection({
               disabled={isSavingProfile || (!isProfileDirty && !hasPendingResumeUpload)}
             >
               <span className="material-symbols-outlined text-[18px]">save</span>
-              {isSavingProfile ? "Đang lưu..." : "Lưu thay đổi"}
+              {isSavingProfile ? t("candidateProfile.saving") : t("candidateProfile.saveChanges")}
             </button>
             <button
               className="btn btn-secondary h-11"
@@ -194,7 +197,7 @@ function ProfileHeaderSection({
               <span className="material-symbols-outlined text-[18px]">
                 {isEditingProfile ? "check" : "edit"}
               </span>
-              {isEditingProfile ? "Xong" : "Chỉnh sửa hồ sơ"}
+              {isEditingProfile ? t("candidateProfile.done") : t("candidateProfile.editProfile")}
             </button>
           </div>
         ) : null}

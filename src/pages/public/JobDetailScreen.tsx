@@ -43,6 +43,7 @@ import {
 } from "../../common/utils/jobPresentation";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
+import { getDateLocale, useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
 import { jobsService } from "../../services/jobs/jobsService";
@@ -119,7 +120,7 @@ function OwnershipRow({
 function formatCurrency(amount: number | null) {
   if (amount == null) return null;
 
-  return `${amount.toLocaleString("vi-VN")} VNĐ`;
+  return `${amount.toLocaleString(getDateLocale())} VNĐ`;
 }
 
 function toTextBlock(values: string[]) {
@@ -156,6 +157,7 @@ function toEditForm(detail: JobDetailDto): JobEditForm {
 }
 
 function JobDetailScreen() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const { hasPermission, isAuthenticated, portalVariant, primaryRole } =
@@ -193,13 +195,13 @@ function JobDetailScreen() {
     let reason: string | null = null;
     if (!open) {
       reason = status
-        ? `Tin tuyển dụng đang ở trạng thái "${getJobStatusPresentation(status).label}" — không nhận hồ sơ mới.`
-        : "Tin tuyển dụng này hiện không nhận hồ sơ mới.";
+        ? t("jobDetail.notAcceptingWithStatus", { status: getJobStatusPresentation(status).label })
+        : t("jobDetail.notAccepting");
     } else if (deadlinePassed) {
-      reason = "Đã hết hạn nộp hồ sơ cho vị trí này.";
+      reason = t("jobDetail.deadlinePassed");
     }
     return { canApply: open && !deadlinePassed, reason };
-  }, [detail?.status, detail?.deadline]);
+  }, [detail?.status, detail?.deadline, t]);
   const [recentApplications, setRecentApplications] = useState<
     RecentApplication[]
   >([]);
@@ -249,9 +251,9 @@ function JobDetailScreen() {
       setRecentApplications(
         (recentApplicationsResponse?.data ?? response.data.recentApplications ?? []).slice(0, 5).map((item) => ({
           id: item.id,
-          candidateName: item.candidate?.fullName ?? "Unknown candidate",
+          candidateName: item.candidate?.fullName ?? t("jobDetail.unknownCandidate"),
           applied: item.appliedAt
-            ? new Date(item.appliedAt).toLocaleDateString()
+            ? new Date(item.appliedAt).toLocaleDateString(getDateLocale())
             : "",
           status: formatApplicationStatus(item.status),
           statusClass: getApplicationStatusBadgeClass(item.status),
@@ -272,7 +274,7 @@ function JobDetailScreen() {
     } finally {
       setLoading(false);
     }
-  }, [isInternalPortal, jobId]);
+  }, [isInternalPortal, jobId, t]);
 
   useEffect(() => {
     void loadDetail();
@@ -316,14 +318,14 @@ function JobDetailScreen() {
       title: detail.title,
       location: detail.location,
       posted: detail.createdAt
-        ? `Đăng ngày ${new Date(detail.createdAt).toLocaleDateString()}`
+        ? t("jobDetail.postedOn", { date: new Date(detail.createdAt).toLocaleDateString(getDateLocale()) })
         : "",
       statusLabel: getJobStatusPresentation(detail.status).label,
       salaryRange:
         detail.salaryLabel ||
         (detail.salaryMin != null || detail.salaryMax != null
           ? `${formatCurrency(detail.salaryMin ?? detail.salaryMax) ?? "0 VNĐ"} — ${formatCurrency(detail.salaryMax ?? detail.salaryMin) ?? "0 VNĐ"}`
-          : "Thỏa thuận"),
+          : t("jobDetail.negotiable")),
       department: detail.department?.name ?? "",
       jobType: `${detail.employmentType}${detail.workMode ? `, ${detail.workMode}` : ""}`,
       vacancyCount: detail.vacancyCount ?? 0,
@@ -455,12 +457,12 @@ function JobDetailScreen() {
         skills: toList(editForm.skills),
       });
 
-      toast.success("Cập nhật tin tuyển dụng thành công.");
+      toast.success(t("jobDetail.updateSuccess"));
       setEditing(false);
       navigate(`/jobs/${detail.id}`, { replace: true });
       await loadDetail();
     } catch {
-      toast.error("Hiện chưa thể cập nhật tin tuyển dụng này.");
+      toast.error(t("jobDetail.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -469,7 +471,7 @@ function JobDetailScreen() {
   async function handleClosePosting() {
     if (!detail) return;
 
-    const confirmed = window.confirm(`Đóng tin tuyển dụng ${detail.title}?`);
+    const confirmed = window.confirm(t("jobDetail.closeConfirm", { title: detail.title }));
     if (!confirmed) return;
 
     setClosing(true);
@@ -477,10 +479,10 @@ function JobDetailScreen() {
       await jobsService.updateJobStatus(detail.id, {
         status: "CLOSED" as JobStatusApi,
       });
-      toast.success("Đã đóng tin tuyển dụng.");
+      toast.success(t("jobDetail.closeSuccess"));
       await loadDetail();
     } catch (error) {
-      toast.error(getJobStatusErrorMessage(error, "Không thể đóng tin tuyển dụng."));
+      toast.error(getJobStatusErrorMessage(error, t("jobDetail.closeFailed")));
     } finally {
       setClosing(false);
     }
@@ -489,7 +491,7 @@ function JobDetailScreen() {
   async function handleReopenPosting() {
     if (!detail) return;
 
-    const confirmed = window.confirm(`Mở lại tin tuyển dụng ${detail.title}?`);
+    const confirmed = window.confirm(t("jobDetail.reopenConfirm", { title: detail.title }));
     if (!confirmed) return;
 
     setClosing(true);
@@ -497,12 +499,12 @@ function JobDetailScreen() {
       await jobsService.updateJobStatus(detail.id, {
         status: "APPROVED" as JobStatusApi,
       });
-      toast.success("Đã mở lại tin tuyển dụng.");
+      toast.success(t("jobDetail.reopenSuccess"));
       await loadDetail();
     } catch (error) {
       // Reopening transitions the job back to Approved, which routes through the department-head
       // approval guard (BR-OWN-003) — surface the 403/422 reason instead of a generic message.
-      toast.error(getJobStatusErrorMessage(error, "Không thể mở lại tin tuyển dụng."));
+      toast.error(getJobStatusErrorMessage(error, t("jobDetail.reopenFailed")));
     } finally {
       setClosing(false);
     }
@@ -511,9 +513,9 @@ function JobDetailScreen() {
   async function handleCopyShareLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success("Đã sao chép liên kết chia sẻ.");
+      toast.success(t("jobDetail.shareCopied"));
     } catch {
-      toast.error("Không thể sao chép liên kết chia sẻ.");
+      toast.error(t("jobDetail.shareCopyFailed"));
     }
   }
 
@@ -543,8 +545,8 @@ function JobDetailScreen() {
         <div className="surface-card p-10">
           <EmptyState
             icon="work_off"
-            title="Chi tiết công việc"
-            description="Hiện chưa thể tải công việc này. Vui lòng thử lại sau."
+            title={t("jobDetail.pageTitle")}
+            description={t("jobDetail.loadFailed")}
           />
         </div>
       </section>
@@ -575,7 +577,7 @@ function JobDetailScreen() {
               className="transition-colors hover:text-[#b90014]"
               onClick={() => navigate("/jobs")}
             >
-              Việc làm
+              {t("nav.jobs")}
             </button>
             <span className="material-symbols-outlined text-[16px] text-[#c8c6c5]">
               chevron_right
@@ -610,7 +612,7 @@ function JobDetailScreen() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">group</span>
-                    <span>Số lượng tuyển: {jobSummary.vacancyCount}</span>
+                    <span>{t("jobDetail.vacancyCountLabel", { count: jobSummary.vacancyCount })}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">schedule</span>
@@ -629,7 +631,7 @@ function JobDetailScreen() {
                       onClick={handleApplyClick}
                     >
                       <Icon name="send" />
-                      Ứng tuyển ngay
+                      {t("landing.applyNow")}
                     </button>
                     {!jobApplyState.canApply && jobApplyState.reason ? (
                       <p className="text-[12px] font-medium text-white/80">{jobApplyState.reason}</p>
@@ -647,7 +649,7 @@ function JobDetailScreen() {
                     }}
                   >
                     <Icon name="edit" />
-                    Chỉnh sửa
+                    {t("common.edit")}
                   </button>
                 </PermissionGuard>
                 <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_APPLICATIONS}>
@@ -662,7 +664,7 @@ function JobDetailScreen() {
                     }
                   >
                     <Icon name="visibility" />
-                    Xem hồ sơ ứng tuyển
+                    {t("jobDetail.viewApplications")}
                   </button>
                 </PermissionGuard>
                 {isInternalPortal ? (
@@ -673,7 +675,7 @@ function JobDetailScreen() {
                       disabled={closing}
                       loading={closing}
                       loadingText={
-                        normalizeJobStatus(detail.status) === JobStatus.Closed ? "Đang mở lại..." : "Đang đóng..."
+                        normalizeJobStatus(detail.status) === JobStatus.Closed ? t("jobDetail.reopening") : t("jobDetail.closing")
                       }
                       onClick={() =>
                         normalizeJobStatus(detail.status) === JobStatus.Closed
@@ -683,7 +685,7 @@ function JobDetailScreen() {
                       spinnerTone="brand"
                     >
                       <Icon name={normalizeJobStatus(detail.status) === JobStatus.Closed ? "refresh" : "close"} />
-                      {normalizeJobStatus(detail.status) === JobStatus.Closed ? "Mở lại tin" : "Đóng tin"}
+                      {normalizeJobStatus(detail.status) === JobStatus.Closed ? t("jobDetail.reopen") : t("jobDetail.close")}
                     </AsyncActionButton>
                   </PermissionGuard>
                 ) : null}
@@ -699,11 +701,10 @@ function JobDetailScreen() {
               <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <h3 className="text-[24px] font-semibold leading-8 text-[#1a1c1c]">
-                    Chỉnh sửa chi tiết công việc
+                    {t("jobDetail.editSectionTitle")}
                   </h3>
                   <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                    HR hiện chỉnh sửa trực tiếp trên màn hình chi tiết công việc
-                    thay vì qua popup.
+                    {t("jobDetail.editSectionSubtitle")}
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -716,17 +717,17 @@ function JobDetailScreen() {
                       navigate(`/jobs/${detail.id}`, { replace: true });
                     }}
                   >
-                    Hủy
+                    {t("common.cancel")}
                   </button>
                   <AsyncActionButton
                     type="button"
                     className="bg-[#b90014] px-4 py-2 text-[12px] font-semibold tracking-[0.05em] text-white transition-colors hover:brightness-110 disabled:opacity-60"
                     disabled={saving}
                     loading={saving}
-                    loadingText="Đang lưu..."
+                    loadingText={t("candidateProfile.saving")}
                     onClick={handleSaveJob}
                   >
-                    Lưu thay đổi
+                    {t("candidateProfile.saveChanges")}
                   </AsyncActionButton>
                 </div>
               </div>
@@ -734,7 +735,7 @@ function JobDetailScreen() {
               <div className="grid gap-6 lg:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Tiêu đề công việc
+                    {t("jobDetail.jobTitle")}
                   </span>
                   <input
                     className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.title ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -750,7 +751,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Phòng ban
+                    {t("jobManagement.department")}
                   </span>
                   <CommonSelect
                     className="h-12"
@@ -770,7 +771,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Địa điểm
+                    {t("jobDetail.location")}
                   </span>
                   <input
                     className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.location ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -786,7 +787,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Loại hình làm việc
+                    {t("jobDetail.employmentType")}
                   </span>
                   <CommonSelect
                     className="h-12"
@@ -808,7 +809,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Hình thức làm việc
+                    {t("jobDetail.workMode")}
                   </span>
                   <CommonSelect
                     className="h-12"
@@ -827,7 +828,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Hạn nộp
+                    {t("jobDetail.deadline")}
                   </span>
                   <input
                     className="h-12 w-full border border-[#e7bdb8] px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -841,7 +842,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Số lượng tuyển
+                    {t("jobDetail.vacancyCount")}
                   </span>
                   <input
                     className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.vacancyCount ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -859,7 +860,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Kinh nghiệm tối thiểu
+                    {t("jobDetail.minExperience")}
                   </span>
                   <input
                     className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.minExperienceYears ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -877,7 +878,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Lương tối thiểu
+                    {t("jobDetail.minSalary")}
                   </span>
                   <input
                     className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.salaryMin ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -895,7 +896,7 @@ function JobDetailScreen() {
 
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Lương tối đa
+                    {t("jobDetail.maxSalary")}
                   </span>
                   <input
                     className={`h-12 w-full border px-4 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.salaryMax ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -915,7 +916,7 @@ function JobDetailScreen() {
               <div className="mt-6 grid gap-6">
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Mô tả
+                    {t("jobDetail.description")}
                   </span>
                   <textarea
                     className={`min-h-36 w-full border px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.description ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -930,7 +931,7 @@ function JobDetailScreen() {
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Yêu cầu
+                    {t("jobDetail.requirements")}
                   </span>
                   <textarea
                     className={`min-h-28 w-full border px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c] ${editErrors.requirements ? "border-[#ba1a1a]" : "border-[#e7bdb8]"}`}
@@ -938,7 +939,7 @@ function JobDetailScreen() {
                     onChange={(event) =>
                       updateEditForm("requirements", event.target.value)
                     }
-                    placeholder="Mỗi dòng một yêu cầu"
+                    placeholder={t("jobDetail.requirementsPlaceholder")}
                   />
                   {editErrors.requirements ? (
                     <p className="text-[12px] text-[#ba1a1a]">{editErrors.requirements}</p>
@@ -946,7 +947,7 @@ function JobDetailScreen() {
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Quyền lợi
+                    {t("jobDetail.benefits")}
                   </span>
                   <textarea
                     className="min-h-28 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -954,12 +955,12 @@ function JobDetailScreen() {
                     onChange={(event) =>
                       updateEditForm("benefits", event.target.value)
                     }
-                    placeholder="Mỗi dòng một quyền lợi"
+                    placeholder={t("jobDetail.benefitsPlaceholder")}
                   />
                 </label>
                 <label className="space-y-2">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.05em] text-[#5f5e5e]">
-                    Kỹ năng
+                    {t("candidateProfileView.skills")}
                   </span>
                   <textarea
                     className="min-h-24 w-full border border-[#e7bdb8] px-4 py-3 text-[14px] outline-none transition-colors focus:border-[#1a1c1c]"
@@ -967,11 +968,11 @@ function JobDetailScreen() {
                     onChange={(event) =>
                       updateEditForm("skills", event.target.value)
                     }
-                    placeholder="Phân tách bằng dấu phẩy hoặc mỗi dòng một kỹ năng"
+                    placeholder={t("jobDetail.skillsPlaceholder")}
                   />
                   {skills.length ? (
                     <p className="text-[12px] text-[#5f5e5e]">
-                      Available skills:{" "}
+                      {t("jobDetail.availableSkills")}{" "}
                       {skills
                         .slice(0, 12)
                         .map((skill) => skill.name)
@@ -990,7 +991,7 @@ function JobDetailScreen() {
                   <span className="material-symbols-outlined text-[#b90014]">
                     description
                   </span>
-                  Mô tả công việc
+                  {t("jobDetail.jobDescription")}
                 </h3>
 
                 <div className="space-y-4 whitespace-pre-line text-[14px] leading-7 text-[#5f5e5e]">
@@ -1001,7 +1002,7 @@ function JobDetailScreen() {
                   <span className="material-symbols-outlined text-[#b90014]">
                     checklist
                   </span>
-                  Yêu cầu
+                  {t("jobDetail.requirements")}
                 </h3>
 
                 <ul className="space-y-3 text-[14px] leading-6 text-[#1a1c1c]">
@@ -1021,7 +1022,7 @@ function JobDetailScreen() {
                       <span className="material-symbols-outlined text-[#b90014]">
                         redeem
                       </span>
-                      Quyền lợi
+                      {t("jobDetail.benefits")}
                     </h3>
 
                     <div className="flex flex-wrap gap-2">
@@ -1047,7 +1048,7 @@ function JobDetailScreen() {
                       <span className="material-symbols-outlined text-[#b90014]">
                         group
                       </span>
-                      Hồ sơ gần đây
+                      {t("jobDetail.recentApplications")}
                     </h3>
                     <button
                       type="button"
@@ -1059,7 +1060,7 @@ function JobDetailScreen() {
                         )
                       }
                     >
-                      Xem tất cả {totalApplications}
+                      {t("jobDetail.viewAllApplications", { count: totalApplications })}
                       <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                     </button>
                   </div>
@@ -1069,16 +1070,16 @@ function JobDetailScreen() {
                       <thead>
                         <tr className="border-b border-[#ececec]">
                           <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
-                            Ứng viên
+                            {t("candidateApplication.candidate")}
                           </th>
                           <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
-                            Applied
+                            {t("jobDetail.applied")}
                           </th>
                           <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
-                            Status
+                            {t("common.status")}
                           </th>
                           <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
-                            Score
+                            {t("jobDetail.score")}
                           </th>
                         </tr>
                       </thead>
@@ -1092,7 +1093,7 @@ function JobDetailScreen() {
                               <div className="flex items-center gap-3">
                                 {item.avatarUrl ? (
                                   <img
-                                    alt="Candidate"
+                                    alt={t("candidateApplication.candidate")}
                                     className="h-9 w-9 rounded-full object-cover"
                                     src={item.avatarUrl}
                                   />
@@ -1137,7 +1138,7 @@ function JobDetailScreen() {
               <PermissionGuard permissions={PERMISSIONS.JOB_VIEW_STATISTICS}>
                 <section className="card p-6">
                   <h3 className="section-title mb-5">
-                    Hiring Funnel
+                    {t("managerDashboard.funnelTitle")}
                   </h3>
 
                   <div className="space-y-5">
@@ -1177,21 +1178,21 @@ function JobDetailScreen() {
 
               {isInternalPortal && detail.ownership ? (
                 <section className="card p-6">
-                  <h3 className="section-title mb-1">Phụ trách & phê duyệt</h3>
+                  <h3 className="section-title mb-1">{t("jobDetail.ownershipTitle")}</h3>
                   <p className="mb-5 text-[12px] leading-5 text-[#8a8786]">
-                    Quyền duyệt/từ chối thuộc về trưởng bộ phận của phòng ban (hoặc quản trị hệ thống).
+                    {t("jobDetail.ownershipSubtitle")}
                   </p>
                   <dl className="space-y-4">
                     <OwnershipRow
                       icon="badge"
-                      label="Recruiter phụ trách"
+                      label={t("jobManagement.recruiter")}
                       name={detail.ownership.recruiterName}
                       email={detail.ownership.recruiterEmail}
-                      fallback="Chưa phân công"
+                      fallback={t("jobManagement.unassigned")}
                     />
                     <OwnershipRow
                       icon="supervisor_account"
-                      label="Trưởng bộ phận"
+                      label={t("jobManagement.departmentHead")}
                       name={
                         detail.ownership.departmentHeadName ??
                         detail.ownership.effectiveDepartmentHeadName
@@ -1200,21 +1201,21 @@ function JobDetailScreen() {
                         detail.ownership.departmentHeadEmail ??
                         detail.ownership.effectiveDepartmentHeadEmail
                       }
-                      fallback="Chưa có trưởng bộ phận"
+                      fallback={t("jobManagement.noDepartmentHead")}
                     />
                     <OwnershipRow
                       icon="person_add"
-                      label="Người tạo"
+                      label={t("managerJobApprovalList.creator")}
                       name={detail.ownership.createdByName}
                       email={null}
-                      fallback="Không rõ"
+                      fallback={t("jobManagement.unknown")}
                     />
                     <OwnershipRow
                       icon="verified"
-                      label="Người duyệt gần nhất"
+                      label={t("jobDetail.latestApprover")}
                       name={detail.ownership.approvedByName}
                       email={null}
-                      fallback="Chưa duyệt"
+                      fallback={t("jobDetail.notApprovedYet")}
                     />
                   </dl>
                 </section>
@@ -1222,28 +1223,28 @@ function JobDetailScreen() {
 
               <section className={`${quickApplyCardClass} p-6 lg:sticky lg:top-6`}>
                 <h3 className="eyebrow mb-5">
-                  Thông tin đăng tuyển
+                  {t("jobDetail.postingInfo")}
                 </h3>
 
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">payments</span>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Mức lương</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">{t("managerJobApprovalDetail.salary")}</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{jobSummary.salaryRange}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">apartment</span>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Department</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">{t("jobManagement.department")}</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{jobSummary.department}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined mt-0.5 text-[20px] text-[#b90014]">work</span>
                     <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Loại hình</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">{t("managerJobApprovalDetail.employmentType")}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         <span className={getEmploymentTypeBadgeClass(detail.employmentType)}>
                           {detail.employmentType}
@@ -1257,7 +1258,7 @@ function JobDetailScreen() {
                     </div>
                   </div>
                   <div className="border-t border-[#f0eceb] pt-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">Kỹ năng</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.05em] text-[#8a8786]">{t("candidateProfileView.skills")}</p>
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       {(detail.skills ?? []).map((skill, index) => (
                         <span
@@ -1280,7 +1281,7 @@ function JobDetailScreen() {
                       onClick={() => void handleCopyShareLink()}
                     >
                       <span className="material-symbols-outlined text-[18px]">link</span>
-                      Copy Shareable Link
+                      {t("jobDetail.copyShareableLink")}
                     </button>
                   </div>
                 </PermissionGuard>

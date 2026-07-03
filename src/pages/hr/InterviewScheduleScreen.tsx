@@ -13,6 +13,7 @@ import CommonSelect from "../../common/components/CommonSelect";
 import { Skeleton } from "../../common/components/Skeleton";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
+import { getDateLocale, useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService, type HrInterviewScheduleDataDto } from "../../services/hr/hrService";
 
@@ -35,12 +36,6 @@ type DraftInterviewSchedule = {
   savedAt: string;
 };
 
-const durationOptions = [
-  { label: "30 phút", value: "30" },
-  { label: "60 phút", value: "60" },
-  { label: "90 phút", value: "90" },
-];
-
 const draftStorageKey = "rp_hr_interview_schedule_draft_v1";
 
 function pad2(value: number) {
@@ -52,14 +47,14 @@ function toDateKey(date: Date) {
 }
 
 function formatMonthYear(date: Date) {
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat(getDateLocale(), {
     month: "long",
     year: "numeric",
   }).format(date);
 }
 
 function formatDayLabel(date: Date) {
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat(getDateLocale(), {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -132,6 +127,7 @@ function resolveInitialDate() {
 function InterviewScheduleScreen() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useI18n();
   const routeState = location.state as ScheduleRouteState | null;
   const queryApplicationId = useMemo(
     () => new URLSearchParams(location.search).get("applicationId") ?? undefined,
@@ -180,7 +176,7 @@ function InterviewScheduleScreen() {
         const data = response.data;
         if (!data) {
           setScheduleData(null);
-          toast.error("Không tải được dữ liệu lịch phỏng vấn.");
+          toast.error(t("interviewSchedule.loadFailed"));
           return;
         }
 
@@ -224,7 +220,7 @@ function InterviewScheduleScreen() {
       .catch(() => {
         if (!mounted) return;
         setScheduleData(null);
-        toast.error("Không tải được dữ liệu lịch phỏng vấn.");
+        toast.error(t("interviewSchedule.loadFailed"));
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
@@ -245,6 +241,11 @@ function InterviewScheduleScreen() {
   const slotMinutes = scheduleData?.slotMinutes ?? [];
   const isSlotDisabled = (slot: number) => busySlots.includes(slot);
   const isInterviewerFree = selectedSlot !== null && !isSlotDisabled(selectedSlot);
+  const durationOptions = [
+    { label: t("interviewSchedule.duration30"), value: "30" },
+    { label: t("interviewSchedule.duration60"), value: "60" },
+    { label: t("interviewSchedule.duration90"), value: "90" },
+  ];
   const endMinutes = useMemo(
     () => (selectedSlot === null ? 0 : addMinutes(selectedSlot, durationMinutes)),
     [selectedSlot, durationMinutes],
@@ -253,15 +254,15 @@ function InterviewScheduleScreen() {
   // A single, visible reason the confirm button is disabled — no silent disabled button. Permission
   // is checked first, then the concrete form gaps (slot selection, interviewer availability, link).
   const confirmDisabledReason: string | null = !canCreateInterview
-    ? "Bạn không có quyền lên lịch phỏng vấn."
+    ? t("interviewSchedule.noPermission")
     : selectedSlot === null
-      ? "Hãy chọn khung giờ phỏng vấn."
+      ? t("interviewSchedule.selectSlotError")
       : !isInterviewerFree
-        ? "Người phỏng vấn bận trong khung giờ này. Hãy chọn giờ khác hoặc đổi người phỏng vấn."
+        ? t("interviewSchedule.interviewerBusy")
         : !locationOrLink.trim()
           ? mode === "video"
-            ? "Hãy nhập link cuộc họp."
-            : "Hãy nhập địa điểm phỏng vấn."
+            ? t("interviewSchedule.enterMeetingLink")
+            : t("interviewSchedule.enterLocation")
           : null;
 
   useEffect(() => {
@@ -310,12 +311,12 @@ function InterviewScheduleScreen() {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    toast.info("Đã lưu nháp.");
+    toast.info(t("interviewSchedule.draftSaved"));
   }
 
   async function saveSchedule() {
     if (!scheduleData || !currentInterviewer) {
-      toast.error("Dữ liệu lịch chưa sẵn sàng.");
+      toast.error(t("interviewSchedule.dataNotReady"));
       return;
     }
 
@@ -351,12 +352,12 @@ function InterviewScheduleScreen() {
       });
 
       window.localStorage.removeItem(draftStorageKey);
-      toast.success("Đã lên lịch phỏng vấn.");
+      toast.success(t("interviewSchedule.saveSuccess"));
       navigate("/hr/interviews");
     } catch (error) {
       // Surface the backend errorCode first (e.g. INTERVIEW_NOT_ACTIONABLE when the application is
       // not in the Interview stage — BR-APPLICATION-008/INV-008), then HTTP status, then message.
-      toast.error(getApplicationErrorMessage(error, "Không thể lên lịch phỏng vấn."));
+      toast.error(getApplicationErrorMessage(error, t("interviewSchedule.saveFailed")));
     } finally {
       setIsSubmitting(false);
     }
@@ -399,12 +400,12 @@ function InterviewScheduleScreen() {
             <span className="material-symbols-outlined text-[32px]">event_busy</span>
           </div>
           <h2 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">
-            Lên lịch phỏng vấn
+            {t("interviewSchedule.title")}
           </h2>
           <p className="mt-2 text-[14px] text-[#5f5e5e]">
             {missingApplicationContext
-              ? "Hãy chọn một hồ sơ ứng tuyển trước khi mở màn hình lên lịch."
-              : "Hiện chưa có dữ liệu để lên lịch phỏng vấn."}
+              ? t("interviewSchedule.missingApplicationContext")
+              : t("interviewSchedule.noData")}
           </p>
           <button
             type="button"
@@ -412,7 +413,7 @@ function InterviewScheduleScreen() {
             onClick={() => navigate(missingApplicationContext ? "/hr/applications" : "/hr/interviews")}
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            {missingApplicationContext ? "Đi đến danh sách hồ sơ" : "Quay lại danh sách phỏng vấn"}
+            {missingApplicationContext ? t("interviewSchedule.goToApplications") : t("interviewSchedule.backToInterviewList")}
           </button>
         </div>
       </div>
@@ -426,13 +427,13 @@ function InterviewScheduleScreen() {
           type="button"
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f7f6f5] hover:text-[#1a1c1c]"
           onClick={() => navigate(-1)}
-          aria-label="Quay lại"
+          aria-label={t("common.back")}
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <div>
-          <p className="eyebrow">Phỏng vấn</p>
-          <h1 className="page-title">Lên lịch phỏng vấn</h1>
+          <p className="eyebrow">{t("interviewSchedule.eyebrow")}</p>
+          <h1 className="page-title">{t("interviewSchedule.title")}</h1>
         </div>
       </div>
 
@@ -462,11 +463,11 @@ function InterviewScheduleScreen() {
                 {scheduleData.candidate.name}
               </h2>
               <span className="badge bg-[#e6f1fb] text-[#005f93]">
-                {scheduleData.candidate.roleLabel || "Ứng viên"}
+                {scheduleData.candidate.roleLabel || t("roles.candidate")}
               </span>
             </div>
             <p className="mt-1 text-[14px] text-[#5f5e5e]">
-              Ứng tuyển vị trí:{" "}
+              {t("interviewSchedule.appliedFor")}{" "}
               <span className="font-semibold text-[#1a1c1c]">
                 {scheduleData.candidate.appliedFor}
               </span>
@@ -479,12 +480,12 @@ function InterviewScheduleScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => toast.info("Chức năng xem hồ sơ chi tiết chưa sẵn sàng.")}
+              onClick={() => toast.info(t("interviewSchedule.viewProfileSoon"))}
             >
               <span className="material-symbols-outlined text-[18px]">
                 account_circle
               </span>
-              Xem hồ sơ
+              {t("candidateList.viewProfile")}
             </button>
           </PermissionGuard>
         </div>
@@ -503,7 +504,7 @@ function InterviewScheduleScreen() {
                     type="button"
                     className="text-[#5f5e5e] transition-transform active:scale-95"
                     onClick={() => setViewMonth((v) => addMonths(v, -1))}
-                    aria-label="Tháng trước"
+                    aria-label={t("interviewSchedule.previousMonth")}
                   >
                     <span className="material-symbols-outlined">chevron_left</span>
                   </button>
@@ -511,7 +512,7 @@ function InterviewScheduleScreen() {
                     type="button"
                     className="text-[#5f5e5e] transition-transform active:scale-95"
                     onClick={() => setViewMonth((v) => addMonths(v, 1))}
-                    aria-label="Tháng sau"
+                    aria-label={t("interviewSchedule.nextMonth")}
                   >
                     <span className="material-symbols-outlined">chevron_right</span>
                   </button>
@@ -519,7 +520,7 @@ function InterviewScheduleScreen() {
               </div>
 
               <div className="grid grid-cols-7 border-b border-[#eeeeee] pb-2 text-center text-[12px] font-semibold tracking-[0.05em] text-[#5f5e5e]">
-                {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((day) => (
+                {[t("interviewSchedule.weekdays.mon"), t("interviewSchedule.weekdays.tue"), t("interviewSchedule.weekdays.wed"), t("interviewSchedule.weekdays.thu"), t("interviewSchedule.weekdays.fri"), t("interviewSchedule.weekdays.sat"), t("interviewSchedule.weekdays.sun")].map((day) => (
                   <span key={day}>{day}</span>
                 ))}
               </div>
@@ -539,7 +540,7 @@ function InterviewScheduleScreen() {
                       type="button"
                       className={`${baseClass} rounded-[10px] ${selected}`}
                       onClick={() => onPickDay(date)}
-                      aria-label={`Chọn ${formatDayLabel(date)}`}
+                      aria-label={t("interviewSchedule.selectDate", { date: formatDayLabel(date) })}
                     >
                       {date.getDate()}
                     </button>
@@ -549,7 +550,7 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="section-title">Khung giờ trống</h3>
+              <h3 className="section-title">{t("interviewSchedule.availableSlots")}</h3>
               <div className="grid h-[260px] grid-cols-2 gap-2 overflow-y-auto pr-2">
                 {slotMinutes.map((slot) => {
                   const selected = slot === selectedSlot;
@@ -578,11 +579,11 @@ function InterviewScheduleScreen() {
           </section>
 
           <section className="card space-y-6 p-6">
-            <h3 className="section-title">Cấu hình phỏng vấn</h3>
+            <h3 className="section-title">{t("interviewSchedule.configTitle")}</h3>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-3">
-                <label className="field-label">Hình thức</label>
+                <label className="field-label">{t("interviewSchedule.mode")}</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -592,9 +593,9 @@ function InterviewScheduleScreen() {
                         : "border border-[#ececec] font-semibold text-[#5f5e5e] hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
                     }`}
                     onClick={() => setMode("video")}
-                  >
-                    <span className="material-symbols-outlined text-[20px]">videocam</span>
-                    Trực tuyến
+                    >
+                      <span className="material-symbols-outlined text-[20px]">videocam</span>
+                    {t("interviewSchedule.videoMode")}
                   </button>
 
                   <button
@@ -605,15 +606,15 @@ function InterviewScheduleScreen() {
                         : "border border-[#ececec] font-semibold text-[#5f5e5e] hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
                     }`}
                     onClick={() => setMode("inPerson")}
-                  >
-                    <span className="material-symbols-outlined text-[20px]">person</span>
-                    Trực tiếp
+                    >
+                      <span className="material-symbols-outlined text-[20px]">person</span>
+                    {t("interviewSchedule.inPersonMode")}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <label className="field-label">Thời lượng</label>
+                <label className="field-label">{t("interviewSchedule.duration")}</label>
                 <CommonSelect
                   value={String(durationMinutes)}
                   options={durationOptions}
@@ -624,7 +625,7 @@ function InterviewScheduleScreen() {
             </div>
 
             <div className="space-y-3">
-              <label className="field-label">Link họp / Địa điểm</label>
+              <label className="field-label">{t("interviewSchedule.locationOrLink")}</label>
               <div className="relative">
                 <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-[#a8a4a2]">
                   link
@@ -648,7 +649,7 @@ function InterviewScheduleScreen() {
                       );
                     }
                   }}
-                  placeholder={mode === "video" ? "Dán link cuộc họp" : "Nhập địa điểm phỏng vấn"}
+                  placeholder={mode === "video" ? t("interviewSchedule.meetingLinkPlaceholder") : t("interviewSchedule.locationPlaceholder")}
                 />
               </div>
               {formErrors.locationOrLink ? (
@@ -660,7 +661,7 @@ function InterviewScheduleScreen() {
 
         <div className="col-span-12 space-y-6 lg:col-span-4">
           <section className="card p-6">
-            <h3 className="section-title mb-5">Người phỏng vấn phụ trách</h3>
+            <h3 className="section-title mb-5">{t("interviewSchedule.interviewerTitle")}</h3>
             <div className="mb-4 flex items-center gap-4 rounded-[14px] border border-[#ececec] bg-[#f7f6f5] p-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-[14px] font-bold text-[#5f5e5e]">
                 {currentInterviewer.avatarUrl ? (
@@ -687,14 +688,14 @@ function InterviewScheduleScreen() {
                 type="button"
                 className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#b90014] transition-colors hover:bg-[#fff1f0] active:scale-95"
                 onClick={onSwapInterviewer}
-                aria-label="Đổi người phỏng vấn"
+                aria-label={t("interviewSchedule.swapInterviewer")}
               >
                 <span className="material-symbols-outlined">swap_horiz</span>
               </button>
             </div>
 
             <div className="space-y-2">
-              <p className="field-label">Lịch của người phỏng vấn</p>
+              <p className="field-label">{t("interviewSchedule.interviewerSchedule")}</p>
               <div
                 className={`flex items-center gap-2 rounded-[10px] p-3 text-[13px] font-medium ${
                   isInterviewerFree
@@ -705,19 +706,19 @@ function InterviewScheduleScreen() {
                 <span className="material-symbols-outlined text-[18px]">
                   {isInterviewerFree ? "check_circle" : "error"}
                 </span>
-                {isInterviewerFree ? "Trống trong khung giờ này" : "Bận trong khung giờ này"}
+                {isInterviewerFree ? t("interviewSchedule.interviewerFree") : t("interviewSchedule.interviewerBusyShort")}
               </div>
             </div>
           </section>
 
           <section className="card sticky top-6 p-6">
-            <h3 className="section-title mb-5">Tóm tắt lịch</h3>
+            <h3 className="section-title mb-5">{t("interviewSchedule.summaryTitle")}</h3>
 
             <div className="mb-6 space-y-3">
               <div className="flex justify-between border-b border-[#f0eceb] pb-3">
-                <span className="text-[14px] text-[#5f5e5e]">Ngày</span>
+                <span className="text-[14px] text-[#5f5e5e]">{t("interviewSchedule.summaryDate")}</span>
                 <span className="font-semibold text-[#1a1c1c]">
-                  {new Intl.DateTimeFormat("vi-VN", {
+                  {new Intl.DateTimeFormat(getDateLocale(), {
                     month: "short",
                     day: "numeric",
                     year: "numeric",
@@ -726,9 +727,9 @@ function InterviewScheduleScreen() {
               </div>
 
               <div className="flex justify-between border-b border-[#f0eceb] pb-3">
-                <span className="text-[14px] text-[#5f5e5e]">Giờ</span>
+                <span className="text-[14px] text-[#5f5e5e]">{t("interviewSchedule.summaryTime")}</span>
                 <span className="font-semibold text-[#1a1c1c]">
-                  {selectedSlot === null ? "Chưa chọn" : `${formatTime(selectedSlot)} - ${formatTime(endMinutes)}`}
+                  {selectedSlot === null ? t("interviewSchedule.notSelected") : `${formatTime(selectedSlot)} - ${formatTime(endMinutes)}`}
                 </span>
               </div>
               {formErrors.startMinutes ? (
@@ -736,9 +737,9 @@ function InterviewScheduleScreen() {
               ) : null}
 
               <div className="flex justify-between border-b border-[#f0eceb] pb-3">
-                <span className="text-[14px] text-[#5f5e5e]">Hình thức</span>
+                <span className="text-[14px] text-[#5f5e5e]">{t("interviewSchedule.summaryMode")}</span>
                 <span className="font-semibold text-[#1a1c1c]">
-                  {mode === "video" ? "Phỏng vấn trực tuyến" : "Phỏng vấn trực tiếp"}
+                  {mode === "video" ? t("interviewSchedule.summaryVideoMode") : t("interviewSchedule.summaryInPersonMode")}
                 </span>
               </div>
             </div>
@@ -756,10 +757,10 @@ function InterviewScheduleScreen() {
                 onClick={saveSchedule}
                 disabled={confirmDisabledReason !== null || isSubmitting}
                 loading={isSubmitting}
-                loadingText="Đang lưu lịch..."
+                loadingText={t("interviewSchedule.saving")}
               >
                 <span className="material-symbols-outlined text-[18px]">event_available</span>
-                Xác nhận lịch phỏng vấn
+                {t("interviewSchedule.confirm")}
               </AsyncActionButton>
 
               <PermissionGuard permissions={PERMISSIONS.INTERVIEW_UPDATE}>
@@ -769,14 +770,14 @@ function InterviewScheduleScreen() {
                   onClick={saveDraftLocally}
                   disabled={!canViewScheduleData || isSubmitting}
                 >
-                  Lưu nháp
+                  {t("interviewSchedule.saveDraft")}
                 </button>
               </PermissionGuard>
             </div>
 
             <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[12px] font-medium text-[#5f5e5e]">
               <span className="material-symbols-outlined text-[16px]">info</span>
-              Hệ thống sẽ gửi thông báo cho hai bên.
+              {t("interviewSchedule.notificationNote")}
             </p>
           </section>
         </div>

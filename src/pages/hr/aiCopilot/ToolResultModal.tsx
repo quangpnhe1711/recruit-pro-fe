@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import LoadingIndicator from "../../../common/components/LoadingIndicator";
+import { useI18n } from "../../../i18n";
 import { scoreTone, TOOL_META, type ToolName, type ToolResult } from "./copilotUi";
 
 type ToolResultModalProps = {
@@ -12,13 +13,14 @@ type ToolResultModalProps = {
 };
 
 function FallbackNote({ fallbackUsed }: { fallbackUsed: boolean }) {
+  const { t } = useI18n();
   return (
     <p className="mt-4 flex items-center gap-1.5 text-[11px] text-[#8a8786]">
       <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
-      Nội dung được tạo bởi AI — hãy kiểm tra trước khi sử dụng.
+      {t("aiCopilot.result.aiDisclaimer")}
       {fallbackUsed ? (
         <span className="ml-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700">
-          Dùng phương án dự phòng
+          {t("aiCopilot.result.fallback")}
         </span>
       ) : null}
     </p>
@@ -26,6 +28,7 @@ function FallbackNote({ fallbackUsed }: { fallbackUsed: boolean }) {
 }
 
 function ResultBody({ result }: { result: ToolResult }) {
+  const { t } = useI18n();
   if (result.kind === "fit") {
     return (
       <div>
@@ -39,7 +42,7 @@ function ResultBody({ result }: { result: ToolResult }) {
             {result.fitLabel}
           </span>
           <span className="text-[12px] text-[#5f5e5e]">
-            Độ tin cậy {Math.round(result.confidenceScore)}%
+            {t("candidateReviewDetail.confidence")} {Math.round(result.confidenceScore)}%
           </span>
         </div>
         {result.summary ? (
@@ -49,7 +52,7 @@ function ResultBody({ result }: { result: ToolResult }) {
           {result.strengths.length ? (
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">
-                Điểm mạnh
+                {t("candidateReviewDetail.strengths")}
               </p>
               <ul className="mt-2 space-y-1.5 text-[13px] text-[#1a1c1c]">
                 {result.strengths.map((item, index) => (
@@ -64,7 +67,7 @@ function ResultBody({ result }: { result: ToolResult }) {
           {result.gaps.length ? (
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#ba1a1a]">
-                Điểm cần lưu ý
+                {t("candidateReviewDetail.gaps")}
               </p>
               <ul className="mt-2 space-y-1.5 text-[13px] text-[#1a1c1c]">
                 {result.gaps.map((item, index) => (
@@ -80,7 +83,7 @@ function ResultBody({ result }: { result: ToolResult }) {
         {result.evidence.length ? (
           <div className="mt-4 rounded-[12px] bg-[#faf9f8] p-3">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
-              Dẫn chứng từ hồ sơ
+              {t("candidateReviewDetail.evidence")}
             </p>
             <ul className="mt-2 space-y-1 text-[12px] text-[#5f5e5e]">
               {result.evidence.map((item, index) => (
@@ -134,7 +137,7 @@ function ResultBody({ result }: { result: ToolResult }) {
         <div className="flex items-center justify-between gap-3 border-b border-[#eee9e7] px-4 py-3">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[#8a8786]">
-              Tiêu đề
+              {t("candidateApplication.emailSubject")}
             </p>
             <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">{result.subject}</p>
           </div>
@@ -144,12 +147,12 @@ function ResultBody({ result }: { result: ToolResult }) {
             onClick={() => {
               void navigator.clipboard
                 ?.writeText(`${result.subject}\n\n${result.body}`)
-                .then(() => toast.success("Đã sao chép email."))
-                .catch(() => toast.error("Không sao chép được."));
+                .then(() => toast.success(t("aiCopilot.result.emailCopied")))
+                .catch(() => toast.error(t("aiCopilot.result.copyFailed")));
             }}
           >
             <span className="material-symbols-outlined text-[16px]">content_copy</span>
-            Sao chép
+            {t("common.copy")}
           </button>
         </div>
         <div className="whitespace-pre-wrap px-4 py-3.5 text-[14px] leading-6 text-[#1f2937]">
@@ -162,6 +165,7 @@ function ResultBody({ result }: { result: ToolResult }) {
 }
 
 function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultModalProps) {
+  const { t } = useI18n();
   if (!open) return null;
 
   const meta = tool ? TOOL_META[tool] : null;
@@ -184,7 +188,7 @@ function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultMod
             </span>
             <div>
               <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">
-                {meta?.label ?? "Kết quả AI"}
+                {meta?.label ?? t("aiCopilot.result.title")}
               </h3>
               {subtitle ? <p className="mt-0.5 text-[13px] text-[#5f5e5e]">{subtitle}</p> : null}
             </div>
@@ -193,7 +197,7 @@ function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultMod
             type="button"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f2efed]"
             onClick={onClose}
-            aria-label="Đóng"
+            aria-label={t("common.close")}
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -202,15 +206,15 @@ function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultMod
         <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
           {loading ? (
             <div className="flex min-h-[220px] flex-col items-center justify-center gap-3">
-              <LoadingIndicator label="AI đang xử lý..." />
+              <LoadingIndicator label={t("aiCopilot.result.processing")} />
               <p className="max-w-xs text-center text-[12px] text-[#8a8786]">
-                Quá trình này có thể mất vài giây tùy độ dài hồ sơ.
+                {t("aiCopilot.result.processingHint")}
               </p>
             </div>
           ) : result ? (
             <ResultBody result={result} />
           ) : (
-            <p className="text-[14px] text-[#5f5e5e]">Không có kết quả.</p>
+            <p className="text-[14px] text-[#5f5e5e]">{t("aiCopilot.result.empty")}</p>
           )}
         </div>
       </div>

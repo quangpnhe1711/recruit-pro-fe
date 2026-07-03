@@ -2,6 +2,7 @@ import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { translate } from "../../../i18n";
 import {
   candidateProfileSchema,
   certificationDraftSchema,
@@ -293,7 +294,7 @@ export function useCandidateProfileScreen() {
       })
       .catch(() => {
         if (mounted) {
-          toast.error("Không thể tải hồ sơ ứng viên");
+          toast.error(translate("candidateProfile.loadFailed"));
         }
       })
       .finally(() => {
@@ -520,7 +521,7 @@ export function useCandidateProfileScreen() {
     setHasAppliedParsedResume(true);
     setIsEditingProfile(true);
     toast.success(
-      "Đã áp dữ liệu parse từ CV vào biểu mẫu theo chế độ ghi đè. Nếu bạn lưu, hệ thống sẽ coi profile này là CV chính thức.",
+      translate("candidateProfile.parseApplied"),
     );
   }
 
@@ -662,10 +663,10 @@ export function useCandidateProfileScreen() {
       }
 
       setIsEditingProfile(false);
-      toast.success("Cập nhật thông tin thành công");
+      toast.success(translate("candidateProfile.saveSuccess"));
     } catch (error) {
       console.error(error);
-      toast.error("Không thể lưu hồ sơ");
+      toast.error(translate("candidateProfile.saveFailed"));
     } finally {
       setIsSavingProfile(false);
     }
@@ -674,13 +675,13 @@ export function useCandidateProfileScreen() {
   function handleResumeFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) {
-      toast.error("Chưa chọn file CV hợp lệ.");
+      toast.error(translate("candidateProfile.resumeInvalid"));
       return;
     }
 
     setResumeFile(file);
     setParsedResumePreview(null);
-    toast.success("Đã chọn file CV: " + file.name);
+    toast.success(translate("candidateProfile.resumeSelected", { name: file.name }));
   }
 
   function clearSelectedResumeFile() {
@@ -690,7 +691,7 @@ export function useCandidateProfileScreen() {
 
   async function handleParseResume() {
     if (!resumeFile) {
-      toast.error("Hãy chọn CV trước khi phân tích.");
+      toast.error(translate("candidateProfile.resumeSelectBeforeParse"));
       return;
     }
 
@@ -698,19 +699,19 @@ export function useCandidateProfileScreen() {
     try {
       const response = await candidateService.parseResume(resumeFile);
       if (!response.data) {
-        toast.error(response.message || "Không thể phân tích CV.");
+        toast.error(response.message || translate("candidateProfile.parseFailed"));
         return;
       }
 
       setParsedResumePreview(response.data);
       toast.success(
         response.data.usedAi
-          ? "Đã phân tích CV bằng AI. Hãy kiểm tra dữ liệu trước khi áp dụng."
-          : "Đã phân tích CV bằng chế độ dự phòng. Hãy kiểm tra lại kỹ dữ liệu trước khi áp dụng.",
+          ? translate("candidateProfile.parseSuccessAi")
+          : translate("candidateProfile.parseSuccessFallback"),
       );
     } catch (error) {
       console.error(error);
-      toast.error("Không thể phân tích CV hiện tại.");
+      toast.error(translate("candidateProfile.parseFailedCurrent"));
     } finally {
       setIsParsingResume(false);
     }

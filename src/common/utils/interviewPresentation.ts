@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import { translate } from "../../i18n";
 
 dayjs.extend(isSameOrAfter);
 
@@ -50,7 +51,7 @@ export function getInterviewTimingStatus(
   if (now.isAfter(end)) {
     return {
       key: "overdue",
-      label: "Quá hạn",
+      label: translate("candidateInterviews.timing.overdue"),
       className: "bg-[#fff1ef] text-[#ba1a1a]",
     };
   }
@@ -58,7 +59,7 @@ export function getInterviewTimingStatus(
   if (now.isSameOrAfter(start) && now.isBefore(end)) {
     return {
       key: "in-progress",
-      label: "Đang diễn ra",
+      label: translate("candidateInterviews.timing.inProgress"),
       className: "bg-[#e8f5e9] text-[#1b5e20]",
     };
   }
@@ -66,7 +67,7 @@ export function getInterviewTimingStatus(
   if (start.isSame(now, "day")) {
     return {
       key: "today",
-      label: "Hôm nay",
+      label: translate("candidateInterviews.timing.today"),
       className: "bg-[#fff3e0] text-[#9a4d00]",
     };
   }
@@ -74,7 +75,7 @@ export function getInterviewTimingStatus(
   if (start.diff(now, "day", true) <= 3) {
     return {
       key: "upcoming",
-      label: "Sắp tới",
+      label: translate("candidateInterviews.timing.upcoming"),
       className: "bg-[#e3f2fd] text-[#005f93]",
     };
   }

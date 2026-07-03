@@ -18,6 +18,7 @@ import {
   getWorkModeChipClass,
 } from "../../common/utils/jobPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
+import { getDateLocale, useI18n } from "../../i18n";
 import {
   employmentTypeLabels,
   workModeLabels,
@@ -162,6 +163,7 @@ function loadDraft(): DraftState | null {
 }
 
 function JobCreatingScreen() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const canCreateJob = hasPermission(PERMISSIONS.JOB_CREATE);
@@ -286,19 +288,19 @@ function JobCreatingScreen() {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    toast.success("Đã lưu nháp.");
+    toast.success(t("jobCreating.draftSaved"));
   }
 
   function applyEngineeringTemplate() {
-    setTitle("Senior Software Engineer");
+    setTitle(t("jobCreating.template.title"));
     setDepartment("Engineering");
-    setLocation("Ho Chi Minh City");
+    setLocation(t("jobCreating.template.location"));
     setEmploymentType("Full-time");
     setWorkMode("Hybrid");
     setShortPitch(
-      "Build high-performance internal recruiting workflows for enterprise teams.",
+      t("jobCreating.template.shortPitch"),
     );
-    toast.info("Đã áp dụng mẫu.");
+    toast.info(t("jobCreating.template.applied"));
   }
 
   function validateStep1() {
@@ -491,10 +493,10 @@ function JobCreatingScreen() {
 
     toast.info(
       next === 2
-        ? "Basic info saved. Continue with description."
+        ? t("jobCreating.progress.step1")
         : next === 3
-          ? "Description saved. Continue with skills & pay."
-          : "Almost done. Review your posting.",
+          ? t("jobCreating.progress.step2")
+          : t("jobCreating.progress.step3"),
     );
   }
 
@@ -558,10 +560,10 @@ function JobCreatingScreen() {
       });
 
       window.localStorage.removeItem(draftStorageKey);
-      toast.success("Đã gửi tin tuyển dụng để duyệt.");
+      toast.success(t("jobCreating.submitSuccess"));
       navigate("/jobs");
     } catch {
-      toast.error("Không thể gửi tin tuyển dụng.");
+      toast.error(t("jobCreating.submitFailed"));
     } finally {
       setPublishing(false);
     }
@@ -573,10 +575,10 @@ function JobCreatingScreen() {
 
       {(
         [
-          { n: 1, label: "Thông tin cơ bản" },
-          { n: 2, label: "Mô tả" },
-          { n: 3, label: "Kỹ năng & Lương" },
-          { n: 4, label: "Rà soát" },
+          { n: 1, label: t("jobCreating.steps.basicInfo") },
+          { n: 2, label: t("jobCreating.steps.description") },
+          { n: 3, label: t("jobCreating.steps.skillsSalary") },
+          { n: 4, label: t("jobCreating.steps.review") },
         ] as const
       ).map((s) => {
         const active = step === s.n;
@@ -620,10 +622,10 @@ function JobCreatingScreen() {
   return (
     <div className="app-container animate-fade-in py-8 md:py-10">
       <div className="mb-8">
-        <p className="eyebrow">Tuyển dụng</p>
-        <h1 className="page-title mt-1.5">Tạo tin tuyển dụng mới</h1>
+        <p className="eyebrow">{t("jobCreating.eyebrow")}</p>
+        <h1 className="page-title mt-1.5">{t("jobCreating.title")}</h1>
         <p className="page-subtitle">
-          Điền các thông tin chính để bắt đầu tạo chiến dịch tuyển dụng nội bộ.
+          {t("jobCreating.subtitle")}
         </p>
       </div>
 
@@ -639,16 +641,16 @@ function JobCreatingScreen() {
                 <span className="material-symbols-outlined text-[20px]">info</span>
               </span>
               <div>
-                <h2 className="section-title">Thông tin cơ bản</h2>
+                <h2 className="section-title">{t("jobCreating.steps.basicInfo")}</h2>
                 <p className="text-[12px] text-[#8a8786]">
-                  Tiêu đề, phòng ban và hình thức làm việc của vị trí.
+                  {t("jobCreating.basicInfoHelp")}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="field-label">Chức danh công việc</label>
+                <label className="field-label">{t("jobCreating.jobTitle")}</label>
                 <input
                   value={title}
                   onChange={(e) => {
@@ -668,7 +670,7 @@ function JobCreatingScreen() {
                     }
                   }}
                   className={`input-field h-11 ${step1Errors.title ? "border-[#ba1a1a]" : ""}`}
-                  placeholder="Ví dụ: Kỹ sư phần mềm cấp cao"
+                  placeholder={t("jobCreating.placeholders.jobTitle")}
                   type="text"
                 />
                 {step1Errors.title ? (
@@ -677,7 +679,7 @@ function JobCreatingScreen() {
               </div>
 
               <div>
-                <label className="field-label">Phòng ban</label>
+                <label className="field-label">{t("jobManagement.department")}</label>
                 <CommonSelect
                   options={departments.map((d) => ({ label: d, value: d }))}
                   value={department}
@@ -704,10 +706,10 @@ function JobCreatingScreen() {
               </div>
 
               <div>
-                <label className="field-label">Loại hình công việc</label>
+                <label className="field-label">{t("jobCreating.jobType")}</label>
                 <CommonSelect
                   options={employmentTypeOptions}
-                  placeholder="Chọn loại hình công việc"
+                  placeholder={t("jobCreating.placeholders.jobType")}
                   value={employmentType}
                   onChange={(e) => {
                     const nextValue = e.target.value as EmploymentType | "";
@@ -732,7 +734,7 @@ function JobCreatingScreen() {
               </div>
 
               <div>
-                <label className="field-label">Địa điểm</label>
+                <label className="field-label">{t("jobCreating.location")}</label>
                 <input
                   value={location}
                   onChange={(e) => {
@@ -752,7 +754,7 @@ function JobCreatingScreen() {
                     }
                   }}
                   className={`input-field h-11 ${step1Errors.location ? "border-[#ba1a1a]" : ""}`}
-                  placeholder="Ví dụ: TP. Ho Chi Minh"
+                  placeholder={t("jobCreating.placeholders.location")}
                   type="text"
                 />
                 {step1Errors.location ? (
@@ -761,10 +763,10 @@ function JobCreatingScreen() {
               </div>
 
               <div>
-                <label className="field-label">Hình thức làm việc</label>
+                <label className="field-label">{t("jobCreating.workMode")}</label>
                 <CommonSelect
                   options={workModeOptions}
-                  placeholder="Chọn hình thức làm việc"
+                  placeholder={t("jobCreating.placeholders.workMode")}
                   value={workMode}
                   onChange={(e) => {
                     const nextValue = e.target.value as WorkMode | "";
@@ -789,7 +791,7 @@ function JobCreatingScreen() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="field-label">Mô tả ngắn</label>
+                <label className="field-label">{t("jobCreating.shortPitch")}</label>
                 <textarea
                   value={shortPitch}
                   onChange={(e) => {
@@ -809,14 +811,14 @@ function JobCreatingScreen() {
                     }
                   }}
                   className={`input-field min-h-[88px] resize-y ${step1Errors.shortPitch ? "border-[#ba1a1a]" : ""}`}
-                  placeholder="Tóm tắt ngắn để hiển thị trên trang việc làm..."
+                  placeholder={t("jobCreating.placeholders.shortPitch")}
                   rows={3}
                 />
                 {step1Errors.shortPitch ? (
                   <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.shortPitch}</p>
                 ) : null}
                 <p className="mt-1.5 text-[12px] text-[#8a8786]">
-                  Một câu súc tích thu hút ứng viên ngay từ danh sách việc làm.
+                  {t("jobCreating.shortPitchHint")}
                 </p>
               </div>
             </div>
@@ -829,7 +831,7 @@ function JobCreatingScreen() {
                 disabled={!canCreateJob}
               >
                 <span className="material-symbols-outlined text-[18px]">save</span>
-                Lưu nháp
+                {t("common.save")}
               </button>
 
               <button
@@ -838,7 +840,7 @@ function JobCreatingScreen() {
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
-                Tiếp tục tới phần mô tả
+                {t("jobCreating.nextToDescription")}
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -854,15 +856,15 @@ function JobCreatingScreen() {
                 <span className="material-symbols-outlined text-[20px]">description</span>
               </span>
               <div>
-                <h2 className="section-title">Mô tả công việc</h2>
+                <h2 className="section-title">{t("jobCreating.steps.description")}</h2>
                 <p className="text-[12px] text-[#8a8786]">
-                  Mô tả chi tiết, trách nhiệm và yêu cầu của vị trí.
+                  {t("jobCreating.descriptionHelp")}
                 </p>
               </div>
             </div>
 
             <div>
-              <label className="field-label">Mô tả công việc</label>
+              <label className="field-label">{t("jobCreating.jobDescription")}</label>
               <textarea
                 value={description}
                 onChange={(e) => {
@@ -878,7 +880,7 @@ function JobCreatingScreen() {
                   }
                 }}
                 className={`input-field min-h-[160px] resize-y ${step2Errors.description ? "border-[#ba1a1a]" : ""}`}
-                placeholder="Mô tả vai trò, phạm vi công việc và kỳ vọng..."
+                placeholder={t("jobCreating.placeholders.description")}
                 rows={6}
               />
               {step2Errors.description ? (
@@ -888,13 +890,13 @@ function JobCreatingScreen() {
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="space-y-3 rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-4">
-                <p className="field-label mb-0">Trách nhiệm</p>
+                <p className="field-label mb-0">{t("jobCreating.responsibilities")}</p>
                 <div className="flex gap-2">
                   <input
                     value={responsibilityInput}
                     onChange={(e) => setResponsibilityInput(e.target.value)}
                     className="input-field h-11"
-                    placeholder="Thêm một trách nhiệm"
+                    placeholder={t("jobCreating.placeholders.addResponsibility")}
                   />
                   <button
                     type="button"
@@ -904,7 +906,7 @@ function JobCreatingScreen() {
                       setResponsibilityInput("");
                     }}
                   >
-                    Thêm
+                    {t("jobCreating.add")}
                   </button>
                 </div>
                 <ul className="space-y-2">
@@ -918,7 +920,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="text-[#8a8786] transition-colors hover:text-[#b90014]"
                         onClick={() => removeListItem(idx, setResponsibilities)}
-                        aria-label="Xóa trách nhiệm"
+                        aria-label={t("jobCreating.removeResponsibility")}
                       >
                         <span className="material-symbols-outlined text-[20px]">
                           close
@@ -930,13 +932,13 @@ function JobCreatingScreen() {
               </div>
 
               <div className="space-y-3 rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-4">
-                <p className="field-label mb-0">Yêu cầu</p>
+                <p className="field-label mb-0">{t("jobCreating.requirements")}</p>
                 <div className="flex gap-2">
                   <input
                     value={requirementInput}
                     onChange={(e) => setRequirementInput(e.target.value)}
                     className="input-field h-11"
-                    placeholder="Thêm một yêu cầu"
+                    placeholder={t("jobCreating.placeholders.addRequirement")}
                   />
                   <button
                     type="button"
@@ -946,7 +948,7 @@ function JobCreatingScreen() {
                       setRequirementInput("");
                     }}
                   >
-                    Thêm
+                    {t("jobCreating.add")}
                   </button>
                 </div>
                 <ul className="space-y-2">
@@ -960,7 +962,7 @@ function JobCreatingScreen() {
                         type="button"
                         className="text-[#8a8786] transition-colors hover:text-[#b90014]"
                         onClick={() => removeListItem(idx, setRequirements)}
-                        aria-label="Xóa yêu cầu"
+                        aria-label={t("jobCreating.removeRequirement")}
                       >
                         <span className="material-symbols-outlined text-[20px]">
                           close
@@ -983,7 +985,7 @@ function JobCreatingScreen() {
                   onClick={goBack}
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  Quay lại
+                  {t("common.back")}
                 </button>
                 <button
                   type="button"
@@ -992,7 +994,7 @@ function JobCreatingScreen() {
                   disabled={!canCreateJob}
                 >
                   <span className="material-symbols-outlined text-[18px]">save</span>
-                  Lưu nháp
+                  {t("common.save")}
                 </button>
               </div>
 
@@ -1002,7 +1004,7 @@ function JobCreatingScreen() {
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
-                Tiếp tục tới kỹ năng và lương
+                {t("jobCreating.nextToSkills")}
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -1018,25 +1020,25 @@ function JobCreatingScreen() {
                 <span className="material-symbols-outlined text-[20px]">workspace_premium</span>
               </span>
               <div>
-                <h2 className="section-title">Kỹ năng &amp; Lương</h2>
+                <h2 className="section-title">{t("jobCreating.steps.skillsSalary")}</h2>
                 <p className="text-[12px] text-[#8a8786]">
-                  Kỹ năng yêu cầu và khoảng lương cho vị trí này.
+                  {t("jobCreating.skillsSalaryHelp")}
                 </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="field-label">Kỹ năng bắt buộc</label>
+              <label className="field-label">{t("jobCreating.requiredSkills")}</label>
               {skillsLoading ? (
                 <div className="rounded-[10px] border border-[#ececec] bg-white px-4 py-3">
-                  <LoadingIndicator label="Đang tải kỹ năng..." size="sm" />
+                  <LoadingIndicator label={t("jobCreating.loadingSkills")} size="sm" />
                 </div>
               ) : (
                 <div className="space-y-4">
                   <SkillPicker
-                    emptyLabel="Chọn kỹ năng yêu cầu từ danh sách kỹ năng hiện có."
+                    emptyLabel={t("jobCreating.requiredSkillsEmpty")}
                     options={skillOptions}
-                    placeholder="Chọn kỹ năng bắt buộc"
+                    placeholder={t("jobCreating.requiredSkillsPlaceholder")}
                     selectedValues={skills.map((skill) => skill.skillName)}
                     onAdd={(value) => addSkillRequirement(value, setSkills)}
                     onRemove={(value) => removeSkillRequirement(value, setSkills)}
@@ -1057,13 +1059,13 @@ function JobCreatingScreen() {
                               {skill.skillName}
                             </p>
                             <p className="mt-1 text-[12px] text-[#8a8786]">
-                              Có thể để trống nếu chỉ cần ứng viên có kỹ năng này.
+                              {t("jobCreating.requiredSkillYearsHint")}
                             </p>
                           </div>
 
                           <div>
                             <label className="mb-1 block text-[11px] font-semibold text-[#8a8786]">
-                              Số năm tối thiểu
+                              {t("jobCreating.minimumYears")}
                             </label>
                             <input
                               value={skill.minimumYearsOfExperience}
@@ -1076,7 +1078,7 @@ function JobCreatingScreen() {
                               }
                               className="input-field h-10 py-2"
                               inputMode="decimal"
-                              placeholder="VD: 1.5"
+                              placeholder={t("jobCreating.placeholders.yearsExample")}
                               type="text"
                             />
                           </div>
@@ -1086,11 +1088,11 @@ function JobCreatingScreen() {
                   ) : null}
 
                   <div className="space-y-2 border-t border-[#ececec] pt-4">
-                    <label className="field-label">Kỹ năng cộng điểm</label>
+                    <label className="field-label">{t("jobCreating.niceToHaveSkills")}</label>
                     <SkillPicker
-                      emptyLabel="Kỹ năng không bắt buộc nhưng giúp ứng viên được đánh giá tốt hơn."
+                      emptyLabel={t("jobCreating.niceToHaveEmpty")}
                       options={skillOptions}
-                      placeholder="Chọn kỹ năng cộng điểm"
+                      placeholder={t("jobCreating.niceToHavePlaceholder")}
                       selectedValues={niceToHaveSkills.map((skill) => skill.skillName)}
                       onAdd={(value) => addSkillRequirement(value, setNiceToHaveSkills)}
                       onRemove={(value) => removeSkillRequirement(value, setNiceToHaveSkills)}
@@ -1108,13 +1110,13 @@ function JobCreatingScreen() {
                                 {skill.skillName}
                               </p>
                               <p className="mt-1 text-[12px] text-[#5f5e5e]">
-                                Ngưỡng kinh nghiệm dùng để cộng điểm phù hợp.
+                                {t("jobCreating.niceToHaveYearsHint")}
                               </p>
                             </div>
 
                             <div>
                               <label className="mb-1 block text-[11px] font-semibold text-[#5f5e5e]">
-                                Số năm tối thiểu
+                                {t("jobCreating.minimumYears")}
                               </label>
                               <input
                                 value={skill.minimumYearsOfExperience}
@@ -1127,7 +1129,7 @@ function JobCreatingScreen() {
                                 }
                                 className="h-10 w-full rounded-[10px] border border-[#cfe1eb] bg-white px-3 py-2 text-[14px] transition-all focus:border-[#005f93] focus:outline-none focus:ring-4 focus:ring-[#005f93]/10"
                                 inputMode="decimal"
-                                placeholder="VD: 0.5"
+                                placeholder={t("jobCreating.placeholders.niceToHaveYearsExample")}
                                 type="text"
                               />
                             </div>
@@ -1142,7 +1144,7 @@ function JobCreatingScreen() {
 
             <div className="grid grid-cols-1 gap-x-5 gap-y-4 border-t border-[#ececec] pt-6 md:grid-cols-3">
               <div>
-                <label className="field-label">Lương tối thiểu (VND/tháng)</label>
+                <label className="field-label">{t("jobCreating.minSalary")}</label>
                 <input
                   value={salaryMin}
                   onChange={(e) => {
@@ -1159,7 +1161,7 @@ function JobCreatingScreen() {
                     }
                   }}
                   className={`input-field h-11 ${step3Errors.salaryMin ? "border-[#ba1a1a]" : ""}`}
-                  placeholder="Ví dụ: 20000000"
+                  placeholder={t("jobCreating.placeholders.minSalary")}
                   inputMode="numeric"
                 />
                 {step3Errors.salaryMin ? (
@@ -1168,7 +1170,7 @@ function JobCreatingScreen() {
               </div>
 
               <div>
-                <label className="field-label">Lương tối đa (VND/tháng)</label>
+                <label className="field-label">{t("jobCreating.maxSalary")}</label>
                 <input
                   value={salaryMax}
                   onChange={(e) => {
@@ -1185,7 +1187,7 @@ function JobCreatingScreen() {
                     }
                   }}
                   className={`input-field h-11 ${step3Errors.salaryMax ? "border-[#ba1a1a]" : ""}`}
-                  placeholder="Ví dụ: 35000000"
+                  placeholder={t("jobCreating.placeholders.maxSalary")}
                   inputMode="numeric"
                 />
                 {step3Errors.salaryMax ? (
@@ -1194,7 +1196,7 @@ function JobCreatingScreen() {
               </div>
 
               <div>
-                <label className="field-label">Tiền tệ</label>
+                <label className="field-label">{t("sendOffer.currency")}</label>
                 <input
                   value="VND"
                   readOnly
@@ -1211,7 +1213,7 @@ function JobCreatingScreen() {
                   onClick={goBack}
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  Quay lại
+                  {t("common.back")}
                 </button>
                 <button
                   type="button"
@@ -1220,7 +1222,7 @@ function JobCreatingScreen() {
                   disabled={!canCreateJob}
                 >
                   <span className="material-symbols-outlined text-[18px]">save</span>
-                  Lưu nháp
+                  {t("common.save")}
                 </button>
               </div>
 
@@ -1230,7 +1232,7 @@ function JobCreatingScreen() {
                 onClick={continueNext}
                 disabled={!canCreateJob}
               >
-                Tiếp tục tới bước rà soát
+                {t("jobCreating.nextToReview")}
                 <span className="material-symbols-outlined text-[18px]">
                   arrow_forward
                 </span>
@@ -1246,16 +1248,16 @@ function JobCreatingScreen() {
                 <span className="material-symbols-outlined text-[20px]">fact_check</span>
               </span>
               <div>
-                <h2 className="section-title">Rà soát tin tuyển dụng</h2>
+                <h2 className="section-title">{t("jobCreating.steps.review")}</h2>
                 <p className="text-[12px] text-[#8a8786]">
-                  Kiểm tra lại thông tin trước khi gửi phê duyệt.
+                  {t("jobCreating.reviewHelp")}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-5">
-                <p className="eyebrow">Thông tin cơ bản</p>
+                <p className="eyebrow">{t("jobCreating.steps.basicInfo")}</p>
                 <p className="mt-3 text-[16px] font-semibold text-[#1a1c1c]">
                   {title || "—"}
                 </p>
@@ -1278,7 +1280,7 @@ function JobCreatingScreen() {
               </div>
 
               <div className="rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-5">
-                <p className="eyebrow">Kỹ năng &amp; Lương</p>
+                <p className="eyebrow">{t("jobCreating.steps.skillsSalary")}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {skills.length ? (
                     skills.map((skill, index) => (
@@ -1288,7 +1290,7 @@ function JobCreatingScreen() {
                       >
                         {skill.skillName}
                         {skill.minimumYearsOfExperience
-                          ? ` (${skill.minimumYearsOfExperience} yrs)`
+                          ? ` (${skill.minimumYearsOfExperience} ${t("jobCreating.yearsShort")})`
                           : ""}
                       </span>
                     ))
@@ -1305,7 +1307,7 @@ function JobCreatingScreen() {
                       >
                         {skill.skillName}
                         {skill.minimumYearsOfExperience
-                          ? ` (${skill.minimumYearsOfExperience} yrs)`
+                          ? ` (${skill.minimumYearsOfExperience} ${t("jobCreating.yearsShort")})`
                           : ""}
                       </span>
                     ))}
@@ -1313,25 +1315,25 @@ function JobCreatingScreen() {
                 ) : null}
                 <p className="mt-4 text-[14px] font-semibold text-[#1a1c1c]">
                   {salaryMin && salaryMax
-                    ? `${Number(salaryMin).toLocaleString("vi-VN")} - ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
+                    ? `${Number(salaryMin).toLocaleString(getDateLocale())} - ${Number(salaryMax).toLocaleString(getDateLocale())} VNĐ`
                     : salaryMin
-                      ? `${Number(salaryMin).toLocaleString("vi-VN")}+ VNĐ`
+                      ? `${Number(salaryMin).toLocaleString(getDateLocale())}+ VNĐ`
                       : salaryMax
-                        ? `Tối đa ${Number(salaryMax).toLocaleString("vi-VN")} VNĐ`
-                        : "Thương lượng"}
+                        ? t("jobCreating.maxSalaryOnly", { amount: Number(salaryMax).toLocaleString(getDateLocale()) })
+                        : t("jobDetail.negotiable")}
                 </p>
               </div>
             </div>
 
             <div className="rounded-[14px] border border-[#ececec] bg-[#faf9f8] p-5">
-              <p className="eyebrow">Mô tả</p>
+              <p className="eyebrow">{t("jobCreating.steps.description")}</p>
               <p className="mt-3 whitespace-pre-wrap text-[14px] leading-6 text-[#1a1c1c]">
                 {description || "—"}
               </p>
 
               <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                  <p className="eyebrow">Trách nhiệm</p>
+                  <p className="eyebrow">{t("jobCreating.responsibilities")}</p>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] text-[#1a1c1c]">
                     {responsibilities.length ? (
                       responsibilities.map((r, i) => (
@@ -1343,7 +1345,7 @@ function JobCreatingScreen() {
                   </ul>
                 </div>
                 <div>
-                  <p className="eyebrow">Yêu cầu</p>
+                  <p className="eyebrow">{t("jobCreating.requirements")}</p>
                   <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] text-[#1a1c1c]">
                     {requirements.length ? (
                       requirements.map((r, i) => (
@@ -1365,7 +1367,7 @@ function JobCreatingScreen() {
                   onClick={goBack}
                 >
                   <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  Quay lại
+                  {t("common.back")}
                 </button>
                 <button
                   type="button"
@@ -1374,7 +1376,7 @@ function JobCreatingScreen() {
                   disabled={!canCreateJob}
                 >
                   <span className="material-symbols-outlined text-[18px]">save</span>
-                  Lưu nháp
+                  {t("common.save")}
                 </button>
               </div>
 
@@ -1384,9 +1386,9 @@ function JobCreatingScreen() {
                 onClick={publishJob}
                 disabled={!canCreateJob || publishing}
                 loading={publishing}
-                loadingText="Đang gửi phê duyệt..."
+                loadingText={t("jobCreating.submitting")}
               >
-                Gửi job chờ duyệt
+                {t("jobCreating.submit")}
                 <span className="material-symbols-outlined text-[18px]">
                   send
                 </span>
@@ -1401,14 +1403,13 @@ function JobCreatingScreen() {
         <div className="relative overflow-hidden rounded-[16px] bg-[#1a1c1c] p-6 text-white md:col-span-2">
           <div className="relative z-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
-              Mẹo tuyển dụng
+              {t("jobCreating.tipTitle")}
             </p>
             <h4 className="mt-2 text-[18px] font-semibold">
-              Mô tả rõ ràng thu hút ứng viên tốt hơn
+              {t("jobCreating.tipHeadline")}
             </h4>
             <p className="mt-2 max-w-xl text-[14px] leading-6 text-white/75">
-              Tin tuyển dụng có mô tả chi tiết kèm khoảng lương rõ ràng nhận được
-              chất lượng ứng tuyển cao hơn 30% trong 48 giờ đầu đăng tin.
+              {t("jobCreating.tipBody")}
             </p>
           </div>
           <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] text-white/5">
@@ -1425,9 +1426,9 @@ function JobCreatingScreen() {
           <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff1ef] text-[#b90014]">
             <span className="material-symbols-outlined text-[24px]">history</span>
           </span>
-          <p className="eyebrow">Mẫu gần đây</p>
+          <p className="eyebrow">{t("jobCreating.recentTemplate")}</p>
           <p className="mt-1 text-[14px] font-medium text-[#1a1c1c]">
-            Dùng mẫu Engineering L4
+            {t("jobCreating.template.cta")}
           </p>
         </button>
       </div>

@@ -1,5 +1,6 @@
 // Shared presentation contract for all status domains. Screens render badges/labels through these
 // helpers; they never hardcode status copy or branch on localized labels.
+import { translate } from "../../i18n";
 
 import {
   ApplicationStatus,
@@ -71,15 +72,27 @@ export function getApplicationStatusPresentation(value: unknown): StatusPresenta
   const canonical = normalizeApplicationStatus(value);
   if (!canonical) {
     return {
-      label: "Unknown",
+      label: translate("applicationStatus.unknown"),
       tone: "neutral",
       badgeClassName: toneBadgeClassName("neutral"),
     };
   }
 
   const tone = APPLICATION_STATUS_TONE[canonical];
+  const translationKey = {
+    Applied: "applicationStatus.applied",
+    Screening: "applicationStatus.screening",
+    ManagerReview: "applicationStatus.headReview",
+    Interview: "applicationStatus.interview",
+    Offer: "applicationStatus.offer",
+    Hired: "applicationStatus.hired",
+    Rejected: "applicationStatus.rejected",
+    OfferDeclined: "applicationStatus.offerDeclined",
+    Withdrawn: "applicationStatus.withdrawn",
+  } satisfies Record<ApplicationStatus, string>;
+
   return {
-    label: APPLICATION_STATUS_ENGLISH_LABEL[canonical],
+    label: translate(translationKey[canonical]) || APPLICATION_STATUS_ENGLISH_LABEL[canonical],
     tone,
     badgeClassName: toneBadgeClassName(tone),
   };

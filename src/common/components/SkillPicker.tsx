@@ -1,4 +1,5 @@
 import CommonSelect, { type CommonSelectOption } from "./CommonSelect";
+import { translate } from "../../i18n";
 
 type SkillPickerProps = {
   options: CommonSelectOption[];
@@ -15,8 +16,8 @@ function SkillPicker({
   options,
   selectedValues,
   selectedLabelByValue,
-  placeholder = "Chọn kỹ năng",
-  emptyLabel = "Chưa có kỹ năng nào được chọn.",
+  placeholder = translate("candidateProfile.skillsPlaceholder"),
+  emptyLabel = translate("candidateProfile.skillsEmpty"),
   onAdd,
   onRemove,
   disabled = false,
@@ -32,7 +33,11 @@ function SkillPicker({
       <CommonSelect
         disabled={disabled || availableOptions.length === 0}
         options={availableOptions}
-        placeholder={availableOptions.length === 0 ? "Đã chọn tất cả kỹ năng" : placeholder}
+        placeholder={
+          availableOptions.length === 0
+            ? translate("candidateProfile.skillsAllSelected")
+            : placeholder
+        }
         value=""
         onChange={(event) => {
           const value = event.target.value;

@@ -1,4 +1,5 @@
 import LoadingIndicator from "../../../common/components/LoadingIndicator";
+import { useI18n } from "../../../i18n";
 import type { ValidationErrors } from "../../../common/validation/formValidation";
 import { useCandidateProfileScreen } from "./useCandidateProfileScreen";
 import ExperienceSection from "./sections/ExperienceSection";
@@ -16,6 +17,7 @@ import ResumeSection from "./sections/ResumeSection";
 import SkillsSection from "./sections/SkillsSection";
 
 function CandidateProfileAndCVManagementScreen() {
+  const { t } = useI18n();
   const { permissions, state, setters, actions } = useCandidateProfileScreen();
 
   if (state.loading) {
@@ -23,7 +25,7 @@ function CandidateProfileAndCVManagementScreen() {
       <main className="py-6 md:py-8">
         <div className="app-container">
           <div className="card px-6 py-5">
-            <LoadingIndicator label="Đang tải hồ sơ ứng viên..." />
+            <LoadingIndicator label={t("candidateProfile.loading")} />
           </div>
         </div>
       </main>
@@ -34,8 +36,8 @@ function CandidateProfileAndCVManagementScreen() {
     <main className="animate-fade-in py-6 md:py-8">
       <div className="app-container">
         <nav className="mb-6">
-          <p className="eyebrow">Hồ sơ ứng viên</p>
-          <h1 className="page-title mt-1">Hồ sơ của tôi</h1>
+          <p className="eyebrow">{t("candidateProfile.eyebrow")}</p>
+          <h1 className="page-title mt-1">{t("candidateProfile.title")}</h1>
         </nav>
 
         <ProfileHeaderSection

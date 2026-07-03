@@ -5,6 +5,7 @@ import CommonSelect from "../../common/components/CommonSelect";
 import EmptyState from "../../common/components/EmptyState";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import PageHeader from "../../common/components/PageHeader";
+import { useI18n } from "../../i18n";
 import {
   copilotService,
   type CopilotCandidateDto,
@@ -49,6 +50,8 @@ const CANDIDATE_TOOLS: ToolName[] = ["fit", "questions"];
 const SCREENING_STATUS = "Screening";
 
 function AiCopilotScreen() {
+  const { t } = useI18n();
+
   // --- Core data -----------------------------------------------------------
   const [jobs, setJobs] = useState<CopilotJobOptionDto[]>([]);
   const [selectedJobId, setSelectedJobId] = useState("");
@@ -103,7 +106,7 @@ function AiCopilotScreen() {
         setJobs(items);
         setSelectedJobId(items[0]?.jobId ?? "");
       })
-      .catch(() => toast.error("Không tải được danh sách vị trí cho AI Copilot."))
+      .catch(() => toast.error(t("aiCopilot.loadJobsFailed")))
       .finally(() => {
         if (mounted) setLoadingJobs(false);
       });
@@ -165,7 +168,7 @@ function AiCopilotScreen() {
           setRanking(mapRankingSessionToPromptResponse(rankingSessionResponse.data));
         }
       } catch {
-        if (mounted) toast.error("Không tải được danh sách ứng viên.");
+        if (mounted) toast.error(t("aiCopilot.loadCandidatesFailed"));
       } finally {
         if (mounted) setLoadingPool(false);
       }
@@ -175,7 +178,7 @@ function AiCopilotScreen() {
     return () => {
       mounted = false;
     };
-  }, [selectedJobId]);
+  }, [selectedJobId, t]);
 
   /* ----------------------------------------------------------------------- */
   /* Derived data                                                           */
@@ -221,14 +224,14 @@ function AiCopilotScreen() {
     if (!conversation || !selectedJobId) return;
     const promptText = hasCriteria
       ? buildCriteriaPrompt(priorityCriteria.map(normalizeCriterion), negativeCriteria.map(normalizeCriterion))
-      : "Hãy xếp hạng những ứng viên phù hợp nhất cho vị trí này.";
+      : t("aiCopilot.defaultRankingPrompt");
 
     setRankingLoading(true);
-    setLoadingStatus("AI đang đánh giá và chấm điểm ứng viên...");
+    setLoadingStatus(t("aiCopilot.rankingInProgress"));
     try {
       const response = await callCopilot({ promptText, forceRanking: true });
       if (!response?.data?.didRank) {
-        toast.info("AI chưa tạo được bảng xếp hạng. Hãy thử thêm tiêu chí cụ thể hơn.");
+        toast.info(t("aiCopilot.noRankingGenerated"));
         return;
       }
       setRanking(response.data);
@@ -236,17 +239,17 @@ function AiCopilotScreen() {
       setCriteriaOpen(false);
       if (response.data.reusedRankingSession) {
         // v2 §8 — unchanged effective input returns the latest matching session.
-        toast.info("Tiêu chí chưa thay đổi nên hệ thống đang hiển thị lại kết quả xếp hạng mới nhất.");
+        toast.info(t("aiCopilot.reusedRanking"));
       } else {
-        toast.success(`Đã xếp hạng ${response.data.results.length} ứng viên.`);
+        toast.success(t("aiCopilot.rankedCount", { count: response.data.results.length }));
       }
     } catch (error) {
-      toast.error(getToastErrorMessage(error, "Không thể xếp hạng ứng viên."));
+      toast.error(getToastErrorMessage(error, t("aiCopilot.rankFailed")));
     } finally {
       setRankingLoading(false);
       setLoadingStatus("");
     }
-  }, [callCopilot, conversation, hasCriteria, negativeCriteria, priorityCriteria, selectedJobId]);
+  }, [callCopilot, conversation, hasCriteria, negativeCriteria, priorityCriteria, selectedJobId, t]);
 
   /* ----------------------------------------------------------------------- */
   /* Pass CV / Send to Head Review (v2 §7)                                  */
@@ -279,21 +282,26 @@ function AiCopilotScreen() {
       const updated = response.data?.updated ?? [];
       const skipped = response.data?.skipped ?? [];
       if (updated.length > 0) {
-        toast.success(`Đã chuyển ${updated.length} ứng viên sang Head Review.`);
+        toast.success(t("aiCopilot.passedToHeadReview", { count: updated.length }));
       }
       if (skipped.length > 0) {
-        toast.info(`${skipped.length} hồ sơ bị bỏ qua: ${skipped.map((item) => item.reason).join("; ")}`);
+        toast.info(
+          t("aiCopilot.skippedApplications", {
+            count: skipped.length,
+            reasons: skipped.map((item) => item.reason).join("; "),
+          }),
+        );
       }
       setSelectedApplicationIds([]);
       // Refresh the pool + ranking so moved candidates leave the default screening list.
       await reloadCandidatePool();
       await runRanking();
     } catch (error) {
-      toast.error(getToastErrorMessage(error, "Không thể chuyển ứng viên sang Head Review."));
+      toast.error(getToastErrorMessage(error, t("aiCopilot.passFailed")));
     } finally {
       setPassingCv(false);
     }
-  }, [ranking, selectedApplicationIds, reloadCandidatePool, runRanking]);
+  }, [ranking, reloadCandidatePool, runRanking, selectedApplicationIds, t]);
 
   const submitChat = useCallback(async () => {
     const trimmed = prompt.trim();
@@ -301,7 +309,7 @@ function AiCopilotScreen() {
 
     setPrompt("");
     setChatSending(true);
-    setLoadingStatus("AI đang soạn phản hồi...");
+    setLoadingStatus(t("aiCopilot.replyInProgress"));
     setChat((current) => [...current, { role: "user", content: trimmed }, { role: "assistant", content: "" }]);
 
     try {
@@ -309,14 +317,14 @@ function AiCopilotScreen() {
       const data = response?.data;
       if (!data) {
         setChat((current) => current.slice(0, -1));
-        toast.error("Trợ lý AI chưa phản hồi. Vui lòng thử lại.");
+        toast.error(t("aiCopilot.noAssistantReply"));
         return;
       }
       const message =
         (data.didRank
           ? data.assistantMessage || buildAssistantSummaryFromResults(data.results)
           : data.assistantMessage) ||
-        "Tôi đã đọc ngữ cảnh hiện tại. Bạn có thể hỏi tiếp, hoặc bấm “Xếp hạng” để tôi chấm điểm ứng viên.";
+        t("aiCopilot.defaultAssistantReply");
       setChat((current) => {
         const next = [...current];
         next[next.length - 1] = { role: "assistant", content: message };
@@ -325,12 +333,12 @@ function AiCopilotScreen() {
       if (data.didRank) setRanking(data);
     } catch (error) {
       setChat((current) => current.slice(0, -1));
-      toast.error(getToastErrorMessage(error, "Trợ lý AI gặp sự cố."));
+      toast.error(getToastErrorMessage(error, t("aiCopilot.assistantFailed")));
     } finally {
       setChatSending(false);
       setLoadingStatus("");
     }
-  }, [callCopilot, conversation, prompt, selectedJobId]);
+  }, [callCopilot, conversation, prompt, selectedJobId, t]);
 
   /* ----------------------------------------------------------------------- */
   /* Criteria handlers                                                      */
@@ -338,7 +346,7 @@ function AiCopilotScreen() {
   function addPriorityCriterion() {
     const normalized = normalizeCriterion(priorityDraft);
     if (!normalized.value) {
-      toast.info("Hãy nhập giá trị cho tiêu chí ưu tiên.");
+      toast.info(t("aiCopilot.enterPriorityValue"));
       return;
     }
     setPriorityCriteria((current) => [...current, normalized]);
@@ -348,7 +356,7 @@ function AiCopilotScreen() {
   function addNegativeCriterion() {
     const normalized = normalizeCriterion(negativeDraft);
     if (!normalized.value) {
-      toast.info("Hãy nhập giá trị cho tiêu chí loại trừ.");
+      toast.info(t("aiCopilot.enterNegativeValue"));
       return;
     }
     setNegativeCriteria((current) => [...current, normalized]);
@@ -362,7 +370,7 @@ function AiCopilotScreen() {
 
   async function saveCurrentRule() {
     if (!selectedJobId || !hasCriteria) {
-      toast.info("Hãy thêm tiêu chí trước khi lưu.");
+      toast.info(t("aiCopilot.addCriteriaBeforeSave"));
       return;
     }
     setSavingRule(true);
@@ -375,10 +383,10 @@ function AiCopilotScreen() {
       });
       if (response.data) {
         setSavedRules((current) => [response.data!, ...current]);
-        toast.success("Đã lưu preset.");
+        toast.success(t("aiCopilot.presetSaved"));
       }
     } catch {
-      toast.error("Không lưu được preset.");
+      toast.error(t("aiCopilot.presetSaveFailed"));
     } finally {
       setSavingRule(false);
     }
@@ -395,7 +403,7 @@ function AiCopilotScreen() {
         setNegativeCriteria(response.data.rule.negativeCriteria);
       }
     } catch {
-      toast.error("Không cập nhật được preset.");
+      toast.error(t("aiCopilot.presetUpdateFailed"));
     }
   }
 
@@ -404,9 +412,9 @@ function AiCopilotScreen() {
     try {
       await copilotService.deleteSavedRule(ruleId);
       setSavedRules((current) => current.filter((rule) => rule.ruleId !== ruleId));
-      toast.success("Đã xóa preset.");
+      toast.success(t("aiCopilot.presetDeleted"));
     } catch {
-      toast.error("Không thể xóa preset.");
+      toast.error(t("aiCopilot.presetDeleteFailed"));
     } finally {
       setDeletingRuleId(null);
     }
@@ -431,7 +439,7 @@ function AiCopilotScreen() {
           });
           const first = response.data?.analyses[0];
           if (!first) {
-            toast.info("AI chưa phân tích được ứng viên này.");
+            toast.info(t("aiCopilot.noCandidateAnalysis"));
             setToolOpen(false);
             return;
           }
@@ -466,7 +474,7 @@ function AiCopilotScreen() {
             tone: "warm",
           });
           if (!response.data) {
-            toast.info("AI chưa soạn được email.");
+            toast.info(t("aiCopilot.noEmailDraft"));
             setToolOpen(false);
             return;
           }
@@ -480,13 +488,13 @@ function AiCopilotScreen() {
         }
       } catch (error) {
         setToolOpen(false);
-        toast.error(getToastErrorMessage(error, `Không chạy được: ${TOOL_META[tool].label}.`));
+        toast.error(getToastErrorMessage(error, t("aiCopilot.toolRunFailed", { tool: TOOL_META[tool].label })));
       } finally {
         setToolLoading(false);
         setRunningToolKey(null);
       }
     },
-    [selectedJobId],
+    [selectedJobId, t],
   );
 
   /* ----------------------------------------------------------------------- */
@@ -495,7 +503,7 @@ function AiCopilotScreen() {
   if (loadingJobs) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <LoadingIndicator label="Đang tải AI Copilot..." />
+        <LoadingIndicator label={t("common.loading")} />
       </div>
     );
   }
@@ -504,16 +512,16 @@ function AiCopilotScreen() {
     return (
       <div className="space-y-5">
         <PageHeader
-          eyebrow="AI Recruitment Copilot"
+          eyebrow={t("aiCopilot.eyebrow")}
           icon="auto_awesome"
-          title="AI Copilot"
-          subtitle="Trợ lý tuyển dụng AI: xếp hạng ứng viên, phân tích độ phù hợp và soạn nội dung nhanh."
+          title={t("aiCopilot.title")}
+          subtitle={t("aiCopilot.subtitle")}
         />
         <div className="card">
           <EmptyState
             icon="work_off"
-            title="Chưa có vị trí nào để làm việc"
-            description="AI Copilot chỉ hiển thị các vị trí bạn phụ trách (người tạo, phụ trách tuyển dụng, hoặc trưởng phòng). Hãy tạo hoặc nhận phụ trách một vị trí để bắt đầu."
+            title={t("aiCopilot.noJobsTitle")}
+            description={t("aiCopilot.noJobsDescription")}
           />
         </div>
       </div>
@@ -524,13 +532,16 @@ function AiCopilotScreen() {
     <div className="space-y-5 pb-4">
       {/* Header */}
       <PageHeader
-        eyebrow="AI Recruitment Copilot"
+        eyebrow={t("aiCopilot.eyebrow")}
         icon="auto_awesome"
-        title={selectedJob?.title ?? "AI Copilot"}
+        title={selectedJob?.title ?? t("aiCopilot.title")}
         subtitle={
           pool
-            ? `${pool.candidates.length} ứng viên • ${pool.job.requiredSkills.length} kỹ năng bắt buộc`
-            : "Chọn một vị trí để bắt đầu."
+            ? t("aiCopilot.selectedJobSummary", {
+                candidates: pool.candidates.length,
+                skills: pool.job.requiredSkills.length,
+              })
+            : t("aiCopilot.selectJobHint")
         }
         actions={
           <>
@@ -549,7 +560,7 @@ function AiCopilotScreen() {
               onClick={() => setAssistantOpen(true)}
             >
               <span className="material-symbols-outlined text-[18px]">smart_toy</span>
-              Trợ lý AI
+              {t("aiCopilot.assistantButton")}
             </button>
           </>
         }
@@ -563,25 +574,23 @@ function AiCopilotScreen() {
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[13px] font-semibold text-emerald-700">
                   <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  Giữ lại {keptCount}
+                  {t("aiCopilot.keptCount", { count: keptCount })}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-[13px] font-semibold text-rose-700">
                   <span className="material-symbols-outlined text-[16px]">cancel</span>
-                  Loại {rejectedCount}
+                  {t("aiCopilot.rejectedCount", { count: rejectedCount })}
                 </span>
                 {requiredSkillCount > 0 ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f2efed] px-3 py-1 text-[13px] font-semibold text-[#5f5e5e]">
                     <span className="material-symbols-outlined text-[16px]">verified</span>
-                    {requiredSkillCount} kỹ năng bắt buộc
+                    {t("aiCopilot.requiredSkillsCount", { count: requiredSkillCount })}
                   </span>
                 ) : null}
               </div>
             ) : (
               <div>
-                <p className="text-[15px] font-semibold text-[#1a1c1c]">Xếp hạng ứng viên bằng AI</p>
-                <p className="mt-0.5 text-[13px] text-[#5f5e5e]">
-                  Đặt tiêu chí ưu tiên/loại trừ rồi để AI chấm điểm và sắp xếp toàn bộ danh sách.
-                </p>
+                <p className="text-[15px] font-semibold text-[#1a1c1c]">{t("aiCopilot.screenTitle")}</p>
+                <p className="mt-0.5 text-[13px] text-[#5f5e5e]">{t("aiCopilot.screenDescription")}</p>
               </div>
             )}
             {hasCriteria ? (
@@ -614,7 +623,7 @@ function AiCopilotScreen() {
               onClick={() => setCriteriaOpen(true)}
             >
               <span className="material-symbols-outlined text-[18px]">tune</span>
-              Bộ tiêu chí
+              {t("aiCopilot.criteriaButton")}
               {hasCriteria ? (
                 <span className="ml-0.5 rounded-full bg-[#b90014] px-1.5 py-0.5 text-[10px] font-bold text-white">
                   {priorityCriteria.length + negativeCriteria.length}
@@ -632,7 +641,7 @@ function AiCopilotScreen() {
               ) : (
                 <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
               )}
-              {ranking ? "Xếp hạng lại" : "Xếp hạng"}
+              {ranking ? t("aiCopilot.rerank") : t("aiCopilot.rank")}
             </button>
             {ranking ? (
               <button
@@ -640,14 +649,14 @@ function AiCopilotScreen() {
                 className="btn btn-secondary h-11"
                 disabled={passingCv || selectedApplicationIds.length === 0}
                 onClick={() => void passSelectedToHeadReview()}
-                title="Chuyển các ứng viên đã chọn từ CV screening sang vòng Head Review"
+                title={t("aiCopilot.passToHeadReviewTitle")}
               >
                 {passingCv ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#f0c8c4] border-t-[#b90014]" />
                 ) : (
                   <span className="material-symbols-outlined text-[18px]">forward_to_inbox</span>
                 )}
-                Chuyển sang Head Review
+                {t("aiCopilot.passToHeadReview")}
                 {selectedApplicationIds.length > 0 ? (
                   <span className="ml-0.5 rounded-full bg-[#b90014] px-1.5 py-0.5 text-[10px] font-bold text-white">
                     {selectedApplicationIds.length}
@@ -663,13 +672,13 @@ function AiCopilotScreen() {
       <div className="card overflow-hidden ring-1 ring-black/[0.02]">
         {loadingPool ? (
           <div className="flex min-h-[360px] items-center justify-center">
-            <LoadingIndicator label="Đang tải ứng viên..." />
+            <LoadingIndicator label={t("aiCopilot.loadingCandidates")} />
           </div>
         ) : visibleCandidates.length === 0 ? (
           <EmptyState
             icon="group_off"
-            title="Không có ứng viên ở trạng thái Screening"
-            description="AI Copilot chỉ xếp hạng hồ sơ đang ở vòng CV screening. Hãy chuyển hồ sơ sang trạng thái Screening để bắt đầu chấm điểm."
+            title={t("aiCopilot.emptyTitle")}
+            description={t("aiCopilot.emptyDescription")}
           />
         ) : (
           <div className="overflow-x-auto bg-[#fbfaf9]">
@@ -677,10 +686,17 @@ function AiCopilotScreen() {
               <thead>
                 <tr className="bg-[#f0eceb]">
                   <th className="w-10 border-b border-[#ddd7d5] px-3 py-4 pl-6 text-[11px] font-bold uppercase tracking-[0.11em] text-[#5f5e5e]">
-                    <span className="sr-only">Chọn</span>
+                    <span className="sr-only">{t("aiCopilot.selectColumn")}</span>
                   </th>
-                  {["Ứng viên", "Học vấn", "Kỹ năng", "Đánh giá AI", "Điểm", "Trạng thái", "Công cụ AI"].map(
-                    (header, index) => (
+                  {[
+                    t("aiCopilot.candidateColumn"),
+                    t("aiCopilot.educationColumn"),
+                    t("aiCopilot.skillsColumn"),
+                    t("aiCopilot.aiReviewColumn"),
+                    t("aiCopilot.scoreColumn"),
+                    t("aiCopilot.statusColumn"),
+                    t("aiCopilot.toolsColumn"),
+                  ].map((header, index) => (
                       <th
                         key={header}
                         className={`border-b border-[#ddd7d5] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.11em] text-[#5f5e5e] first:pl-6 last:pr-6 ${
@@ -720,10 +736,12 @@ function AiCopilotScreen() {
                             onChange={() => toggleCandidateSelection(candidate.applicationId)}
                             title={
                               canSelect
-                                ? "Chọn để chuyển sang Head Review"
-                                : "Chỉ ứng viên đang ở vòng CV screening mới có thể chuyển"
+                                ? t("aiCopilot.selectForHeadReview")
+                                : t("aiCopilot.onlyScreeningSelectable")
                             }
-                            aria-label={`Chọn ${candidate.fullName} để chuyển sang Head Review`}
+                            aria-label={t("aiCopilot.selectCandidateForHeadReview", {
+                              name: candidate.fullName,
+                            })}
                           />
                         </td>
                         {/* Candidate */}
@@ -733,7 +751,7 @@ function AiCopilotScreen() {
                             <div className="min-w-0">
                               <p className="font-semibold text-[#1a1c1c]">{candidate.fullName}</p>
                               <p className="text-[12px] text-[#5f5e5e]">
-                                {candidate.experienceYears} năm kinh nghiệm
+                                {t("aiCopilot.yearsExperience", { count: candidate.experienceYears })}
                               </p>
                             </div>
                           </div>
@@ -764,7 +782,7 @@ function AiCopilotScreen() {
                                       )
                                     }
                                   >
-                                    {isExpanded ? "Thu gọn" : "Xem chi tiết"}
+                                    {isExpanded ? t("aiCopilot.collapse") : t("aiCopilot.viewDetails")}
                                     <span className="material-symbols-outlined text-[16px]">
                                       {isExpanded ? "expand_less" : "expand_more"}
                                     </span>
@@ -839,7 +857,9 @@ function AiCopilotScreen() {
                                   ) : null}
                                   {result.confidenceScore ? (
                                     <span className="inline-flex items-center rounded-full bg-[#f2efed] px-2.5 py-1 text-[11px] font-semibold text-[#5f5e5e]">
-                                      Độ tin cậy {Math.round(result.confidenceScore)}%
+                                      {t("aiCopilot.confidence", {
+                                        score: Math.round(result.confidenceScore),
+                                      })}
                                     </span>
                                   ) : null}
                                 </div>
@@ -861,7 +881,7 @@ function AiCopilotScreen() {
                                 {result.strengths.length ? (
                                   <div>
                                     <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">
-                                      Điểm mạnh
+                                      {t("candidateReviewDetail.strengths")}
                                     </p>
                                     <ul className="mt-1.5 space-y-1 text-[12px] text-[#1a1c1c]">
                                       {result.strengths.map((s, i) => (
@@ -876,7 +896,7 @@ function AiCopilotScreen() {
                                 {result.weaknesses.length ? (
                                   <div>
                                     <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#ba1a1a]">
-                                      Điểm cần lưu ý
+                                      {t("aiCopilot.watchouts")}
                                     </p>
                                     <ul className="mt-1.5 space-y-1 text-[12px] text-[#1a1c1c]">
                                       {result.weaknesses.map((w, i) => (

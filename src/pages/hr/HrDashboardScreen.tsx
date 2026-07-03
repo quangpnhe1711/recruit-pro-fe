@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../../i18n";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
@@ -32,40 +33,42 @@ type PendingApproval = {
   extraCount?: string;
 };
 
-function buildRecentApplicationsColumns(): TableColumn<RecentApplication>[] {
+function buildRecentApplicationsColumns(
+  t: (key: string) => string,
+): TableColumn<RecentApplication>[] {
   return [
     {
       key: "candidateName",
-      header: "Tên ứng viên",
+      header: t("hrDashboard.columns.candidateName"),
       renderCell: (item) => <span className="font-semibold">{item.candidateName}</span>,
     },
     {
       key: "jobAppliedFor",
-      header: "Vị trí ứng tuyển",
+      header: t("hrDashboard.columns.jobTitle"),
       renderCell: (item) => <span className="text-[#5f5e5e]">{item.jobAppliedFor}</span>,
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("common.status"),
       renderCell: (item) => (
         <span className={`badge ${item.statusClassName}`}>{item.status}</span>
       ),
     },
     {
       key: "date",
-      header: "Ngày",
+      header: t("hrDashboard.columns.date"),
       renderCell: (item) => <span className="text-[#5f5e5e]">{item.date}</span>,
     },
     {
       key: "actions",
-      header: "Thao tác",
+      header: t("common.actions"),
       headerClassName: "text-right",
       alignRight: true,
       renderCell: () => (
         <button
           type="button"
           className="text-[#1a1c1c] transition-colors hover:text-[#b90014]"
-          aria-label="Thêm thao tác"
+          aria-label={t("hrDashboard.moreActions")}
         >
           <span className="material-symbols-outlined text-[20px]">more_vert</span>
         </button>
@@ -75,6 +78,7 @@ function buildRecentApplicationsColumns(): TableColumn<RecentApplication>[] {
 }
 
 function HrDashboardScreen() {
+  const { t } = useI18n();
   const [dashboard, setDashboard] = useState<HrDashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -128,9 +132,9 @@ function HrDashboardScreen() {
     return (
       <div className="app-container py-10">
         <div className="surface-card p-10 text-center">
-          <h2 className="text-[22px] font-semibold text-[#1a1c1c]">Tổng quan tuyển dụng</h2>
+          <h2 className="text-[22px] font-semibold text-[#1a1c1c]">{t("hrDashboard.title")}</h2>
           <p className="mt-3 text-[14px] text-[#5f5e5e]">
-            Hiện chưa thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.
+            {t("hrDashboard.emptyDescription")}
           </p>
         </div>
       </div>
@@ -139,21 +143,21 @@ function HrDashboardScreen() {
 
   const statCardsData: StatCard[] = [
     {
-      label: "Tin đang tuyển",
+      label: t("hrDashboard.stats.activePostings"),
       value: String(dashboard.stats.activePostings),
-      helper: "Đang mở trên hệ thống",
+      helper: t("hrDashboard.stats.activePostingsHelper"),
       helperClassName: "text-[#0079b9]",
       icon: "work",
     },
     {
-      label: "Tổng ứng viên",
+      label: t("hrDashboard.stats.totalApplicants"),
       value: String(dashboard.stats.totalApplicants),
-      helper: "Tổng hồ sơ đã ghi nhận",
+      helper: t("hrDashboard.stats.totalApplicantsHelper"),
       helperClassName: "text-[#0079b9]",
       icon: "group",
     },
     {
-      label: "Phỏng vấn hôm nay",
+      label: t("hrDashboard.stats.interviewsToday"),
       value: String(dashboard.stats.interviewsToday),
       helper: dashboard.stats.nextInterviewLabel,
       helperClassName: "text-[#ba1a1a]",
@@ -180,15 +184,15 @@ function HrDashboardScreen() {
   return (
     <div className="app-container animate-fade-in space-y-6 py-8">
       <PageHeader
-        eyebrow="Bảng điều khiển"
+        eyebrow={t("hrDashboard.eyebrow")}
         icon="space_dashboard"
-        title="Tổng quan tuyển dụng"
-        subtitle="Các chỉ số hiệu suất cho đợt tuyển dụng hiện tại"
+        title={t("hrDashboard.title")}
+        subtitle={t("hrDashboard.subtitle")}
         actions={
           <PermissionGuard permissions={PERMISSIONS.DASHBOARD_EXPORT}>
             <button type="button" className="btn btn-secondary">
               <span className="material-symbols-outlined text-[18px]">download</span>
-              Xuất báo cáo
+              {t("hrDashboard.exportReport")}
             </button>
           </PermissionGuard>
         }
@@ -219,22 +223,22 @@ function HrDashboardScreen() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <section className="card overflow-hidden lg:col-span-2">
           <div className="flex items-center justify-between border-b border-[#f0eceb] px-5 py-4">
-            <h4 className="section-title">Hồ sơ ứng tuyển gần đây</h4>
+            <h4 className="section-title">{t("hrDashboard.recentApplications")}</h4>
             <button
               type="button"
               className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] transition-colors hover:gap-1.5"
             >
-              Xem tất cả
+              {t("hrDashboard.viewAll")}
               <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </button>
           </div>
 
           <CommonTable
-            columns={buildRecentApplicationsColumns()}
+            columns={buildRecentApplicationsColumns(t)}
             data={recentApplicationsData}
             keyExtractor={(item) => `${item.candidateName}-${item.date}`}
             loading={false}
-            emptyMessage="Chưa có hồ sơ ứng tuyển gần đây."
+            emptyMessage={t("hrDashboard.emptyRecentApplications")}
             hover
             tableWrapperClassName="overflow-hidden bg-white"
           />
@@ -243,7 +247,7 @@ function HrDashboardScreen() {
         <aside className="flex flex-col gap-6">
           <section className="card flex h-full flex-col p-5">
             <div className="mb-5 flex items-center justify-between">
-              <h4 className="section-title">Chờ phê duyệt</h4>
+              <h4 className="section-title">{t("hrDashboard.pendingApprovals")}</h4>
               <span className="badge bg-[#fff1f0] text-[#b90014]">
                 {pendingApprovalsData.length} mục
               </span>
@@ -281,7 +285,7 @@ function HrDashboardScreen() {
                         type="button"
                         className="text-[12px] font-bold tracking-[0.05em] text-[#b90014] hover:underline"
                       >
-                        Xem bản nháp
+                        {t("hrDashboard.viewDraft")}
                       </button>
                     </PermissionGuard>
                   </div>
@@ -294,7 +298,7 @@ function HrDashboardScreen() {
                 type="button"
                 className="btn btn-secondary mt-5 w-full"
               >
-                Xem tất cả phê duyệt
+                {t("hrDashboard.viewAllApprovals")}
               </button>
             </PermissionGuard>
           </section>
@@ -308,14 +312,12 @@ function HrDashboardScreen() {
               <span className="material-symbols-outlined">trending_up</span>
             </div>
             <h4 className="mb-1.5 text-[17px] font-semibold text-white">
-              Tốc độ tuyển dụng
+              {t("hrDashboard.hiringVelocity")}
             </h4>
             <p className="text-[13px] leading-5 text-[#b9b6b5]">
-              Trung bình{" "}
-              <span className="font-semibold text-white">
-                {dashboard.hiringVelocity.averageTimeToHireDays} ngày
-              </span>{" "}
-              để tuyển thành công.
+              {t("hrDashboard.hiringVelocitySummary", {
+                days: dashboard.hiringVelocity.averageTimeToHireDays,
+              })}
             </p>
           </div>
           <div className="absolute bottom-[-24px] right-[-24px] opacity-[0.07]">
@@ -325,13 +327,11 @@ function HrDashboardScreen() {
 
         <section className="card flex flex-col items-start gap-6 p-6 md:col-span-3 md:flex-row md:items-center">
           <div className="flex-1">
-            <h4 className="section-title mb-1.5">Báo cáo đa dạng & hòa nhập</h4>
+            <h4 className="section-title mb-1.5">{t("hrDashboard.diversityReport")}</h4>
             <p className="max-w-md text-[13px] leading-6 text-[#5f5e5e]">
-              Mức hoàn thành mục tiêu hiện tại:{" "}
-              <span className="font-semibold text-[#1a1c1c]">
-                {dashboard.diversityReport.targetCompletionPercent}%
-              </span>
-              .
+              {t("hrDashboard.diversitySummary", {
+                percent: dashboard.diversityReport.targetCompletionPercent,
+              })}
             </p>
             <div className="mt-3 h-2 w-full max-w-md overflow-hidden rounded-full bg-[#f0eceb]">
               <div
@@ -341,7 +341,7 @@ function HrDashboardScreen() {
             </div>
             <PermissionGuard permissions={PERMISSIONS.DASHBOARD_VIEW_INTERNAL}>
               <button type="button" className="btn btn-dark mt-4">
-                Xem báo cáo đầy đủ
+                {t("hrDashboard.viewFullReport")}
               </button>
             </PermissionGuard>
           </div>

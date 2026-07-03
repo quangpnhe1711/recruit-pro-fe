@@ -15,14 +15,15 @@ import { getJobStatusPresentation } from "../../common/status/jobStatus";
 import { getJobStatusErrorMessage } from "../../common/utils/apiError";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
+import { getDateLocale, useI18n } from "../../i18n";
 
 function formatDateLabel(value: string | null) {
-  if (!value) return "Chưa cung cấp";
+  if (!value) return "";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleDateString(undefined, {
+  return parsed.toLocaleDateString(getDateLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -59,6 +60,7 @@ function actionStyles(action: "approve" | "changes" | "reject") {
 }
 
 function ManagerJobApprovalDetailScreen() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { jobId = "" } = useParams();
   const { hasPermission } = usePermissions();
@@ -91,7 +93,7 @@ function ManagerJobApprovalDetailScreen() {
         // 422. Surface the structured reason instead of a generic "couldn't load" toast.
         const message = getJobStatusErrorMessage(
           error,
-          "Không thể tải chi tiết phê duyệt tin tuyển dụng.",
+          t("managerJobApprovalDetail.loadFailed"),
         );
         setLoadError(message);
         toast.error(message);
@@ -107,7 +109,7 @@ function ManagerJobApprovalDetailScreen() {
     return () => {
       mounted = false;
     };
-  }, [jobId]);
+  }, [jobId, t]);
 
   const statusText = useMemo(() => {
     if (!detail) return "";
@@ -131,7 +133,7 @@ function ManagerJobApprovalDetailScreen() {
       // department head / SystemAdmin) and 422 (department has no head) cases explicitly.
       const message = getJobStatusErrorMessage(
         error,
-        "Không thể cập nhật trạng thái phê duyệt job.",
+        t("managerJobApprovalDetail.updateFailed"),
       );
       setActionError(message);
       toast.error(message);
@@ -163,11 +165,11 @@ function ManagerJobApprovalDetailScreen() {
           <EmptyState
             icon="search_off"
             title="Không thể mở chi tiết phê duyệt"
-            description={loadError ?? "Không thể tải tin tuyển dụng đã chọn từ luồng phê duyệt hiện tại."}
+            description={loadError ?? t("managerJobApprovalDetail.emptyDescription")}
             action={
               <button type="button" className="btn btn-dark" onClick={() => navigate("/jobs")}>
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                Quay lại hàng chờ duyệt
+                {t("managerJobApprovalDetail.backToQueue")}
               </button>
             }
           />
@@ -187,7 +189,10 @@ function ManagerJobApprovalDetailScreen() {
           </div>
           <h1 className="page-title">{detail.title}</h1>
           <p className="page-subtitle">
-            Được gửi bởi <span className="font-semibold text-[#1a1c1c]">{detail.hrOwner.fullName} (HR)</span> cho {detail.department.name}.
+            {t("managerJobApprovalDetail.submittedBy", {
+              name: detail.hrOwner.fullName,
+              department: detail.department.name,
+            })}
           </p>
         </div>
 
@@ -197,7 +202,7 @@ function ManagerJobApprovalDetailScreen() {
           onClick={() => navigate("/jobs")}
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Quay lại hàng chờ
+          {t("managerJobApprovalDetail.backToQueue")}
         </button>
       </div>
 
@@ -206,34 +211,34 @@ function ManagerJobApprovalDetailScreen() {
           <section className="card col-span-1 p-6 md:col-span-2">
             <div className="mb-5 flex items-center gap-2 border-b border-[#f0eceb] pb-4">
               <span className="material-symbols-outlined text-[#b90014]">info</span>
-              <h2 className="section-title">Thông số chính</h2>
+              <h2 className="section-title">{t("managerJobApprovalDetail.keyMetrics")}</h2>
             </div>
             <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
               <div>
-                <p className="eyebrow">Phòng ban</p>
+                <p className="eyebrow">{t("jobManagement.department")}</p>
                 <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.department.name}</p>
               </div>
               <div>
-                <p className="eyebrow">Địa điểm</p>
+                <p className="eyebrow">{t("managerJobApprovalDetail.location")}</p>
                 <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.location} ({detail.workMode})</p>
               </div>
               <div>
-                <p className="eyebrow">Mức lương</p>
+                <p className="eyebrow">{t("managerJobApprovalDetail.salary")}</p>
                 <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{formatMoneyRange(detail.salaryMin, detail.salaryMax)}</p>
               </div>
               <div>
-                <p className="eyebrow">Loại hình</p>
+                <p className="eyebrow">{t("managerJobApprovalDetail.employmentType")}</p>
                 <span className={`mt-1.5 ${getEmploymentTypeBadgeClass(detail.employmentType)}`}>
                   {detail.employmentType}
                 </span>
               </div>
               <div>
-                <p className="eyebrow">Số lượng tuyển</p>
+                <p className="eyebrow">{t("managerJobApprovalDetail.vacancyCount")}</p>
                 <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{detail.vacancyCount}</p>
               </div>
               <div>
-                <p className="eyebrow">Hạn nộp</p>
-                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{formatDateLabel(detail.deadline)}</p>
+                <p className="eyebrow">{t("managerJobApprovalDetail.deadline")}</p>
+                <p className="mt-1.5 text-[15px] font-semibold text-[#1a1c1c]">{formatDateLabel(detail.deadline) || t("managerJobApprovalDetail.notProvided")}</p>
               </div>
             </div>
           </section>
@@ -241,7 +246,7 @@ function ManagerJobApprovalDetailScreen() {
           <section className="card p-6">
             <div className="mb-5 flex items-center gap-2">
               <span className="material-symbols-outlined text-[#b90014]">terminal</span>
-              <h2 className="section-title">Công nghệ / Kỹ năng</h2>
+              <h2 className="section-title">{t("managerJobApprovalDetail.skills")}</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               {detail.skills.length ? detail.skills.map((skill, index) => (
@@ -253,7 +258,7 @@ function ManagerJobApprovalDetailScreen() {
                   {skill.name}
                 </span>
               )) : (
-                <p className="text-[13px] text-[#5f5e5e]">Chưa cấu hình kỹ năng cho job này.</p>
+                <p className="text-[13px] text-[#5f5e5e]">{t("managerJobApprovalDetail.noSkills")}</p>
               )}
             </div>
           </section>
@@ -261,7 +266,7 @@ function ManagerJobApprovalDetailScreen() {
           <section className="card p-6">
             <div className="mb-5 flex items-center gap-2">
               <span className="material-symbols-outlined text-[#b90014]">schema</span>
-              <h2 className="section-title">Luồng phỏng vấn</h2>
+              <h2 className="section-title">{t("managerJobApprovalDetail.interviewFlow")}</h2>
             </div>
             <ol className="space-y-4">
               {detail.interviewFlow.map((step) => (
@@ -281,41 +286,41 @@ function ManagerJobApprovalDetailScreen() {
           <section className="card col-span-1 p-6 md:col-span-2">
             <div className="mb-5 flex items-center gap-2">
               <span className="material-symbols-outlined text-[#b90014]">description</span>
-              <h2 className="section-title">Tổng quan vị trí</h2>
+              <h2 className="section-title">{t("managerJobApprovalDetail.positionOverview")}</h2>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <p className="eyebrow mb-3">Mô tả</p>
+                <p className="eyebrow mb-3">{t("managerJobApprovalDetail.description")}</p>
                 <ul className="space-y-2.5 text-[14px] leading-6 text-[#1a1c1c]">
                   {detail.description.length ? detail.description.map((item) => (
                     <li key={item} className="flex gap-2.5">
                       <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#b90014]">chevron_right</span>
                       <span>{item}</span>
                     </li>
-                  )) : <li>Chưa có mô tả.</li>}
+                  )) : <li>{t("managerJobApprovalDetail.noDescription")}</li>}
                 </ul>
               </div>
               <div>
-                <p className="eyebrow mb-3">Yêu cầu</p>
+                <p className="eyebrow mb-3">{t("managerJobApprovalDetail.requirements")}</p>
                 <ul className="space-y-2.5 text-[14px] leading-6 text-[#1a1c1c]">
                   {detail.requirements.length ? detail.requirements.map((item) => (
                     <li key={item} className="flex gap-2.5">
                       <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#b90014]">check_circle</span>
                       <span>{item}</span>
                     </li>
-                  )) : <li>Chưa có yêu cầu.</li>}
+                  )) : <li>{t("managerJobApprovalDetail.noRequirements")}</li>}
                 </ul>
               </div>
             </div>
             <div className="mt-6 border-t border-[#f0eceb] pt-6">
-              <p className="eyebrow mb-3">Quyền lợi</p>
+              <p className="eyebrow mb-3">{t("managerJobApprovalDetail.benefits")}</p>
               <div className="flex flex-wrap gap-2">
                 {detail.benefits.length ? detail.benefits.map((item) => (
                   <span key={item} className="badge bg-[#f2efed] text-[#5f5e5e]">
                     {item}
                   </span>
                 )) : (
-                  <span className="text-[13px] text-[#5f5e5e]">Chưa cấu hình quyền lợi.</span>
+                  <span className="text-[13px] text-[#5f5e5e]">{t("managerJobApprovalDetail.noBenefits")}</span>
                 )}
               </div>
             </div>
@@ -324,14 +329,14 @@ function ManagerJobApprovalDetailScreen() {
 
         <div className="space-y-6 lg:col-span-4">
           <section className="card border-[#e7bdb8] p-6 lg:sticky lg:top-6">
-            <h2 className="section-title text-[20px]">Hành động phê duyệt</h2>
+            <h2 className="section-title text-[20px]">{t("managerJobApprovalDetail.actionsTitle")}</h2>
             <p className="mt-2 text-[13px] leading-6 text-[#5f5e5e]">
-              Khi quản lý phê duyệt, job sẽ đi tiếp trong luồng đăng tuyển. Yêu cầu chỉnh sửa sẽ trả bản nháp về cho HR cập nhật.
+              {t("managerJobApprovalDetail.actionsDescription")}
             </p>
 
             <p className="mt-3 flex items-start gap-2 rounded-[10px] bg-[#f7f4f2] px-3 py-2.5 text-[12px] leading-5 text-[#5f5e5e]">
               <span className="material-symbols-outlined mt-px text-[16px] text-[#8a8786]">info</span>
-              Chỉ trưởng bộ phận của phòng ban hoặc quản trị hệ thống mới có thể duyệt hoặc từ chối tin tuyển dụng này.
+              {t("managerJobApprovalDetail.permissionsHint")}
             </p>
 
             {actionError ? (
@@ -351,80 +356,80 @@ function ManagerJobApprovalDetailScreen() {
                   className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("approve")}`}
                   disabled={submitting !== null}
                   loading={submitting === "APPROVED"}
-                  loadingText="Đang duyệt job..."
-                  onClick={() => submitDecision("APPROVED", "Job đã được duyệt và sẵn sàng cho bước đăng tuyển.")}
+                  loadingText={t("managerJobApprovalDetail.approving")}
+                  onClick={() => submitDecision("APPROVED", t("managerJobApprovalDetail.approvedSuccess"))}
                 >
                   <span className="flex items-center gap-3">
                     <span className="material-symbols-outlined">check_circle</span>
-                    Duyệt job
+                    {t("managerJobApprovalDetail.approve")}
                   </span>
-                  <span>Sang bước đăng tuyển</span>
+                  <span>{t("managerJobApprovalDetail.moveToPosting")}</span>
                 </AsyncActionButton>
                 <AsyncActionButton
                   type="button"
                   className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("changes")}`}
                   disabled={submitting !== null}
                   loading={submitting === "DRAFT"}
-                  loadingText="Đang trả về nháp..."
-                  onClick={() => submitDecision("DRAFT", "Job đã được trả về bản nháp để HR chỉnh sửa.")}
+                  loadingText={t("managerJobApprovalDetail.returningDraft")}
+                  onClick={() => submitDecision("DRAFT", t("managerJobApprovalDetail.returnedSuccess"))}
                   spinnerTone="brand"
                 >
                   <span className="flex items-center gap-3">
                     <span className="material-symbols-outlined">edit_note</span>
-                    Yêu cầu chỉnh sửa
+                    {t("managerJobApprovalDetail.requestChanges")}
                   </span>
-                  <span>Trả về nháp</span>
+                  <span>{t("managerJobApprovalDetail.returnToDraft")}</span>
                 </AsyncActionButton>
                 <AsyncActionButton
                   type="button"
                   className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-bold uppercase tracking-[0.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${actionStyles("reject")}`}
                   disabled={submitting !== null}
                   loading={submitting === "REJECTED"}
-                  loadingText="Đang từ chối..."
-                  onClick={() => submitDecision("REJECTED", "Job đã bị từ chối trong luồng phê duyệt.")}
+                  loadingText={t("managerJobApprovalDetail.rejecting")}
+                  onClick={() => submitDecision("REJECTED", t("managerJobApprovalDetail.rejectedSuccess"))}
                 >
                   <span className="flex items-center gap-3">
                     <span className="material-symbols-outlined">cancel</span>
-                    Từ chối job
+                    {t("managerJobApprovalDetail.reject")}
                   </span>
-                  <span>Kết thúc duyệt</span>
+                  <span>{t("managerJobApprovalDetail.endApproval")}</span>
                 </AsyncActionButton>
               </div>
             ) : (
               <div className="mt-6 rounded-[10px] border border-dashed border-[#d6d1cf] px-4 py-5 text-[13px] leading-6 text-[#5f5e5e]">
-                Bạn không có quyền phê duyệt tin tuyển dụng. Vui lòng liên hệ trưởng bộ phận hoặc quản trị hệ thống.
+                {t("managerJobApprovalDetail.noPermission")}
               </div>
             )}
 
             <div className="mt-6 border-t border-[#f0eceb] pt-6">
-              <p className="eyebrow">Tóm tắt phê duyệt</p>
-              <p className="mt-3 text-[13px] leading-6 text-[#1a1c1c]">{detail.approvalSnapshot?.summary ?? "Chưa có dữ liệu tóm tắt phê duyệt."}</p>
+              <p className="eyebrow">{t("managerJobApprovalDetail.approvalSummary")}</p>
+              <p className="mt-3 text-[13px] leading-6 text-[#1a1c1c]">{detail.approvalSnapshot?.summary ?? t("managerJobApprovalDetail.noApprovalSummary")}</p>
               {detail.approvalSnapshot?.approvedByName ? (
                 <p className="mt-2 text-[12px] font-semibold text-[#5f5e5e]">
-                  Người duyệt gần nhất: {detail.approvalSnapshot.approvedByName}
+                  {t("managerJobApprovalDetail.latestApprover", { name: detail.approvalSnapshot.approvedByName })}
                 </p>
               ) : null}
             </div>
           </section>
 
           <section className="relative overflow-hidden rounded-[16px] bg-gradient-to-br from-[#232525] to-[#161718] p-6 text-white">
-            <p className="eyebrow text-white/60">Ngữ cảnh phê duyệt</p>
+            <p className="eyebrow text-white/60">{t("managerJobApprovalDetail.approvalContext")}</p>
             <div className="relative z-10 mt-5 grid grid-cols-2 gap-5">
               <div>
                 <p className="text-[28px] font-bold leading-8">{detail.insights.applicationsCount}</p>
-                <p className="mt-1 text-[12px] text-white/70">Hồ sơ ứng tuyển</p>
+                <p className="mt-1 text-[12px] text-white/70">{t("managerJobApprovalDetail.applications")}</p>
               </div>
               <div>
                 <p className="text-[28px] font-bold leading-8">{detail.insights.activePipelineCount}</p>
-                <p className="mt-1 text-[12px] text-white/70">Pipeline đang chạy</p>
+                <p className="mt-1 text-[12px] text-white/70">{t("managerJobApprovalDetail.activePipelines")}</p>
               </div>
               <div>
                 <p className="text-[28px] font-bold leading-8">{detail.insights.requiredSkillsCount}</p>
-                <p className="mt-1 text-[12px] text-white/70">Kỹ năng yêu cầu</p>
+                <p className="mt-1 text-[12px] text-white/70">{t("managerJobApprovalDetail.requiredSkills")}</p>
               </div>
               <div>
                 <p className="text-[28px] font-bold leading-8">{detail.minExperienceYears ?? 0}y</p>
-                <p className="mt-1 text-[12px] text-white/70">Kinh nghiệm tối thiểu</p>
+                <p className="mt-1 text-[12px] text-white/70">{t("managerJobApprovalDetail.minimumExperience")}</p>
               </div>
             </div>
             <div className="absolute bottom-[-24px] right-[-24px] opacity-[0.06]">
@@ -433,7 +438,7 @@ function ManagerJobApprovalDetailScreen() {
           </section>
 
           <section className="card p-6">
-            <p className="eyebrow">HR phụ trách</p>
+            <p className="eyebrow">{t("managerJobApprovalDetail.hrOwner")}</p>
             <div className="mt-3 flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[14px] font-bold text-[#b90014]">
                 {detail.hrOwner.fullName.slice(0, 2).toUpperCase()}
@@ -445,11 +450,11 @@ function ManagerJobApprovalDetailScreen() {
             </div>
             <p className="mt-2 flex items-center gap-1.5 text-[13px] text-[#5f5e5e]">
               <span className="material-symbols-outlined text-[16px]">call</span>
-              {detail.hrOwner.phone || "Chưa có số điện thoại"}
+              {detail.hrOwner.phone || t("managerJobApprovalDetail.noPhone")}
             </p>
             <div className="mt-6 border-t border-[#f0eceb] pt-4">
-              <p className="eyebrow">Bối cảnh phòng ban</p>
-              <p className="mt-2 text-[13px] leading-6 text-[#1a1c1c]">{detail.department.description || "Hiện chưa có mô tả phòng ban trong bộ dữ liệu seed."}</p>
+              <p className="eyebrow">{t("managerJobApprovalDetail.departmentContext")}</p>
+              <p className="mt-2 text-[13px] leading-6 text-[#1a1c1c]">{detail.department.description || t("managerJobApprovalDetail.noDepartmentDescription")}</p>
             </div>
           </section>
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useI18n } from "../../../i18n";
 import { renderAssistantContent, type ChatMessage } from "./copilotUi";
 
 type AssistantDrawerProps = {
@@ -15,6 +16,7 @@ type AssistantDrawerProps = {
 };
 
 function AssistantDrawer(props: AssistantDrawerProps) {
+  const { t } = useI18n();
   const {
     open,
     onClose,
@@ -61,15 +63,15 @@ function AssistantDrawer(props: AssistantDrawerProps) {
               <span className="material-symbols-outlined text-[19px]">smart_toy</span>
             </span>
             <div className="min-w-0">
-              <h2 className="text-[15px] font-semibold leading-tight text-[#1a1c1c]">Trợ lý AI</h2>
-              <p className="truncate text-[12px] text-[#8a8786]">{jobTitle ?? "Chưa chọn vị trí"}</p>
+              <h2 className="text-[15px] font-semibold leading-tight text-[#1a1c1c]">{t("aiCopilot.assistantTitle")}</h2>
+              <p className="truncate text-[12px] text-[#8a8786]">{jobTitle ?? t("aiCopilot.noJobSelected")}</p>
             </div>
           </div>
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f2efed]"
             onClick={onClose}
-            aria-label="Đóng trợ lý"
+            aria-label={t("aiCopilot.closeAssistant")}
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -79,7 +81,7 @@ function AssistantDrawer(props: AssistantDrawerProps) {
         <div ref={scrollRef} className="min-h-0 flex-1 space-y-4 overflow-auto px-5 py-5">
           {chat.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#e2dfde] bg-[#faf9f8] p-4 text-[13.5px] leading-6 text-[#5f5e5e]">
-              Hỏi tôi bất cứ điều gì về vị trí hoặc ứng viên — ví dụ “Ai phù hợp nhất cho vị trí này?”.
+              {t("aiCopilot.assistantEmpty")}
             </div>
           ) : null}
 
@@ -133,8 +135,8 @@ function AssistantDrawer(props: AssistantDrawerProps) {
           <div className="relative">
             <textarea
               className="h-[76px] w-full resize-none rounded-2xl border border-[#dcd7d5] bg-[#faf9f8] p-3.5 pr-12 text-[14px] outline-none transition-all focus:border-[#b90014] focus:bg-white focus:ring-4 focus:ring-[#b90014]/10"
-              aria-label="Tin nhắn cho trợ lý AI"
-              placeholder="Hỏi về ứng viên, JD, cách sàng lọc..."
+              aria-label={t("aiCopilot.messageLabel")}
+              placeholder={t("aiCopilot.messagePlaceholder")}
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
               onKeyDown={(event) => {
@@ -146,7 +148,7 @@ function AssistantDrawer(props: AssistantDrawerProps) {
             />
             <button
               type="button"
-              aria-label="Gửi"
+              aria-label={t("common.confirm")}
               className="absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_8px_20px_rgba(185,0,20,0.24)] transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
               disabled={!canSend}
               onClick={onSend}

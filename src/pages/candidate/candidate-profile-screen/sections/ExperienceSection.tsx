@@ -1,6 +1,7 @@
 import CommonSelect from "../../../../common/components/CommonSelect";
 import type { Dispatch, SetStateAction } from "react";
 import type { ValidationErrors } from "../../../../common/validation/formValidation";
+import { useI18n } from "../../../../i18n";
 import type { EntryDraft, ExperienceEntry } from "../types";
 import { formatPeriod, monthOptions } from "../utils";
 
@@ -30,12 +31,13 @@ function ExperienceSection({
   onRemoveEntry,
   errors,
 }: ExperienceSectionProps) {
+  const { t } = useI18n();
   return (
     <section className="card p-5 md:p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#f0eceb] pb-4">
         <div>
-          <h2 className="section-title">Kinh nghiệm làm việc</h2>
-          <p className="page-subtitle">Lịch sử công việc theo dòng thời gian.</p>
+          <h2 className="section-title">{t("candidateProfile.parsePreview.workExperience")}</h2>
+          <p className="page-subtitle">{t("candidateProfile.experience.timeline")}</p>
         </div>
         {canManageExperience ? (
           <button
@@ -44,7 +46,7 @@ function ExperienceSection({
             onClick={() => setShowEntryComposer((value) => !value)}
           >
             <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            Thêm mục
+            {t("candidateProfile.collections.addItem")}
           </button>
         ) : null}
       </div>
@@ -54,13 +56,13 @@ function ExperienceSection({
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <input
               className={`input-field h-11 ${errors.title ? "border-[#dc2626]" : ""}`}
-              placeholder="Chức danh"
+              placeholder={t("candidateProfile.experience.titlePlaceholder")}
               value={entryDraft.title}
               onChange={(e) => onEntryDraftChange("title", e.target.value)}
             />
             <input
               className={`input-field h-11 ${errors.company ? "border-[#dc2626]" : ""}`}
-              placeholder="Công ty / Trường"
+              placeholder={t("candidateProfile.experience.companyPlaceholder")}
               value={entryDraft.company}
               onChange={(e) => onEntryDraftChange("company", e.target.value)}
             />
@@ -88,7 +90,7 @@ function ExperienceSection({
               className="input-field h-11"
               min={2000}
               max={new Date().getFullYear() + 1}
-              placeholder="Năm bắt đầu"
+              placeholder={t("candidateProfile.collections.startYear")}
               type="number"
               value={entryDraft.startYear}
               onChange={(e) =>
@@ -104,7 +106,7 @@ function ExperienceSection({
                   onEntryDraftChange("isCurrent", e.target.checked)
                 }
               />
-              Hiện tại
+              {t("candidateProfile.collections.current")}
             </label>
             {entryDraft.isCurrent ? null : (
               <>
@@ -124,7 +126,7 @@ function ExperienceSection({
                   className="input-field h-11"
                   min={2000}
                   max={new Date().getFullYear() + 1}
-                  placeholder="Năm kết thúc"
+                  placeholder={t("candidateProfile.collections.endYear")}
                   type="number"
                   value={entryDraft.endYear}
                   onChange={(e) =>
@@ -136,7 +138,7 @@ function ExperienceSection({
           </div>
           <textarea
             className={`input-field min-h-[96px] resize-none ${errors.bullets ? "border-[#dc2626]" : ""}`}
-            placeholder="Mỗi ý một dòng"
+            placeholder={t("candidateProfile.experience.bulletsPlaceholder")}
             value={entryDraft.bullets}
             onChange={(e) => onEntryDraftChange("bullets", e.target.value)}
           />
@@ -149,14 +151,14 @@ function ExperienceSection({
               type="button"
               onClick={() => setShowEntryComposer(false)}
             >
-              Hủy
+              {t("common.cancel")}
             </button>
             <button
               className="btn btn-primary h-11"
               type="button"
               onClick={onAddEntry}
             >
-              Thêm mục
+              {t("candidateProfile.collections.addItem")}
             </button>
           </div>
         </div>
@@ -179,7 +181,7 @@ function ExperienceSection({
                   type="button"
                   onClick={() => onRemoveEntry(entry.id)}
                 >
-                  Xóa mục
+                  {t("candidateProfile.collections.removeItem")}
                 </button>
               ) : null}
             </div>

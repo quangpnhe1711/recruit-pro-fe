@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 type FeaturePlaceholderScreenProps = {
   title: string;
   description: string;
@@ -9,6 +11,7 @@ function FeaturePlaceholderScreen({
   description,
   variant = "default",
 }: FeaturePlaceholderScreenProps) {
+  const { t } = useI18n();
   if (variant === "executive") {
     return (
       <div className="sysadmin-page animate-fade-in">
@@ -18,7 +21,7 @@ function FeaturePlaceholderScreen({
               <div className="flex h-14 w-14 items-center justify-center rounded-[16px] border border-[#eadfdb] bg-[#fff7f6] text-[#b90014]">
                 <span className="material-symbols-outlined text-[30px]">construction</span>
               </div>
-              <p className="eyebrow mt-6 text-[#b90014]">Sắp ra mắt</p>
+              <p className="eyebrow mt-6 text-[#b90014]">{t("featurePlaceholder.comingSoon")}</p>
               <h1 className="mt-2 max-w-2xl text-[30px] font-semibold leading-tight tracking-[-0.03em] text-[#1a1c1c] md:text-[38px]">
                 {title}
               </h1>
@@ -49,7 +52,7 @@ function FeaturePlaceholderScreen({
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
           <span className="material-symbols-outlined text-[32px]">construction</span>
         </div>
-        <p className="eyebrow mt-5 text-[#b90014]">Sắp ra mắt</p>
+        <p className="eyebrow mt-5 text-[#b90014]">{t("featurePlaceholder.comingSoon")}</p>
         <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.02em] text-[#1a1c1c] md:text-[30px]">
           {title}
         </h1>

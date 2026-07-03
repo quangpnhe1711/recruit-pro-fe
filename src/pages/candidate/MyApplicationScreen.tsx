@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useI18n } from "../../i18n";
 import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -9,7 +10,9 @@ import CommonPagination from "../../common/components/CommonPagination";
 import { Skeleton, SkeletonRows } from "../../common/components/Skeleton";
 import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
-import { applicationStatusFilterOptions } from "../../common/utils/applicationPresentation";
+import {
+  getApplicationStatusFilterOptions,
+} from "../../common/utils/applicationPresentation";
 import { getApplicationStatusPresentation } from "../../common/status/statusPresentation";
 import { normalizeApplicationStatus } from "../../common/status/applicationStatus";
 import { PERMISSIONS } from "../../permissions/permissions";
@@ -35,11 +38,13 @@ type ApplicationItem = {
   relatedInterviewCount: number;
 };
 
-const emptySummaryCards = [
-  { label: "Tổng", value: 0 },
-  { label: "Đang xử lý", value: 0 },
-  { label: "Đã đóng", value: 0 },
-];
+function buildEmptySummaryCards(t: (key: string) => string) {
+  return [
+    { label: t("candidateApplications.summary.total"), value: 0 },
+    { label: t("candidateApplications.summary.active"), value: 0 },
+    { label: t("candidateApplications.summary.closed"), value: 0 },
+  ];
+}
 
 function toJobKey(value: string) {
   return value.trim().toLowerCase();
@@ -81,6 +86,7 @@ function mapApplicationItem(
 }
 
 function buildApplicationTableColumns(
+  t: (key: string, vars?: Record<string, string | number>) => string,
   canViewApplications: boolean,
   canWithdrawApplications: boolean,
   canAcceptOffer: boolean,
@@ -95,7 +101,7 @@ function buildApplicationTableColumns(
   return [
     {
       key: "title",
-      header: "Vị trí & phòng ban",
+      header: t("candidateApplications.columns.jobAndDepartment"),
       renderCell: (item) => (
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
@@ -116,28 +122,28 @@ function buildApplicationTableColumns(
     },
     {
       key: "appliedDate",
-      header: "Ngày ứng tuyển",
+      header: t("candidateApplications.columns.appliedDate"),
       renderCell: (item) => (
         <span className="text-[14px] text-[#5f5e5e]">{item.appliedDate}</span>
       ),
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("candidateApplications.columns.status"),
       renderCell: (item) => (
         <span className={`badge ${item.statusClass}`}>{item.status}</span>
       ),
     },
     {
       key: "nextStep",
-      header: "Bước tiếp theo",
+      header: t("candidateApplications.columns.nextStep"),
       renderCell: (item) => (
         <span className="text-[14px] text-[#5f5e5e]">{item.nextStep}</span>
       ),
     },
     {
       key: "actions",
-      header: "Thao tác",
+      header: t("common.actions"),
       headerClassName: "text-right",
       alignRight: true,
       renderCell: (item) => {
@@ -162,7 +168,7 @@ function buildApplicationTableColumns(
                 onViewDetail(item);
               }}
             >
-              Xem chi tiết
+              {t("common.viewDetail")}
             </button>
 
             <button
@@ -174,7 +180,7 @@ function buildApplicationTableColumns(
                 onViewInterviews(item);
               }}
             >
-              Xem lịch phỏng vấn
+              {t("candidateApplications.viewInterviewSchedule")}
             </button>
 
             {item.availableActions.includes("acceptOffer") ? (
@@ -187,7 +193,7 @@ function buildApplicationTableColumns(
                   onAcceptOffer(item);
                 }}
               >
-                Nhận offer
+                {t("candidateApplications.acceptOffer")}
               </button>
             ) : null}
 
@@ -201,7 +207,7 @@ function buildApplicationTableColumns(
                   onDeclineOffer(item);
                 }}
               >
-                Từ chối offer
+                {t("candidateApplications.declineOffer")}
               </button>
             ) : null}
 
@@ -215,7 +221,7 @@ function buildApplicationTableColumns(
                   onWithdraw(item);
                 }}
               >
-                Rút đơn
+                {t("candidateApplications.withdraw")}
               </button>
             ) : null}
           </div>
@@ -226,6 +232,7 @@ function buildApplicationTableColumns(
 }
 
 function MyApplicationScreen() {
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const canViewApplications = hasPermission(PERMISSIONS.APPLICATION_VIEW_OWN);
@@ -242,7 +249,7 @@ function MyApplicationScreen() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [interviews, setInterviews] = useState<CandidateInterviewItemDto[]>([]);
-  const [summary, setSummary] = useState(emptySummaryCards);
+  const [summary, setSummary] = useState(() => buildEmptySummaryCards(t));
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("applied-date");
   const [keyword, setKeyword] = useState("");
@@ -272,18 +279,18 @@ function MyApplicationScreen() {
       const nextSummary = applicationsResponse.data?.summary;
       if (nextSummary) {
         setSummary([
-          { label: "Tổng", value: nextSummary.total },
-          { label: "Đang xử lý", value: nextSummary.active },
-          { label: "Đã đóng", value: nextSummary.closed },
+          { label: t("candidateApplications.summary.total"), value: nextSummary.total },
+          { label: t("candidateApplications.summary.active"), value: nextSummary.active },
+          { label: t("candidateApplications.summary.closed"), value: nextSummary.closed },
         ]);
       } else {
-        setSummary(emptySummaryCards);
+        setSummary(buildEmptySummaryCards(t));
       }
     } catch {
       setApplications([]);
       setInterviews([]);
-      setSummary(emptySummaryCards);
-      toast.error("Không thể tải danh sách đơn ứng tuyển.");
+      setSummary(buildEmptySummaryCards(t));
+      toast.error(t("candidateApplications.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -291,7 +298,7 @@ function MyApplicationScreen() {
 
   useEffect(() => {
     void loadData();
-  }, []);
+  }, [lang, t]);
 
   const filteredApplications = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
@@ -362,7 +369,7 @@ function MyApplicationScreen() {
 
   async function handleWithdraw(item: ApplicationItem) {
     const confirmed = window.confirm(
-      `Bạn có chắc muốn rút đơn ứng tuyển cho vị trí "${item.title}" không?`,
+      t("candidateApplications.confirmWithdraw", { title: item.title }),
     );
     if (!confirmed) {
       return;
@@ -371,13 +378,13 @@ function MyApplicationScreen() {
     try {
       setActionLoadingId(item.id);
       await candidateService.withdrawApplication(item.id);
-      toast.success("Đã rút đơn ứng tuyển.");
+      toast.success(t("candidateApplications.withdrawSuccess"));
       await loadData();
       setSelectedApplicationId((current) =>
         current === item.id ? null : current,
       );
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, "Không thể rút đơn ứng tuyển lúc này."));
+      toast.error(getApplicationErrorMessage(error, t("candidateApplications.withdrawFailed")));
     } finally {
       setActionLoadingId(null);
     }
@@ -385,7 +392,7 @@ function MyApplicationScreen() {
 
   async function handleAcceptOffer(item: ApplicationItem) {
     const confirmed = window.confirm(
-      `Xác nhận nhận offer cho vị trí "${item.title}"?`,
+      t("candidateApplications.confirmAcceptOffer", { title: item.title }),
     );
     if (!confirmed) {
       return;
@@ -394,10 +401,10 @@ function MyApplicationScreen() {
     try {
       setActionLoadingId(item.id);
       await candidateService.acceptOffer(item.id);
-      toast.success("Bạn đã xác nhận nhận offer.");
+      toast.success(t("candidateApplications.acceptOfferSuccess"));
       await loadData();
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, "Không thể xác nhận offer lúc này."));
+      toast.error(getApplicationErrorMessage(error, t("candidateApplications.acceptOfferFailed")));
     } finally {
       setActionLoadingId(null);
     }
@@ -405,7 +412,7 @@ function MyApplicationScreen() {
 
   async function handleDeclineOffer(item: ApplicationItem) {
     const confirmed = window.confirm(
-      `Xác nhận từ chối offer cho vị trí "${item.title}"?`,
+      t("candidateApplications.confirmDeclineOffer", { title: item.title }),
     );
     if (!confirmed) {
       return;
@@ -414,10 +421,10 @@ function MyApplicationScreen() {
     try {
       setActionLoadingId(item.id);
       await candidateService.declineOffer(item.id);
-      toast.success("Bạn đã từ chối offer.");
+      toast.success(t("candidateApplications.declineOfferSuccess"));
       await loadData();
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, "Không thể từ chối offer lúc này."));
+      toast.error(getApplicationErrorMessage(error, t("candidateApplications.declineOfferFailed")));
     } finally {
       setActionLoadingId(null);
     }
@@ -452,12 +459,9 @@ function MyApplicationScreen() {
     <div className="app-container animate-fade-in py-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-end">
         <div>
-          <p className="eyebrow mb-1.5">Hành trình ứng tuyển</p>
-          <h1 className="page-title">Đơn ứng tuyển của tôi</h1>
-          <p className="page-subtitle">
-            Theo dõi, xem chi tiết và quản lý toàn bộ quá trình ứng tuyển của
-            bạn.
-          </p>
+          <p className="eyebrow mb-1.5">{t("candidateApplications.eyebrow")}</p>
+          <h1 className="page-title">{t("candidateApplications.title")}</h1>
+          <p className="page-subtitle">{t("candidateApplications.subtitle")}</p>
         </div>
 
         <div className="grid w-full grid-cols-3 gap-3 sm:w-auto">
@@ -478,17 +482,17 @@ function MyApplicationScreen() {
         <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-auto">
           <CommonSelect
             className="h-11 min-w-[200px]"
-            options={applicationStatusFilterOptions}
+            options={getApplicationStatusFilterOptions()}
             value={statusFilter}
             onValueChange={setStatusFilter}
           />
           <CommonSelect
             className="h-11 min-w-[200px]"
             options={[
-              { label: "Sắp xếp: ngày ứng tuyển", value: "applied-date" },
-              { label: "Sắp xếp: tên vị trí", value: "job-title" },
-              { label: "Sắp xếp: phòng ban", value: "company" },
-              { label: "Sắp xếp: trạng thái", value: "status" },
+              { label: t("candidateApplications.sort.appliedDate"), value: "applied-date" },
+              { label: t("candidateApplications.sort.jobTitle"), value: "job-title" },
+              { label: t("candidateApplications.sort.department"), value: "company" },
+              { label: t("candidateApplications.sort.status"), value: "status" },
             ]}
             value={sortBy}
             onValueChange={setSortBy}
@@ -501,7 +505,7 @@ function MyApplicationScreen() {
           </span>
           <input
             className="input-field h-11 pl-10"
-            placeholder="Tìm kiếm đơn ứng tuyển..."
+            placeholder={t("candidateApplications.searchPlaceholder")}
             type="text"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
@@ -512,6 +516,7 @@ function MyApplicationScreen() {
       <section className="card overflow-hidden">
         <CommonTable
           columns={buildApplicationTableColumns(
+            t,
             canViewApplications,
             canWithdrawApplications,
             canAcceptOffer,
@@ -526,7 +531,7 @@ function MyApplicationScreen() {
           data={pageSlice}
           keyExtractor={(item) => item.id}
           loading={loading}
-          emptyMessage="Chưa có đơn ứng tuyển nào."
+          emptyMessage={t("candidateApplications.emptyTable")}
           zebra
           hover
         />
@@ -546,7 +551,7 @@ function MyApplicationScreen() {
           <div className="animate-slide-in-right h-full w-full max-w-2xl overflow-y-auto bg-[#f7f6f5] p-5 shadow-[var(--shadow-lg)] md:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="eyebrow mb-1.5">Chi tiết đơn ứng tuyển</p>
+                <p className="eyebrow mb-1.5">{t("candidateApplications.detailTitle")}</p>
                 <h2 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1c]">
                   {selectedApplication.title}
                 </h2>
@@ -573,7 +578,7 @@ function MyApplicationScreen() {
                   <span className="material-symbols-outlined text-[24px]">event_available</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold text-[#8a8786]">Ngày ứng tuyển</p>
+                  <p className="text-[12px] font-semibold text-[#8a8786]">{t("candidateApplications.columns.appliedDate")}</p>
                   <p className="mt-0.5 text-[16px] font-semibold text-[#1a1c1c]">
                     {selectedApplication.appliedDate}
                   </p>
@@ -584,7 +589,7 @@ function MyApplicationScreen() {
                   <span className="material-symbols-outlined text-[24px]">event</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold text-[#8a8786]">Lịch phỏng vấn</p>
+                  <p className="text-[12px] font-semibold text-[#8a8786]">{t("candidateApplications.interviewCount")}</p>
                   <p className="mt-0.5 text-[16px] font-semibold text-[#1a1c1c]">
                     {selectedApplication.relatedInterviewCount}
                   </p>
@@ -593,7 +598,7 @@ function MyApplicationScreen() {
             </div>
 
             <div className="card mt-4 p-5">
-              <p className="eyebrow">Bước tiếp theo</p>
+              <p className="eyebrow">{t("candidateApplications.columns.nextStep")}</p>
               <p className="mt-2 text-[15px] leading-7 text-[#1a1c1c]">
                 {selectedApplication.nextStep}
               </p>
@@ -601,20 +606,20 @@ function MyApplicationScreen() {
 
             <div className="card mt-4 p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="section-title">Lịch phỏng vấn liên quan</p>
+                <p className="section-title">{t("candidateApplications.relatedInterviews")}</p>
                 <button
                   className="btn btn-secondary px-3 py-2 text-[13px]"
                   type="button"
                   onClick={() => handleViewInterviews(selectedApplication)}
                 >
                   <span className="material-symbols-outlined text-[18px]">event</span>
-                  Xem lịch phỏng vấn
+                  {t("candidateApplications.viewInterviewSchedule")}
                 </button>
               </div>
 
               {selectedApplicationInterviews.length === 0 ? (
                 <p className="text-[14px] text-[#5f5e5e]">
-                  Chưa có lịch phỏng vấn nào được lên cho đơn ứng tuyển này.
+                  {t("candidateApplications.noInterviewSchedule")}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -636,7 +641,7 @@ function MyApplicationScreen() {
                               {interview.dateLabel} · {interview.timeLabel}
                             </p>
                             <p className="mt-1 text-[14px] text-[#5f5e5e]">
-                              Người phỏng vấn: {interview.interviewer}
+                              {t("candidateApplications.interviewerLabel", { interviewer: interview.interviewer })}
                             </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
@@ -668,7 +673,7 @@ function MyApplicationScreen() {
                   }
                   onClick={() => handleAcceptOffer(selectedApplication)}
                 >
-                  Nhận offer
+                  {t("candidateApplications.acceptOffer")}
                 </button>
               ) : null}
 
@@ -682,7 +687,7 @@ function MyApplicationScreen() {
                   }
                   onClick={() => handleDeclineOffer(selectedApplication)}
                 >
-                  Từ chối offer
+                  {t("candidateApplications.declineOffer")}
                 </button>
               ) : null}
 
@@ -696,7 +701,7 @@ function MyApplicationScreen() {
                   }
                   onClick={() => handleWithdraw(selectedApplication)}
                 >
-                  Rút đơn
+                  {t("candidateApplications.withdraw")}
                 </button>
               ) : null}
             </div>

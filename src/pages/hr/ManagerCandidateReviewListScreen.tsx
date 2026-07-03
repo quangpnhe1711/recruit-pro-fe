@@ -9,6 +9,7 @@ import {
   formatApplicationStatus,
   getApplicationStatusBadgeClass,
 } from "../../common/utils/applicationPresentation";
+import { getDateLocale, useI18n } from "../../i18n";
 import type { ManagerReviewQueueItemDto } from "../../modules/jobs/jobsSchema";
 import { hrService } from "../../services/hr/hrService";
 
@@ -26,23 +27,26 @@ function recommendationTone(recommendation: string) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "Không có";
+  if (!value) return "";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleDateString(undefined, {
+  return parsed.toLocaleDateString(getDateLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 }
 
-function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void): TableColumn<ManagerReviewQueueItemDto>[] {
+function buildColumns(
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  onViewDetails: (item: ManagerReviewQueueItemDto) => void,
+): TableColumn<ManagerReviewQueueItemDto>[] {
   return [
     {
       key: "candidateName",
-      header: "Tên ứng viên",
+      header: t("managerCandidateReviewList.candidateName"),
       renderCell: (item) => (
         <div className="flex items-center gap-3">
           {item.candidateAvatarUrl ? (
@@ -65,7 +69,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "jobTitle",
-      header: "Vị trí tuyển dụng",
+      header: t("managerCandidateReviewList.jobTitle"),
       renderCell: (item) => {
         // The Manager/DepartmentHead work date is when HR sent the application to Head Review, not when
         // the candidate first applied. Fall back to appliedAt only for legacy rows missing the field.
@@ -73,15 +77,15 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
         return (
           <div>
             <p className="font-semibold text-[#1a1c1c]">{item.jobTitle}</p>
-            <p className="text-[12px] text-[#5f5e5e]">Nhận review {formatDate(reviewDate)}</p>
-            <p className="text-[11px] text-[#a8a4a2]">Ứng tuyển {formatDate(item.appliedAt)}</p>
+            <p className="text-[12px] text-[#5f5e5e]">{t("managerCandidateReviewList.reviewReceived", { date: formatDate(reviewDate) })}</p>
+            <p className="text-[11px] text-[#a8a4a2]">{t("managerCandidateReviewList.appliedOn", { date: formatDate(item.appliedAt) })}</p>
           </div>
         );
       },
     },
     {
       key: "score",
-      header: "Điểm phù hợp",
+      header: t("managerCandidateReviewList.matchScore"),
       renderCell: (item) => (
         <div className="flex items-center gap-1">
           <span className="font-bold text-[#005f93]">{item.score.toFixed(1)}%</span>
@@ -96,7 +100,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "recommendation",
-      header: "Đề xuất đánh giá",
+      header: t("managerCandidateReviewList.recommendation"),
       renderCell: (item) => (
         <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${recommendationTone(item.recommendation)}`}>
           {item.recommendation}
@@ -105,21 +109,24 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
     },
     {
       key: "status",
-      header: "Trạng thái quy trình",
+      header: t("managerCandidateReviewList.processStatus"),
       renderCell: (item) => (
         <div className="space-y-1">
           <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ${getApplicationStatusBadgeClass(item.status, "candidate")}`}>
             {formatApplicationStatus(item.status)}
           </span>
           <p className="text-[12px] text-[#5f5e5e]">
-            {item.completedInterviews}/{item.totalInterviews} vòng phỏng vấn đã hoàn tất
+            {t("managerCandidateReviewList.completedInterviews", {
+              completed: item.completedInterviews,
+              total: item.totalInterviews,
+            })}
           </p>
         </div>
       ),
     },
     {
       key: "action",
-      header: "Thao tác",
+      header: t("common.actions"),
       alignRight: true,
       headerClassName: "text-right",
       renderCell: (item) => (
@@ -131,7 +138,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
             onViewDetails(item);
           }}
         >
-          Xem chi tiết
+          {t("common.viewDetail")}
         </button>
       ),
     },
@@ -139,6 +146,7 @@ function buildColumns(onViewDetails: (item: ManagerReviewQueueItemDto) => void):
 }
 
 function ManagerCandidateReviewListScreen() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [items, setItems] = useState<ManagerReviewQueueItemDto[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -190,7 +198,7 @@ function ManagerCandidateReviewListScreen() {
         });
         setTotalPages(1);
         setTotalItems(0);
-        toast.error("Không thể tải hàng chờ đánh giá.");
+        toast.error(t("managerCandidateReviewList.loadFailed"));
       } finally {
         if (mounted) {
           setLoading(false);
@@ -203,14 +211,14 @@ function ManagerCandidateReviewListScreen() {
     return () => {
       mounted = false;
     };
-  }, [keyword, page]);
+  }, [keyword, page, t]);
 
   const rangeStart = totalItems === 0 ? 0 : (page - 1) * 8 + 1;
   const rangeEnd = Math.min(page * 8, totalItems);
 
   const columns = useMemo(
-    () => buildColumns((item) => navigate(`/manager/applications/${item.applicationId}`)),
-    [navigate],
+    () => buildColumns(t, (item) => navigate(`/manager/applications/${item.applicationId}`)),
+    [navigate, t],
   );
 
   if (loading) {
@@ -231,7 +239,7 @@ function ManagerCandidateReviewListScreen() {
 
   function exportCurrentPage() {
     if (!items.length) {
-      toast.info("Chưa có hồ sơ để xuất.");
+      toast.info(t("managerCandidateReviewList.noExportData"));
       return;
     }
 
@@ -262,10 +270,10 @@ function ManagerCandidateReviewListScreen() {
   return (
     <div className="app-container animate-fade-in space-y-6 py-8">
       <PageHeader
-        eyebrow="Quản lý tuyển dụng"
+        eyebrow={t("managerCandidateReviewList.eyebrow")}
         icon="how_to_reg"
-        title="Hàng chờ review cuối"
-        subtitle="Các ứng viên đã đủ ngữ cảnh phỏng vấn và sẵn sàng cho bước review cuối của quản lý."
+        title={t("managerCandidateReviewList.title")}
+        subtitle={t("managerCandidateReviewList.subtitle")}
         actions={
           <>
             <div className="relative w-full sm:w-auto">
@@ -274,7 +282,7 @@ function ManagerCandidateReviewListScreen() {
               </span>
               <input
                 className="input-field min-w-[260px] pl-10"
-                placeholder="Tìm theo ứng viên hoặc tiêu đề job..."
+                placeholder={t("managerCandidateReviewList.searchPlaceholder")}
                 type="text"
                 value={keyword}
                 onChange={(event) => {
@@ -285,7 +293,7 @@ function ManagerCandidateReviewListScreen() {
             </div>
             <button type="button" className="btn btn-secondary" onClick={exportCurrentPage}>
               <span className="material-symbols-outlined text-[18px]">download</span>
-              Xuất CSV
+              {t("jobInterviewList.exportCsv")}
             </button>
           </>
         }
@@ -294,12 +302,12 @@ function ManagerCandidateReviewListScreen() {
       <div className="stagger grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
         <div className="card flex flex-col items-start justify-between gap-6 p-6 sm:flex-row sm:items-center">
           <div>
-            <p className="eyebrow">Trạng thái xử lý</p>
+            <p className="eyebrow">{t("managerCandidateReviewList.processingStatus")}</p>
             <p className="mt-3 text-[48px] font-bold leading-none tracking-[-0.02em] text-[#b90014]">
               {summary.pendingFinalApprovals}
             </p>
             <p className="mt-2.5 text-[13px] leading-5 text-[#5f5e5e]">
-              Số hồ sơ đang chờ quyết định cuối trong hàng chờ hiện tại.
+              {t("managerCandidateReviewList.pendingSummary")}
             </p>
           </div>
 
@@ -307,13 +315,13 @@ function ManagerCandidateReviewListScreen() {
             <div className="text-center">
               <p className="text-[24px] font-bold text-sky-600">{summary.recommendedCount}</p>
               <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8786]">
-                Đề xuất
+                {t("managerCandidateReviewList.recommended")}
               </p>
             </div>
             <div className="text-center">
               <p className="text-[24px] font-bold text-[#ba1a1a]">{summary.flaggedCount}</p>
               <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8786]">
-                Cần lưu ý
+                {t("managerCandidateReviewList.flagged")}
               </p>
             </div>
           </div>
@@ -323,7 +331,7 @@ function ManagerCandidateReviewListScreen() {
           <div className="relative z-10">
             <div className="flex items-start justify-between">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70">
-                Điểm trung bình
+                {t("managerCandidateReviewList.averageScore")}
               </p>
               <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/10">
                 <span className="material-symbols-outlined">trending_up</span>
@@ -333,7 +341,7 @@ function ManagerCandidateReviewListScreen() {
               {summary.averageScore.toFixed(1)} / 5.0
             </p>
             <p className="mt-2.5 text-[13px] leading-5 text-white/70">
-              Tính từ mức độ phù hợp kỹ năng, số vòng đã hoàn tất và độ đầy đủ ghi chú.
+              {t("managerCandidateReviewList.averageScoreHint")}
             </p>
           </div>
           <div className="absolute bottom-[-24px] right-[-24px] opacity-[0.07]">
@@ -347,7 +355,7 @@ function ManagerCandidateReviewListScreen() {
         data={items}
         keyExtractor={(item) => item.applicationId}
         loading={loading}
-        emptyMessage="Hiện chưa có ứng viên chờ quản lý review."
+        emptyMessage={t("managerCandidateReviewList.empty")}
         emptyIcon="how_to_reg"
         zebra
         hover

@@ -32,6 +32,7 @@ import {
 import { getSkillChipClass } from "../../common/utils/jobPresentation";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
+import { getDateLocale, translate, useI18n } from "../../i18n";
 import type {
   ApplicationReviewDecision,
   ApplicationReviewDetailDto,
@@ -45,12 +46,12 @@ import {
 import { hrService } from "../../services/hr/hrService";
 
 function formatDateLabel(value: string | null) {
-  if (!value) return "Chưa có";
+  if (!value) return translate("candidateReviewDetail.notAvailable");
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleDateString("vi-VN", {
+  return parsed.toLocaleDateString(getDateLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -61,7 +62,7 @@ function formatDateTimeLabel(value: string) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleString("vi-VN", {
+  return parsed.toLocaleString(getDateLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -71,8 +72,8 @@ function formatDateTimeLabel(value: string) {
 }
 
 function formatProviderMetadata(providerName: string | null | undefined, modelName: string | null | undefined) {
-  const provider = providerName?.trim() || "unknown-provider";
-  const model = modelName?.trim() || "unknown-model";
+  const provider = providerName?.trim() || translate("candidateReviewDetail.unknownProvider");
+  const model = modelName?.trim() || translate("candidateReviewDetail.unknownModel");
   return `${provider}/${model}`;
 }
 
@@ -88,46 +89,46 @@ function formatStatusDescriptionVi(status: string) {
       .replace(/[_\s-]+/g, "")
   ) {
     case "applied":
-      return "Hồ sơ đã được tiếp nhận và đang chờ bộ phận Nhân sự bắt đầu sàng lọc.";
+      return translate("candidateReviewDetail.statusDescriptions.applied");
 
     case "screening":
-      return "Bộ phận Nhân sự đang tiến hành sàng lọc hồ sơ.";
+      return translate("candidateReviewDetail.statusDescriptions.screening");
 
     case "managerreview":
-      return "Hồ sơ đang chờ Quản lý tuyển dụng đánh giá.";
+      return translate("candidateReviewDetail.statusDescriptions.managerReview");
 
     case "interview":
-      return "Ứng viên đang trong giai đoạn phỏng vấn.";
+      return translate("candidateReviewDetail.statusDescriptions.interview");
 
     case "offer":
-      return "Ứng viên đã vượt qua các vòng đánh giá và đang trong quá trình xử lý thư mời nhận việc.";
+      return translate("candidateReviewDetail.statusDescriptions.offer");
 
     case "hired":
-      return "Ứng viên đã nhận việc.";
+      return translate("candidateReviewDetail.statusDescriptions.hired");
 
     case "rejected":
-      return "Hồ sơ đã kết thúc quy trình tuyển dụng.";
+      return translate("candidateReviewDetail.statusDescriptions.rejected");
 
     case "offerdeclined":
-      return "Ứng viên đã từ chối thư mời nhận việc.";
+      return translate("candidateReviewDetail.statusDescriptions.offerDeclined");
 
     default:
-      return "Đang theo dõi trạng thái hồ sơ.";
+      return translate("candidateReviewDetail.statusDescriptions.default");
   }
 }
 
 function formatOfferStatusVi(status: string | null) {
   switch (status?.trim().toLowerCase()) {
     case "draft":
-      return "Bản nháp";
+      return translate("candidateReviewDetail.offerStatus.draft");
     case "sent":
-      return "Đã gửi";
+      return translate("candidateReviewDetail.offerStatus.sent");
     case "accepted":
-      return "Đã chấp nhận";
+      return translate("candidateReviewDetail.offerStatus.accepted");
     case "declined":
-      return "Đã từ chối";
+      return translate("candidateReviewDetail.offerStatus.declined");
     default:
-      return status ?? "Chưa tạo";
+      return status ?? translate("candidateReviewDetail.offerStatus.notCreated");
   }
 }
 
@@ -149,15 +150,15 @@ function decisionButtonClassName(decision: ApplicationReviewDecision) {
 function decisionLabel(decision: ApplicationReviewDecision) {
   switch (decision) {
     case "Screening":
-      return "Chuyển sàng lọc";
+      return translate("candidateReviewDetail.decisions.screening");
     case "ManagerReview":
-      return "Gửi quản lý duyệt";
+      return translate("candidateReviewDetail.decisions.managerReview");
     case "Interview":
-      return "Chuyển phỏng vấn";
+      return translate("candidateReviewDetail.decisions.interview");
     case "Offer":
-      return "Chuyển offer";
+      return translate("candidateReviewDetail.decisions.offer");
     case "Rejected":
-      return "Từ chối hồ sơ";
+      return translate("candidateReviewDetail.decisions.rejected");
   }
 }
 
@@ -224,7 +225,7 @@ function InfoItem({
         {label}
       </p>
       <div className="mt-1 break-words text-[14px] font-medium text-[#1a1c1c]">
-        {value || "Chưa cập nhật"}
+        {value || translate("candidateReviewDetail.notUpdated")}
       </div>
     </div>
   );
@@ -249,6 +250,7 @@ function getAvailableDecisions(
 }
 
 function CandidateReviewDetailScreen() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { applicationId = "" } = useParams();
   const { hasPermission, primaryRole } = usePermissions();
@@ -323,7 +325,7 @@ function CandidateReviewDetailScreen() {
         setResumePreviewError(false);
       } catch {
         if (!mounted) return;
-        toast.error("Không thể tải chi tiết hồ sơ ứng tuyển.");
+        toast.error(t("candidateReviewDetail.loadFailed"));
         setDetail(null);
         setFitAnalysis(null);
       } finally {
@@ -338,7 +340,7 @@ function CandidateReviewDetailScreen() {
     return () => {
       mounted = false;
     };
-  }, [applicationId]);
+  }, [applicationId, t]);
 
   useEffect(() => {
     if (!resumeFile) {
@@ -393,11 +395,11 @@ function CandidateReviewDetailScreen() {
         decision,
       );
       setDetail(response.data);
-      toast.success("Đã cập nhật trạng thái hồ sơ.");
+      toast.success(t("candidateReviewDetail.updatedStatus"));
     } catch (error) {
       // errorCode first (e.g. INVALID_APPLICATION_TRANSITION when the workflow rejects the move —
       // BR-APPLICATION-006), then HTTP status, then message.
-      toast.error(getApplicationErrorMessage(error, "Không thể cập nhật trạng thái hồ sơ."));
+      toast.error(getApplicationErrorMessage(error, t("candidateReviewDetail.updateFailed")));
     } finally {
       setSubmittingDecision(null);
     }
@@ -408,7 +410,7 @@ function CandidateReviewDetailScreen() {
       const response = await hrService.getApplicationDetail(applicationId);
       setDetail(response.data);
     } catch {
-      toast.error("Không thể tải lại chi tiết hồ sơ.");
+      toast.error(t("candidateReviewDetail.reloadFailed"));
     }
   }
 
@@ -418,10 +420,10 @@ function CandidateReviewDetailScreen() {
     try {
       await hrService.updateInterviewStatus(interviewId, "completed");
       await refreshDetail();
-      toast.success("Đã đánh dấu hoàn tất phỏng vấn.");
+      toast.success(t("candidateReviewDetail.markInterviewCompletedSuccess"));
     } catch (error) {
       toast.error(
-        getApplicationErrorMessage(error, "Không thể cập nhật trạng thái phỏng vấn."),
+        getApplicationErrorMessage(error, t("candidateReviewDetail.interviewUpdateFailed")),
       );
     } finally {
       setMarkingComplete(false);
@@ -429,12 +431,12 @@ function CandidateReviewDetailScreen() {
   }
 
   function openRejectModal() {
-    setRejectSubject(`Cập nhật kết quả ứng tuyển - ${detail?.job.title ?? ""}`);
+    setRejectSubject(t("candidateReviewDetail.rejectEmail.subject", { jobTitle: detail?.job.title ?? "" }));
     setRejectBody(
-      `Xin chào ${detail?.candidate.fullName ?? ""},\n\n` +
-        `Cảm ơn bạn đã quan tâm và dành thời gian ứng tuyển vị trí ${detail?.job.title ?? ""}. ` +
-        `Sau khi cân nhắc, chúng tôi rất tiếc chưa thể tiếp tục với hồ sơ của bạn ở giai đoạn này.\n\n` +
-        `Trân trọng,\nBộ phận Tuyển dụng`,
+      t("candidateReviewDetail.rejectEmail.body", {
+        candidateName: detail?.candidate.fullName ?? "",
+        jobTitle: detail?.job.title ?? "",
+      }),
     );
     setRejectErrors({});
     setRejectSubmitted(false);
@@ -462,9 +464,9 @@ function CandidateReviewDetailScreen() {
       });
       setDetail(response.data);
       setRejectModalOpen(false);
-      toast.success("Đã gửi email từ chối và cập nhật hồ sơ.");
+      toast.success(t("candidateReviewDetail.rejectEmail.sent"));
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, "Không thể gửi email từ chối."));
+      toast.error(getApplicationErrorMessage(error, t("candidateReviewDetail.rejectEmail.sendFailed")));
     } finally {
       setSendingReject(false);
     }
@@ -502,10 +504,10 @@ function CandidateReviewDetailScreen() {
             <span className="material-symbols-outlined text-[32px]">folder_off</span>
           </div>
           <h1 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">
-            Không tìm thấy chi tiết hồ sơ
+            {t("candidateReviewDetail.notFoundTitle")}
           </h1>
           <p className="mt-2 text-sm text-[#5f5e5e]">
-            Không thể tải dữ liệu chi tiết tuyển dụng ở thời điểm hiện tại.
+            {t("candidateReviewDetail.notFoundDescription")}
           </p>
           <button
             type="button"
@@ -513,7 +515,7 @@ function CandidateReviewDetailScreen() {
             onClick={() => navigate(reviewRoutePrefix)}
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Quay lại danh sách hồ sơ
+            {t("candidateReviewDetail.backToList")}
           </button>
         </div>
       </div>
@@ -546,9 +548,9 @@ function CandidateReviewDetailScreen() {
   const canRejectHere = availableDecisions.includes("Rejected");
   // Post-interview decisions need a completed interview; earlier-stage rejections do not.
   const postInterviewBlockReason = !interviewScheduled
-    ? "Hãy lên lịch phỏng vấn trước."
+    ? t("candidateReviewDetail.scheduleInterviewFirst")
     : !interviewCompleted
-      ? "Hãy hoàn tất phỏng vấn trước khi gửi offer/từ chối."
+      ? t("candidateReviewDetail.completeInterviewFirst")
       : null;
   const offerDisabledReason = canOfferHere ? postInterviewBlockReason : null;
   const rejectDisabledReason = canRejectHere && isInterviewStage ? postInterviewBlockReason : null;
@@ -579,7 +581,7 @@ function CandidateReviewDetailScreen() {
           onClick={() => navigate(reviewRoutePrefix)}
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Danh sách hồ sơ
+          {t("candidateReviewDetail.backToList")}
         </button>
       </div>
 
@@ -617,7 +619,7 @@ function CandidateReviewDetailScreen() {
                 >
                   {detail.job.title}
                 </Link>{" "}
-                tại {detail.job.departmentName}
+                {t("candidateReviewDetail.atDepartment", { department: detail.job.departmentName })}
               </p>
             </div>
           </div>
@@ -632,7 +634,7 @@ function CandidateReviewDetailScreen() {
                   void downloadProtectedFile(
                     resumeDownloadPath,
                     resumeFile.fileName,
-                  ).catch(() => toast.error("Không thể tải CV."));
+                  ).catch(() => toast.error(t("candidateReviewDetail.cvDownloadFailed")));
                 }}
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
@@ -650,7 +652,7 @@ function CandidateReviewDetailScreen() {
                     ? "edit_document"
                     : "send"}
                 </span>
-                {detail.offerStatus ? "Quản lý offer" : "Tạo offer"}
+                {detail.offerStatus ? t("candidateReviewDetail.manageOffer") : t("candidateReviewDetail.createOffer")}
               </Link>
             ) : null}
             {canScheduleInterview &&
@@ -661,7 +663,7 @@ function CandidateReviewDetailScreen() {
                 to={`/hr/interviews/schedule?applicationId=${detail.applicationId}`}
               >
                 <span className="material-symbols-outlined text-[18px]">event</span>
-                Lên lịch phỏng vấn
+                {t("candidateReviewDetail.scheduleInterview")}
               </Link>
             ) : null}
           </div>
@@ -670,7 +672,7 @@ function CandidateReviewDetailScreen() {
         <div className="mt-6 grid gap-3 border-t border-[#f0eceb] pt-6 sm:grid-cols-3">
           <div className="rounded-[12px] bg-[#faf9f8] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-              Ngày nộp
+              {t("candidateReviewDetail.appliedDate")}
             </p>
             <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
               {formatDateLabel(detail.appliedAt)}
@@ -678,7 +680,7 @@ function CandidateReviewDetailScreen() {
           </div>
           <div className="rounded-[12px] bg-[#faf9f8] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-              Match
+              {t("candidateReviewDetail.match")}
             </p>
             <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
               {detail.insights.skillsMatchPercent}%
@@ -686,7 +688,7 @@ function CandidateReviewDetailScreen() {
           </div>
           <div className="rounded-[12px] bg-[#faf9f8] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-              Offer
+              {t("candidateReviewDetail.offer")}
             </p>
             <p className="mt-1 text-[15px] font-bold text-[#1a1c1c]">
               {formatOfferStatusVi(detail.offerStatus)}
@@ -698,22 +700,22 @@ function CandidateReviewDetailScreen() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
-            <SectionCard title="Thông tin ứng viên">
+            <SectionCard title={t("candidateReviewDetail.candidateInfo")}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <InfoItem
-                  label="Vị trí hiện tại"
-                  value={detail.candidate.currentPosition || "Chưa cập nhật"}
+                  label={t("candidateReviewDetail.currentPosition")}
+                  value={detail.candidate.currentPosition || t("candidateReviewDetail.notUpdated")}
                 />
                 <InfoItem
-                  label="Kinh nghiệm"
+                  label={t("candidateReviewDetail.experience")}
                   value={
                     detail.candidate.experienceYears != null
-                      ? `${detail.candidate.experienceYears} năm`
-                      : "Chưa cập nhật"
+                      ? t("candidateReviewDetail.yearsExperience", { years: detail.candidate.experienceYears })
+                      : t("candidateReviewDetail.notUpdated")
                   }
                 />
                 <InfoItem
-                  label="Email"
+                  label={t("auth.email")}
                   value={
                     <a
                       className="text-[#005f93] hover:underline"
@@ -724,16 +726,16 @@ function CandidateReviewDetailScreen() {
                   }
                 />
                 <InfoItem
-                  label="Số điện thoại"
-                  value={detail.candidate.phone || "Chưa cập nhật"}
+                  label={t("auth.phone")}
+                  value={detail.candidate.phone || t("candidateReviewDetail.notUpdated")}
                 />
                 <InfoItem
-                  label="Học vấn"
-                  value={detail.candidate.education || "Chưa cập nhật"}
+                  label={t("candidateReviewDetail.education")}
+                  value={detail.candidate.education || t("candidateReviewDetail.notUpdated")}
                 />
                 <InfoItem
-                  label="Địa điểm"
-                  value={detail.candidate.address || "Chưa cập nhật"}
+                  label={t("candidateReviewDetail.location")}
+                  value={detail.candidate.address || t("candidateReviewDetail.notUpdated")}
                 />
               </div>
               {detail.candidate.bio ? (
@@ -770,31 +772,31 @@ function CandidateReviewDetailScreen() {
                 ) : null}
                 {!detail.candidate.linkedinUrl && !detail.candidate.githubUrl ? (
                   <span className="text-sm text-[#5f5e5e]">
-                    Chưa có liên kết hồ sơ ngoài.
+                    {t("candidateReviewDetail.noExternalLinks")}
                   </span>
                 ) : null}
               </div>
             </SectionCard>
 
-            <SectionCard title="Công việc & kỹ năng">
+            <SectionCard title={t("candidateReviewDetail.jobAndSkills")}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <InfoItem label="Vị trí" value={detail.job.title} />
-                <InfoItem label="Phòng ban" value={detail.job.departmentName} />
+                <InfoItem label={t("candidateReviewDetail.position")} value={detail.job.title} />
+                <InfoItem label={t("jobManagement.department")} value={detail.job.departmentName} />
                 <InfoItem
-                  label="Kỹ năng khớp"
+                  label={t("candidateReviewDetail.matchedSkills")}
                   value={`${detail.insights.matchedSkillCount}/${
                     detail.insights.requiredSkillCount ||
                     detail.insights.matchedSkillCount
                   }`}
                 />
                 <InfoItem
-                  label="Ghi chú phỏng vấn"
+                  label={t("candidateReviewDetail.interviewNotes")}
                   value={`${detail.insights.submittedInterviewNotes}/${detail.insights.totalInterviews}`}
                 />
               </div>
               <div className="mt-5 border-t border-[#e2dfde] pt-4">
                 <p className="text-sm font-semibold text-[#1a1c1c]">
-                  Kỹ năng yêu cầu
+                  {t("candidateReviewDetail.requiredSkills")}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {detail.job.requiredSkills.length ? (
@@ -805,14 +807,14 @@ function CandidateReviewDetailScreen() {
                     ))
                   ) : (
                     <span className="text-sm text-[#5f5e5e]">
-                      Chưa cấu hình kỹ năng yêu cầu.
+                      {t("candidateReviewDetail.noRequiredSkills")}
                     </span>
                   )}
                 </div>
               </div>
               <div className="mt-5 border-t border-[#e2dfde] pt-4">
                 <p className="text-sm font-semibold text-[#1a1c1c]">
-                  Kỹ năng ứng viên
+                  {t("candidateReviewDetail.candidateSkills")}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {detail.candidate.skills.length ? (
@@ -823,7 +825,7 @@ function CandidateReviewDetailScreen() {
                     ))
                   ) : (
                     <span className="text-sm text-[#5f5e5e]">
-                      Chưa có kỹ năng trong hồ sơ.
+                      {t("candidateReviewDetail.noCandidateSkills")}
                     </span>
                   )}
                 </div>
@@ -832,7 +834,7 @@ function CandidateReviewDetailScreen() {
           </div>
 
           <SectionCard
-            title="AI fit analysis"
+            title={t("candidateReviewDetail.aiFitAnalysis")}
             action={
               fitAnalysis ? (
                 <Badge tone={fitLabelTone(fitAnalysis.fitLabel)}>
@@ -846,7 +848,7 @@ function CandidateReviewDetailScreen() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-[8px] bg-[#faf9f8] px-4 py-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-                      Tổng điểm
+                      {t("candidateReviewDetail.totalScore")}
                     </p>
                     <p className="mt-1 text-[18px] font-bold text-[#1a1c1c]">
                       {Math.round(fitAnalysis.totalScore)}
@@ -854,7 +856,7 @@ function CandidateReviewDetailScreen() {
                   </div>
                   <div className="rounded-[8px] bg-[#faf9f8] px-4 py-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-                      Độ tin cậy
+                      {t("candidateReviewDetail.confidence")}
                     </p>
                     <p className="mt-1 text-[18px] font-bold text-[#1a1c1c]">
                       {Math.round(fitAnalysis.confidenceScore)}%
@@ -862,12 +864,12 @@ function CandidateReviewDetailScreen() {
                   </div>
                   <div className="rounded-[8px] bg-[#faf9f8] px-4 py-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">
-                      Cập nhật
+                      {t("common.updatedAt")}
                     </p>
                     <p className="mt-1 text-[13px] font-semibold text-[#1a1c1c]">
                       {fitAnalysis.createdAt
                         ? formatDateTimeLabel(fitAnalysis.createdAt)
-                        : "Chưa có"}
+                        : t("candidateReviewDetail.notAvailable")}
                     </p>
                   </div>
                 </div>
@@ -879,7 +881,7 @@ function CandidateReviewDetailScreen() {
                 <div className="grid gap-4 lg:grid-cols-2">
                   <div>
                     <p className="text-sm font-semibold text-[#1a1c1c]">
-                      Điểm mạnh
+                      {t("candidateReviewDetail.strengths")}
                     </p>
                     <ul className="mt-2 space-y-2 text-sm text-[#4b4a49]">
                       {fitAnalysis.strengths.length ? (
@@ -892,14 +894,14 @@ function CandidateReviewDetailScreen() {
                           </li>
                         ))
                       ) : (
-                        <li>Chưa có điểm mạnh được lưu.</li>
+                        <li>{t("candidateReviewDetail.noStrengths")}</li>
                       )}
                     </ul>
                   </div>
 
                   <div>
                     <p className="text-sm font-semibold text-[#1a1c1c]">
-                      Khoảng trống
+                      {t("candidateReviewDetail.gaps")}
                     </p>
                     <ul className="mt-2 space-y-2 text-sm text-[#4b4a49]">
                       {fitAnalysis.gaps.length ? (
@@ -912,7 +914,7 @@ function CandidateReviewDetailScreen() {
                           </li>
                         ))
                       ) : (
-                        <li>Chưa có khoảng trống đáng chú ý.</li>
+                        <li>{t("candidateReviewDetail.noGaps")}</li>
                       )}
                     </ul>
                   </div>
@@ -920,7 +922,7 @@ function CandidateReviewDetailScreen() {
 
                 <div className="border-t border-[#e2dfde] pt-4">
                   <p className="text-sm font-semibold text-[#1a1c1c]">
-                    Evidence
+                    {t("candidateReviewDetail.evidence")}
                   </p>
                   <div className="mt-2 space-y-2 text-sm text-[#4b4a49]">
                     {fitAnalysis.evidence.map((item) => (
@@ -935,24 +937,24 @@ function CandidateReviewDetailScreen() {
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-[#d6d1cf] p-5 text-sm leading-6 text-[#5f5e5e]">
-                Chưa có fit analysis đã lưu cho hồ sơ này. Hãy tạo phân tích từ AI Copilot để phần này tự động hiển thị lại.
+                {t("candidateReviewDetail.noFitAnalysis")}
               </div>
             )}
           </SectionCard>
 
           <SectionCard
-            title={resumeFile?.fileName ?? "CV ứng viên"}
+            title={resumeFile?.fileName ?? t("candidateReviewDetail.candidateCv")}
             action={
               resumeFile && canViewCv ? (
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#5f5e5e] hover:bg-[#f3f3f3] hover:text-[#1a1c1c]"
-                    title="Mở CV"
+                    title={t("candidateReviewDetail.openCv")}
                     onClick={() => {
                       if (!resumePreviewPath) return;
                       void openProtectedFileInNewTab(resumePreviewPath).catch(() =>
-                        toast.error("Không thể mở CV."),
+                        toast.error(t("candidateReviewDetail.cvOpenFailed")),
                       );
                     }}
                   >
@@ -963,13 +965,13 @@ function CandidateReviewDetailScreen() {
                   <button
                     type="button"
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#5f5e5e] hover:bg-[#f3f3f3] hover:text-[#1a1c1c]"
-                    title="Tải CV"
+                    title={t("candidateReviewDetail.downloadCv")}
                     onClick={() => {
                       if (!resumeDownloadPath) return;
                       void downloadProtectedFile(
                         resumeDownloadPath,
                         resumeFile.fileName,
-                      ).catch(() => toast.error("Không thể tải CV."));
+                      ).catch(() => toast.error(t("candidateReviewDetail.cvDownloadFailed")));
                     }}
                   >
                     <span className="material-symbols-outlined text-[20px]">

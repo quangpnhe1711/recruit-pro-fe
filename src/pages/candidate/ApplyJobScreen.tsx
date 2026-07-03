@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getDateLocale, useI18n } from "../../i18n";
 import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import { Skeleton } from "../../common/components/Skeleton";
@@ -15,18 +16,24 @@ import { buildResumePreviewPath } from "../../common/utils/resumeLinks";
 import type { ApplyJobResponseDto, ApplyJobScreenDto } from "../../modules/jobs/jobsSchema";
 import { jobsService } from "../../services/jobs/jobsService";
 
-function formatUploadedAt(value?: string | null) {
-  if (!value) return "Hãy tải lên CV mới nhất";
+function formatUploadedAt(
+  value: string | null | undefined,
+  t: (key: string) => string,
+) {
+  if (!value) return t("applyJob.resumeUploadEmpty");
 
-  return `Đã tải lên ${new Date(value).toLocaleDateString()}`;
+  return t("applyJob.resumeUploadedAt", {
+    date: new Date(value).toLocaleDateString(getDateLocale()),
+  });
 }
 
-function formatDeadline(value?: string | null) {
-  if (!value) return "Mở đến khi tuyển đủ";
-  return new Date(value).toLocaleDateString();
+function formatDeadline(value: string | null | undefined, t: (key: string) => string) {
+  if (!value) return t("applyJob.deadlineOpenUntilFilled");
+  return new Date(value).toLocaleDateString(getDateLocale());
 }
 
 function ApplyJobScreen() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { jobId = "" } = useParams();
   const [screenData, setScreenData] = useState<ApplyJobScreenDto | null>(null);
@@ -53,7 +60,7 @@ function ApplyJobScreen() {
       .catch(() => {
         if (mounted) {
           setScreenData(null);
-          toast.error("Không thể tải màn hình ứng tuyển");
+          toast.error(t("applyJob.loadFailed"));
         }
       })
       .finally(() => {
@@ -65,7 +72,7 @@ function ApplyJobScreen() {
     return () => {
       mounted = false;
     };
-  }, [jobId]);
+  }, [jobId, t]);
 
   async function handleSubmit() {
     if (!screenData?.eligibility.canApply) {
@@ -98,17 +105,17 @@ function ApplyJobScreen() {
                   alreadyApplied: true,
                   existingApplicationId: response.data.applicationId,
                   existingApplicationStatus: response.data.status,
-                  blockers: ["Bạn đã ứng tuyển vị trí này rồi."],
-                  guidanceMessage: "Theo dõi trạng thái mới nhất của đơn tại mục Đơn ứng tuyển.",
+                  blockers: [t("applyJob.alreadyAppliedBlocker")],
+                  guidanceMessage: t("applyJob.alreadyAppliedGuidance"),
                 },
               }
             : prev,
         );
       }
 
-      toast.success(response.message || "Nộp đơn thành công");
+      toast.success(response.message || t("applyJob.submitSuccess"));
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, "Không thể nộp đơn ứng tuyển"));
+      toast.error(getApplicationErrorMessage(error, t("applyJob.submitFailed")));
     } finally {
       setSubmitting(false);
     }
@@ -138,8 +145,8 @@ function ApplyJobScreen() {
         <div className="card">
           <EmptyState
             icon="error"
-            title="Không thể ứng tuyển"
-            description="Hiện chưa thể tải màn hình ứng tuyển này."
+            title={t("applyJob.unavailableTitle")}
+            description={t("applyJob.unavailableDescription")}
             action={
               <button
                 type="button"
@@ -147,7 +154,7 @@ function ApplyJobScreen() {
                 onClick={() => navigate(`/jobs/${jobId}`)}
               >
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                Quay lại tin tuyển dụng
+                {t("applyJob.backToJob")}
               </button>
             }
           />
@@ -167,7 +174,7 @@ function ApplyJobScreen() {
           onClick={() => navigate(`/jobs/${jobId}`)}
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          Quay lại tin tuyển dụng
+          {t("applyJob.backToJob")}
         </button>
 
         <div className="grid gap-6 lg:grid-cols-12">
@@ -178,9 +185,9 @@ function ApplyJobScreen() {
                   <span className="material-symbols-outlined text-[34px]">work</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="eyebrow mb-1.5">Đơn ứng tuyển</p>
+                  <p className="eyebrow mb-1.5">{t("applyJob.eyebrow")}</p>
                   <h1 className="text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1c] md:text-[28px]">
-                    Ứng tuyển vị trí {job.title}
+                    {t("applyJob.title", { title: job.title })}
                   </h1>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[14px] text-[#5f5e5e]">
                     <div className="flex items-center gap-1.5">
@@ -203,7 +210,7 @@ function ApplyJobScreen() {
                     <span className="material-symbols-outlined">error</span>
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-[18px] font-semibold text-[#1a1c1c]">Không thể ứng tuyển</h2>
+                    <h2 className="text-[18px] font-semibold text-[#1a1c1c]">{t("applyJob.unavailableTitle")}</h2>
                     <p className="mt-1.5 text-[14px] text-[#5f5e5e]">{eligibility.guidanceMessage}</p>
                     <ul className="mt-4 space-y-2 text-[14px] text-[#1a1c1c]">
                       {eligibility.blockers.map((blocker) => (
@@ -219,7 +226,7 @@ function ApplyJobScreen() {
                         className="btn btn-primary"
                       >
                         <span className="material-symbols-outlined text-[18px]">edit</span>
-                        Cập nhật hồ sơ
+                        {t("applyJob.updateProfile")}
                       </Link>
                       {eligibility.alreadyApplied ? (
                         <button
@@ -227,7 +234,7 @@ function ApplyJobScreen() {
                           className="btn btn-secondary"
                           onClick={() => navigate("/candidate/my-applications")}
                         >
-                          Xem đơn ứng tuyển
+                          {t("applyJob.viewApplications")}
                         </button>
                       ) : null}
                     </div>
@@ -238,45 +245,45 @@ function ApplyJobScreen() {
 
             <section className="card p-5 sm:p-6">
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="section-title">Hồ sơ của bạn</h2>
+                <h2 className="section-title">{t("applyJob.profileTitle")}</h2>
                 <Link
                   to={candidateProfile.editProfilePath}
                   className="text-[14px] font-semibold text-[#b90014] hover:underline"
                 >
-                  Chỉnh sửa hồ sơ
+                  {t("applyJob.editProfile")}
                 </Link>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="field-label">Họ và tên</label>
+                  <label className="field-label">{t("auth.fullName")}</label>
                   <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
                     {candidateProfile.fullName}
                   </div>
                 </div>
                 <div>
-                  <label className="field-label">Email</label>
+                  <label className="field-label">{t("auth.email")}</label>
                   <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
                     {candidateProfile.email}
                   </div>
                 </div>
                 <div>
-                  <label className="field-label">Số điện thoại</label>
+                  <label className="field-label">{t("auth.phone")}</label>
                   <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
-                    {candidateProfile.phone || "Bổ sung số điện thoại"}
+                    {candidateProfile.phone || t("applyJob.addPhone")}
                   </div>
                 </div>
                 <div>
-                  <label className="field-label">Vị trí hiện tại</label>
+                  <label className="field-label">{t("applyJob.currentPosition")}</label>
                   <div className="rounded-[10px] border border-[#ececec] bg-[#faf8f8] px-4 py-3 text-[14px] font-medium text-[#1a1c1c]">
-                    {candidateProfile.currentPosition || "Cập nhật tiêu đề nghề nghiệp"}
+                    {candidateProfile.currentPosition || t("applyJob.updateHeadline")}
                   </div>
                 </div>
               </div>
             </section>
 
             <section className="card p-5 sm:p-6">
-              <h2 className="section-title">CV / Hồ sơ</h2>
+              <h2 className="section-title">{t("applyJob.resumeTitle")}</h2>
               {resume ? (
                 <div className="mt-4 flex flex-col gap-4 rounded-[12px] border border-[#ececec] bg-[#faf8f8] p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
@@ -285,7 +292,7 @@ function ApplyJobScreen() {
                     </div>
                     <div className="min-w-0">
                       <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">{resume.fileName}</p>
-                      <p className="text-[12px] text-[#8a8786]">{formatUploadedAt(resume.uploadedAt)}</p>
+                      <p className="text-[12px] text-[#8a8786]">{formatUploadedAt(resume.uploadedAt, t)}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -295,32 +302,32 @@ function ApplyJobScreen() {
                       onClick={() => {
                         void openProtectedFileInNewTab(
                           buildResumePreviewPath(resume.resumeId, resume.fileUrl),
-                        ).catch(() => toast.error("Không thể mở CV."));
+                        ).catch(() => toast.error(t("applyJob.openResumeFailed")));
                       }}
                     >
                       <span className="material-symbols-outlined text-[18px]">visibility</span>
-                      Xem trước
+                      {t("applyJob.previewResume")}
                     </button>
                     <Link
                       to={candidateProfile.editProfilePath}
                       className="btn btn-ghost px-3 py-2 text-[13px]"
                     >
-                      Đổi file
+                      {t("applyJob.changeResume")}
                     </Link>
                   </div>
                 </div>
               ) : (
                 <div className="mt-4 flex items-start gap-3 rounded-[12px] border border-dashed border-[#ffb3ac] bg-[#fff1f0] p-4 text-[14px] text-[#1a1c1c]">
                   <span className="material-symbols-outlined text-[20px] text-[#ba1a1a]">upload_file</span>
-                  <span>Bạn chưa tải CV lên. Hãy cập nhật hồ sơ trước khi ứng tuyển.</span>
+                  <span>{t("applyJob.resumeMissing")}</span>
                 </div>
               )}
             </section>
 
             <section className="card p-5 sm:p-6">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="section-title">Thư giới thiệu / Ghi chú cho tuyển dụng</h2>
-                <span className="badge bg-[#f2efed] text-[#8a8786]">Không bắt buộc</span>
+                <h2 className="section-title">{t("applyJob.coverLetterTitle")}</h2>
+                <span className="badge bg-[#f2efed] text-[#8a8786]">{t("common.optional")}</span>
               </div>
                 <textarea
                   value={coverLetter}
@@ -334,7 +341,7 @@ function ApplyJobScreen() {
                   }}
                 rows={5}
                 maxLength={2000}
-                placeholder="Chia sẻ vì sao bạn phù hợp với vị trí này..."
+                placeholder={t("applyJob.coverLetterPlaceholder")}
                 className={`input-field resize-none ${coverLetterError ? "border-[#ba1a1a]" : ""}`}
               />
               {coverLetterError ? (
@@ -342,7 +349,7 @@ function ApplyJobScreen() {
               ) : null}
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-[12px] text-[#8a8786]">
-                  Ghi chú này là tùy chọn. Hiện schema database chưa lưu cover letter.
+                  {t("applyJob.coverLetterHint")}
                 </p>
                 <p className="text-[12px] text-[#8a8786]">{coverLetter.length}/2000</p>
               </div>
@@ -356,19 +363,19 @@ function ApplyJobScreen() {
               </div>
 
               <div className="p-6">
-                <h2 className="section-title">Tóm tắt công việc</h2>
+                <h2 className="section-title">{t("applyJob.jobSummaryTitle")}</h2>
                 <div className="mt-5 space-y-4">
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-[20px] text-[#b90014]">payments</span>
                     <div>
-                      <p className="text-[12px] font-semibold text-[#8a8786]">Mức lương</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">{t("applyJob.salaryLabel")}</p>
                       <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.salaryLabel}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-[20px] text-[#b90014]">schedule</span>
                     <div>
-                      <p className="text-[12px] font-semibold text-[#8a8786]">Loại hình</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">{t("applyJob.employmentTypeLabel")}</p>
                       <span className={`mt-1.5 ${getEmploymentTypeBadgeClass(job.employmentType)}`}>
                         {job.employmentType}
                       </span>
@@ -377,15 +384,15 @@ function ApplyJobScreen() {
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-[20px] text-[#b90014]">groups</span>
                     <div>
-                      <p className="text-[12px] font-semibold text-[#8a8786]">Số lượng tuyển</p>
-                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{job.vacancyCount} vị trí</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">{t("applyJob.vacancyLabel")}</p>
+                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{t("applyJob.vacancyCount", { count: job.vacancyCount })}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-[20px] text-[#b90014]">event</span>
                     <div>
-                      <p className="text-[12px] font-semibold text-[#8a8786]">Hạn nộp</p>
-                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{formatDeadline(job.deadline)}</p>
+                      <p className="text-[12px] font-semibold text-[#8a8786]">{t("applyJob.deadlineLabel")}</p>
+                      <p className="text-[14px] font-semibold text-[#1a1c1c]">{formatDeadline(job.deadline, t)}</p>
                     </div>
                   </div>
                 </div>
@@ -396,16 +403,16 @@ function ApplyJobScreen() {
                   className="btn btn-primary mt-6 w-full py-3.5 text-[15px]"
                   onClick={handleSubmit}
                   loading={submitting}
-                  loadingText="Đang nộp..."
+                  loadingText={t("applyJob.submitting")}
                 >
-                  Nộp đơn ứng tuyển
+                  {t("applyJob.submit")}
                 </AsyncActionButton>
                 <button
                   type="button"
                   className="btn btn-ghost mt-2 w-full"
                   onClick={() => navigate(`/jobs/${jobId}`)}
                 >
-                  Hủy
+                  {t("common.cancel")}
                 </button>
               </div>
             </section>
@@ -420,10 +427,10 @@ function ApplyJobScreen() {
               <span className="material-symbols-outlined text-[40px]">check_circle</span>
             </div>
             <h2 className="mt-6 text-[26px] font-semibold leading-9 tracking-[-0.01em] text-[#1a1c1c]">
-              Đã nộp đơn!
+              {t("applyJob.successTitle")}
             </h2>
             <p className="mt-3 text-[14px] leading-6 text-[#5f5e5e]">
-              Đơn ứng tuyển cho vị trí {job.title} đã được gửi thành công.
+              {t("applyJob.successDescription", { title: job.title })}
             </p>
             <div className="mt-7 space-y-2.5">
               <button
@@ -431,14 +438,14 @@ function ApplyJobScreen() {
                 className="btn btn-dark w-full py-3"
                 onClick={() => navigate("/candidate/my-applications")}
               >
-                Xem đơn ứng tuyển
+                {t("applyJob.viewApplications")}
               </button>
               <button
                 type="button"
                 className="btn btn-secondary w-full py-3"
                 onClick={() => navigate("/jobs")}
               >
-                Xem thêm việc làm
+                {t("applyJob.viewMoreJobs")}
               </button>
             </div>
           </div>

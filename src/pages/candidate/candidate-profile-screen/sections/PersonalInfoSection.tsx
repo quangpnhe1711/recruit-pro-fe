@@ -1,4 +1,5 @@
 import type { ValidationErrors } from "../../../../common/validation/formValidation";
+import { useI18n } from "../../../../i18n";
 import type { ProfileState } from "../types";
 
 type PersonalInfoSectionProps = {
@@ -16,16 +17,17 @@ function PersonalInfoSection({
   onProfileChange,
   errors,
 }: PersonalInfoSectionProps) {
+  const { t } = useI18n();
   return (
     <section id="resume" className="card p-5 md:p-6">
       <div className="border-b border-[#f0eceb] pb-4">
-        <h2 className="section-title">Thông tin cá nhân</h2>
-        <p className="page-subtitle">Giới thiệu và các liên kết nghề nghiệp của bạn.</p>
+        <h2 className="section-title">{t("candidateProfile.personal.title")}</h2>
+        <p className="page-subtitle">{t("candidateProfile.personal.subtitle")}</p>
       </div>
 
       <div className="mt-5 space-y-5">
         <div>
-          <label className="field-label">Giới thiệu</label>
+          <label className="field-label">{t("candidateProfileView.bio")}</label>
           {isEditingProfile && canEditProfile ? (
             <textarea
               className={`input-field min-h-[120px] resize-none ${errors.bio ? "border-[#ba1a1a]" : ""}`}
@@ -43,7 +45,7 @@ function PersonalInfoSection({
         </div>
 
         <div>
-          <label className="field-label">Liên kết</label>
+          <label className="field-label">{t("candidateProfile.personal.links")}</label>
           <div className="space-y-3">
             <div className="flex h-11 items-center gap-3 rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 transition-all focus-within:border-[#b90014] focus-within:ring-4 focus-within:ring-[#b90014]/10">
               <span className="material-symbols-outlined text-[20px] text-[#8a8786]">link</span>

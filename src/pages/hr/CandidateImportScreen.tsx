@@ -4,11 +4,13 @@ import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import PageHeader from "../../common/components/PageHeader";
+import { useI18n } from "../../i18n";
 import type { CandidateImportPreviewRowDto } from "../../services/hr/hrService";
 import { hrService } from "../../services/hr/hrService";
 
 function CandidateImportScreen() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<{
     totalRows: number;
@@ -51,11 +53,11 @@ function CandidateImportScreen() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "candidate-import-template.xlsx";
+      link.download = t("candidateImport.templateFileName");
       link.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Không tải được file mẫu.");
+      toast.error(t("candidateImport.templateDownloadFailed"));
     }
   }
 
@@ -63,7 +65,7 @@ function CandidateImportScreen() {
     if (!selectedFile) {
       setFormErrors((current) => ({
         ...current,
-        file: "Vui lòng chọn file Excel trước khi xem trước dữ liệu.",
+        file: t("candidateImport.selectFileError"),
       }));
       return;
     }
@@ -76,7 +78,7 @@ function CandidateImportScreen() {
       setPreview(payload);
       setSelectedRows((payload?.rows ?? []).filter((row) => row.isValid).map((row) => row.rowNumber));
     } catch {
-      toast.error("Không xem trước được file import.");
+      toast.error(t("candidateImport.previewFailed"));
     } finally {
       setPreviewLoading(false);
     }
@@ -86,7 +88,7 @@ function CandidateImportScreen() {
     if (!selectedValidRows.length) {
       setFormErrors((current) => ({
         ...current,
-        selectedRows: "Vui lòng chọn ít nhất 1 dòng hợp lệ để import.",
+        selectedRows: t("candidateImport.selectRowsError"),
       }));
       return;
     }
@@ -106,10 +108,10 @@ function CandidateImportScreen() {
         })),
       );
 
-      toast.success(response.message || "Import ứng viên thành công.");
+      toast.success(response.message || t("candidateImport.importSuccess"));
       navigate("/hr/candidates");
     } catch {
-      toast.error("Không xác nhận được import.");
+      toast.error(t("candidateImport.importFailed"));
     } finally {
       setImportLoading(false);
     }
@@ -133,23 +135,23 @@ function CandidateImportScreen() {
   }
 
   const importStats = [
-    { label: "Tổng dòng", value: preview?.totalRows ?? 0, icon: "table_rows", valueClass: "text-[#1a1c1c]", iconWrap: "from-[#f2efed] to-[#e7e3e1] text-[#5f5e5e]" },
-    { label: "Hợp lệ", value: preview?.validRows ?? 0, icon: "check_circle", valueClass: "text-emerald-600", iconWrap: "from-emerald-50 to-emerald-100 text-emerald-600" },
-    { label: "Lỗi", value: preview?.invalidRows ?? 0, icon: "error", valueClass: "text-[#ba1a1a]", iconWrap: "from-rose-50 to-rose-100 text-rose-600" },
+    { label: t("candidateImport.totalRows"), value: preview?.totalRows ?? 0, icon: "table_rows", valueClass: "text-[#1a1c1c]", iconWrap: "from-[#f2efed] to-[#e7e3e1] text-[#5f5e5e]" },
+    { label: t("candidateImport.validRows"), value: preview?.validRows ?? 0, icon: "check_circle", valueClass: "text-emerald-600", iconWrap: "from-emerald-50 to-emerald-100 text-emerald-600" },
+    { label: t("candidateImport.invalidRows"), value: preview?.invalidRows ?? 0, icon: "error", valueClass: "text-[#ba1a1a]", iconWrap: "from-rose-50 to-rose-100 text-rose-600" },
   ];
 
   return (
     <div className="app-container animate-fade-in space-y-6 py-8">
       <PageHeader
-        eyebrow="Ứng viên · Import hàng loạt"
+        eyebrow={t("candidateImport.eyebrow")}
         icon="upload_file"
-        title="Xem trước import"
-        subtitle="Tải file Excel, kiểm tra dữ liệu và chỉ import các dòng hợp lệ."
+        title={t("candidateImport.title")}
+        subtitle={t("candidateImport.subtitle")}
         actions={
           <>
             <button type="button" className="btn btn-secondary" onClick={handleDownloadTemplate}>
               <span className="material-symbols-outlined text-[18px]">download</span>
-              Tải file mẫu
+              {t("candidateImport.downloadTemplate")}
             </button>
             <button
               type="button"
@@ -158,7 +160,7 @@ function CandidateImportScreen() {
               disabled={previewLoading}
             >
               <span className="material-symbols-outlined text-[18px]">upload_file</span>
-              {previewLoading ? "Đang đọc..." : "Tải lên & xem trước"}
+              {previewLoading ? t("candidateImport.previewLoading") : t("candidateImport.previewAction")}
             </button>
             <AsyncActionButton
               type="button"
@@ -166,10 +168,10 @@ function CandidateImportScreen() {
               onClick={handleImportSelected}
               disabled={importLoading || !selectedValidRows.length}
               loading={importLoading}
-              loadingText="Đang import..."
+              loadingText={t("candidateImport.importLoading")}
             >
               <span className="material-symbols-outlined text-[18px]">check_circle</span>
-              Xác nhận
+              {t("common.confirm")}
             </AsyncActionButton>
           </>
         }
@@ -185,17 +187,17 @@ function CandidateImportScreen() {
           />
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
-              <span className="material-symbols-outlined text-[26px]">cloud_upload</span>
+                <span className="material-symbols-outlined text-[26px]">cloud_upload</span>
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">
+                {selectedFile ? selectedFile.name : t("candidateImport.selectFile")}
+                </p>
+                <p className="mt-1 text-[12px] leading-5 text-[#8a8786]">
+                {t("candidateImport.supportedFormat")}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-[14px] font-semibold text-[#1a1c1c]">
-                {selectedFile ? selectedFile.name : "Chọn file import ứng viên"}
-              </p>
-              <p className="mt-1 text-[12px] leading-5 text-[#8a8786]">
-                Hỗ trợ `.xlsx` gồm các cột FullName, Email, PhoneNumber, Source, PositionApplied, Notes
-              </p>
-            </div>
-          </div>
         </label>
         {formErrors.file ? (
           <p className="text-sm text-[#dc2626] lg:col-span-2">{formErrors.file}</p>
@@ -223,9 +225,9 @@ function CandidateImportScreen() {
       <div className="card overflow-hidden">
         <div className="flex flex-col gap-4 border-b border-[#f0eceb] px-5 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="section-title">Bảng xem trước</h2>
+            <h2 className="section-title">{t("candidateImport.previewTable")}</h2>
             <p className="mt-1 text-[13px] text-[#5f5e5e]">
-              Dòng lỗi sẽ không được import. Bạn có thể chọn tất cả hoặc chọn từng dòng hợp lệ.
+              {t("candidateImport.previewHint")}
             </p>
           </div>
           <button
@@ -235,7 +237,7 @@ function CandidateImportScreen() {
             disabled={!validRows.length}
           >
             <span className="material-symbols-outlined text-[18px]">checklist</span>
-            Chọn tất cả dòng hợp lệ
+            {t("candidateImport.selectAllValid")}
           </button>
         </div>
         {formErrors.selectedRows ? (
@@ -248,15 +250,15 @@ function CandidateImportScreen() {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-[#f0eceb] bg-[#faf9f8] text-[#5f5e5e]">
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Chọn</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Trạng thái</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Họ tên</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Email</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">SĐT</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Nguồn</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Vị trí</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Ghi chú</th>
-                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">Lỗi kiểm tra</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colSelect")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colStatus")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colFullName")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colEmail")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colPhone")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colSource")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colPosition")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colNotes")}</th>
+                <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">{t("candidateImport.colValidationErrors")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f0eceb]">
@@ -274,7 +276,7 @@ function CandidateImportScreen() {
                     </td>
                     <td className="px-4 py-4">
                       <Badge tone={row.isValid ? "success" : "danger"} dot>
-                        {row.isValid ? "Hợp lệ" : "Lỗi"}
+                        {row.isValid ? t("candidateImport.validRows") : t("candidateImport.invalidRows")}
                       </Badge>
                     </td>
                     <td className="px-4 py-4 text-[13px] font-semibold text-[#1a1c1c]">{row.fullName || "—"}</td>
@@ -284,14 +286,14 @@ function CandidateImportScreen() {
                     <td className="px-4 py-4 text-[13px] text-[#5f5e5e]">{row.positionApplied || "—"}</td>
                     <td className="px-4 py-4 text-[13px] text-[#5f5e5e]">{row.notes || "—"}</td>
                     <td className="px-4 py-4 text-[12px] leading-5 text-[#8a8786]">
-                      {row.errors.length ? row.errors.join(" ") : "Không có lỗi."}
+                      {row.errors.length ? row.errors.join(" ") : t("candidateImport.noErrors")}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-sm text-[#8a8786]">
-                    Tải file Excel lên để xem trước dữ liệu trước khi import.
+                    {t("candidateImport.emptyPreview")}
                   </td>
                 </tr>
               )}

@@ -6,6 +6,7 @@ import Badge from "../../common/components/Badge";
 import { Skeleton, SkeletonCard, SkeletonText } from "../../common/components/Skeleton";
 import { formatApplicationStatus } from "../../common/utils/applicationPresentation";
 import { getSkillChipClass } from "../../common/utils/jobPresentation";
+import { getDateLocale, useI18n } from "../../i18n";
 import {
   downloadProtectedFile,
   openProtectedFileInNewTab,
@@ -14,21 +15,21 @@ import { buildResumeDownloadPath, buildResumePreviewPath } from "../../common/ut
 import { hrService, type HrCandidateDetailDto } from "../../services/hr/hrService";
 
 function formatDate(value?: string | null) {
-  if (!value) return "Chưa cập nhật";
+  if (!value) return "";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleDateString("vi-VN");
+  return parsed.toLocaleDateString(getDateLocale());
 }
 
 function formatDateTime(value?: string | null) {
-  if (!value) return "Chưa cập nhật";
+  if (!value) return "";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
 
-  return parsed.toLocaleString("vi-VN");
+  return parsed.toLocaleString(getDateLocale());
 }
 
 function formatExperiencePeriod(
@@ -43,6 +44,7 @@ function formatExperiencePeriod(
 function CandidateProfileScreen() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useI18n();
   const { candidateId = "" } = useParams();
   const [detail, setDetail] = useState<HrCandidateDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ function CandidateProfileScreen() {
       .catch(() => {
         if (!mounted) return;
         setDetail(null);
-        toast.error("Không thể tải hồ sơ ứng viên.");
+        toast.error(t("candidateProfileView.loadFailed"));
       })
       .finally(() => {
         if (mounted) {
@@ -124,9 +126,9 @@ function CandidateProfileScreen() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
             <span className="material-symbols-outlined text-[32px]">person_off</span>
           </div>
-          <h1 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">Không tìm thấy ứng viên</h1>
+          <h1 className="mt-4 text-[20px] font-semibold text-[#1a1c1c]">{t("candidateProfileView.notFoundTitle")}</h1>
           <p className="mt-2 text-sm text-[#5f5e5e]">
-            Hồ sơ ứng viên chưa sẵn sàng trong quy trình hiện tại.
+            {t("candidateProfileView.notFoundDescription")}
           </p>
           <button
             type="button"
@@ -134,7 +136,7 @@ function CandidateProfileScreen() {
             onClick={() => navigate(backPath)}
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-            Quay lại danh sách
+            {t("candidateProfileView.backToList")}
           </button>
         </div>
       </div>
@@ -150,9 +152,9 @@ function CandidateProfileScreen() {
     .toUpperCase();
 
   const profileStats = [
-    { label: "Hồ sơ ứng tuyển", value: stats.applications, icon: "description", iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]" },
-    { label: "Đang xử lý", value: stats.activeApplications, icon: "pending_actions", iconWrap: "from-amber-50 to-amber-100 text-amber-600" },
-    { label: "Phỏng vấn", value: stats.interviews, icon: "groups", iconWrap: "from-sky-50 to-sky-100 text-sky-600" },
+    { label: t("candidateProfileView.applications"), value: stats.applications, icon: "description", iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]" },
+    { label: t("candidateProfileView.activeApplications"), value: stats.activeApplications, icon: "pending_actions", iconWrap: "from-amber-50 to-amber-100 text-amber-600" },
+    { label: t("candidateProfileView.interviews"), value: stats.interviews, icon: "groups", iconWrap: "from-sky-50 to-sky-100 text-sky-600" },
   ];
 
   return (
@@ -163,7 +165,7 @@ function CandidateProfileScreen() {
         onClick={() => navigate(backPath)}
       >
         <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-        Quay lại danh sách
+        {t("candidateProfileView.backToList")}
       </button>
 
       {/* HERO SUMMARY */}
@@ -182,12 +184,12 @@ function CandidateProfileScreen() {
               </div>
             )}
             <div className="min-w-0">
-              <p className="eyebrow mb-1.5">Hồ sơ ứng viên</p>
+              <p className="eyebrow mb-1.5">{t("candidateProfileView.eyebrow")}</p>
               <h1 className="page-title">{detail.profile.name}</h1>
-              <p className="page-subtitle">{detail.profile.headline || "Hồ sơ ứng viên"}</p>
+              <p className="page-subtitle">{detail.profile.headline || t("candidateProfileView.eyebrow")}</p>
               <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-[#8a8786]">
                 <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-                Tham gia từ {formatDate(detail.profile.memberSince)}
+                {t("candidateProfileView.memberSince")} {formatDate(detail.profile.memberSince) || t("candidateProfileView.notUpdated")}
               </p>
             </div>
           </div>
@@ -202,16 +204,16 @@ function CandidateProfileScreen() {
                   void downloadProtectedFile(
                     currentResumeDownloadPath,
                     detail.resume.fileName,
-                  ).catch(() => toast.error("Không thể tải CV."));
+                  ).catch(() => toast.error(t("candidateProfileView.downloadResumeFailed")));
                 }}
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
-                Tải CV
+                {t("candidateProfileView.downloadResume")}
               </button>
             ) : null}
             <a className="btn btn-secondary" href={`mailto:${detail.profile.email}`}>
               <span className="material-symbols-outlined text-[18px]">mail</span>
-              Liên hệ ứng viên
+              {t("candidateProfileView.contactCandidate")}
             </a>
           </div>
         </div>
@@ -238,7 +240,7 @@ function CandidateProfileScreen() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Lịch sử ứng tuyển</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.applicationHistory")}</h2>
             <div className="mt-4 space-y-3">
               {detail.applicationHistory.length ? (
                 detail.applicationHistory.map((item) => (
@@ -254,9 +256,9 @@ function CandidateProfileScreen() {
                         <p className="text-[13px] text-[#5f5e5e]">{item.departmentName}</p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#8a8786]">
-                        <span>Nộp ngày {formatDate(item.appliedAt)}</span>
+                        <span>{t("candidateProfileView.appliedOn")} {formatDate(item.appliedAt) || t("candidateProfileView.notUpdated")}</span>
                         <span className="text-[#d6d1cf]">•</span>
-                        <span>{item.interviewCount} phỏng vấn</span>
+                        <span>{item.interviewCount} {t("candidateProfileView.interviewsLower")}</span>
                         <Badge tone="neutral">{formatApplicationStatus(item.status)}</Badge>
                       </div>
                     </div>
@@ -265,20 +267,20 @@ function CandidateProfileScreen() {
                         className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#1a1c1c] transition-colors hover:text-[#b90014]"
                         to={`${applicationRoutePrefix}/${item.applicationId}`}
                       >
-                        Mở hồ sơ ứng tuyển
+                        {t("candidateProfileView.openApplication")}
                         <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                       </Link>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-[13px] text-[#8a8786]">Chưa có lịch sử ứng tuyển.</p>
+                <p className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noApplicationHistory")}</p>
               )}
             </div>
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Lịch sử phỏng vấn</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.interviewHistory")}</h2>
             <div className="mt-4 space-y-3">
               {detail.interviewHistory.length ? (
                 detail.interviewHistory.map((item) => (
@@ -293,12 +295,12 @@ function CandidateProfileScreen() {
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-[13px]">
-                      <Badge tone="neutral">{item.status || "Chưa cập nhật"}</Badge>
+                      <Badge tone="neutral">{item.status || t("candidateProfileView.notUpdated")}</Badge>
                       <Link
                         className="font-semibold text-[#b90014] hover:underline"
                         to={`${applicationRoutePrefix}/${item.applicationId}`}
                       >
-                        Xem hồ sơ liên quan
+                        {t("candidateProfileView.viewRelatedApplication")}
                       </Link>
                     </div>
                     {item.notes ? (
@@ -307,7 +309,7 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <p className="text-[13px] text-[#8a8786]">Chưa có lịch sử phỏng vấn.</p>
+                <p className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noInterviewHistory")}</p>
               )}
             </div>
           </section>
@@ -315,23 +317,23 @@ function CandidateProfileScreen() {
 
         <div className="space-y-6">
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Tóm tắt hồ sơ</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.profileSummary")}</h2>
             <dl className="mt-4 space-y-4">
               <div>
                 <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Email</dt>
                 <dd className="mt-1 break-words text-[14px] font-medium text-[#1a1c1c]">{detail.profile.email}</dd>
               </div>
               <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">SĐT</dt>
-                <dd className="mt-1 text-[14px] font-medium text-[#1a1c1c]">{detail.profile.phone || "Chưa cập nhật"}</dd>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">{t("auth.phone")}</dt>
+                <dd className="mt-1 text-[14px] font-medium text-[#1a1c1c]">{detail.profile.phone || t("candidateProfileView.notUpdated")}</dd>
               </div>
               <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Địa điểm</dt>
-                <dd className="mt-1 text-[14px] font-medium text-[#1a1c1c]">{detail.profile.location || "Chưa cập nhật"}</dd>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">{t("candidateProfile.location")}</dt>
+                <dd className="mt-1 text-[14px] font-medium text-[#1a1c1c]">{detail.profile.location || t("candidateProfileView.notUpdated")}</dd>
               </div>
               {detail.profile.bio ? (
                 <div>
-                  <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">Giới thiệu</dt>
+                  <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8a8786]">{t("candidateProfileView.bio")}</dt>
                   <dd className="mt-1 text-[14px] leading-6 text-[#1a1c1c]">{detail.profile.bio}</dd>
                 </div>
               ) : null}
@@ -363,7 +365,7 @@ function CandidateProfileScreen() {
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Kỹ năng</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.skills")}</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {detail.skills.length ? (
                 detail.skills.map((skill, index) => (
@@ -372,17 +374,17 @@ function CandidateProfileScreen() {
                     className={getSkillChipClass(skill.label, index)}
                   >
                     {skill.label}
-                    {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} năm` : ""}
+                    {skill.yearsOfExperience != null ? ` • ${skill.yearsOfExperience} ${t("candidateProfileView.years")}` : ""}
                   </span>
                 ))
               ) : (
-                <span className="text-[13px] text-[#8a8786]">Chưa có kỹ năng trong hồ sơ.</span>
+                <span className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noSkills")}</span>
               )}
             </div>
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Kinh nghiệm</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.experience")}</h2>
             <div className="mt-4 space-y-3">
               {detail.experienceEntries.length ? (
                 detail.experienceEntries.map((entry) => (
@@ -400,19 +402,19 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-[13px] text-[#8a8786]">Chưa có kinh nghiệm làm việc.</span>
+                <span className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noExperience")}</span>
               )}
             </div>
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Dự án</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.projects")}</h2>
             <div className="mt-4 space-y-3">
               {detail.projects.length ? (
                 detail.projects.map((project) => (
                   <div key={project.id} className="rounded-[12px] border border-[#ececec] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{project.name}</p>
-                    <p className="text-[13px] text-[#5f5e5e]">{project.role || "Dự án"}</p>
+                    <p className="text-[13px] text-[#5f5e5e]">{project.role || t("candidateProfileView.projectFallback")}</p>
                     <p className="eyebrow mt-1">{formatExperiencePeriod(project.period)}</p>
                     {project.description ? (
                       <p className="mt-3 text-[13px] leading-6 text-[#5f5e5e]">{project.description}</p>
@@ -432,13 +434,13 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-[13px] text-[#8a8786]">Chưa có dự án.</span>
+                <span className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noProjects")}</span>
               )}
             </div>
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Học vấn</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.education")}</h2>
             <div className="mt-4 space-y-3">
               {detail.educations.length ? (
                 detail.educations.map((education) => (
@@ -449,7 +451,7 @@ function CandidateProfileScreen() {
                       {education.fieldOfStudy ? ` • ${education.fieldOfStudy}` : ""}
                     </p>
                     <p className="eyebrow mt-1">
-                      {[education.startYear, education.endYear].filter(Boolean).join(" - ") || "Chưa cập nhật"}
+                      {[education.startYear, education.endYear].filter(Boolean).join(" - ") || t("candidateProfileView.notUpdated")}
                     </p>
                     {education.description ? (
                       <p className="mt-3 text-[13px] leading-6 text-[#5f5e5e]">{education.description}</p>
@@ -457,19 +459,19 @@ function CandidateProfileScreen() {
                   </div>
                 ))
               ) : (
-                <span className="text-[13px] text-[#8a8786]">Chưa có học vấn.</span>
+                <span className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noEducation")}</span>
               )}
             </div>
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Chứng chỉ & ngôn ngữ</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.certificationsLanguages")}</h2>
             <div className="mt-4 space-y-3">
               {detail.certifications.length ? (
                 detail.certifications.map((certification) => (
                   <div key={certification.id} className="rounded-[12px] border border-[#ececec] p-4">
                     <p className="font-semibold text-[#1a1c1c]">{certification.name}</p>
-                    <p className="text-[13px] text-[#5f5e5e]">{certification.issuer || "Chưa cập nhật đơn vị cấp"}</p>
+                    <p className="text-[13px] text-[#5f5e5e]">{certification.issuer || t("candidateProfileView.issuerNotUpdated")}</p>
                   </div>
                 ))
               ) : null}
@@ -486,13 +488,13 @@ function CandidateProfileScreen() {
                 </div>
               ) : null}
               {!detail.certifications.length && !detail.languages.length ? (
-                <span className="text-[13px] text-[#8a8786]">Chưa có chứng chỉ hoặc ngôn ngữ.</span>
+                <span className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noCertificationsLanguages")}</span>
               ) : null}
             </div>
           </section>
 
           <section className="card p-6">
-            <h2 className="section-title border-b border-[#f0eceb] pb-4">Lịch sử CV</h2>
+            <h2 className="section-title border-b border-[#f0eceb] pb-4">{t("candidateProfileView.resumeHistory")}</h2>
             <div className="mt-4 space-y-2.5">
               {detail.resumeHistory.length ? (
                 detail.resumeHistory.map((resume) => (
@@ -503,7 +505,7 @@ function CandidateProfileScreen() {
                     onClick={() => {
                       void openProtectedFileInNewTab(
                         buildResumePreviewPath(resume.id, resume.fileUrl),
-                      ).catch(() => toast.error("Không thể mở CV."));
+                      ).catch(() => toast.error(t("candidateProfileView.openResumeFailed")));
                     }}
                   >
                     <div className="min-w-0">
@@ -513,14 +515,14 @@ function CandidateProfileScreen() {
                       <p className="text-[13px] text-[#8a8786]">{formatDateTime(resume.uploadedAt)}</p>
                     </div>
                     {resume.isCurrent ? (
-                      <Badge tone="brand">Đang dùng</Badge>
+                      <Badge tone="brand">{t("candidateProfileView.currentResume")}</Badge>
                     ) : (
-                      <span className="text-[13px] font-semibold text-[#b90014]">Mở</span>
+                      <span className="text-[13px] font-semibold text-[#b90014]">{t("candidateProfileView.open")}</span>
                     )}
                   </button>
                 ))
               ) : (
-                <span className="text-[13px] text-[#8a8786]">Chưa có lịch sử CV.</span>
+                <span className="text-[13px] text-[#8a8786]">{t("candidateProfileView.noResumeHistory")}</span>
               )}
             </div>
           </section>

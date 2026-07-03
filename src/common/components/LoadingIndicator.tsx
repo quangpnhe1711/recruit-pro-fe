@@ -1,3 +1,5 @@
+import { translate } from "../../i18n";
+
 type LoadingIndicatorProps = {
   label?: string;
   className?: string;
@@ -12,7 +14,7 @@ const sizeClasses = {
 } as const;
 
 function LoadingIndicator({
-  label = "Đang tải...",
+  label = translate("common.loading"),
   className = "",
   size = "md",
   tone = "brand",

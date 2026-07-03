@@ -1,3 +1,5 @@
+import { translate } from "../../i18n";
+
 export type ApplicationStatusKey =
   | "applied"
   | "screening"
@@ -142,18 +144,22 @@ export const applicationStatusOptions: ApplicationStatusLabel[] = [
   "Withdrawn",
 ];
 
-export const applicationStatusFilterOptions = [
-  { label: "Tất cả trạng thái", value: "all" },
-  { label: "Applied", value: "applied" },
-  { label: "Screening", value: "screening" },
-  { label: "Head Review", value: "managerreview" },
-  { label: "Interview", value: "interview" },
-  { label: "Offer", value: "offer" },
-  { label: "Hired", value: "hired" },
-  { label: "Rejected", value: "rejected" },
-  { label: "Offer Declined", value: "offerdeclined" },
-  { label: "Withdrawn", value: "withdrawn" },
-];
+export function getApplicationStatusFilterOptions() {
+  return [
+    { label: translate("candidateApplications.filters.allStatuses"), value: "all" },
+    { label: formatApplicationStatus("applied"), value: "applied" },
+    { label: formatApplicationStatus("screening"), value: "screening" },
+    { label: formatApplicationStatus("managerreview"), value: "managerreview" },
+    { label: formatApplicationStatus("interview"), value: "interview" },
+    { label: formatApplicationStatus("offer"), value: "offer" },
+    { label: formatApplicationStatus("hired"), value: "hired" },
+    { label: formatApplicationStatus("rejected"), value: "rejected" },
+    { label: formatApplicationStatus("offerdeclined"), value: "offerdeclined" },
+    { label: formatApplicationStatus("withdrawn"), value: "withdrawn" },
+  ];
+}
+
+export const applicationStatusFilterOptions = getApplicationStatusFilterOptions();
 
 export function normalizeApplicationStatusKey(status: string): ApplicationStatusKey {
   switch (status.trim().toLowerCase().replace(/[_\s-]+/g, "")) {
@@ -213,7 +219,29 @@ export function getApplicationStatusMeta(
 }
 
 export function formatApplicationStatus(status: string): ApplicationStatusLabel {
-  return getApplicationStatusMeta(status).label;
+  const label = getApplicationStatusMeta(status).label;
+  switch (label) {
+    case "Applied":
+      return translate("applicationStatus.applied") as ApplicationStatusLabel;
+    case "Screening":
+      return translate("applicationStatus.screening") as ApplicationStatusLabel;
+    case "Head Review":
+      return translate("applicationStatus.headReview") as ApplicationStatusLabel;
+    case "Interview":
+      return translate("applicationStatus.interview") as ApplicationStatusLabel;
+    case "Offer":
+      return translate("applicationStatus.offer") as ApplicationStatusLabel;
+    case "Hired":
+      return translate("applicationStatus.hired") as ApplicationStatusLabel;
+    case "Rejected":
+      return translate("applicationStatus.rejected") as ApplicationStatusLabel;
+    case "Offer Declined":
+      return translate("applicationStatus.offerDeclined") as ApplicationStatusLabel;
+    case "Withdrawn":
+      return translate("applicationStatus.withdrawn") as ApplicationStatusLabel;
+    default:
+      return translate("applicationStatus.unknown") as ApplicationStatusLabel;
+  }
 }
 
 export function getApplicationStatusBadgeClass(

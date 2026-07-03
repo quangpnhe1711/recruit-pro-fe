@@ -5,6 +5,7 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
+import { getDateLocale, useI18n } from "../../i18n";
 import {
   applicationEmailSchema,
   validateWithSchema,
@@ -35,7 +36,7 @@ type DateRange =
   | "This Quarter"
   | "This Year";
 type Department =
-  | "Tất cả phòng ban"
+  | "allDepartments"
   | "Engineering"
   | "Data & Analytics"
   | "Marketing"
@@ -63,9 +64,9 @@ type Application = {
 };
 
 type EmailTemplateType =
-  | "Interview Invitation"
-  | "Job Offer"
-  | "Rejection Mail"
+  | "interviewInvitation"
+  | "jobOffer"
+  | "rejectionMail"
   | "Custom";
 
 type EmailComposerState = {
@@ -75,38 +76,10 @@ type EmailComposerState = {
   body: string;
 };
 
-const DATE_RANGE_LABELS: Record<DateRange, string> = {
-  Anytime: "Mọi thời gian",
-  "Last 7 Days": "7 ngày gần đây",
-  "Last 30 Days": "30 ngày gần đây",
-  "This Quarter": "Quý này",
-  "This Year": "Năm nay",
-};
-
-const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateType, string> = {
-  "Interview Invitation": "Thư mời phỏng vấn",
-  "Job Offer": "Thư mời nhận việc",
-  "Rejection Mail": "Thư từ chối",
-  Custom: "Tùy chỉnh",
-};
-
 const JOB_FILTER_ALL = "ALL_JOBS";
 
-const emailTemplateOptions: Array<{
-  label: string;
-  value: EmailTemplateType;
-}> = [
-  {
-    label: EMAIL_TEMPLATE_LABELS["Interview Invitation"],
-    value: "Interview Invitation",
-  },
-  { label: EMAIL_TEMPLATE_LABELS["Job Offer"], value: "Job Offer" },
-  { label: EMAIL_TEMPLATE_LABELS["Rejection Mail"], value: "Rejection Mail" },
-  { label: EMAIL_TEMPLATE_LABELS.Custom, value: "Custom" },
-];
-
 const departmentOptions: Department[] = [
-  "Tất cả phòng ban",
+  "allDepartments",
   "Engineering",
   "Data & Analytics",
   "Marketing",
@@ -126,6 +99,7 @@ const dateRanges: DateRange[] = [
 ];
 
 function buildEmailDraft(
+  t: (key: string, vars?: Record<string, string>) => string,
   application: Application,
   templateType: EmailTemplateType,
 ) {
@@ -133,30 +107,30 @@ function buildEmailDraft(
     `${application.candidateFirstName} ${application.candidateLastName}`.trim();
 
   switch (templateType) {
-    case "Interview Invitation":
+    case "interviewInvitation":
       return {
-        subject: `Thư mời phỏng vấn - ${application.jobTitle}`,
-        body: `Chào ${candidateName},\n\nRecruitPro muốn mời bạn tham gia vòng phỏng vấn tiếp theo cho vị trí ${application.jobTitle}.\n\nBạn vui lòng phản hồi email này để chúng tôi xác nhận lịch phù hợp.\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
+        subject: t("candidateApplication.emailInterviewSubject", { jobTitle: application.jobTitle }),
+        body: t("candidateApplication.emailInterviewBody", { candidateName, jobTitle: application.jobTitle }),
       };
-    case "Job Offer":
+    case "jobOffer":
       return {
-        subject: `Thư mời nhận việc - ${application.jobTitle}`,
-        body: `Chào ${candidateName},\n\nRecruitPro rất vui được gửi đến bạn đề nghị nhận việc cho vị trí ${application.jobTitle}.\n\nBạn vui lòng xem thông tin offer và phản hồi nếu cần trao đổi thêm.\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
+        subject: t("candidateApplication.emailOfferSubject", { jobTitle: application.jobTitle }),
+        body: t("candidateApplication.emailOfferBody", { candidateName, jobTitle: application.jobTitle }),
       };
-    case "Rejection Mail":
+    case "rejectionMail":
       return {
-        subject: `Cập nhật hồ sơ ứng tuyển - ${application.jobTitle}`,
-        body: `Chào ${candidateName},\n\nCảm ơn bạn đã quan tâm đến vị trí ${application.jobTitle}.\n\nSau khi xem xét, RecruitPro rất tiếc chưa thể tiếp tục với hồ sơ của bạn ở thời điểm này.\n\nChúc bạn nhiều thành công trong hành trình sắp tới.\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
+        subject: t("candidateApplication.emailRejectSubject", { jobTitle: application.jobTitle }),
+        body: t("candidateApplication.emailRejectBody", { candidateName, jobTitle: application.jobTitle }),
       };
     default:
       return {
-        subject: `${application.jobTitle} - Cập nhật hồ sơ`,
-        body: `Chào ${candidateName},\n\n\n\nTrân trọng,\nĐội ngũ HR RecruitPro`,
+        subject: t("candidateApplication.emailCustomSubject", { jobTitle: application.jobTitle }),
+        body: t("candidateApplication.emailCustomBody", { candidateName }),
       };
   }
 }
 
-function buildJobOptions(items: Application[]) {
+function buildJobOptions(t: (key: string) => string, items: Application[]) {
   const unique = new Map<string, string>();
 
   items.forEach((item) => {
@@ -166,7 +140,7 @@ function buildJobOptions(items: Application[]) {
   });
 
   return [
-    { label: "Tất cả công việc", value: JOB_FILTER_ALL },
+    { label: t("candidateApplication.allJobs"), value: JOB_FILTER_ALL },
     ...Array.from(unique.entries())
       .map(([value, label]) => ({ label, value }))
       .sort((a, b) => a.label.localeCompare(b.label)),
@@ -174,6 +148,7 @@ function buildJobOptions(items: Application[]) {
 }
 
 function buildApplicationTableColumns(
+  t: (key: string) => string,
   onReviewApplication: (app: Application) => void,
   onOpenJobDetail: (app: Application) => void,
   onViewCV: (app: Application) => void,
@@ -190,7 +165,7 @@ function buildApplicationTableColumns(
   return [
     {
       key: "candidate",
-      header: "Ứng viên",
+      header: t("candidateApplication.candidate"),
       renderCell: (app) => (
         <div className="flex items-center gap-4">
           <div>
@@ -203,7 +178,7 @@ function buildApplicationTableColumns(
     },
     {
       key: "jobTitle",
-      header: "Vị trí tuyển dụng",
+      header: t("candidateApplication.jobTitle"),
       renderCell: (app) => (
         <a
           className="text-body-lg font-semibold text-[#b90014] transition-colors hover:text-[#e31b23] hover:underline"
@@ -219,7 +194,7 @@ function buildApplicationTableColumns(
     },
     {
       key: "department",
-      header: "Phòng ban",
+      header: t("candidateApplication.department"),
       renderCell: (app) => (
         <span className={`badge ${getDepartmentBadgeClass(app.department)}`}>
           {app.department}
@@ -228,7 +203,7 @@ function buildApplicationTableColumns(
     },
     {
       key: "score",
-      header: "Điểm phù hợp",
+      header: t("candidateApplication.matchScore"),
       renderCell: (app) => (
         <p className="text-body-md font-semibold text-[#1a1c1c]">
           {app.score != null ? `${app.score.toFixed(1)}%` : "--"}
@@ -237,17 +212,17 @@ function buildApplicationTableColumns(
     },
     {
       key: "recruiter",
-      header: "Người phụ trách",
+      header: t("candidateApplication.recruiter"),
       renderCell: (app) => <p className="text-[#5f5e5e]">{app.recruiter}</p>,
     },
     {
       key: "appliedDate",
-      header: "Ngày ứng tuyển",
+      header: t("candidateApplication.appliedDate"),
       renderCell: (app) => <p className=" text-[#5f5e5e]">{app.appliedDate}</p>,
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("common.status"),
       renderCell: (app) => (
         // Tone is derived from the canonical status key, never from the localized label
         // (INV-012). Passing the VI label would fall through to the rejected tone for every
@@ -259,7 +234,7 @@ function buildApplicationTableColumns(
     },
     {
       key: "actions",
-      header: "Thao tác",
+      header: t("common.actions"),
       alignRight: true,
       headerClassName: "text-right",
       cellClassName: "whitespace-nowrap",
@@ -270,7 +245,7 @@ function buildApplicationTableColumns(
               type="button"
               className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-[#ececec] bg-white text-[#5f5e5e] transition-colors hover:border-[#1a1c1c] hover:text-[#1a1c1c]"
               onClick={() => onReviewApplication(app)}
-              title="Đánh giá hồ sơ"
+              title={t("candidateApplication.reviewApplication")}
             >
               <span className="material-symbols-outlined text-[20px]">
                 rate_review
@@ -281,8 +256,8 @@ function buildApplicationTableColumns(
             <button
               type="button"
               className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-sm transition-all hover:brightness-110 active:scale-95"
-              onClick={() => onOpenEmailComposer(app, "Interview Invitation")}
-              title="Soạn email"
+              onClick={() => onOpenEmailComposer(app, "interviewInvitation")}
+              title={t("candidateApplication.composeEmail")}
             >
               <span className="material-symbols-outlined text-[20px]">mail</span>
             </button>
@@ -296,6 +271,7 @@ function buildApplicationTableColumns(
 function CandidateApplicationScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useI18n();
   const { hasPermission, primaryRole } = usePermissions();
   const canSendEmail = hasPermission(PERMISSIONS.APPLICATION_SEND_EMAIL);
   const canViewCv = hasPermission(PERMISSIONS.APPLICATION_VIEW_CV);
@@ -308,7 +284,7 @@ function CandidateApplicationScreen() {
     filteredJobId || JOB_FILTER_ALL,
   );
   const [departmentFilter, setDepartmentFilter] =
-    useState<Department>("Tất cả phòng ban");
+    useState<Department>("allDepartments");
   const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatusKey>("all");
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRange>("Anytime");
   const [page, setPage] = useState<number>(1);
@@ -341,7 +317,7 @@ function CandidateApplicationScreen() {
             jobTitle: item.job.title,
             department: item.job.department as Department,
             appliedDate: item.appliedDate
-              ? new Date(item.appliedDate).toLocaleDateString()
+              ? new Date(item.appliedDate).toLocaleDateString(getDateLocale())
               : "",
             appliedAt: item.appliedDate
               ? Date.parse(item.appliedDate)
@@ -386,7 +362,7 @@ function CandidateApplicationScreen() {
     }
 
     // Department filter
-    if (departmentFilter !== "Tất cả phòng ban") {
+    if (departmentFilter !== "allDepartments") {
       result = result.filter((a) => a.department === departmentFilter);
     }
 
@@ -442,9 +418,22 @@ function CandidateApplicationScreen() {
   const rangeStart = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, totalItems);
   const jobOptions = useMemo(
-    () => buildJobOptions(applications),
-    [applications],
+    () => buildJobOptions(t, applications),
+    [applications, t],
   );
+  const dateRangeOptions = [
+    { label: t("candidateApplication.anytime"), value: "Anytime" },
+    { label: t("candidateApplication.last7Days"), value: "Last 7 Days" },
+    { label: t("candidateApplication.last30Days"), value: "Last 30 Days" },
+    { label: t("candidateApplication.thisQuarter"), value: "This Quarter" },
+    { label: t("candidateApplication.thisYear"), value: "This Year" },
+  ];
+  const emailTemplateOptions = [
+    { label: t("candidateApplication.interviewInvitation"), value: "interviewInvitation" },
+    { label: t("candidateApplication.jobOffer"), value: "jobOffer" },
+    { label: t("candidateApplication.rejectionMail"), value: "rejectionMail" },
+    { label: t("candidateApplication.customEmail"), value: "Custom" },
+  ];
 
   function resetToFirstPage() {
     setPage(1);
@@ -457,13 +446,13 @@ function CandidateApplicationScreen() {
         const url = res.data?.fileUrl;
         if (url) {
           void openProtectedFileInNewTab(url).catch(() =>
-            toast.error("Không thể tải CV"),
+            toast.error(t("candidateApplication.cvLoadFailed")),
           );
           return;
         }
-        toast.info("Ứng viên chưa có CV.");
+        toast.info(t("candidateApplication.noCv"));
       })
-      .catch(() => toast.error("Không thể tải CV"));
+      .catch(() => toast.error(t("candidateApplication.cvLoadFailed")));
   }
 
   function reviewApplication(application: Application) {
@@ -476,9 +465,9 @@ function CandidateApplicationScreen() {
 
   function openEmailComposer(
     application: Application,
-    templateType: EmailTemplateType = "Interview Invitation",
+    templateType: EmailTemplateType = "interviewInvitation",
   ) {
-    const draft = buildEmailDraft(application, templateType);
+    const draft = buildEmailDraft(t, application, templateType);
     setEmailComposerSubmitted(false);
     setEmailComposerErrors({});
     setEmailComposer({
@@ -507,7 +496,7 @@ function CandidateApplicationScreen() {
       const shouldRefreshDraft =
         patch.templateType && patch.templateType !== current.templateType;
       const nextDraft = shouldRefreshDraft
-        ? buildEmailDraft(current.application, nextTemplate)
+        ? buildEmailDraft(t, current.application, nextTemplate)
         : null;
 
       return {
@@ -525,11 +514,11 @@ function CandidateApplicationScreen() {
     if (emailComposerSubmitted && emailComposer) {
       const nextSubject =
         patch.templateType && patch.templateType !== emailComposer.templateType
-          ? buildEmailDraft(emailComposer.application, patch.templateType).subject
+          ? buildEmailDraft(t, emailComposer.application, patch.templateType).subject
           : (patch.subject ?? emailComposer.subject);
       const nextBody =
         patch.templateType && patch.templateType !== emailComposer.templateType
-          ? buildEmailDraft(emailComposer.application, patch.templateType).body
+          ? buildEmailDraft(t, emailComposer.application, patch.templateType).body
           : (patch.body ?? emailComposer.body);
       setEmailComposerErrors(
         validateWithSchema(applicationEmailSchema, {
@@ -562,11 +551,11 @@ function CandidateApplicationScreen() {
       });
 
       toast.success(
-        `Đã gửi email cho ${emailComposer.application.candidateFirstName} ${emailComposer.application.candidateLastName}`,
+        t("candidateApplication.emailSent", { candidateName: `${emailComposer.application.candidateFirstName} ${emailComposer.application.candidateLastName}` }),
       );
       closeEmailComposer();
     } catch {
-      toast.error("Không thể gửi email");
+      toast.error(t("candidateApplication.emailSendFailed"));
     } finally {
       setSendingEmail(false);
     }
@@ -585,17 +574,17 @@ function CandidateApplicationScreen() {
     <div className="app-container animate-fade-in flex-grow py-8">
       {/* Page Header */}
       <PageHeader
-        eyebrow="Tuyển dụng"
+        eyebrow={t("candidateApplication.eyebrow")}
         icon="contact_page"
         title={
           filteredJobTitle
-            ? `Hồ sơ ứng tuyển - ${filteredJobTitle}`
-            : "Danh sách hồ sơ ứng tuyển"
+            ? t("candidateApplication.filteredTitle", { jobTitle: filteredJobTitle })
+            : t("candidateApplication.title")
         }
         subtitle={
           filteredJobTitle
-            ? "Theo dõi các hồ sơ ứng tuyển cho job đang chọn."
-            : "Theo dõi và xử lý hồ sơ ứng tuyển trên toàn bộ phòng ban."
+            ? t("candidateApplication.filteredSubtitle")
+            : t("candidateApplication.subtitle")
         }
         className="mb-7"
       />
@@ -608,7 +597,7 @@ function CandidateApplicationScreen() {
           </span>
           <input
             className="input-field pl-10"
-            placeholder="Tìm ứng viên, tiêu đề job, mã job hoặc người phụ trách..."
+            placeholder={t("candidateApplication.searchPlaceholder")}
             type="text"
             value={searchTerm}
             onChange={(e) => {
@@ -634,6 +623,7 @@ function CandidateApplicationScreen() {
             wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
             options={departmentOptions.map((department) => ({
               label: department,
+              label: department === "allDepartments" ? t("candidateApplication.allDepartments") : department,
               value: department,
             }))}
             value={departmentFilter}
@@ -655,10 +645,7 @@ function CandidateApplicationScreen() {
           <CommonSelect
             className="h-[42px] text-sm"
             wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
-            options={dateRanges.map((range) => ({
-              label: DATE_RANGE_LABELS[range],
-              value: range,
-            }))}
+            options={dateRangeOptions}
             value={dateRangeFilter}
             onChange={(event) => {
               setDateRangeFilter(event.target.value as DateRange);
@@ -671,6 +658,7 @@ function CandidateApplicationScreen() {
       {/* Data Table with Pagination */}
       <CommonTable
         columns={buildApplicationTableColumns(
+          t,
           reviewApplication,
           openJobDetail,
           viewCV,
@@ -684,7 +672,7 @@ function CandidateApplicationScreen() {
         data={pageSlice}
         keyExtractor={(item) => item.id}
         loading={false}
-        emptyMessage="Không có dữ liệu"
+        emptyMessage={t("common.noData")}
         emptyIcon="person_search"
         hover
         pagination={{
@@ -709,7 +697,7 @@ function CandidateApplicationScreen() {
                 </div>
                 <div>
                   <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">
-                    Soạn email
+                    {t("candidateApplication.composeEmail")}
                   </h2>
                   <p className="mt-1 text-sm text-[#5f5e5e]">
                     {emailComposer.application.candidateFirstName}{" "}
@@ -722,7 +710,7 @@ function CandidateApplicationScreen() {
                 type="button"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#5f5e5e] transition-colors hover:bg-[#f7f6f5] hover:text-[#1a1c1c]"
                 onClick={closeEmailComposer}
-                title="Đóng"
+                title={t("common.close")}
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -731,7 +719,7 @@ function CandidateApplicationScreen() {
             <div className="grid gap-5 px-6 py-6">
               <div className="grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
                 <div>
-                  <label className="field-label">Loại email</label>
+                  <label className="field-label">{t("candidateApplication.emailType")}</label>
                   <CommonSelect
                     className="h-[42px] text-sm"
                     options={emailTemplateOptions}
@@ -744,14 +732,14 @@ function CandidateApplicationScreen() {
                   />
                 </div>
                 <div>
-                  <label className="field-label">Tiêu đề</label>
+                  <label className="field-label">{t("candidateApplication.emailSubject")}</label>
                   <input
                     className={`input-field ${emailComposerErrors.subject ? "border-[#ba1a1a]" : ""}`}
                     value={emailComposer.subject}
                     onChange={(event) =>
                       updateEmailComposer({ subject: event.target.value })
                     }
-                    placeholder="Nhập tiêu đề email"
+                    placeholder={t("candidateApplication.emailSubjectPlaceholder")}
                   />
                   {emailComposerErrors.subject ? (
                     <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{emailComposerErrors.subject}</p>
@@ -760,21 +748,21 @@ function CandidateApplicationScreen() {
               </div>
 
               <div>
-                <label className="field-label">Người nhận</label>
+                <label className="field-label">{t("candidateApplication.emailRecipient")}</label>
                 <div className="rounded-[10px] border border-[#ececec] bg-[#f7f6f5] px-4 py-3 text-sm text-[#1a1c1c]">
                   {emailComposer.application.candidateEmail}
                 </div>
               </div>
 
               <div>
-                <label className="field-label">Nội dung</label>
+                <label className="field-label">{t("candidateApplication.emailBody")}</label>
                 <textarea
                   className={`input-field min-h-[260px] leading-6 ${emailComposerErrors.body ? "border-[#ba1a1a]" : ""}`}
                   value={emailComposer.body}
                   onChange={(event) =>
                     updateEmailComposer({ body: event.target.value })
                   }
-                  placeholder="Nhập nội dung email..."
+                  placeholder={t("candidateApplication.emailBodyPlaceholder")}
                 />
                 {emailComposerErrors.body ? (
                   <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{emailComposerErrors.body}</p>
@@ -789,7 +777,7 @@ function CandidateApplicationScreen() {
                 onClick={closeEmailComposer}
                 disabled={sendingEmail}
               >
-                Hủy
+                {t("common.cancel")}
               </button>
               <AsyncActionButton
                 type="button"
@@ -797,10 +785,10 @@ function CandidateApplicationScreen() {
                 onClick={submitEmailComposer}
                 disabled={sendingEmail}
                 loading={sendingEmail}
-                loadingText="Đang gửi email..."
+                loadingText={t("candidateApplication.sendingEmail")}
               >
                 <span className="material-symbols-outlined text-[18px]">send</span>
-                Gửi email
+                {t("candidateApplication.sendEmail")}
               </AsyncActionButton>
             </div>
           </div>

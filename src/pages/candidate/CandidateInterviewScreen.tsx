@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useI18n } from "../../i18n";
 import Badge from "../../common/components/Badge";
 import EmptyState from "../../common/components/EmptyState";
 import { Skeleton } from "../../common/components/Skeleton";
@@ -10,17 +11,17 @@ import {
   type CandidateInterviewItemDto,
 } from "../../services/candidate/candidateService";
 
-function normalizeStatus(status: string) {
+function normalizeStatus(status: string, t: (key: string) => string) {
   switch (status.trim().toLowerCase()) {
     case "scheduled":
-      return "Đã lên lịch";
+      return t("candidateInterviews.status.scheduled");
     case "completed":
-      return "Hoàn tất";
+      return t("candidateInterviews.status.completed");
     case "canceled":
     case "cancelled":
-      return "Đã hủy";
+      return t("candidateInterviews.status.cancelled");
     default:
-      return status || "Chưa cập nhật";
+      return status || t("candidateInterviews.status.pending");
   }
 }
 
@@ -42,11 +43,13 @@ function DetailTile({
   label,
   value,
   helper,
+  emptyValue,
 }: {
   icon: string;
   label: string;
   value: string;
   helper?: string;
+  emptyValue: string;
 }) {
   return (
     <div className="rounded-[14px] border border-[#ececec] bg-[#faf8f8] p-4">
@@ -57,7 +60,7 @@ function DetailTile({
         <div className="min-w-0">
           <p className="eyebrow">{label}</p>
           <p className="mt-1 break-words text-[15px] font-semibold text-[#1a1c1c]">
-            {value || "Chưa cập nhật"}
+            {value || emptyValue}
           </p>
           {helper ? (
             <p className="mt-1 text-[13px] leading-5 text-[#5f5e5e]">
@@ -71,6 +74,7 @@ function DetailTile({
 }
 
 function CandidateInterviewScreen() {
+  const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const [items, setItems] = useState<CandidateInterviewItemDto[]>([]);
@@ -110,7 +114,7 @@ function CandidateInterviewScreen() {
       })
       .catch(() => {
         if (mounted) {
-          toast.error("Không thể tải lịch phỏng vấn.");
+          toast.error(t("candidateInterviews.loadFailed"));
         }
       })
       .finally(() => {
@@ -122,7 +126,7 @@ function CandidateInterviewScreen() {
     return () => {
       mounted = false;
     };
-  }, [spotlightJobTitle]);
+  }, [spotlightJobTitle, t]);
 
   const stats = useMemo(() => {
     const scheduled = items.filter(
@@ -181,11 +185,9 @@ function CandidateInterviewScreen() {
     <div className="app-container animate-fade-in py-8">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="eyebrow mb-1.5">Lịch hẹn của bạn</p>
-          <h1 className="page-title">Lịch phỏng vấn</h1>
-          <p className="page-subtitle">
-            Xem nhanh thời gian, người phỏng vấn và trạng thái từng buổi.
-          </p>
+          <p className="eyebrow mb-1.5">{t("candidateInterviews.eyebrow")}</p>
+          <h1 className="page-title">{t("candidateInterviews.title")}</h1>
+          <p className="page-subtitle">{t("candidateInterviews.subtitle")}</p>
         </div>
         {spotlightJobTitle ? (
           <button
@@ -196,7 +198,7 @@ function CandidateInterviewScreen() {
             <span className="material-symbols-outlined text-[18px] text-[#b90014]">
               arrow_back
             </span>
-            Về đơn ứng tuyển
+            {t("candidateInterviews.backToApplications")}
           </button>
         ) : null}
       </div>
@@ -207,7 +209,7 @@ function CandidateInterviewScreen() {
             target
           </span>
           <span className="min-w-0 truncate">
-            Đang lọc theo vị trí <strong>{spotlightJobTitle}</strong>
+            {t("candidateInterviews.filteredByJob", { jobTitle: spotlightJobTitle })}
           </span>
         </div>
       ) : null}
@@ -217,7 +219,7 @@ function CandidateInterviewScreen() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[13px] font-semibold text-[#5f5e5e]">
-                Sắp / đang lên lịch
+                {t("candidateInterviews.stats.scheduled")}
               </p>
               <p className="mt-2 text-[36px] font-bold leading-none text-[#1a1c1c]">
                 {stats.scheduled}
@@ -234,7 +236,7 @@ function CandidateInterviewScreen() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[13px] font-semibold text-[#5f5e5e]">
-                Đã hoàn tất
+                {t("candidateInterviews.stats.completed")}
               </p>
               <p className="mt-2 text-[36px] font-bold leading-none text-[#1a1c1c]">
                 {stats.completed}
@@ -251,15 +253,15 @@ function CandidateInterviewScreen() {
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[13px] font-semibold text-[#5f5e5e]">
-                Buổi gần nhất
+                {t("candidateInterviews.stats.nearest")}
               </p>
               <p className="mt-2 truncate text-[17px] font-semibold text-[#1a1c1c]">
-                {stats.nextInterview?.dateLabel ?? "Chưa có lịch"}
+                {stats.nextInterview?.dateLabel ?? t("candidateInterviews.stats.nearestEmpty")}
               </p>
               <p className="mt-1 truncate text-[13px] text-[#8a8786]">
                 {stats.nextInterview
                   ? `${stats.nextInterview.jobTitle} - ${stats.nextInterview.timeLabel}`
-                  : "Chưa có buổi phỏng vấn sắp tới."}
+                  : t("candidateInterviews.stats.nearestHintEmpty")}
               </p>
             </div>
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014]">
@@ -275,21 +277,21 @@ function CandidateInterviewScreen() {
         <div className="card">
           <EmptyState
             icon="event_busy"
-            title="Chưa có lịch phỏng vấn"
-            description="Khi HR tạo lịch, thông tin thời gian và người phỏng vấn sẽ hiển thị tại đây."
+            title={t("candidateInterviews.emptyTitle")}
+            description={t("candidateInterviews.emptyDescription")}
           />
         </div>
       ) : (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
           <section className="card overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#f0eceb] px-5 py-4">
-              <h2 className="section-title">Danh sách phỏng vấn</h2>
-              <Badge tone="neutral">{items.length} lịch</Badge>
+              <h2 className="section-title">{t("candidateInterviews.listTitle")}</h2>
+              <Badge tone="neutral">{t("candidateInterviews.scheduleCount", { count: items.length })}</Badge>
             </div>
 
             <div className="divide-y divide-[#f0eceb]">
               {items.map((item) => {
-                const normalizedStatus = normalizeStatus(item.status);
+                const normalizedStatus = normalizeStatus(item.status, t);
                 const timingStatus = getInterviewTimingStatus(
                   item.startAt,
                   item.endAt,
@@ -326,9 +328,9 @@ function CandidateInterviewScreen() {
                       </p>
                     </div>
                     <div className="min-w-0">
-                      <p className="eyebrow">Người phỏng vấn</p>
+                      <p className="eyebrow">{t("candidateInterviews.detailInterviewer")}</p>
                       <p className="mt-1 truncate text-[14px] font-semibold text-[#1a1c1c]">
-                        {item.interviewer || "Chưa cập nhật"}
+                        {item.interviewer || t("candidateInterviews.status.pending")}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2 md:justify-end">
@@ -349,9 +351,9 @@ function CandidateInterviewScreen() {
 
           <aside className="card p-5 xl:sticky xl:top-24 xl:self-start">
             <div className="mb-5">
-              <p className="eyebrow mb-1.5">Chi tiết</p>
+              <p className="eyebrow mb-1.5">{t("candidateInterviews.detailEyebrow")}</p>
               <h3 className="text-[20px] font-semibold leading-7 tracking-[-0.01em] text-[#1a1c1c]">
-                {selectedInterview?.jobTitle ?? "Chọn lịch phỏng vấn"}
+                {selectedInterview?.jobTitle ?? t("candidateInterviews.selectPrompt")}
               </h3>
             </div>
 
@@ -359,28 +361,31 @@ function CandidateInterviewScreen() {
               <div className="space-y-4">
                 <DetailTile
                   icon="calendar_month"
-                  label="Ngày phỏng vấn"
+                  label={t("candidateInterviews.detailDate")}
                   value={selectedInterview.dateLabel}
                   helper={selectedInterview.timeLabel}
+                  emptyValue={t("candidateInterviews.status.pending")}
                 />
                 <DetailTile
                   icon="person"
-                  label="Người phỏng vấn"
+                  label={t("candidateInterviews.detailInterviewer")}
                   value={selectedInterview.interviewer}
+                  emptyValue={t("candidateInterviews.status.pending")}
                 />
                 <DetailTile
                   icon="work"
-                  label="Vị trí"
+                  label={t("candidateInterviews.detailJob")}
                   value={selectedInterview.jobTitle}
+                  emptyValue={t("candidateInterviews.status.pending")}
                 />
 
                 <div className="rounded-[14px] border border-[#ececec] bg-white p-4">
-                  <p className="eyebrow">Trạng thái</p>
+                  <p className="eyebrow">{t("common.status")}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span
-                      className={`badge ${statusChip(normalizeStatus(selectedInterview.status))}`}
+                      className={`badge ${statusChip(normalizeStatus(selectedInterview.status, t))}`}
                     >
-                      {normalizeStatus(selectedInterview.status)}
+                      {normalizeStatus(selectedInterview.status, t)}
                     </span>
                     {selectedInterviewTimingStatus ? (
                       <span className={`badge ${selectedInterviewTimingStatus.className}`}>
@@ -393,18 +398,18 @@ function CandidateInterviewScreen() {
                 <div className="rounded-[14px] border border-[#ffdad6] bg-[#fff1f0] p-4">
                   <p className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.1em] text-[#b90014]">
                     <span className="material-symbols-outlined text-[18px]">tips_and_updates</span>
-                    Trước buổi phỏng vấn
+                    {t("candidateInterviews.prepTitle")}
                   </p>
                   <ul className="mt-3 space-y-2 text-[14px] leading-6 text-[#1a1c1c]">
-                    <li>Kiểm tra CV và mô tả công việc.</li>
-                    <li>Chuẩn bị ví dụ dự án phù hợp.</li>
-                    <li>Vào phòng họp sớm 5-10 phút nếu phỏng vấn online.</li>
+                    <li>{t("candidateInterviews.prep1")}</li>
+                    <li>{t("candidateInterviews.prep2")}</li>
+                    <li>{t("candidateInterviews.prep3")}</li>
                   </ul>
                 </div>
               </div>
             ) : (
               <div className="rounded-[14px] border border-dashed border-[#d6d1cf] p-5 text-[14px] text-[#5f5e5e]">
-                Chọn một lịch để xem chi tiết.
+                {t("candidateInterviews.selectHint")}
               </div>
             )}
           </aside>
