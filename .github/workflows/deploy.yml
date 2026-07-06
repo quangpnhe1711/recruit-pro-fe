@@ -17,7 +17,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/recruitpro/recruit-pro-fe
+            cd /opt/recruitpro/recuit-pro-fe/recruit-pro-fe
             git pull
 
             npm install
