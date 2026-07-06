@@ -36,11 +36,14 @@ import {
   type ApplicationStatusLabel,
 } from "../../common/utils/applicationPresentation";
 import {
+  describeDeadline,
   getEmploymentTypeBadgeClass,
   getSkillChipClass,
   getWorkModeChipClass,
   quickApplyCardClass,
 } from "../../common/utils/jobPresentation";
+// ConfirmModal is the shared design-system dialog (lives with the sysadmin UI helpers).
+import { ConfirmModal } from "../system-admin/automationUi";
 import PermissionGuard from "../../guards/PermissionGuard";
 import { usePermissions } from "../../hooks/usePermissions";
 import { getDateLocale, useI18n } from "../../i18n";
@@ -212,6 +215,7 @@ function JobDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [statusConfirm, setStatusConfirm] = useState<"close" | "reopen" | null>(null);
   const [editing, setEditing] = useState(false);
   const [editErrors, setEditErrors] = useState<ValidationErrors>({});
   const [editSubmitted, setEditSubmitted] = useState(false);
@@ -329,6 +333,7 @@ function JobDetailScreen() {
       department: detail.department?.name ?? "",
       jobType: `${detail.employmentType}${detail.workMode ? `, ${detail.workMode}` : ""}`,
       vacancyCount: detail.vacancyCount ?? 0,
+      deadlineInfo: describeDeadline(detail.deadline),
     };
   }, [detail]);
 
@@ -471,9 +476,6 @@ function JobDetailScreen() {
   async function handleClosePosting() {
     if (!detail) return;
 
-    const confirmed = window.confirm(t("jobDetail.closeConfirm", { title: detail.title }));
-    if (!confirmed) return;
-
     setClosing(true);
     try {
       await jobsService.updateJobStatus(detail.id, {
@@ -490,9 +492,6 @@ function JobDetailScreen() {
 
   async function handleReopenPosting() {
     if (!detail) return;
-
-    const confirmed = window.confirm(t("jobDetail.reopenConfirm", { title: detail.title }));
-    if (!confirmed) return;
 
     setClosing(true);
     try {
@@ -618,6 +617,28 @@ function JobDetailScreen() {
                     <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">schedule</span>
                     <span>{jobSummary.posted}</span>
                   </div>
+                  {jobSummary.deadlineInfo.date ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[18px] text-[#ffb3ac]">event</span>
+                      <span>
+                        {t("jobDetail.deadlineOn", {
+                          date: jobSummary.deadlineInfo.date.toLocaleDateString(getDateLocale()),
+                        })}
+                      </span>
+                      {jobSummary.deadlineInfo.state === "closingSoon" ? (
+                        <span className="badge border border-amber-300/60 bg-amber-400/15 text-amber-200">
+                          {t("jobDetail.closingSoon", {
+                            days: String(jobSummary.deadlineInfo.daysLeft ?? 0),
+                          })}
+                        </span>
+                      ) : null}
+                      {jobSummary.deadlineInfo.state === "expired" ? (
+                        <span className="badge border border-rose-300/60 bg-rose-400/15 text-rose-200">
+                          {t("jobDetail.deadlineExpired")}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -678,9 +699,9 @@ function JobDetailScreen() {
                         normalizeJobStatus(detail.status) === JobStatus.Closed ? t("jobDetail.reopening") : t("jobDetail.closing")
                       }
                       onClick={() =>
-                        normalizeJobStatus(detail.status) === JobStatus.Closed
-                          ? handleReopenPosting()
-                          : handleClosePosting()
+                        setStatusConfirm(
+                          normalizeJobStatus(detail.status) === JobStatus.Closed ? "reopen" : "close",
+                        )
                       }
                       spinnerTone="brand"
                     >
@@ -1290,6 +1311,26 @@ function JobDetailScreen() {
           </div>
         </div>
       </main>
+
+      {detail ? (
+        <ConfirmModal
+          open={statusConfirm != null}
+          title={statusConfirm === "reopen" ? t("jobDetail.reopen") : t("jobDetail.close")}
+          danger={statusConfirm === "close"}
+          busy={closing}
+          confirmLabel={statusConfirm === "reopen" ? t("jobDetail.reopen") : t("jobDetail.close")}
+          onConfirm={async () => {
+            if (statusConfirm === "reopen") await handleReopenPosting();
+            else await handleClosePosting();
+            setStatusConfirm(null);
+          }}
+          onClose={() => setStatusConfirm(null)}
+        >
+          {statusConfirm === "reopen"
+            ? t("jobDetail.reopenConfirm", { title: detail.title })
+            : t("jobDetail.closeConfirm", { title: detail.title })}
+        </ConfirmModal>
+      ) : null}
     </div>
   );
 }

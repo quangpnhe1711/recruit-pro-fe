@@ -152,6 +152,7 @@ type RawPublicJobDetail = {
   title?: string;
   location?: string;
   postedAt?: string | null;
+  deadline?: string | null;
   status?: string;
   salaryRange?: {
     min?: number | null;
@@ -352,7 +353,7 @@ function normalizePublicJobDetail(item: RawPublicJobDetail | null | undefined): 
     salaryMin: item?.salaryRange?.min ?? null,
     salaryMax: item?.salaryRange?.max ?? null,
     salaryLabel: item?.salaryLabel ?? item?.salaryRange?.label ?? "",
-    deadline: null,
+    deadline: item?.deadline ?? null,
     status: normalizeJobDetailStatus(item?.status),
     createdAt: item?.postedAt ?? new Date().toISOString(),
     description: toDescriptionText(item?.description),

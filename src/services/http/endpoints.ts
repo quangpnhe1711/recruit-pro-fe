@@ -103,6 +103,16 @@ export const endpoints = {
     pendingApproval: "/hr/jobs/pending-approval",
   },
   sysadmin: {
+    admin: {
+      overview: "/sysadmin/overview",
+      users: "/sysadmin/users",
+      userStatus: (userId: string) => `/sysadmin/users/${userId}/status`,
+      userRoles: (userId: string) => `/sysadmin/users/${userId}/roles`,
+      auditLogs: "/sysadmin/audit-logs",
+      rbacRoles: "/sysadmin/rbac/roles",
+      rbacModules: "/sysadmin/rbac/modules",
+      rolePermissions: (roleId: string) => `/sysadmin/rbac/roles/${roleId}/permissions`,
+    },
     automation: {
       dashboard: "/sysadmin/automation/dashboard",
       workflows: "/sysadmin/automation/workflows",

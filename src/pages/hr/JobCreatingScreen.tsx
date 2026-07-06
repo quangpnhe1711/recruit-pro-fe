@@ -37,6 +37,7 @@ type DraftState = {
   employmentType: EmploymentType | "";
   workMode: WorkMode | "";
   shortPitch: string;
+  deadline: string;
 
   description: string;
   responsibilities: string[];
@@ -54,7 +55,8 @@ type SkillRequirementDraft = {
   minimumYearsOfExperience: string;
 };
 
-const departments = ["Engineering", "Product", "Design", "Marketing", "Sales"];
+// Fallback list when the department lookup has not loaded (or fails) — the live list comes from the API.
+const fallbackDepartments = ["Engineering", "Product", "Design", "Marketing", "Human Resources"];
 const employmentTypeOptions = Object.entries(employmentTypeLabels).map(
   ([value, label]) => ({ value, label }),
 );
@@ -148,6 +150,7 @@ function loadDraft(): DraftState | null {
         ? parsed.workMode
         : "",
     shortPitch: typeof parsed.shortPitch === "string" ? parsed.shortPitch : "",
+    deadline: typeof parsed.deadline === "string" ? parsed.deadline : "",
 
     description:
       typeof parsed.description === "string" ? parsed.description : "",
@@ -190,6 +193,10 @@ function JobCreatingScreen() {
   const [shortPitch, setShortPitch] = useState<string>(
     () => initialDraft?.shortPitch ?? "",
   );
+  const [deadline, setDeadline] = useState<string>(
+    () => initialDraft?.deadline ?? "",
+  );
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>(fallbackDepartments);
 
   // Step 2
   const [description, setDescription] = useState<string>(
@@ -268,6 +275,36 @@ function JobCreatingScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    jobsService
+      .listDepartments()
+      .then((response) => {
+        if (!mounted) return;
+        const names = (response.data ?? [])
+          .map((departmentItem) => departmentItem.name)
+          .filter((name): name is string => Boolean(name));
+        if (names.length > 0) setDepartmentOptions(names);
+      })
+      .catch(() => {
+        /* keep the fallback list; the backend resolves department by name on submit */
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  /** Current step-1 values — single source for validation calls so no field is forgotten. */
+  const step1Values = () => ({
+    title,
+    department,
+    location,
+    employmentType,
+    workMode,
+    shortPitch,
+    deadline,
+  });
+
   function persistDraft(nextStep = step) {
     const payload: DraftState = {
       step: nextStep,
@@ -277,6 +314,7 @@ function JobCreatingScreen() {
       employmentType,
       workMode,
       shortPitch,
+      deadline,
       description,
       responsibilities,
       requirements,
@@ -305,14 +343,7 @@ function JobCreatingScreen() {
 
   function validateStep1() {
     setStep1Submitted(true);
-    const errors = validateWithSchema(jobCreateStep1Schema, {
-      title,
-      department,
-      location,
-      employmentType,
-      workMode,
-      shortPitch,
-    });
+    const errors = validateWithSchema(jobCreateStep1Schema, step1Values());
     setStep1Errors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -480,6 +511,7 @@ function JobCreatingScreen() {
         employmentType,
         workMode,
         shortPitch,
+        deadline,
         description,
         responsibilities,
         requirements,
@@ -551,7 +583,8 @@ function JobCreatingScreen() {
         currency: "VND",
         vacancyCount: 1,
         benefits: [],
-        deadline: null,
+        // End-of-day so the deadline stays valid through its final day (backend stores a timestamp).
+        deadline: deadline ? `${deadline}T23:59:59` : null,
         departmentId: null,
         skillIds: skillRequirements
           .map((item) => item.skillId)
@@ -658,14 +691,7 @@ function JobCreatingScreen() {
                     setTitle(nextValue);
                     if (step1Submitted) {
                       setStep1Errors(
-                        validateWithSchema(jobCreateStep1Schema, {
-                          title: nextValue,
-                          department,
-                          location,
-                          employmentType,
-                          workMode,
-                          shortPitch,
-                        }),
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), title: nextValue }),
                       );
                     }
                   }}
@@ -681,21 +707,14 @@ function JobCreatingScreen() {
               <div>
                 <label className="field-label">{t("jobManagement.department")}</label>
                 <CommonSelect
-                  options={departments.map((d) => ({ label: d, value: d }))}
+                  options={departmentOptions.map((d) => ({ label: d, value: d }))}
                   value={department}
                   onChange={(e) => {
                     const nextValue = e.target.value;
                     setDepartment(nextValue);
                     if (step1Submitted) {
                       setStep1Errors(
-                      validateWithSchema(jobCreateStep1Schema, {
-                        title,
-                        department: nextValue,
-                        location,
-                        employmentType,
-                        workMode,
-                        shortPitch,
-                      }),
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), department: nextValue }),
                       );
                     }
                   }}
@@ -716,14 +735,7 @@ function JobCreatingScreen() {
                     setEmploymentType(nextValue);
                     if (step1Submitted) {
                       setStep1Errors(
-                      validateWithSchema(jobCreateStep1Schema, {
-                        title,
-                        department,
-                        location,
-                        employmentType: nextValue,
-                        workMode,
-                        shortPitch,
-                      }),
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), employmentType: nextValue }),
                       );
                     }
                   }}
@@ -742,14 +754,7 @@ function JobCreatingScreen() {
                     setLocation(nextValue);
                     if (step1Submitted) {
                       setStep1Errors(
-                      validateWithSchema(jobCreateStep1Schema, {
-                        title,
-                        department,
-                        location: nextValue,
-                        employmentType,
-                        workMode,
-                        shortPitch,
-                      }),
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), location: nextValue }),
                       );
                     }
                   }}
@@ -773,14 +778,7 @@ function JobCreatingScreen() {
                     setWorkMode(nextValue);
                     if (step1Submitted) {
                       setStep1Errors(
-                      validateWithSchema(jobCreateStep1Schema, {
-                        title,
-                        department,
-                        location,
-                        employmentType,
-                        workMode: nextValue,
-                        shortPitch,
-                      }),
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), workMode: nextValue }),
                       );
                     }
                   }}
@@ -788,6 +786,32 @@ function JobCreatingScreen() {
                 {step1Errors.workMode ? (
                   <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.workMode}</p>
                 ) : null}
+              </div>
+
+              <div>
+                <label className="field-label" htmlFor="job-deadline">
+                  {t("jobCreating.deadline")}
+                </label>
+                <input
+                  id="job-deadline"
+                  value={deadline}
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    setDeadline(nextValue);
+                    if (step1Submitted) {
+                      setStep1Errors(
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), deadline: nextValue }),
+                      );
+                    }
+                  }}
+                  className={`input-field h-11 ${step1Errors.deadline ? "border-[#ba1a1a]" : ""}`}
+                  type="date"
+                />
+                {step1Errors.deadline ? (
+                  <p className="mt-1.5 text-[12px] text-[#ba1a1a]">{step1Errors.deadline}</p>
+                ) : (
+                  <p className="mt-1.5 text-[12px] text-[#8a8786]">{t("jobCreating.deadlineHint")}</p>
+                )}
               </div>
 
               <div className="md:col-span-2">
@@ -799,14 +823,7 @@ function JobCreatingScreen() {
                     setShortPitch(nextValue);
                     if (step1Submitted) {
                       setStep1Errors(
-                      validateWithSchema(jobCreateStep1Schema, {
-                        title,
-                        department,
-                        location,
-                        employmentType,
-                        workMode,
-                        shortPitch: nextValue,
-                      }),
+                        validateWithSchema(jobCreateStep1Schema, { ...step1Values(), shortPitch: nextValue }),
                       );
                     }
                   }}
@@ -1276,6 +1293,14 @@ function JobCreatingScreen() {
                 </div>
                 <p className="mt-4 text-[14px] text-[#1a1c1c]">
                   {shortPitch || "—"}
+                </p>
+                <p className="mt-3 flex items-center gap-1.5 text-[13px] text-[#5f5e5e]">
+                  <span className="material-symbols-outlined text-[17px]">event</span>
+                  {deadline
+                    ? t("jobCreating.reviewDeadline", {
+                        date: new Date(`${deadline}T00:00:00`).toLocaleDateString(getDateLocale()),
+                      })
+                    : t("jobCreating.reviewNoDeadline")}
                 </p>
               </div>
 

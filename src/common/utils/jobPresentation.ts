@@ -82,3 +82,33 @@ export function getSkillChipClass(value?: string | null, index = 0) {
 export function getWorkModeChipClass() {
   return `${chipBaseClass} border border-rose-200 bg-white/80 text-rose-700 hover:border-rose-300 hover:bg-rose-50`;
 }
+
+export type DeadlineState = "none" | "expired" | "closingSoon" | "open";
+
+/** Days from today until the deadline is considered "closing soon" (inclusive). */
+export const CLOSING_SOON_DAYS = 10;
+
+/**
+ * Classifies a job's application deadline for display: no deadline (open until filled),
+ * already past, closing within CLOSING_SOON_DAYS, or comfortably open.
+ */
+export function describeDeadline(deadline?: string | null): {
+  state: DeadlineState;
+  date: Date | null;
+  daysLeft: number | null;
+} {
+  if (!deadline) return { state: "none", date: null, daysLeft: null };
+  const date = new Date(deadline);
+  if (Number.isNaN(date.getTime())) return { state: "none", date: null, daysLeft: null };
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfDeadlineDay = new Date(date);
+  startOfDeadlineDay.setHours(0, 0, 0, 0);
+  const daysLeft = Math.round((startOfDeadlineDay.getTime() - startOfToday.getTime()) / msPerDay);
+
+  if (date.getTime() < Date.now()) return { state: "expired", date, daysLeft };
+  if (daysLeft <= CLOSING_SOON_DAYS) return { state: "closingSoon", date, daysLeft: Math.max(0, daysLeft) };
+  return { state: "open", date, daysLeft };
+}

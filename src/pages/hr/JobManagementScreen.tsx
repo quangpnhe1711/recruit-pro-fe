@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
@@ -18,6 +17,9 @@ import {
   jobStatusFilterOptions,
 } from "../../common/status/jobStatus";
 import { toneBadgeClassName } from "../../common/status/statusPresentation";
+import { describeDeadline } from "../../common/utils/jobPresentation";
+// ConfirmModal is the shared design-system dialog (lives with the sysadmin UI helpers).
+import { ConfirmModal } from "../system-admin/automationUi";
 
 type Job = {
   id: string;
@@ -25,6 +27,7 @@ type Job = {
   department: string;
   createdDate: string; // e.g. "Oct 24, 2024"
   createdAt: number; // epoch ms for sorting
+  deadline: string | null;
   status: JobStatus;
   applicationsCount: number;
   createdByUserId: string;
@@ -39,7 +42,7 @@ const creatorAllOption = "allCreators";
 const departmentAllOption = "allDepartments";
 
 function buildJobTableColumns(
-  t: (key: string) => string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
   onOpenJobDetail: (job: Job) => void,
   onOpenApplications: (job: Job) => void,
   onOpenEdit: (job: Job) => void,
@@ -98,6 +101,38 @@ function buildJobTableColumns(
       ),
     },
     {
+      key: "deadline",
+      header: t("jobManagement.deadline"),
+      renderCell: (job) => {
+        const { state, date, daysLeft } = describeDeadline(job.deadline);
+        if (state === "none" || !date) {
+          return <p className="text-[13px] text-[#8a8786]">{t("jobManagement.noDeadline")}</p>;
+        }
+        const dateText = date.toLocaleDateString();
+        if (state === "expired") {
+          return (
+            <div className="space-y-0.5">
+              <p className="text-[14px] text-[#5f5e5e]">{dateText}</p>
+              <span className="badge border border-rose-200 bg-rose-50 text-rose-700">
+                {t("jobManagement.deadlineExpired")}
+              </span>
+            </div>
+          );
+        }
+        if (state === "closingSoon") {
+          return (
+            <div className="space-y-0.5">
+              <p className="text-[14px] text-[#5f5e5e]">{dateText}</p>
+              <span className="badge border border-amber-200 bg-amber-50 text-amber-700">
+                {t("jobManagement.closingSoon", { days: String(daysLeft ?? 0) })}
+              </span>
+            </div>
+          );
+        }
+        return <p className="text-[14px] text-[#5f5e5e]">{dateText}</p>;
+      },
+    },
+    {
       key: "status",
       header: t("jobManagement.approvalStatus"),
       renderCell: (job) => {
@@ -125,16 +160,15 @@ function buildJobTableColumns(
             <span className="material-symbols-outlined">visibility</span>
           </button>
           {options.canDeleteJobs ? (
-            <AsyncActionButton
+            <button
               type="button"
               className="p-1.5 text-[#5f5e5e] transition-colors hover:text-[#ba1a1a]"
               title={t("common.delete")}
-              loadingText=""
+              aria-label={t("common.delete")}
               onClick={() => onDeleteJob(job)}
-              spinnerTone="brand"
             >
               <span className="material-symbols-outlined">delete</span>
-            </AsyncActionButton>
+            </button>
           ) : null}
         </div>
       ),
@@ -164,6 +198,8 @@ function JobManagementScreen() {
   const [statusFilter, setStatusFilter] = useState<"all" | JobStatus>("all");
   const [creatorFilter, setCreatorFilter] = useState<string>(creatorAllOption);
   const [page, setPage] = useState<number>(1);
+  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -183,6 +219,7 @@ function JobManagementScreen() {
               ? new Date(item.createdAt).toLocaleDateString()
               : "",
             createdAt: item.createdAt ? Date.parse(item.createdAt) : Date.now(),
+            deadline: item.deadline ?? null,
             status: normalizeJobStatus(item.status) ?? JobStatus.PendingApproval,
             applicationsCount: item.applicationCount,
             createdByUserId: item.createdBy.id,
@@ -291,16 +328,18 @@ function JobManagementScreen() {
     navigate(`/jobs/${job.id}?mode=edit`);
   }
 
-  async function deleteJob(job: Job) {
-    const ok = window.confirm(t("jobManagement.deleteConfirm", { title: job.title, id: job.id }));
-    if (!ok) return;
-
+  async function confirmDeleteJob() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await jobsService.deleteJob(job.id);
-      setJobs((prev) => prev.filter((j) => j.id !== job.id));
+      await jobsService.deleteJob(deleteTarget.id);
+      setJobs((prev) => prev.filter((j) => j.id !== deleteTarget.id));
       toast.info(t("jobManagement.deleted"));
+      setDeleteTarget(null);
     } catch {
       toast.error(t("jobManagement.deleteFailed"));
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -321,30 +360,30 @@ function JobManagementScreen() {
 
   const statCards = [
     {
-      label: "Job đang mở",
+      label: t("jobManagement.statActiveJobs"),
       value: String(stats.activeJobs),
-      helper: "Đang mở trên hệ thống",
+      helper: t("jobManagement.statActiveJobsHelper"),
       icon: "work",
       iconWrap: "from-[#fff1f0] to-[#ffdad6] text-[#b90014]",
     },
     {
-      label: "Chờ duyệt",
+      label: t("jobManagement.statPendingApproval"),
       value: String(stats.pendingApproval),
-      helper: "Cần xử lý",
+      helper: t("jobManagement.statPendingApprovalHelper"),
       icon: "pending_actions",
       iconWrap: "from-amber-50 to-amber-100 text-amber-600",
     },
     {
-      label: "Tổng hồ sơ ứng tuyển",
+      label: t("jobManagement.statTotalApplications"),
       value: String(stats.totalApplications),
-      helper: "Toàn bộ vị trí",
+      helper: t("jobManagement.statTotalApplicationsHelper"),
       icon: "description",
       iconWrap: "from-sky-50 to-sky-100 text-sky-600",
     },
     {
-      label: "Thời gian tuyển",
+      label: t("jobManagement.statTimeToHire"),
       value: `${stats.timeToHireDays}d`,
-      helper: "Trung bình",
+      helper: t("jobManagement.statTimeToHireHelper"),
       icon: "timelapse",
       iconWrap: "from-emerald-50 to-emerald-100 text-emerald-600",
     },
@@ -472,7 +511,7 @@ function JobManagementScreen() {
           openJobDetail,
           openApplications,
           openEdit,
-          deleteJob,
+          (job) => setDeleteTarget(job),
           {
             canDeleteJobs,
             canEditJobs,
@@ -497,6 +536,20 @@ function JobManagementScreen() {
         }}
         showPagination
       />
+
+      <ConfirmModal
+        open={deleteTarget != null}
+        title={t("jobManagement.deleteConfirmTitle")}
+        danger
+        busy={deleting}
+        confirmLabel={t("common.delete")}
+        onConfirm={confirmDeleteJob}
+        onClose={() => setDeleteTarget(null)}
+      >
+        {deleteTarget
+          ? t("jobManagement.deleteConfirm", { title: deleteTarget.title, id: deleteTarget.id })
+          : null}
+      </ConfirmModal>
     </div>
   );
 }

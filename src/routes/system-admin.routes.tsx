@@ -7,9 +7,13 @@ import RouteGuard from "../guards/RouteGuard";
 import { PERMISSIONS } from "../permissions/permissions";
 
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
-import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
 
 // SystemAdmin is its OWN role/area — kept in a dedicated route module, separate from the HR portal.
+const AdminOverviewScreen = lazy(() => import("../pages/system-admin/AdminOverviewScreen"));
+const UserManagementScreen = lazy(() => import("../pages/system-admin/UserManagementScreen"));
+const RoleManagementScreen = lazy(() => import("../pages/system-admin/RoleManagementScreen"));
+const RbacPermissionsScreen = lazy(() => import("../pages/system-admin/RbacPermissionsScreen"));
+const AuditLogScreen = lazy(() => import("../pages/system-admin/AuditLogScreen"));
 const AutomationDashboardScreen = lazy(() => import("../pages/system-admin/AutomationDashboardScreen"));
 const WorkflowListScreen = lazy(() => import("../pages/system-admin/WorkflowListScreen"));
 const WorkflowDetailScreen = lazy(() => import("../pages/system-admin/WorkflowDetailScreen"));
@@ -32,56 +36,12 @@ const systemAdminRoutes = (
   <Route element={<RequireAuth />}>
     <Route element={<AuthenticatedLayout />}>
       <Route element={<RouteGuard permissions={PERMISSIONS.SYSTEM_ADMIN} />}>
-        <Route
-          path="/system-admin/dashboard"
-          element={
-            <FeaturePlaceholderScreen
-              title="System Admin Dashboard"
-              description="Bảng điều khiển quản trị hệ thống đang chờ hỗ trợ từ backend."
-              variant="executive"
-            />
-          }
-        />
-        <Route
-          path="/system-admin/users"
-          element={
-            <FeaturePlaceholderScreen
-              title="User Management"
-              description="Quản lý người dùng đang chờ hỗ trợ từ backend."
-              variant="executive"
-            />
-          }
-        />
-        <Route
-          path="/system-admin/roles"
-          element={
-            <FeaturePlaceholderScreen
-              title="Role Management"
-              description="Quản lý vai trò đang chờ hỗ trợ từ backend."
-              variant="executive"
-            />
-          }
-        />
-        <Route
-          path="/system-admin/permissions"
-          element={
-            <FeaturePlaceholderScreen
-              title="Permission Management"
-              description="Quản lý quyền đang chờ hỗ trợ từ backend."
-              variant="executive"
-            />
-          }
-        />
-        <Route
-          path="/system-admin/audit-logs"
-          element={
-            <FeaturePlaceholderScreen
-              title="Audit Logs"
-              description="Nhật ký kiểm toán đang chờ hỗ trợ từ backend."
-              variant="executive"
-            />
-          }
-        />
+        {/* System console — backed by /api/sysadmin/* with per-permission guards on the backend */}
+        <Route path="/system-admin/dashboard" element={lazyRoute(<AdminOverviewScreen />)} />
+        <Route path="/system-admin/users" element={lazyRoute(<UserManagementScreen />)} />
+        <Route path="/system-admin/roles" element={lazyRoute(<RoleManagementScreen />)} />
+        <Route path="/system-admin/permissions" element={lazyRoute(<RbacPermissionsScreen />)} />
+        <Route path="/system-admin/audit-logs" element={lazyRoute(<AuditLogScreen />)} />
 
         {/* v4 Workflow Automation + MCP */}
         <Route path="/system-admin/automation" element={lazyRoute(<AutomationDashboardScreen />)} />

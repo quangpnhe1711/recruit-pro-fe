@@ -65,6 +65,18 @@ export const jobCreateStep1Schema = yup.object({
   employmentType: yup.string().required("Vui lòng chọn loại hình làm việc."),
   workMode: yup.string().required("Vui lòng chọn hình thức làm việc."),
   shortPitch: yup.string().trim().max(255, "Mô tả ngắn tối đa 255 ký tự."),
+  // Optional; when set it must fall AFTER the posting date (today) — mirrors the backend
+  // JOB_DEADLINE_INVALID rule so HR sees the problem before submitting.
+  deadline: yup
+    .string()
+    .test("deadline-after-posting", "Hạn nộp hồ sơ phải sau ngày đăng tuyển.", (value) => {
+      if (!value) return true;
+      const picked = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(picked.getTime())) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return picked.getTime() > today.getTime();
+    }),
 });
 
 export const jobCreateStep2Schema = yup.object({
