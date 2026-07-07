@@ -333,6 +333,7 @@ export const vi: Dictionary = {
     viewDiagnostics: "Xem chẩn đoán chi tiết",
     mostCommonFailedAction: "Hành động lỗi phổ biến nhất",
     executionsToday: "Thực thi hôm nay",
+    failedExecutions: "Thực thi lỗi",
 
     // Diagnostics extras
     defaultMode: "Chế độ mặc định",

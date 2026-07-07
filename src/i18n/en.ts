@@ -340,6 +340,7 @@ export const en = {
     viewDiagnostics: "View detailed diagnostics",
     mostCommonFailedAction: "Most common failed action",
     executionsToday: "Runs today",
+    failedExecutions: "Failed executions",
 
     // Diagnostics extras
     defaultMode: "Default mode",
