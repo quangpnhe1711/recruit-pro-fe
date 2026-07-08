@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
-import { toast } from "react-toastify";
+import { ERROR_CODES } from "../../../common/utils/apiError";
+import { appToast } from "../../../common/utils/appToast";
 import LoadingIndicator from "../../../common/components/LoadingIndicator";
 import { useI18n } from "../../../i18n";
 import { scoreTone, TOOL_META, type ToolName, type ToolResult } from "./copilotUi";
@@ -147,8 +148,8 @@ function ResultBody({ result }: { result: ToolResult }) {
             onClick={() => {
               void navigator.clipboard
                 ?.writeText(`${result.subject}\n\n${result.body}`)
-                .then(() => toast.success(t("aiCopilot.result.emailCopied")))
-                .catch(() => toast.error(t("aiCopilot.result.copyFailed")));
+                .then(() => appToast.success(t("aiCopilot.result.emailCopied")))
+                .catch(() => appToast.error(ERROR_CODES.UnexpectedError));
             }}
           >
             <span className="material-symbols-outlined text-[16px]">content_copy</span>

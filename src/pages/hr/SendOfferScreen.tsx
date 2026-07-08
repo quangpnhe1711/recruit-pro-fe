@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import { isOfferActionableStatus } from "../../common/status/offerStatus";
-import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -139,9 +139,9 @@ function SendOfferScreen() {
 
         setEditor(response.data);
         setForm(mapEditorToForm(response.data));
-      } catch {
+      } catch (error) {
         if (!mounted) return;
-        toast.error(t("sendOffer.loadFailed"));
+        handleNonFormApiError(error);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -227,9 +227,13 @@ function SendOfferScreen() {
       const response = await hrService.saveOfferDraft(applicationId, payload);
       setEditor(response.data);
       setForm(mapEditorToForm(response.data));
-      toast.success(response.message || t("sendOffer.draftSaved"));
+      appToast.success(t("sendOffer.draftSaved"));
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, t("sendOffer.draftSaveFailed")));
+      const handled = applyApiFormError(error, {
+        setFieldError: (field, message) =>
+          setFormErrors((prev) => ({ ...prev, [field]: message })),
+      });
+      if (!handled) handleNonFormApiError(error);
     } finally {
       setSaving(false);
     }
@@ -248,11 +252,16 @@ function SendOfferScreen() {
       const response = await hrService.sendOffer(applicationId, payload);
       setEditor(response.data);
       setForm(mapEditorToForm(response.data));
-      toast.success(response.message || t("sendOffer.sendSuccess"));
+      appToast.success(t("sendOffer.sendSuccess"));
     } catch (error) {
-      // errorCode first (e.g. OFFER_NOT_ACTIONABLE when the application is not in the Offer stage —
-      // BR-APPLICATION-009/INV-009), then HTTP status, then message.
-      toast.error(getApplicationErrorMessage(error, t("sendOffer.sendFailed")));
+      // Field-level errors (e.g. baseSalary → SALARY_RANGE_INVALID) render inline; business/state
+      // errors (e.g. OFFER_NOT_ACTIONABLE — BR-APPLICATION-009/INV-009) and server/network errors
+      // fall back to a soft toast.
+      const handled = applyApiFormError(error, {
+        setFieldError: (field, message) =>
+          setFormErrors((prev) => ({ ...prev, [field]: message })),
+      });
+      if (!handled) handleNonFormApiError(error);
     } finally {
       setSending(false);
     }

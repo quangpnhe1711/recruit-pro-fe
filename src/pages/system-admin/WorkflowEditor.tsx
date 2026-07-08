@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { toast } from "react-toastify";
 import CommonSelect from "../../common/components/CommonSelect";
 import {
   ACTION_TYPES,
@@ -10,6 +9,8 @@ import {
   type WorkflowMode,
 } from "../../modules/system-admin/automationSchema";
 import { createWorkflow, updateWorkflow } from "../../services/system-admin/automationService";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import { useI18n } from "../../i18n";
 import { actionLabel, eventLabel, operatorLabel, recipientLabel } from "./automationUi";
 
@@ -74,6 +75,7 @@ export default function WorkflowEditor({
     (source?.actions ?? [{ type: "notify_user", configJson: "{}" }]).map((a) => actionToEditable(a.type, a.configJson)),
   );
   const [busy, setBusy] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const errors = useMemo(() => {
     const e: string[] = [];
@@ -93,6 +95,7 @@ export default function WorkflowEditor({
   const save = async () => {
     if (!valid || busy) return;
     setBusy(true);
+    setServerError(null);
     const payload = {
       name: name.trim(),
       description: description.trim(),
@@ -103,10 +106,16 @@ export default function WorkflowEditor({
     };
     try {
       const result = mode === "create" ? await createWorkflow(payload) : await updateWorkflow(workflow!.id, payload);
-      toast.success(mode === "create" ? t("automation.workflowCreated") : t("automation.draftSaved"));
+      appToast.success(mode === "create" ? t("automation.workflowCreated") : t("automation.draftSaved"));
       onSaved(result.id);
-    } catch {
-      toast.error(t("automation.saveFailed"));
+    } catch (err) {
+      // Field-level slots don't exist for this modal; surface any validation/business
+      // error in the form-level banner, and let transport errors fall through to a toast.
+      const handled = applyApiFormError(err, {
+        setFieldError: (_field, message) => setServerError(message),
+        setFormError: setServerError,
+      });
+      if (!handled) handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }
@@ -302,6 +311,12 @@ export default function WorkflowEditor({
               ))}
             </div>
           </section>
+
+          {serverError ? (
+            <p className="rounded-[12px] border border-rose-200 bg-rose-50 px-3 py-2 text-[13px] text-rose-700">
+              {serverError}
+            </p>
+          ) : null}
 
           {!valid ? (
             <ul className="rounded-[12px] border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-700">

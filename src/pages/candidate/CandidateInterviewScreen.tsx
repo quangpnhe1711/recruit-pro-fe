@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { useI18n } from "../../i18n";
+import { handleNonFormApiError } from "../../common/utils/appToast";
 import Badge from "../../common/components/Badge";
 import EmptyState from "../../common/components/EmptyState";
 import { Skeleton } from "../../common/components/Skeleton";
@@ -112,9 +112,9 @@ function CandidateInterviewScreen() {
           spotlightInterview?.id ?? nextItems[0]?.id ?? null,
         );
       })
-      .catch(() => {
+      .catch((error) => {
         if (mounted) {
-          toast.error(t("candidateInterviews.loadFailed"));
+          handleNonFormApiError(error);
         }
       })
       .finally(() => {

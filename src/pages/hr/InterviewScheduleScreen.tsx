@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { getApplicationErrorMessage } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { ERROR_CODES } from "../../common/utils/apiError";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import {
   interviewScheduleSchema,
   validateWithSchema,
@@ -176,7 +177,7 @@ function InterviewScheduleScreen() {
         const data = response.data;
         if (!data) {
           setScheduleData(null);
-          toast.error(t("interviewSchedule.loadFailed"));
+          appToast.error(ERROR_CODES.EntityNotFound);
           return;
         }
 
@@ -217,10 +218,10 @@ function InterviewScheduleScreen() {
             : availableSlots[0] ?? data.slotMinutes[0] ?? null,
         );
       })
-      .catch(() => {
+      .catch((error) => {
         if (!mounted) return;
         setScheduleData(null);
-        toast.error(t("interviewSchedule.loadFailed"));
+        handleNonFormApiError(error);
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
@@ -311,12 +312,12 @@ function InterviewScheduleScreen() {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    toast.info(t("interviewSchedule.draftSaved"));
+    appToast.info(t("interviewSchedule.draftSaved"));
   }
 
   async function saveSchedule() {
     if (!scheduleData || !currentInterviewer) {
-      toast.error(t("interviewSchedule.dataNotReady"));
+      appToast.info(t("interviewSchedule.dataNotReady"));
       return;
     }
 
@@ -352,12 +353,18 @@ function InterviewScheduleScreen() {
       });
 
       window.localStorage.removeItem(draftStorageKey);
-      toast.success(t("interviewSchedule.saveSuccess"));
+      appToast.success(t("interviewSchedule.saveSuccess"));
       navigate("/hr/interviews");
     } catch (error) {
-      // Surface the backend errorCode first (e.g. INTERVIEW_NOT_ACTIONABLE when the application is
-      // not in the Interview stage — BR-APPLICATION-008/INV-008), then HTTP status, then message.
-      toast.error(getApplicationErrorMessage(error, t("interviewSchedule.saveFailed")));
+      // Field-level errors (e.g. interviewDate → INTERVIEW_TIME_IN_PAST) render inline near the time
+      // summary. Business/state errors (e.g. INTERVIEW_NOT_ACTIONABLE — BR-APPLICATION-008/INV-008)
+      // and server/network errors fall back to a soft toast.
+      const handled = applyApiFormError(error, {
+        setFieldError: (field, message) =>
+          setFormErrors((prev) => ({ ...prev, [field]: message })),
+        fieldMap: { interviewDate: "startMinutes" },
+      });
+      if (!handled) handleNonFormApiError(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -480,7 +487,7 @@ function InterviewScheduleScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => toast.info(t("interviewSchedule.viewProfileSoon"))}
+              onClick={() => appToast.info(t("interviewSchedule.viewProfileSoon"))}
             >
               <span className="material-symbols-outlined text-[18px]">
                 account_circle

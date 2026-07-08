@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import { useNavigate } from "react-router-dom";
 
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
@@ -186,7 +186,7 @@ function ManagerCandidateReviewListScreen() {
         });
         setTotalPages(payload?.meta?.totalPages ?? 1);
         setTotalItems(payload?.meta?.totalItems ?? 0);
-      } catch {
+      } catch (err) {
         if (!mounted) return;
 
         setItems([]);
@@ -198,7 +198,7 @@ function ManagerCandidateReviewListScreen() {
         });
         setTotalPages(1);
         setTotalItems(0);
-        toast.error(t("managerCandidateReviewList.loadFailed"));
+        handleNonFormApiError(err);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -239,7 +239,7 @@ function ManagerCandidateReviewListScreen() {
 
   function exportCurrentPage() {
     if (!items.length) {
-      toast.info(t("managerCandidateReviewList.noExportData"));
+      appToast.info(t("managerCandidateReviewList.noExportData"));
       return;
     }
 

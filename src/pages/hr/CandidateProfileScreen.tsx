@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { handleNonFormApiError } from "../../common/utils/appToast";
 
 import Badge from "../../common/components/Badge";
 import { Skeleton, SkeletonCard, SkeletonText } from "../../common/components/Skeleton";
@@ -61,10 +61,10 @@ function CandidateProfileScreen() {
         if (!mounted) return;
         setDetail(response.data);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!mounted) return;
         setDetail(null);
-        toast.error(t("candidateProfileView.loadFailed"));
+        handleNonFormApiError(err);
       })
       .finally(() => {
         if (mounted) {
@@ -204,7 +204,7 @@ function CandidateProfileScreen() {
                   void downloadProtectedFile(
                     currentResumeDownloadPath,
                     detail.resume.fileName,
-                  ).catch(() => toast.error(t("candidateProfileView.downloadResumeFailed")));
+                  ).catch((err) => handleNonFormApiError(err));
                 }}
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
@@ -505,7 +505,7 @@ function CandidateProfileScreen() {
                     onClick={() => {
                       void openProtectedFileInNewTab(
                         buildResumePreviewPath(resume.id, resume.fileUrl),
-                      ).catch(() => toast.error(t("candidateProfileView.openResumeFailed")));
+                      ).catch((err) => handleNonFormApiError(err));
                     }}
                   >
                     <div className="min-w-0">

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
@@ -326,7 +327,7 @@ function JobCreatingScreen() {
     };
 
     window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    toast.success(t("jobCreating.draftSaved"));
+    appToast.success(t("jobCreating.draftSaved"));
   }
 
   function applyEngineeringTemplate() {
@@ -338,7 +339,7 @@ function JobCreatingScreen() {
     setShortPitch(
       t("jobCreating.template.shortPitch"),
     );
-    toast.info(t("jobCreating.template.applied"));
+    appToast.info(t("jobCreating.template.applied"));
   }
 
   function validateStep1() {
@@ -523,7 +524,7 @@ function JobCreatingScreen() {
       } satisfies DraftState),
     );
 
-    toast.info(
+    appToast.info(
       next === 2
         ? t("jobCreating.progress.step1")
         : next === 3
@@ -593,10 +594,23 @@ function JobCreatingScreen() {
       });
 
       window.localStorage.removeItem(draftStorageKey);
-      toast.success(t("jobCreating.submitSuccess"));
+      appToast.success(t("jobCreating.submitSuccess"));
       navigate("/jobs");
-    } catch {
-      toast.error(t("jobCreating.submitFailed"));
+    } catch (err) {
+      // Backend field errors route to the step that owns the field so they render inline (red field +
+      // message) instead of a toast; server/network/business errors fall back to a soft toast.
+      const handled = applyApiFormError(err, {
+        setFieldError: (field, message) => {
+          if (["description", "responsibilities", "requirements"].includes(field)) {
+            setStep2Errors((prev) => ({ ...prev, [field]: message }));
+          } else if (["skills", "salaryMin", "salaryMax", "currency"].includes(field)) {
+            setStep3Errors((prev) => ({ ...prev, [field]: message }));
+          } else {
+            setStep1Errors((prev) => ({ ...prev, [field]: message }));
+          }
+        },
+      });
+      if (!handled) handleNonFormApiError(err);
     } finally {
       setPublishing(false);
     }

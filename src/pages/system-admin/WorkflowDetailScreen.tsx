@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import PageHeader from "../../common/components/PageHeader";
 import { SkeletonText } from "../../common/components/Skeleton";
 import CommonTable from "../../common/components/CommonTable";
@@ -11,6 +10,7 @@ import {
 } from "../../services/system-admin/automationService";
 import type { ExecutionSummaryDto, WorkflowDetailDto, WorkflowVersionDto } from "../../modules/system-admin/automationSchema";
 import { useI18n } from "../../i18n";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import WorkflowEditor from "./WorkflowEditor";
 import {
   actionLabel,
@@ -105,11 +105,11 @@ function WorkflowDetailScreen() {
     setBusy(true);
     try {
       await publishWorkflow(id);
-      toast.success(t("automation.published"));
+      appToast.success(t("automation.published"));
       setConfirm(null);
       load();
-    } catch {
-      toast.error(t("automation.publishFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }
@@ -120,13 +120,13 @@ function WorkflowDetailScreen() {
     setBusy(true);
     try {
       await setWorkflowEnabled(id, !wf.isEnabled);
-      toast.success(
+      appToast.success(
         wf.isEnabled ? t("automation.workflowDisabled") : t("automation.workflowEnabled"),
       );
       setConfirm(null);
       load();
-    } catch {
-      toast.error(t("automation.toggleFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }

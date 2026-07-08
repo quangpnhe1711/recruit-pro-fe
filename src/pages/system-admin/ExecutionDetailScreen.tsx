@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import PageHeader from "../../common/components/PageHeader";
 import { SkeletonText } from "../../common/components/Skeleton";
 import { getExecution, retryExecution } from "../../services/system-admin/automationService";
 import type { ExecutionDetailDto } from "../../modules/system-admin/automationSchema";
 import { useI18n } from "../../i18n";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import {
   actionLabel,
   ConfirmModal,
@@ -43,10 +43,10 @@ function ExecutionDetailScreen() {
     try {
       const updated = await retryExecution(id);
       setExec(updated);
-      toast.success(t("automation.retrySent"));
+      appToast.success(t("automation.retrySent"));
       setConfirmRetry(false);
-    } catch {
-      toast.error(t("automation.retryFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }

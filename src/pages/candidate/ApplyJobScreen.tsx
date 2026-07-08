@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import { getDateLocale, useI18n } from "../../i18n";
-import { getApplicationErrorMessage } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import { Skeleton } from "../../common/components/Skeleton";
 import EmptyState from "../../common/components/EmptyState";
@@ -57,10 +57,10 @@ function ApplyJobScreen() {
 
         setScreenData(response.data ?? null);
       })
-      .catch(() => {
+      .catch((error) => {
         if (mounted) {
           setScreenData(null);
-          toast.error(t("applyJob.loadFailed"));
+          handleNonFormApiError(error);
         }
       })
       .finally(() => {
@@ -113,9 +113,12 @@ function ApplyJobScreen() {
         );
       }
 
-      toast.success(response.message || t("applyJob.submitSuccess"));
+      appToast.success(t("applyJob.submitSuccess"));
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, t("applyJob.submitFailed")));
+      const handled = applyApiFormError(error, {
+        setFieldError: (_field, message) => setCoverLetterError(message),
+      });
+      if (!handled) handleNonFormApiError(error);
     } finally {
       setSubmitting(false);
     }
@@ -302,7 +305,7 @@ function ApplyJobScreen() {
                       onClick={() => {
                         void openProtectedFileInNewTab(
                           buildResumePreviewPath(resume.resumeId, resume.fileUrl),
-                        ).catch(() => toast.error(t("applyJob.openResumeFailed")));
+                        ).catch((err) => handleNonFormApiError(err));
                       }}
                     >
                       <span className="material-symbols-outlined text-[18px]">visibility</span>

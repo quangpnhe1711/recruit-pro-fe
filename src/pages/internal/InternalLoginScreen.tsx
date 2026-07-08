@@ -6,7 +6,8 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
 import { setCredentials } from "../../store/slices/authSlice";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import Seo from "../../common/components/Seo";
 import { useI18n } from "../../i18n";
 import {
@@ -76,21 +77,25 @@ function InternalLoginScreen() {
       } else {
         localStorage.removeItem(rememberedInternalIdentifierKey);
       }
-      toast.success(t("auth.loginSuccess"));
+      appToast.success(t("auth.loginSuccess"));
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
       navigate(getRoleHomePath(primaryRole) ?? "/hr/dashboard", {
         replace: true,
       });
-    } catch {
-      setLoginError(t("auth.loginFailed"));
-      toast.error(t("auth.loginFailed"));
+    } catch (err) {
+      // Auth failure → inline form banner (no toast). Transport/server errors → toast.
+      const handled = applyApiFormError(err, {
+        setFieldError: () => {},
+        setFormError: setLoginError,
+      });
+      if (!handled) handleNonFormApiError(err);
     }
   }
 
   async function handleForgotPassword(identifier: string) {
-    const response = await authService.internalForgotPassword({ identifier });
-    toast.success(response.message || t("auth.forgotPasswordSent"));
+    await authService.internalForgotPassword({ identifier });
+    appToast.success(t("auth.forgotPasswordSent"));
   }
 
   return (

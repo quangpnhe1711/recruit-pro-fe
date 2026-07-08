@@ -403,41 +403,69 @@
    The container/positioning and timer behavior are configured on
    <ToastContainer> in App.tsx (pauseOnFocusLoss disabled there).
    ========================================================================= */
+/* Soft, non-aggressive toasts: near-white tinted card, subtle border + colored left accent, gentle
+   shadow, dark readable text. The color lives in the icon/accent — never a saturated fill. */
 .Toastify__toast {
-  border-radius: 0.75rem;
-  padding: 0.85rem 1rem;
-  box-shadow:
-    0 10px 25px -5px rgba(15, 23, 42, 0.25),
-    0 8px 10px -6px rgba(15, 23, 42, 0.15);
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
 .Toastify__toast-body {
   font-weight: 500;
+  color: #1f2937;
   white-space: pre-line; /* preserve intentional line breaks; never collapse the message */
 }
 
+.Toastify__close-button {
+  color: #94a3b8;
+  opacity: 0.7;
+  align-self: center;
+}
+
 .Toastify__toast--success {
-  background: #15803d;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  border-left: 3px solid #16a34a;
 }
 
 .Toastify__toast--error {
-  background: #c50f1b; /* brand crimson */
+  background: #fff1f2;
+  border-color: #fecdd3;
+  border-left: 3px solid #e11d48;
 }
 
 .Toastify__toast--warning {
-  background: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+  border-left: 3px solid #d97706;
 }
 
 .Toastify__toast--info {
-  background: #1d4ed8;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  border-left: 3px solid #0284c7;
 }
+
+.Toastify__toast--success .Toastify__toast-icon svg { fill: #16a34a; }
+.Toastify__toast--error .Toastify__toast-icon svg { fill: #e11d48; }
+.Toastify__toast--warning .Toastify__toast-icon svg { fill: #d97706; }
+.Toastify__toast--info .Toastify__toast-icon svg { fill: #0284c7; }
 
 .Toastify__progress-bar {
   height: 3px;
+  opacity: 0.55;
 }
+.Toastify__progress-bar--success { background: #16a34a; }
+.Toastify__progress-bar--error { background: #e11d48; }
+.Toastify__progress-bar--warning { background: #d97706; }
+.Toastify__progress-bar--info { background: #0284c7; }
 
 /* =========================================================================
    System / real-time notification cards (container id "system").
@@ -453,6 +481,7 @@
 .rp-system-toast.Toastify__toast {
   background: transparent;
   box-shadow: none;
+  border: none; /* the SystemNotificationToast card draws its own chrome */
   padding: 0;
   margin-bottom: 0.65rem;
   min-height: 0;

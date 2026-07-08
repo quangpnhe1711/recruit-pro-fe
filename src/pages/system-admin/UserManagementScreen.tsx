@@ -1,6 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import PageHeader from "../../common/components/PageHeader";
 import CommonTable from "../../common/components/CommonTable";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -13,7 +12,7 @@ import {
 } from "../../services/system-admin/adminService";
 import type { Paginated } from "../../modules/system-admin/automationSchema";
 import type { RbacRoleDto, SysAdminUserDto } from "../../modules/system-admin/adminSchema";
-import { getApiErrorCode, getApiStatusCode } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import { useI18n } from "../../i18n";
 import { ConfirmModal, ErrorState, formatDateTime } from "./automationUi";
 
@@ -25,16 +24,6 @@ const STATUS_TONES: Record<string, BadgeTone> = {
 
 function statusToneOf(status: string): BadgeTone {
   return STATUS_TONES[status] ?? "neutral";
-}
-
-/** Surfaces the RBAC guard errors (self-deactivation / last-admin lockout) with precise messages. */
-function toastAdminActionError(err: unknown, t: (key: string, vars?: Record<string, string>) => string) {
-  const code = getApiErrorCode(err);
-  const status = getApiStatusCode(err);
-  if (code === "USER_SELF_DEACTIVATION") toast.error(t("admin.errorSelfDeactivation"));
-  else if (code === "RBAC_ADMIN_LOCKOUT") toast.error(t("admin.errorLockout"));
-  else if (status === 403) toast.error(t("admin.errorForbidden"));
-  else toast.error(t("common.actionFailed"));
 }
 
 /**
@@ -95,7 +84,7 @@ function UserManagementScreen() {
     setBusy(true);
     try {
       await updateUserStatus(statusTarget.id, deactivating ? "Inactive" : "Active");
-      toast.success(
+      appToast.success(
         deactivating
           ? t("admin.userDeactivated", { name: statusTarget.fullName })
           : t("admin.userActivated", { name: statusTarget.fullName }),
@@ -103,7 +92,7 @@ function UserManagementScreen() {
       setStatusTarget(null);
       load();
     } catch (err) {
-      toastAdminActionError(err, t);
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }
@@ -117,17 +106,17 @@ function UserManagementScreen() {
   const confirmRolesChange = async () => {
     if (!rolesTarget) return;
     if (roleDraft.size === 0) {
-      toast.error(t("admin.errorNoRoles"));
+      appToast.info(t("admin.errorNoRoles"));
       return;
     }
     setBusy(true);
     try {
       await updateUserRoles(rolesTarget.id, Array.from(roleDraft));
-      toast.success(t("admin.userRolesUpdated", { name: rolesTarget.fullName }));
+      appToast.success(t("admin.userRolesUpdated", { name: rolesTarget.fullName }));
       setRolesTarget(null);
       load();
     } catch (err) {
-      toastAdminActionError(err, t);
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }

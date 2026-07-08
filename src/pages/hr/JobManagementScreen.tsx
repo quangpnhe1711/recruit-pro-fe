@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
@@ -238,10 +238,10 @@ function JobManagementScreen() {
           },
         );
       })
-      .catch(() => {
+      .catch((err) => {
         if (mounted) {
           setJobs([]);
-          toast.error(t("jobManagement.loadFailed"));
+          handleNonFormApiError(err);
         }
       })
       .finally(() => {
@@ -334,10 +334,10 @@ function JobManagementScreen() {
     try {
       await jobsService.deleteJob(deleteTarget.id);
       setJobs((prev) => prev.filter((j) => j.id !== deleteTarget.id));
-      toast.info(t("jobManagement.deleted"));
+      appToast.info(t("jobManagement.deleted"));
       setDeleteTarget(null);
-    } catch {
-      toast.error(t("jobManagement.deleteFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setDeleting(false);
     }

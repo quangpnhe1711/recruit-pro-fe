@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
@@ -445,14 +446,14 @@ function CandidateApplicationScreen() {
       .then((res) => {
         const url = res.data?.fileUrl;
         if (url) {
-          void openProtectedFileInNewTab(url).catch(() =>
-            toast.error(t("candidateApplication.cvLoadFailed")),
+          void openProtectedFileInNewTab(url).catch((err) =>
+            handleNonFormApiError(err),
           );
           return;
         }
-        toast.info(t("candidateApplication.noCv"));
+        appToast.info(t("candidateApplication.noCv"));
       })
-      .catch(() => toast.error(t("candidateApplication.cvLoadFailed")));
+      .catch((err) => handleNonFormApiError(err));
   }
 
   function reviewApplication(application: Application) {
@@ -550,12 +551,16 @@ function CandidateApplicationScreen() {
         body: emailComposer.body.trim(),
       });
 
-      toast.success(
+      appToast.success(
         t("candidateApplication.emailSent", { candidateName: `${emailComposer.application.candidateFirstName} ${emailComposer.application.candidateLastName}` }),
       );
       closeEmailComposer();
-    } catch {
-      toast.error(t("candidateApplication.emailSendFailed"));
+    } catch (err) {
+      const handled = applyApiFormError(err, {
+        setFieldError: (field, message) =>
+          setEmailComposerErrors((prev) => ({ ...prev, [field]: message })),
+      });
+      if (!handled) handleNonFormApiError(err);
     } finally {
       setSendingEmail(false);
     }

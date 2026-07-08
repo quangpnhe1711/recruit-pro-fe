@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { useI18n } from "../../i18n";
-import { getApplicationErrorMessage } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
@@ -286,11 +285,11 @@ function MyApplicationScreen() {
       } else {
         setSummary(buildEmptySummaryCards(t));
       }
-    } catch {
+    } catch (error) {
       setApplications([]);
       setInterviews([]);
       setSummary(buildEmptySummaryCards(t));
-      toast.error(t("candidateApplications.loadFailed"));
+      handleNonFormApiError(error);
     } finally {
       setLoading(false);
     }
@@ -378,13 +377,13 @@ function MyApplicationScreen() {
     try {
       setActionLoadingId(item.id);
       await candidateService.withdrawApplication(item.id);
-      toast.success(t("candidateApplications.withdrawSuccess"));
+      appToast.success(t("candidateApplications.withdrawSuccess"));
       await loadData();
       setSelectedApplicationId((current) =>
         current === item.id ? null : current,
       );
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, t("candidateApplications.withdrawFailed")));
+      handleNonFormApiError(error);
     } finally {
       setActionLoadingId(null);
     }
@@ -401,10 +400,10 @@ function MyApplicationScreen() {
     try {
       setActionLoadingId(item.id);
       await candidateService.acceptOffer(item.id);
-      toast.success(t("candidateApplications.acceptOfferSuccess"));
+      appToast.success(t("candidateApplications.acceptOfferSuccess"));
       await loadData();
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, t("candidateApplications.acceptOfferFailed")));
+      handleNonFormApiError(error);
     } finally {
       setActionLoadingId(null);
     }
@@ -421,10 +420,10 @@ function MyApplicationScreen() {
     try {
       setActionLoadingId(item.id);
       await candidateService.declineOffer(item.id);
-      toast.success(t("candidateApplications.declineOfferSuccess"));
+      appToast.success(t("candidateApplications.declineOfferSuccess"));
       await loadData();
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, t("candidateApplications.declineOfferFailed")));
+      handleNonFormApiError(error);
     } finally {
       setActionLoadingId(null);
     }

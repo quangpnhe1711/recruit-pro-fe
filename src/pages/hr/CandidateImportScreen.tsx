@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import PageHeader from "../../common/components/PageHeader";
@@ -56,8 +56,8 @@ function CandidateImportScreen() {
       link.download = t("candidateImport.templateFileName");
       link.click();
       URL.revokeObjectURL(url);
-    } catch {
-      toast.error(t("candidateImport.templateDownloadFailed"));
+    } catch (error) {
+      handleNonFormApiError(error);
     }
   }
 
@@ -77,8 +77,8 @@ function CandidateImportScreen() {
       const payload = response.data;
       setPreview(payload);
       setSelectedRows((payload?.rows ?? []).filter((row) => row.isValid).map((row) => row.rowNumber));
-    } catch {
-      toast.error(t("candidateImport.previewFailed"));
+    } catch (error) {
+      handleNonFormApiError(error);
     } finally {
       setPreviewLoading(false);
     }
@@ -108,10 +108,10 @@ function CandidateImportScreen() {
         })),
       );
 
-      toast.success(response.message || t("candidateImport.importSuccess"));
+      appToast.success(t("candidateImport.importSuccess"));
       navigate("/hr/candidates");
-    } catch {
-      toast.error(t("candidateImport.importFailed"));
+    } catch (error) {
+      handleNonFormApiError(error);
     } finally {
       setImportLoading(false);
     }

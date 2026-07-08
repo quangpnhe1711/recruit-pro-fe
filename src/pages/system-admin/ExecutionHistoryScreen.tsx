@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import PageHeader from "../../common/components/PageHeader";
 import CommonTable from "../../common/components/CommonTable";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -8,6 +7,7 @@ import { listExecutions, retryExecution } from "../../services/system-admin/auto
 import type { ExecutionSummaryDto, Paginated } from "../../modules/system-admin/automationSchema";
 import { TRIGGER_EVENT_TYPES } from "../../modules/system-admin/automationSchema";
 import { useI18n } from "../../i18n";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import { ConfirmModal, ErrorState, eventLabel, formatDateTime, modeBadge, shortId, statusBadge } from "./automationUi";
 
 function ExecutionHistoryScreen() {
@@ -53,11 +53,11 @@ function ExecutionHistoryScreen() {
     setBusy(true);
     try {
       await retryExecution(retryTarget.id);
-      toast.success(t("automation.retrySent"));
+      appToast.success(t("automation.retrySent"));
       setRetryTarget(null);
       load();
-    } catch {
-      toast.error(t("automation.retryFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }

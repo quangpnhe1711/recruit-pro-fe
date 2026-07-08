@@ -18,19 +18,20 @@ function App() {
         <AppErrorBoundary>
           <AppRoutes />
         </AppErrorBoundary>
-        {/* Single global container. `theme="colored"` gives distinct success/error/warning/info
-            styling + icons. pauseOnFocusLoss/pauseOnHover are disabled so the auto-close timer
-            keeps running when the tab loses focus (toast still closes while you're on another tab). */}
+        {/* Single global container. Soft "light" theme (see index.css): gentle tinted cards, colored
+            icon/accent — not saturated solid fills. `limit` + appToast's dedupe (toastId) prevent
+            double-click spam. pauseOnHover so a user can read/act; the timer still runs off-tab. */}
         <ToastContainer
           position="top-right"
-          autoClose={3500}
+          autoClose={3800}
           limit={3}
           newestOnTop
           closeOnClick
+          closeButton
           pauseOnFocusLoss={false}
-          pauseOnHover={false}
+          pauseOnHover
           draggable={false}
-          theme="colored"
+          theme="light"
           style={{ top: "70px" }}
         />
         {/* Separate container for system / real-time notifications: bottom-right custom cards.
