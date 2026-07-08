@@ -1,8 +1,10 @@
 import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { translate } from "../../../i18n";
+import { appToast, handleNonFormApiError } from "../../../common/utils/appToast";
+import { applyApiFormError } from "../../../common/utils/formErrors";
+import { ERROR_CODES } from "../../../common/utils/apiError";
 import {
   candidateProfileSchema,
   certificationDraftSchema,
@@ -292,9 +294,9 @@ export function useCandidateProfileScreen() {
 
         applyProfileResponse(profileResponse.data, allSkillOptions);
       })
-      .catch(() => {
+      .catch((error) => {
         if (mounted) {
-          toast.error(translate("candidateProfile.loadFailed"));
+          handleNonFormApiError(error);
         }
       })
       .finally(() => {
@@ -520,7 +522,7 @@ export function useCandidateProfileScreen() {
     setShowEntryComposer(false);
     setHasAppliedParsedResume(true);
     setIsEditingProfile(true);
-    toast.success(
+    appToast.success(
       translate("candidateProfile.parseApplied"),
     );
   }
@@ -663,10 +665,17 @@ export function useCandidateProfileScreen() {
       }
 
       setIsEditingProfile(false);
-      toast.success(translate("candidateProfile.saveSuccess"));
+      appToast.success(translate("candidateProfile.saveSuccess"));
     } catch (error) {
       console.error(error);
-      toast.error(translate("candidateProfile.saveFailed"));
+      const handled = applyApiFormError(error, {
+        setFieldError: (field, message) =>
+          setProfileErrors((prev) => ({ ...prev, [field]: message })),
+        // Only these scalar fields render inline; errors on nested collections (experienceEntries[i].*,
+        // etc.) can't be shown here, so they fall through to a toast instead of a silent no-op.
+        knownFields: ["name", "headline", "email", "phone", "location", "bio", "github", "linkedin"],
+      });
+      if (!handled) handleNonFormApiError(error);
     } finally {
       setIsSavingProfile(false);
     }
@@ -675,13 +684,13 @@ export function useCandidateProfileScreen() {
   function handleResumeFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) {
-      toast.error(translate("candidateProfile.resumeInvalid"));
+      appToast.warning(ERROR_CODES.ResumeFileRequired);
       return;
     }
 
     setResumeFile(file);
     setParsedResumePreview(null);
-    toast.success(translate("candidateProfile.resumeSelected", { name: file.name }));
+    appToast.success(translate("candidateProfile.resumeSelected", { name: file.name }));
   }
 
   function clearSelectedResumeFile() {
@@ -691,7 +700,7 @@ export function useCandidateProfileScreen() {
 
   async function handleParseResume() {
     if (!resumeFile) {
-      toast.error(translate("candidateProfile.resumeSelectBeforeParse"));
+      appToast.warning(ERROR_CODES.ResumeFileRequired);
       return;
     }
 
@@ -699,19 +708,19 @@ export function useCandidateProfileScreen() {
     try {
       const response = await candidateService.parseResume(resumeFile);
       if (!response.data) {
-        toast.error(response.message || translate("candidateProfile.parseFailed"));
+        appToast.error(ERROR_CODES.AiProcessingFailed);
         return;
       }
 
       setParsedResumePreview(response.data);
-      toast.success(
+      appToast.success(
         response.data.usedAi
           ? translate("candidateProfile.parseSuccessAi")
           : translate("candidateProfile.parseSuccessFallback"),
       );
     } catch (error) {
       console.error(error);
-      toast.error(translate("candidateProfile.parseFailedCurrent"));
+      handleNonFormApiError(error);
     } finally {
       setIsParsingResume(false);
     }

@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import PageHeader from "../../common/components/PageHeader";
 import CommonTable from "../../common/components/CommonTable";
 import CommonSelect from "../../common/components/CommonSelect";
-import { toast } from "react-toastify";
 import { listWorkflows, setWorkflowEnabled } from "../../services/system-admin/automationService";
 import type { WorkflowSummaryDto } from "../../modules/system-admin/automationSchema";
 import { TRIGGER_EVENT_TYPES } from "../../modules/system-admin/automationSchema";
 import { useI18n } from "../../i18n";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import WorkflowEditor from "./WorkflowEditor";
 import {
   ConfirmModal,
@@ -52,15 +52,15 @@ function WorkflowListScreen() {
     setBusy(true);
     try {
       await setWorkflowEnabled(toggleTarget.id, !toggleTarget.isEnabled);
-      toast.success(
+      appToast.success(
         toggleTarget.isEnabled
           ? t("automation.workflowDisabled")
           : t("automation.workflowEnabled"),
       );
       setToggleTarget(null);
       load();
-    } catch {
-      toast.error(t("automation.toggleFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }

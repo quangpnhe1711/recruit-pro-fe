@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
 import PageHeader from "../../common/components/PageHeader";
 import Badge from "../../common/components/Badge";
 import { SkeletonGrid } from "../../common/components/Skeleton";
@@ -8,6 +7,7 @@ import EmptyState from "../../common/components/EmptyState";
 import { listTools, testTool } from "../../services/system-admin/mcpService";
 import type { McpToolDto, McpToolResult } from "../../modules/system-admin/automationSchema";
 import { useI18n } from "../../i18n";
+import { handleNonFormApiError } from "../../common/utils/appToast";
 import { ConfirmModal, ErrorState, formatDateTime, JsonDetails } from "./automationUi";
 
 function McpToolsScreen() {
@@ -40,8 +40,8 @@ function McpToolsScreen() {
       setResult(r);
       // Refresh "last called" timestamps in the catalog behind the modal.
       listTools().then(setTools).catch(() => {});
-    } catch {
-      toast.error(t("automation.mcpTestFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setBusy(false);
     }

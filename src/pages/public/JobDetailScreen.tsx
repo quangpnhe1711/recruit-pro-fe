@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import {
   jobEditSchema,
   validateWithSchema,
@@ -50,7 +49,7 @@ import { getDateLocale, useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { ROLE_NAMES } from "../../permissions/rolePermissions";
 import { jobsService } from "../../services/jobs/jobsService";
-import { getJobStatusErrorMessage } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 
 type RecentApplication = {
   id: string;
@@ -462,12 +461,12 @@ function JobDetailScreen() {
         skills: toList(editForm.skills),
       });
 
-      toast.success(t("jobDetail.updateSuccess"));
+      appToast.success(t("jobDetail.updateSuccess"));
       setEditing(false);
       navigate(`/jobs/${detail.id}`, { replace: true });
       await loadDetail();
-    } catch {
-      toast.error(t("jobDetail.updateFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     } finally {
       setSaving(false);
     }
@@ -481,10 +480,10 @@ function JobDetailScreen() {
       await jobsService.updateJobStatus(detail.id, {
         status: "CLOSED" as JobStatusApi,
       });
-      toast.success(t("jobDetail.closeSuccess"));
+      appToast.success(t("jobDetail.closeSuccess"));
       await loadDetail();
     } catch (error) {
-      toast.error(getJobStatusErrorMessage(error, t("jobDetail.closeFailed")));
+      handleNonFormApiError(error);
     } finally {
       setClosing(false);
     }
@@ -498,12 +497,12 @@ function JobDetailScreen() {
       await jobsService.updateJobStatus(detail.id, {
         status: "APPROVED" as JobStatusApi,
       });
-      toast.success(t("jobDetail.reopenSuccess"));
+      appToast.success(t("jobDetail.reopenSuccess"));
       await loadDetail();
     } catch (error) {
       // Reopening transitions the job back to Approved, which routes through the department-head
       // approval guard (BR-OWN-003) — surface the 403/422 reason instead of a generic message.
-      toast.error(getJobStatusErrorMessage(error, t("jobDetail.reopenFailed")));
+      handleNonFormApiError(error);
     } finally {
       setClosing(false);
     }
@@ -512,9 +511,9 @@ function JobDetailScreen() {
   async function handleCopyShareLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success(t("jobDetail.shareCopied"));
-    } catch {
-      toast.error(t("jobDetail.shareCopyFailed"));
+      appToast.success(t("jobDetail.shareCopied"));
+    } catch (err) {
+      handleNonFormApiError(err);
     }
   }
 

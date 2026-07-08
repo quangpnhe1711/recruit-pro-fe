@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ApplicationStatus,
@@ -11,7 +12,6 @@ import {
   validateWithSchema,
   type ValidationErrors,
 } from "../../common/validation/formValidation";
-import { getApplicationErrorMessage } from "../../common/utils/apiError";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import { Skeleton, SkeletonText } from "../../common/components/Skeleton";
@@ -323,9 +323,9 @@ function CandidateReviewDetailScreen() {
         );
         setResumePreviewBlobUrl(null);
         setResumePreviewError(false);
-      } catch {
+      } catch (err) {
         if (!mounted) return;
-        toast.error(t("candidateReviewDetail.loadFailed"));
+        handleNonFormApiError(err);
         setDetail(null);
         setFitAnalysis(null);
       } finally {
@@ -395,11 +395,11 @@ function CandidateReviewDetailScreen() {
         decision,
       );
       setDetail(response.data);
-      toast.success(t("candidateReviewDetail.updatedStatus"));
+      appToast.success(t("candidateReviewDetail.updatedStatus"));
     } catch (error) {
       // errorCode first (e.g. INVALID_APPLICATION_TRANSITION when the workflow rejects the move —
       // BR-APPLICATION-006), then HTTP status, then message.
-      toast.error(getApplicationErrorMessage(error, t("candidateReviewDetail.updateFailed")));
+      handleNonFormApiError(error);
     } finally {
       setSubmittingDecision(null);
     }
@@ -409,8 +409,8 @@ function CandidateReviewDetailScreen() {
     try {
       const response = await hrService.getApplicationDetail(applicationId);
       setDetail(response.data);
-    } catch {
-      toast.error(t("candidateReviewDetail.reloadFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     }
   }
 
@@ -420,11 +420,9 @@ function CandidateReviewDetailScreen() {
     try {
       await hrService.updateInterviewStatus(interviewId, "completed");
       await refreshDetail();
-      toast.success(t("candidateReviewDetail.markInterviewCompletedSuccess"));
+      appToast.success(t("candidateReviewDetail.markInterviewCompletedSuccess"));
     } catch (error) {
-      toast.error(
-        getApplicationErrorMessage(error, t("candidateReviewDetail.interviewUpdateFailed")),
-      );
+      handleNonFormApiError(error);
     } finally {
       setMarkingComplete(false);
     }
@@ -464,9 +462,13 @@ function CandidateReviewDetailScreen() {
       });
       setDetail(response.data);
       setRejectModalOpen(false);
-      toast.success(t("candidateReviewDetail.rejectEmail.sent"));
+      appToast.success(t("candidateReviewDetail.rejectEmail.sent"));
     } catch (error) {
-      toast.error(getApplicationErrorMessage(error, t("candidateReviewDetail.rejectEmail.sendFailed")));
+      const handled = applyApiFormError(error, {
+        setFieldError: (field, message) =>
+          setRejectErrors((prev) => ({ ...prev, [field]: message })),
+      });
+      if (!handled) handleNonFormApiError(error);
     } finally {
       setSendingReject(false);
     }
@@ -634,7 +636,7 @@ function CandidateReviewDetailScreen() {
                   void downloadProtectedFile(
                     resumeDownloadPath,
                     resumeFile.fileName,
-                  ).catch(() => toast.error(t("candidateReviewDetail.cvDownloadFailed")));
+                  ).catch((err) => handleNonFormApiError(err));
                 }}
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
@@ -953,8 +955,8 @@ function CandidateReviewDetailScreen() {
                     title={t("candidateReviewDetail.openCv")}
                     onClick={() => {
                       if (!resumePreviewPath) return;
-                      void openProtectedFileInNewTab(resumePreviewPath).catch(() =>
-                        toast.error(t("candidateReviewDetail.cvOpenFailed")),
+                      void openProtectedFileInNewTab(resumePreviewPath).catch((err) =>
+                        handleNonFormApiError(err),
                       );
                     }}
                   >
@@ -971,7 +973,7 @@ function CandidateReviewDetailScreen() {
                       void downloadProtectedFile(
                         resumeDownloadPath,
                         resumeFile.fileName,
-                      ).catch(() => toast.error(t("candidateReviewDetail.cvDownloadFailed")));
+                      ).catch((err) => handleNonFormApiError(err));
                     }}
                   >
                     <span className="material-symbols-outlined text-[20px]">
@@ -991,8 +993,8 @@ function CandidateReviewDetailScreen() {
                     className="font-semibold text-[#b90014] hover:underline"
                     onClick={() => {
                       if (!resumePreviewPath) return;
-                      void openProtectedFileInNewTab(resumePreviewPath).catch(() =>
-                        toast.error("Không thể mở CV."),
+                      void openProtectedFileInNewTab(resumePreviewPath).catch((err) =>
+                        handleNonFormApiError(err),
                       );
                     }}
                   >

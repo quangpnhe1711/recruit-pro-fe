@@ -5,7 +5,8 @@ import * as yup from "yup";
 import { useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authService } from "../../services/auth/authService";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import { setCredentials } from "../../store/slices/authSlice";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
 import Seo from "../../common/components/Seo";
@@ -90,16 +91,22 @@ function CandidateLoginScreen() {
       navigate(redirectTarget ?? getRoleHomePath(primaryRole) ?? "/candidate/dashboard", {
         replace: true,
       });
-    } catch {
-      setLoginError(t("auth.loginFailed"));
+    } catch (err) {
+      // Auth failures (invalid credentials / disabled / wrong portal) render inline on the form, not a
+      // toast. Only transport/server errors fall through to a toast.
+      const handled = applyApiFormError(err, {
+        setFieldError: () => {},
+        setFormError: setLoginError,
+      });
+      if (!handled) handleNonFormApiError(err);
       return;
     }
-    toast.success(t("auth.loginSuccess"));
+    appToast.success(t("auth.loginSuccess"));
   };
 
   async function handleForgotPassword(identifier: string) {
-    const response = await authService.candidateForgotPassword({ identifier });
-    toast.success(response.message || t("auth.forgotPasswordSent"));
+    await authService.candidateForgotPassword({ identifier });
+    appToast.success(t("auth.forgotPasswordSent"));
   }
 
   type LoginForm = yup.InferType<typeof schema>;

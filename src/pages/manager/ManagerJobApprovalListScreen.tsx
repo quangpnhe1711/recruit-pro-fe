@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 import CommonTable, { type TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
@@ -10,6 +9,7 @@ import type { ManagerJobApprovalQueueItemDto } from "../../modules/jobs/jobsSche
 import { jobsService } from "../../services/jobs/jobsService";
 import { getJobStatusPresentation } from "../../common/status/jobStatus";
 import { toneBadgeClassName } from "../../common/status/statusPresentation";
+import { handleNonFormApiError } from "../../common/utils/appToast";
 
 function formatDateLabel(value: string | null) {
   if (!value) return "Không rõ";
@@ -144,7 +144,7 @@ function ManagerJobApprovalListScreen() {
         });
         setTotalPages(response.data?.meta?.totalPages ?? 1);
         setTotalItems(response.data?.meta?.totalItems ?? 0);
-      } catch {
+      } catch (err) {
         if (!mounted) return;
 
         setItems([]);
@@ -156,7 +156,7 @@ function ManagerJobApprovalListScreen() {
         });
         setTotalPages(1);
         setTotalItems(0);
-        toast.error(t("managerJobApprovalList.loadFailed"));
+        handleNonFormApiError(err);
       } finally {
         if (mounted) {
           setLoading(false);

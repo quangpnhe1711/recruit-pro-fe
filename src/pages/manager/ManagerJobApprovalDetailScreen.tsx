@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import EmptyState from "../../common/components/EmptyState";
 import { Skeleton } from "../../common/components/Skeleton";
@@ -13,6 +12,7 @@ import type { JobStatus, ManagerJobApprovalDetailDto } from "../../modules/jobs/
 import { jobsService } from "../../services/jobs/jobsService";
 import { getJobStatusPresentation } from "../../common/status/jobStatus";
 import { getJobStatusErrorMessage } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import { usePermissions } from "../../hooks/usePermissions";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { getDateLocale, useI18n } from "../../i18n";
@@ -96,7 +96,7 @@ function ManagerJobApprovalDetailScreen() {
           t("managerJobApprovalDetail.loadFailed"),
         );
         setLoadError(message);
-        toast.error(message);
+        handleNonFormApiError(error);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -126,7 +126,7 @@ function ManagerJobApprovalDetailScreen() {
       // Guarded HR status endpoint (PATCH /api/hr/jobs/{id}/status). We only navigate AFTER the
       // backend confirms — no optimistic "approved" flip (BR-OWN-003).
       await jobsService.updateJobStatus(detail.jobId, { status: nextStatus });
-      toast.success(successMessage);
+      appToast.success(successMessage);
       navigate("/jobs");
     } catch (error) {
       // errorCode → HTTP status → backend message → fallback. Surfaces the actionable 403 (not the
@@ -136,7 +136,7 @@ function ManagerJobApprovalDetailScreen() {
         t("managerJobApprovalDetail.updateFailed"),
       );
       setActionError(message);
-      toast.error(message);
+      handleNonFormApiError(error);
     } finally {
       setSubmitting(null);
     }

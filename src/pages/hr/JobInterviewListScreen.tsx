@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import AsyncActionButton from "../../common/components/AsyncActionButton";
 import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
@@ -364,10 +364,10 @@ function JobInterviewListScreen() {
           }),
         );
       })
-      .catch(() => {
+      .catch((err) => {
         if (!mounted) return;
         setItems([]);
-        toast.error(t("jobInterviewList.loadFailed"));
+        handleNonFormApiError(err);
       })
       .finally(() => {
         if (mounted) {
@@ -500,18 +500,18 @@ function JobInterviewListScreen() {
 
     const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
     downloadTextFile("interview_schedule.csv", csv, "text/csv");
-    toast.success(t("jobInterviewList.exported"));
+    appToast.success(t("jobInterviewList.exported"));
   }
 
   function openDetails(it: Interview) {
-    toast.info(
+    appToast.info(
       t("jobInterviewList.openingDetails", { candidate: it.candidateName, job: it.jobTitle }),
     );
   }
 
   const markCompleted = useCallback(async (it: Interview) => {
     if (normalizeInterviewStatus(it.status) === "Completed") {
-      toast.info(t("jobInterviewList.alreadyCompleted"));
+      appToast.info(t("jobInterviewList.alreadyCompleted"));
       return;
     }
 
@@ -520,17 +520,17 @@ function JobInterviewListScreen() {
       setItems((prev) =>
         prev.map((x) => (x.id === it.id ? { ...x, status: "Completed" } : x)),
       );
-      toast.success(t("jobInterviewList.completedSuccess"));
+      appToast.success(t("jobInterviewList.completedSuccess"));
       setOpenMenuForId(null);
-    } catch {
-      toast.error(t("jobInterviewList.completeFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     }
   }, []);
 
   const reschedule = useCallback(
     (it: Interview) => {
       setOpenMenuForId(null);
-      toast.info(t("jobInterviewList.openingSchedule"));
+      appToast.info(t("jobInterviewList.openingSchedule"));
       navigate("/hr/interviews/schedule", {
         state: {
           applicationId: it.applicationId,
@@ -549,10 +549,10 @@ function JobInterviewListScreen() {
     try {
       await hrService.deleteInterview(it.id);
       setItems((prev) => prev.filter((x) => x.id !== it.id));
-      toast.info(t("jobInterviewList.canceled"));
+      appToast.info(t("jobInterviewList.canceled"));
       setOpenMenuForId(null);
-    } catch {
-      toast.error(t("jobInterviewList.cancelFailed"));
+    } catch (err) {
+      handleNonFormApiError(err);
     }
   }, []);
 
@@ -645,7 +645,7 @@ function JobInterviewListScreen() {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  toast.info(t("jobInterviewList.selectApplicationFirst"));
+                  appToast.info(t("jobInterviewList.selectApplicationFirst"));
                   navigate("/hr/applications");
                 }}
               >

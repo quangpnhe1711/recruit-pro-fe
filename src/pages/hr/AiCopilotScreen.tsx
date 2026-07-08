@@ -1,6 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
-import { getToastErrorMessage } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import CommonSelect from "../../common/components/CommonSelect";
 import EmptyState from "../../common/components/EmptyState";
 import LoadingIndicator from "../../common/components/LoadingIndicator";
@@ -106,7 +105,7 @@ function AiCopilotScreen() {
         setJobs(items);
         setSelectedJobId(items[0]?.jobId ?? "");
       })
-      .catch(() => toast.error(t("aiCopilot.loadJobsFailed")))
+      .catch((error) => handleNonFormApiError(error))
       .finally(() => {
         if (mounted) setLoadingJobs(false);
       });
@@ -167,8 +166,8 @@ function AiCopilotScreen() {
         if (rankingSessionResponse?.data) {
           setRanking(mapRankingSessionToPromptResponse(rankingSessionResponse.data));
         }
-      } catch {
-        if (mounted) toast.error(t("aiCopilot.loadCandidatesFailed"));
+      } catch (error) {
+        if (mounted) handleNonFormApiError(error);
       } finally {
         if (mounted) setLoadingPool(false);
       }
@@ -231,7 +230,7 @@ function AiCopilotScreen() {
     try {
       const response = await callCopilot({ promptText, forceRanking: true });
       if (!response?.data?.didRank) {
-        toast.info(t("aiCopilot.noRankingGenerated"));
+        appToast.info(t("aiCopilot.noRankingGenerated"));
         return;
       }
       setRanking(response.data);
@@ -239,12 +238,12 @@ function AiCopilotScreen() {
       setCriteriaOpen(false);
       if (response.data.reusedRankingSession) {
         // v2 §8 — unchanged effective input returns the latest matching session.
-        toast.info(t("aiCopilot.reusedRanking"));
+        appToast.info(t("aiCopilot.reusedRanking"));
       } else {
-        toast.success(t("aiCopilot.rankedCount", { count: response.data.results.length }));
+        appToast.success(t("aiCopilot.rankedCount", { count: response.data.results.length }));
       }
     } catch (error) {
-      toast.error(getToastErrorMessage(error, t("aiCopilot.rankFailed")));
+      handleNonFormApiError(error);
     } finally {
       setRankingLoading(false);
       setLoadingStatus("");
@@ -282,10 +281,10 @@ function AiCopilotScreen() {
       const updated = response.data?.updated ?? [];
       const skipped = response.data?.skipped ?? [];
       if (updated.length > 0) {
-        toast.success(t("aiCopilot.passedToHeadReview", { count: updated.length }));
+        appToast.success(t("aiCopilot.passedToHeadReview", { count: updated.length }));
       }
       if (skipped.length > 0) {
-        toast.info(
+        appToast.info(
           t("aiCopilot.skippedApplications", {
             count: skipped.length,
             reasons: skipped.map((item) => item.reason).join("; "),
@@ -297,7 +296,7 @@ function AiCopilotScreen() {
       await reloadCandidatePool();
       await runRanking();
     } catch (error) {
-      toast.error(getToastErrorMessage(error, t("aiCopilot.passFailed")));
+      handleNonFormApiError(error);
     } finally {
       setPassingCv(false);
     }
@@ -317,7 +316,7 @@ function AiCopilotScreen() {
       const data = response?.data;
       if (!data) {
         setChat((current) => current.slice(0, -1));
-        toast.error(t("aiCopilot.noAssistantReply"));
+        appToast.info(t("aiCopilot.noAssistantReply"));
         return;
       }
       const message =
@@ -333,7 +332,7 @@ function AiCopilotScreen() {
       if (data.didRank) setRanking(data);
     } catch (error) {
       setChat((current) => current.slice(0, -1));
-      toast.error(getToastErrorMessage(error, t("aiCopilot.assistantFailed")));
+      handleNonFormApiError(error);
     } finally {
       setChatSending(false);
       setLoadingStatus("");
@@ -346,7 +345,7 @@ function AiCopilotScreen() {
   function addPriorityCriterion() {
     const normalized = normalizeCriterion(priorityDraft);
     if (!normalized.value) {
-      toast.info(t("aiCopilot.enterPriorityValue"));
+      appToast.info(t("aiCopilot.enterPriorityValue"));
       return;
     }
     setPriorityCriteria((current) => [...current, normalized]);
@@ -356,7 +355,7 @@ function AiCopilotScreen() {
   function addNegativeCriterion() {
     const normalized = normalizeCriterion(negativeDraft);
     if (!normalized.value) {
-      toast.info(t("aiCopilot.enterNegativeValue"));
+      appToast.info(t("aiCopilot.enterNegativeValue"));
       return;
     }
     setNegativeCriteria((current) => [...current, normalized]);
@@ -370,7 +369,7 @@ function AiCopilotScreen() {
 
   async function saveCurrentRule() {
     if (!selectedJobId || !hasCriteria) {
-      toast.info(t("aiCopilot.addCriteriaBeforeSave"));
+      appToast.info(t("aiCopilot.addCriteriaBeforeSave"));
       return;
     }
     setSavingRule(true);
@@ -383,10 +382,10 @@ function AiCopilotScreen() {
       });
       if (response.data) {
         setSavedRules((current) => [response.data!, ...current]);
-        toast.success(t("aiCopilot.presetSaved"));
+        appToast.success(t("aiCopilot.presetSaved"));
       }
-    } catch {
-      toast.error(t("aiCopilot.presetSaveFailed"));
+    } catch (error) {
+      handleNonFormApiError(error);
     } finally {
       setSavingRule(false);
     }
@@ -402,8 +401,8 @@ function AiCopilotScreen() {
         setPriorityCriteria(response.data.rule.priorityCriteria);
         setNegativeCriteria(response.data.rule.negativeCriteria);
       }
-    } catch {
-      toast.error(t("aiCopilot.presetUpdateFailed"));
+    } catch (error) {
+      handleNonFormApiError(error);
     }
   }
 
@@ -412,9 +411,9 @@ function AiCopilotScreen() {
     try {
       await copilotService.deleteSavedRule(ruleId);
       setSavedRules((current) => current.filter((rule) => rule.ruleId !== ruleId));
-      toast.success(t("aiCopilot.presetDeleted"));
-    } catch {
-      toast.error(t("aiCopilot.presetDeleteFailed"));
+      appToast.success(t("aiCopilot.presetDeleted"));
+    } catch (error) {
+      handleNonFormApiError(error);
     } finally {
       setDeletingRuleId(null);
     }
@@ -439,7 +438,7 @@ function AiCopilotScreen() {
           });
           const first = response.data?.analyses[0];
           if (!first) {
-            toast.info(t("aiCopilot.noCandidateAnalysis"));
+            appToast.info(t("aiCopilot.noCandidateAnalysis"));
             setToolOpen(false);
             return;
           }
@@ -474,7 +473,7 @@ function AiCopilotScreen() {
             tone: "warm",
           });
           if (!response.data) {
-            toast.info(t("aiCopilot.noEmailDraft"));
+            appToast.info(t("aiCopilot.noEmailDraft"));
             setToolOpen(false);
             return;
           }
@@ -488,7 +487,7 @@ function AiCopilotScreen() {
         }
       } catch (error) {
         setToolOpen(false);
-        toast.error(getToastErrorMessage(error, t("aiCopilot.toolRunFailed", { tool: TOOL_META[tool].label })));
+        handleNonFormApiError(error);
       } finally {
         setToolLoading(false);
         setRunningToolKey(null);

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
+import { applyApiFormError } from "../../common/utils/formErrors";
 import Seo from "../../common/components/Seo";
 import {
   candidateRegisterSchema,
@@ -91,11 +92,19 @@ function CandidateRegisterScreen() {
       });
 
       setSubmitState("success");
-      toast.success(t("authPages.registerSuccessToast"));
+      appToast.success(t("authPages.registerSuccessToast"));
       window.setTimeout(() => setSubmitState("idle"), 2000);
     } catch (error) {
-      console.error("Register request failed:", error);
-      toast.error(t("authPages.registerFailedToast"));
+      // Server validation (email/username already exists) → inline field errors, not a toast.
+      // Transport/server errors → toast.
+      const handled = applyApiFormError(error, {
+        setFieldError: (field, message) =>
+          setErrors((prev) => ({ ...prev, [field]: message })),
+        // Backend may key field errors as UserInfo.Email / userInfo.email / email — all normalize to
+        // these; anything unmappable falls through to a toast instead of a dead key.
+        knownFields: ["username", "fullName", "email", "password", "phone"],
+      });
+      if (!handled) handleNonFormApiError(error);
       setSubmitState("idle");
     }
   };

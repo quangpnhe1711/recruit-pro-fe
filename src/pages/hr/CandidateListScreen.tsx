@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { appToast } from "../../common/utils/appToast";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import CommonSelect from "../../common/components/CommonSelect";
 import PermissionGuard from "../../guards/PermissionGuard";
@@ -331,7 +331,7 @@ function CandidateListScreen() {
   }
 
   function handleAddCandidate() {
-    toast.info(t("candidateList.addCandidateSoon"));
+    appToast.info(t("candidateList.addCandidateSoon"));
   }
 
   const sourceOptions = [

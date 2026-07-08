@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { toast } from "react-toastify";
 import PageHeader from "../../common/components/PageHeader";
 import Badge from "../../common/components/Badge";
 import CommonSelect from "../../common/components/CommonSelect";
@@ -16,7 +15,7 @@ import type {
   RbacModuleDto,
   RbacRoleDto,
 } from "../../modules/system-admin/adminSchema";
-import { getApiErrorCode, getApiStatusCode } from "../../common/utils/apiError";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import { useI18n } from "../../i18n";
 import { ConfirmModal, ErrorState } from "./automationUi";
 
@@ -201,19 +200,9 @@ function RbacPermissionsScreen() {
           role.id === selectedRoleId ? { ...role, permissionCount: set.size } : role,
         ),
       );
-      toast.success(t("admin.saveSuccess", { role: updated.roleName }));
+      appToast.success(t("admin.saveSuccess", { role: updated.roleName }));
     } catch (err) {
-      const code = getApiErrorCode(err);
-      const status = getApiStatusCode(err);
-      if (code === "RBAC_ADMIN_LOCKOUT") {
-        toast.error(t("admin.errorLockout"));
-      } else if (status === 403) {
-        toast.error(t("admin.errorForbidden"));
-      } else if (code === "RBAC_UNKNOWN_PERMISSION") {
-        toast.error(t("admin.errorUnknownPermission"));
-      } else {
-        toast.error(t("common.actionFailed"));
-      }
+      handleNonFormApiError(err);
     } finally {
       setSaving(false);
     }

@@ -1,7 +1,6 @@
 import { useContext, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
 
 import { usePermissions } from "../../../hooks/usePermissions";
 import { PERMISSIONS } from "../../../permissions/permissions";
@@ -10,6 +9,7 @@ import HeaderAvatarDropDown from "../../../pages/internal/HeaderAvatarDropDown";
 import type { RootState } from "../../../store";
 import type { NotificationItemDto } from "../../../services/notification/notificationService";
 import { getDateLocale, useI18n } from "../../../i18n";
+import { appToast } from "../../utils/appToast";
 import { NotificationContext } from "./NotificationContext";
 import LanguageSwitcher from "./LanguageSwitcher";
 import BrandLogo from "./BrandLogo";
@@ -164,7 +164,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
       setOpen(false);
       navigate(url);
     } else {
-      toast.info(t("header.noNotificationLink"), { toastId: "noti-no-url" });
+      appToast.info(t("header.noNotificationLink"), { toastId: "noti-no-url" });
     }
   }
 
