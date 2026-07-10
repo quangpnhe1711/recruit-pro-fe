@@ -5,6 +5,9 @@ export const endpoints = {
     internalLogin: "/auth/internal/login",
     candidateForgotPassword: "/auth/candidate/forgot-password",
     internalForgotPassword: "/auth/internal/forgot-password",
+    // Rotates the DB-stored refresh token for a fresh access+refresh pair (used by the
+    // silent-refresh interceptor in api-client.ts). Logout is client-side only (no endpoint).
+    refresh: "/auth/refresh",
     logout: "/auth/logout",
   },
   public: {

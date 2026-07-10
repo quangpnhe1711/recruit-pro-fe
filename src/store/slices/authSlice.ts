@@ -83,7 +83,12 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
 
       localStorage.setItem("access_token", accessToken);
-      localStorage.setItem("refresh_token", refreshToken);
+      // Guard against persisting the literal string "null" when the backend omits a refresh token.
+      if (refreshToken) {
+        localStorage.setItem("refresh_token", refreshToken);
+      } else {
+        localStorage.removeItem("refresh_token");
+      }
       localStorage.setItem("current_variant", resolvedVariant);
       localStorage.setItem("auth_user", JSON.stringify(user));
     },
