@@ -1,7 +1,5 @@
 // Shared presentation contract for all status domains. Screens render badges/labels through these
 // helpers; they never hardcode status copy or branch on localized labels.
-import { translate } from "../../i18n";
-
 import {
   ApplicationStatus,
   normalizeApplicationStatus,
@@ -66,33 +64,22 @@ const APPLICATION_STATUS_ENGLISH_LABEL: Record<ApplicationStatus, string> = {
 };
 
 // Application status presentation. Branches ONLY on the canonical status (never a localized label).
-// An unknown/unrecognized value resolves to a NEUTRAL "Unknown" — it must never collapse to Rejected
+// Status copy stays English in every locale (user preference — see APPLICATION_STATUS_ENGLISH_LABEL);
+// an unknown/unrecognized value resolves to a NEUTRAL "Unknown" — it must never collapse to Rejected
 // (the prior `?? Rejected` fallback was the source of the "Từ chối" mislabel bug).
 export function getApplicationStatusPresentation(value: unknown): StatusPresentation {
   const canonical = normalizeApplicationStatus(value);
   if (!canonical) {
     return {
-      label: translate("applicationStatus.unknown"),
+      label: "Unknown",
       tone: "neutral",
       badgeClassName: toneBadgeClassName("neutral"),
     };
   }
 
   const tone = APPLICATION_STATUS_TONE[canonical];
-  const translationKey = {
-    Applied: "applicationStatus.applied",
-    Screening: "applicationStatus.screening",
-    ManagerReview: "applicationStatus.headReview",
-    Interview: "applicationStatus.interview",
-    Offer: "applicationStatus.offer",
-    Hired: "applicationStatus.hired",
-    Rejected: "applicationStatus.rejected",
-    OfferDeclined: "applicationStatus.offerDeclined",
-    Withdrawn: "applicationStatus.withdrawn",
-  } satisfies Record<ApplicationStatus, string>;
-
   return {
-    label: translate(translationKey[canonical]) || APPLICATION_STATUS_ENGLISH_LABEL[canonical],
+    label: APPLICATION_STATUS_ENGLISH_LABEL[canonical],
     tone,
     badgeClassName: toneBadgeClassName(tone),
   };

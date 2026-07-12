@@ -177,9 +177,10 @@ test("E2E-AI-005 run AI review updates the row score", async ({ page }) => {
   await page.getByLabel("Tin nhắn cho trợ lý AI").fill("Rank these candidates");
   await page.getByRole("button", { name: "Gửi", exact: true }).click();
 
-  // The row updates from the mocked ranking response.
+  // The row updates from the mocked ranking response: the score pill shows the score and the row
+  // status flips to the ranked state ("Đã xếp hạng" — the old "Đã chấm" text was replaced by the pill).
   await expect(page.getByText("88/100")).toBeVisible();
-  await expect(page.getByText("Đã chấm").first()).toBeVisible();
+  await expect(page.getByText("Đã xếp hạng").first()).toBeVisible();
 });
 
 // E2E-AI-007 — v2 hardening: deprecated tools are gone; Pass CV → Head Review selection + action work.

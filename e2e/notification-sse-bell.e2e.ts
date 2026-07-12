@@ -60,6 +60,9 @@ test.describe("Notification bell — SSE realtime, seen/read, deep-link navigati
     );
 
     await page.goto("/jobs");
+    // Wait for the unseen badge to render (GET /counts resolved → unseenCount=1) before opening the
+    // bell. Clicking earlier races the counts fetch, and markAllSeen no-ops while unseenCount is 0.
+    await expect(bellButton(page).getByText("1", { exact: true })).toBeVisible();
     await bellButton(page).click();
 
     // The bell dropdown opened and shows the notification.

@@ -148,7 +148,7 @@ function AssistantDrawer(props: AssistantDrawerProps) {
             />
             <button
               type="button"
-              aria-label={t("common.confirm")}
+              aria-label={t("common.send")}
               className="absolute bottom-2.5 right-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#e8242c] to-[#c50f1b] text-white shadow-[0_8px_20px_rgba(185,0,20,0.24)] transition-all hover:brightness-105 active:scale-95 disabled:opacity-50"
               disabled={!canSend}
               onClick={onSend}

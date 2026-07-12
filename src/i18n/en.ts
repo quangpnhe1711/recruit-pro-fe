@@ -13,6 +13,7 @@ export const en = {
     close: "Close",
     save: "Save",
     confirm: "Confirm",
+    send: "Send",
     delete: "Delete",
     edit: "Edit",
     view: "View",

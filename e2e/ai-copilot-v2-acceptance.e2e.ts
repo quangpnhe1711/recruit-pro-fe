@@ -242,7 +242,10 @@ test("E2E-AI-V2-002 latest fit-analysis card shows empty state", async ({ page }
 });
 
 // E2E-AI-V2-003 — artifact history displays provider/fallback/missing metadata and previews.
-test("E2E-AI-V2-003 artifact history loads artifacts and metadata", async ({ page }) => {
+// SKIPPED: the "Artifact history" panel was removed from /hr/ai-copilot in the table-first
+// "ranking = single source of truth" rebuild (candidate-search / email-draft artifacts deprecated).
+// Re-enable only if the artifact-history surface returns.
+test.skip("E2E-AI-V2-003 artifact history loads artifacts and metadata", async ({ page }) => {
   const requests: string[] = [];
   await seedSession(page, "hr");
   await installApiMocks(
@@ -293,7 +296,8 @@ test("E2E-AI-V2-003 artifact history loads artifacts and metadata", async ({ pag
 });
 
 // E2E-AI-V2-004 — artifact history empty and error states are visible.
-test("E2E-AI-V2-004 artifact history handles empty and error states", async ({ page }) => {
+// SKIPPED: artifact-history panel removed in the table-first Copilot rebuild (see E2E-AI-V2-003).
+test.skip("E2E-AI-V2-004 artifact history handles empty and error states", async ({ page }) => {
   await seedSession(page, "hr");
   await installApiMocks(
     page,
@@ -323,7 +327,9 @@ test("E2E-AI-V2-004 artifact history handles empty and error states", async ({ p
 });
 
 // E2E-AI-V2-005 — prompt template list/detail and create flow.
-test("E2E-AI-V2-005 prompt template list create and detail work without edit delete versioning UI", async ({ page }) => {
+// SKIPPED: the "Prompt templates" panel was removed from /hr/ai-copilot in the table-first rebuild.
+// Re-enable only if the prompt-template management surface returns.
+test.skip("E2E-AI-V2-005 prompt template list create and detail work without edit delete versioning UI", async ({ page }) => {
   await seedSession(page, "hr");
   await installApiMocks(
     page,
@@ -370,7 +376,8 @@ test("E2E-AI-V2-005 prompt template list create and detail work without edit del
 });
 
 // E2E-AI-V2-006 — prompt template client validation prevents unsupported empty create.
-test("E2E-AI-V2-006 prompt template validation shows required-field feedback", async ({ page }) => {
+// SKIPPED: prompt-template panel removed in the table-first Copilot rebuild (see E2E-AI-V2-005).
+test.skip("E2E-AI-V2-006 prompt template validation shows required-field feedback", async ({ page }) => {
   await seedSession(page, "hr");
   await installApiMocks(
     page,

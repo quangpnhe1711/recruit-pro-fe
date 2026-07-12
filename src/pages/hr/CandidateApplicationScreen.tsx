@@ -627,7 +627,6 @@ function CandidateApplicationScreen() {
             className="h-[42px] text-sm"
             wrapperClassName="w-full lg:flex-1 lg:min-w-[150px]"
             options={departmentOptions.map((department) => ({
-              label: department,
               label: department === "allDepartments" ? t("candidateApplication.allDepartments") : department,
               value: department,
             }))}

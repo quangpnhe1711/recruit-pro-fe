@@ -11,6 +11,7 @@ export const vi: Dictionary = {
     close: "Đóng",
     save: "Lưu",
     confirm: "Xác nhận",
+    send: "Gửi",
     delete: "Xóa",
     edit: "Sửa",
     view: "Xem",
@@ -1578,6 +1579,11 @@ export const vi: Dictionary = {
     tipBody:
       "Tin tuyển dụng có mô tả chi tiết kèm khoảng lương rõ ràng nhận được chất lượng ứng tuyển cao hơn 30% trong 48 giờ đầu đăng tin.",
     recentTemplate: "Mẫu gần đây",
+    recentTemplateTitle: "Dùng mẫu Engineering L4",
+    deadline: "Hạn nộp hồ sơ",
+    deadlineHint: "Tùy chọn — để trống nếu tuyển đến khi đủ. Phải sau ngày hôm nay.",
+    reviewDeadline: "Hạn nộp hồ sơ: {date}",
+    reviewNoDeadline: "Tuyển đến khi đủ (không có hạn)",
     yearsShort: "năm",
     maxSalaryOnly: "Tối đa {amount} VNĐ",
     progress: {

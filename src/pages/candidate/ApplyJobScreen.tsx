@@ -18,7 +18,7 @@ import { jobsService } from "../../services/jobs/jobsService";
 
 function formatUploadedAt(
   value: string | null | undefined,
-  t: (key: string) => string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
 ) {
   if (!value) return t("applyJob.resumeUploadEmpty");
 

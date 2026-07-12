@@ -218,30 +218,10 @@ export function getApplicationStatusMeta(
   };
 }
 
+// Status copy is English in every locale (status contract — see the header comment). Return the
+// canonical English label directly; never localize it (that was the source of the VI "Từ chối" leak).
 export function formatApplicationStatus(status: string): ApplicationStatusLabel {
-  const label = getApplicationStatusMeta(status).label;
-  switch (label) {
-    case "Applied":
-      return translate("applicationStatus.applied") as ApplicationStatusLabel;
-    case "Screening":
-      return translate("applicationStatus.screening") as ApplicationStatusLabel;
-    case "Head Review":
-      return translate("applicationStatus.headReview") as ApplicationStatusLabel;
-    case "Interview":
-      return translate("applicationStatus.interview") as ApplicationStatusLabel;
-    case "Offer":
-      return translate("applicationStatus.offer") as ApplicationStatusLabel;
-    case "Hired":
-      return translate("applicationStatus.hired") as ApplicationStatusLabel;
-    case "Rejected":
-      return translate("applicationStatus.rejected") as ApplicationStatusLabel;
-    case "Offer Declined":
-      return translate("applicationStatus.offerDeclined") as ApplicationStatusLabel;
-    case "Withdrawn":
-      return translate("applicationStatus.withdrawn") as ApplicationStatusLabel;
-    default:
-      return translate("applicationStatus.unknown") as ApplicationStatusLabel;
-  }
+  return getApplicationStatusMeta(status).label;
 }
 
 export function getApplicationStatusBadgeClass(

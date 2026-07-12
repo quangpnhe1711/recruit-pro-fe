@@ -173,9 +173,7 @@ function ToolResultModal({ open, loading, tool, result, onClose }: ToolResultMod
   const subtitle =
     result && "candidateName" in result && result.candidateName
       ? result.candidateName
-      : result?.kind === "search"
-        ? `“${result.query}”`
-        : null;
+      : null;
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1a1c1c]/45 px-4 py-6 backdrop-blur-sm">
