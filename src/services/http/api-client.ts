@@ -3,6 +3,7 @@ import {
   forceLogoutAndRedirectToLogin,
   isBrokenJwtClaimError,
 } from "../auth/authFailure";
+import { hasUsableRefreshToken } from "../auth/authToken";
 import { store } from "../../store";
 import { setAccessToken } from "../../store/slices/authSlice";
 
@@ -38,8 +39,7 @@ let refreshPromise: Promise<string> | null = null;
 
 async function runRefresh(): Promise<string> {
   const refreshToken = localStorage.getItem("refresh_token");
-  // setCredentials can persist the literal string "null" when the backend omits a refresh token.
-  if (!refreshToken || refreshToken === "null") {
+  if (!hasUsableRefreshToken(refreshToken)) {
     throw new Error("No refresh token available");
   }
 

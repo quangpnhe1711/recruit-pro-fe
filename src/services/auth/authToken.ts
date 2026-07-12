@@ -38,20 +38,19 @@ export function isTokenValid(token: string | null | undefined) {
   return payload.exp * 1000 > Date.now();
 }
 
+export function hasUsableRefreshToken(token: string | null | undefined) {
+  const normalized = token?.trim();
+
+  return Boolean(normalized && normalized !== "null" && normalized !== "undefined");
+}
+
 export function hasValidStoredSession() {
   const accessToken = localStorage.getItem("access_token");
   const refreshToken = localStorage.getItem("refresh_token");
 
-  if (!accessToken || !refreshToken) {
-    return false;
-  }
-
-  // The access token is a JWT (shape + expiry checked). The refresh token is an opaque, server-side
-  // random string — NOT a JWT — so JWT-validating it always fails and would force-logout a freshly
-  // logged-in user. Only its presence is meaningful client-side; the server is authoritative on
-  // /auth/refresh. A present refresh token means the session is renewable even once the short-lived
-  // access token has expired, so treat the session as valid and let a real 401 drive logout.
-  return isTokenValid(accessToken) || Boolean(refreshToken);
+  // The access token is a JWT, but the refresh token is an opaque server-side random string.
+  // Do not JWT-validate the refresh token; a real /auth/refresh call is the authority.
+  return isTokenValid(accessToken) || hasUsableRefreshToken(refreshToken);
 }
 
 export function hasStoredToken() {
