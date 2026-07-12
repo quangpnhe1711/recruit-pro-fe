@@ -46,7 +46,12 @@ export function hasValidStoredSession() {
     return false;
   }
 
-  return isTokenValid(accessToken) && isTokenValid(refreshToken);
+  // The access token is a JWT (shape + expiry checked). The refresh token is an opaque, server-side
+  // random string — NOT a JWT — so JWT-validating it always fails and would force-logout a freshly
+  // logged-in user. Only its presence is meaningful client-side; the server is authoritative on
+  // /auth/refresh. A present refresh token means the session is renewable even once the short-lived
+  // access token has expired, so treat the session as valid and let a real 401 drive logout.
+  return isTokenValid(accessToken) || Boolean(refreshToken);
 }
 
 export function hasStoredToken() {

@@ -39,23 +39,22 @@ function DashboardCandidateScreen() {
     if (dashboardLoadedRef.current) return;
 
     dashboardLoadedRef.current = true;
-    let mounted = true;
 
+    // ponytail: no mounted flag — the ref guard already blocks the StrictMode
+    // double-fetch, and gating setters on a mounted flag the cleanup flips to
+    // false left loading=true forever (skeleton). setState-after-unmount is a
+    // harmless no-op in React 18.
     candidateService
       .getDashboard()
       .then((res) => {
-        if (mounted && res.data) setDashboard(res.data);
+        if (res.data) setDashboard(res.data);
       })
       .catch(() => {
-        if (mounted) setDashboard(null);
+        setDashboard(null);
       })
       .finally(() => {
-        if (mounted) setLoading(false);
+        setLoading(false);
       });
-
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   useEffect(() => {
