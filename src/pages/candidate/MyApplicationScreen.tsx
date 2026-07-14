@@ -15,6 +15,8 @@ import {
 import { getApplicationStatusPresentation } from "../../common/status/statusPresentation";
 import { normalizeApplicationStatus } from "../../common/status/applicationStatus";
 import { PERMISSIONS } from "../../permissions/permissions";
+// ConfirmModal is the shared design-system dialog (lives with the sysadmin UI helpers).
+import { ConfirmModal } from "../system-admin/automationUi";
 import {
   candidateService,
   type CandidateApplicationItemDto,
@@ -246,6 +248,10 @@ function MyApplicationScreen() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    kind: "withdraw" | "accept" | "decline";
+    item: ApplicationItem;
+  } | null>(null);
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [interviews, setInterviews] = useState<CandidateInterviewItemDto[]>([]);
   const [summary, setSummary] = useState(() => buildEmptySummaryCards(t));
@@ -366,22 +372,41 @@ function MyApplicationScreen() {
     );
   }, [interviews, selectedApplication]);
 
-  async function handleWithdraw(item: ApplicationItem) {
-    const confirmed = window.confirm(
-      t("candidateApplications.confirmWithdraw", { title: item.title }),
-    );
-    if (!confirmed) {
-      return;
-    }
+  // Each action just stages the request; the app ConfirmModal (bottom of the screen) runs it.
+  function handleWithdraw(item: ApplicationItem) {
+    setPendingAction({ kind: "withdraw", item });
+  }
 
+  function handleAcceptOffer(item: ApplicationItem) {
+    setPendingAction({ kind: "accept", item });
+  }
+
+  function handleDeclineOffer(item: ApplicationItem) {
+    setPendingAction({ kind: "decline", item });
+  }
+
+  async function runPendingAction() {
+    if (!pendingAction) return;
+    const { kind, item } = pendingAction;
     try {
       setActionLoadingId(item.id);
-      await candidateService.withdrawApplication(item.id);
-      appToast.success(t("candidateApplications.withdrawSuccess"));
-      await loadData();
-      setSelectedApplicationId((current) =>
-        current === item.id ? null : current,
-      );
+      if (kind === "withdraw") {
+        await candidateService.withdrawApplication(item.id);
+        appToast.success(t("candidateApplications.withdrawSuccess"));
+        await loadData();
+        setSelectedApplicationId((current) =>
+          current === item.id ? null : current,
+        );
+      } else if (kind === "accept") {
+        await candidateService.acceptOffer(item.id);
+        appToast.success(t("candidateApplications.acceptOfferSuccess"));
+        await loadData();
+      } else {
+        await candidateService.declineOffer(item.id);
+        appToast.success(t("candidateApplications.declineOfferSuccess"));
+        await loadData();
+      }
+      setPendingAction(null);
     } catch (error) {
       handleNonFormApiError(error);
     } finally {
@@ -389,45 +414,28 @@ function MyApplicationScreen() {
     }
   }
 
-  async function handleAcceptOffer(item: ApplicationItem) {
-    const confirmed = window.confirm(
-      t("candidateApplications.confirmAcceptOffer", { title: item.title }),
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setActionLoadingId(item.id);
-      await candidateService.acceptOffer(item.id);
-      appToast.success(t("candidateApplications.acceptOfferSuccess"));
-      await loadData();
-    } catch (error) {
-      handleNonFormApiError(error);
-    } finally {
-      setActionLoadingId(null);
-    }
-  }
-
-  async function handleDeclineOffer(item: ApplicationItem) {
-    const confirmed = window.confirm(
-      t("candidateApplications.confirmDeclineOffer", { title: item.title }),
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setActionLoadingId(item.id);
-      await candidateService.declineOffer(item.id);
-      appToast.success(t("candidateApplications.declineOfferSuccess"));
-      await loadData();
-    } catch (error) {
-      handleNonFormApiError(error);
-    } finally {
-      setActionLoadingId(null);
-    }
-  }
+  const pendingCopy = pendingAction
+    ? {
+        withdraw: {
+          title: t("candidateApplications.withdraw"),
+          body: t("candidateApplications.confirmWithdraw", { title: pendingAction.item.title }),
+          confirmLabel: t("candidateApplications.withdraw"),
+          danger: true,
+        },
+        accept: {
+          title: t("candidateApplications.acceptOffer"),
+          body: t("candidateApplications.confirmAcceptOffer", { title: pendingAction.item.title }),
+          confirmLabel: t("candidateApplications.acceptOffer"),
+          danger: false,
+        },
+        decline: {
+          title: t("candidateApplications.declineOffer"),
+          body: t("candidateApplications.confirmDeclineOffer", { title: pendingAction.item.title }),
+          confirmLabel: t("candidateApplications.declineOffer"),
+          danger: true,
+        },
+      }[pendingAction.kind]
+    : null;
 
   function handleViewInterviews(item: ApplicationItem) {
     const search = new URLSearchParams();
@@ -707,6 +715,18 @@ function MyApplicationScreen() {
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={pendingAction != null}
+        title={pendingCopy?.title ?? ""}
+        danger={pendingCopy?.danger}
+        busy={pendingAction != null && actionLoadingId === pendingAction.item.id}
+        confirmLabel={pendingCopy?.confirmLabel}
+        onConfirm={runPendingAction}
+        onClose={() => setPendingAction(null)}
+      >
+        {pendingCopy?.body}
+      </ConfirmModal>
     </div>
   );
 }

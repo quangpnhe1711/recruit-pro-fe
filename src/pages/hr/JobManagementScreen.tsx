@@ -334,7 +334,7 @@ function JobManagementScreen() {
     try {
       await jobsService.deleteJob(deleteTarget.id);
       setJobs((prev) => prev.filter((j) => j.id !== deleteTarget.id));
-      appToast.info(t("jobManagement.deleted"));
+      appToast.success(t("jobManagement.deleted"));
       setDeleteTarget(null);
     } catch (err) {
       handleNonFormApiError(err);

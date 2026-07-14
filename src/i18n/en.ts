@@ -1730,6 +1730,8 @@ export const en = {
     presetSaveFailed: "Could not save the preset.",
     presetUpdateFailed: "Could not update the preset.",
     presetDeleted: "Preset deleted.",
+    presetActivated: "Preset activated.",
+    presetStopped: "Preset stopped.",
     presetDeleteFailed: "Could not delete the preset.",
     noCandidateAnalysis: "AI has not analyzed this candidate yet.",
     noEmailDraft: "AI has not drafted an email yet.",
@@ -1807,6 +1809,8 @@ export const en = {
       presetCounts: "{priority} priority / {negative} exclusion",
       stop: "Stop",
       apply: "Apply",
+      deleteConfirmTitle: "Delete preset",
+      deleteConfirm: "Delete the preset \"{name}\"? This cannot be undone.",
       emptyStateTitle: "Build your ranking logic",
       emptyStateDescription:
         "Use priority criteria to reward strong matches and exclusion criteria to auto-reject or penalize weak fits.",
@@ -1910,6 +1914,8 @@ export const en = {
     errorForbidden: "You do not have permission to change RBAC settings.",
     errorUnknownPermission: "One or more permissions no longer exist. Reload and try again.",
     discardChangesPrompt: "Discard unsaved permission changes?",
+    discardChangesTitle: "Discard changes",
+    discardChangesConfirm: "Discard",
     criticalGrantTitle: "Grant high-impact permission?",
     criticalGrantConfirm: "Grant permission",
     criticalGrantBody:

@@ -11,6 +11,8 @@ import { usePermissions } from "../../hooks/usePermissions";
 import { useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
+// ConfirmModal is the shared design-system dialog (lives with the sysadmin UI helpers).
+import { ConfirmModal } from "../system-admin/automationUi";
 
 /* eslint-disable react-hooks/refs */
 
@@ -334,6 +336,8 @@ function JobInterviewListScreen() {
   const pageSize = 5;
 
   const [openMenuForId, setOpenMenuForId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Interview | null>(null);
+  const [canceling, setCanceling] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -540,21 +544,26 @@ function JobInterviewListScreen() {
     [navigate],
   );
 
-  const cancelInterview = useCallback(async (it: Interview) => {
-    const ok = window.confirm(
-      t("jobInterviewList.cancelConfirm", { candidate: it.candidateName }),
-    );
-    if (!ok) return;
+  // Stage the target; the app ConfirmModal (bottom of the screen) runs the delete.
+  const cancelInterview = useCallback((it: Interview) => {
+    setCancelTarget(it);
+    setOpenMenuForId(null);
+  }, []);
 
+  const confirmCancelInterview = useCallback(async () => {
+    if (!cancelTarget) return;
+    setCanceling(true);
     try {
-      await hrService.deleteInterview(it.id);
-      setItems((prev) => prev.filter((x) => x.id !== it.id));
-      appToast.info(t("jobInterviewList.canceled"));
-      setOpenMenuForId(null);
+      await hrService.deleteInterview(cancelTarget.id);
+      setItems((prev) => prev.filter((x) => x.id !== cancelTarget.id));
+      appToast.success(t("jobInterviewList.canceled"));
+      setCancelTarget(null);
     } catch (err) {
       handleNonFormApiError(err);
+    } finally {
+      setCanceling(false);
     }
-  }, []);
+  }, [cancelTarget, t]);
 
   const columns = useMemo(
     () =>
@@ -771,6 +780,20 @@ function JobInterviewListScreen() {
           onPageChange: goTo,
         }}
       />
+
+      <ConfirmModal
+        open={cancelTarget != null}
+        title={t("jobInterviewList.cancelInterview")}
+        danger
+        busy={canceling}
+        confirmLabel={t("jobInterviewList.cancelInterview")}
+        onConfirm={confirmCancelInterview}
+        onClose={() => setCancelTarget(null)}
+      >
+        {cancelTarget
+          ? t("jobInterviewList.cancelConfirm", { candidate: cancelTarget.candidateName })
+          : null}
+      </ConfirmModal>
     </div>
   );
 }

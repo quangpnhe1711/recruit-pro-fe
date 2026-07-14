@@ -1718,6 +1718,8 @@ export const vi: Dictionary = {
     presetSaveFailed: "Không lưu được preset.",
     presetUpdateFailed: "Không cập nhật được preset.",
     presetDeleted: "Đã xóa preset.",
+    presetActivated: "Đã kích hoạt preset.",
+    presetStopped: "Đã tắt preset.",
     presetDeleteFailed: "Không thể xóa preset.",
     noCandidateAnalysis: "AI chưa phân tích được ứng viên này.",
     noEmailDraft: "AI chưa soạn được email.",
@@ -1795,6 +1797,8 @@ export const vi: Dictionary = {
       presetCounts: "{priority} ưu tiên / {negative} loại trừ",
       stop: "Dừng",
       apply: "Áp dụng",
+      deleteConfirmTitle: "Xóa preset",
+      deleteConfirm: "Xóa preset \"{name}\"? Hành động này không thể hoàn tác.",
       emptyStateTitle: "Xây logic xếp hạng của bạn",
       emptyStateDescription:
         "Dùng tiêu chí ưu tiên để cộng điểm cho hồ sơ mạnh và tiêu chí loại trừ để loại tự động hoặc trừ điểm hồ sơ yếu.",
@@ -1898,6 +1902,8 @@ export const vi: Dictionary = {
     errorForbidden: "Bạn không có quyền thay đổi cấu hình RBAC.",
     errorUnknownPermission: "Một hoặc nhiều quyền không còn tồn tại. Tải lại trang và thử lại.",
     discardChangesPrompt: "Bỏ các thay đổi phân quyền chưa lưu?",
+    discardChangesTitle: "Bỏ thay đổi",
+    discardChangesConfirm: "Bỏ thay đổi",
     criticalGrantTitle: "Cấp quyền tác động lớn?",
     criticalGrantConfirm: "Cấp quyền",
     criticalGrantBody:

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import AsyncActionButton from "../../../common/components/AsyncActionButton";
+import { ConfirmModal } from "../../system-admin/automationUi";
 import CommonSelect from "../../../common/components/CommonSelect";
 import EmptyState from "../../../common/components/EmptyState";
 import { useI18n } from "../../../i18n";
@@ -58,6 +60,8 @@ function CriteriaBuilderModal(props: CriteriaBuilderModalProps) {
     applying,
     onApplyAndRank,
   } = props;
+
+  const [pendingDeleteRule, setPendingDeleteRule] = useState<CopilotSavedRuleDto | null>(null);
 
   if (!open) return null;
 
@@ -313,7 +317,7 @@ function CriteriaBuilderModal(props: CriteriaBuilderModalProps) {
                         disabled={deletingRuleId === rule.ruleId}
                         loading={deletingRuleId === rule.ruleId}
                         loadingText=""
-                        onClick={() => onDeleteRule(rule.ruleId)}
+                        onClick={() => setPendingDeleteRule(rule)}
                         spinnerTone="brand"
                       >
                         {t("common.delete")}
@@ -353,6 +357,24 @@ function CriteriaBuilderModal(props: CriteriaBuilderModalProps) {
           </AsyncActionButton>
         </div>
       </div>
+
+      <ConfirmModal
+        open={pendingDeleteRule != null}
+        title={t("aiCopilot.criteria.deleteConfirmTitle")}
+        danger
+        busy={pendingDeleteRule != null && deletingRuleId === pendingDeleteRule.ruleId}
+        confirmLabel={t("common.delete")}
+        onConfirm={async () => {
+          if (!pendingDeleteRule) return;
+          await onDeleteRule(pendingDeleteRule.ruleId);
+          setPendingDeleteRule(null);
+        }}
+        onClose={() => setPendingDeleteRule(null)}
+      >
+        {pendingDeleteRule
+          ? t("aiCopilot.criteria.deleteConfirm", { name: pendingDeleteRule.name })
+          : null}
+      </ConfirmModal>
     </div>,
     document.body,
   );

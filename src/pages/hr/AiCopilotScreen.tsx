@@ -396,6 +396,7 @@ function AiCopilotScreen() {
       const response = await copilotService.updateSavedRuleStatus(rule.ruleId, !rule.isActive);
       if (!response.data) return;
       setSavedRules((current) => current.map((item) => (item.ruleId === rule.ruleId ? response.data! : item)));
+      appToast.success(t(response.data.isActive ? "aiCopilot.presetActivated" : "aiCopilot.presetStopped"));
       // Applying a preset loads its criteria into the current builder.
       if (!rule.isActive && response.data.isActive) {
         setPriorityCriteria(response.data.rule.priorityCriteria);

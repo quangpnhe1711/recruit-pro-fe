@@ -90,6 +90,7 @@ function RbacPermissionsScreen() {
   const [confirm, setConfirm] = useState<
     | { kind: "critical-grant"; action: RbacActionDto }
     | { kind: "grant-all" }
+    | { kind: "discard-switch"; roleId: string }
     | null
   >(null);
 
@@ -135,15 +136,26 @@ function RbacPermissionsScreen() {
     loadRoleGrants(selectedRoleId);
   }, [selectedRoleId, loadRoleGrants]);
 
-  // Switching roles with unsaved edits silently dropping them would be hostile; a native confirm is
-  // deliberate here (transient navigation guard, not a business action).
-  const confirmDiscard = () => window.confirm(t("admin.discardChangesPrompt"));
+  // Switching roles with unsaved edits silently dropping them would be hostile; gate it behind the
+  // app confirm dialog (transient navigation guard, not a business action).
+  const switchRole = (roleId: string) => {
+    setSelectedRoleId(roleId);
+    setSearchParams(roleId ? { role: roleId } : {}, { replace: true });
+  };
 
   const selectRole = (roleId: string) => {
     if (roleId === selectedRoleId) return;
-    if (dirty && !confirmDiscard()) return;
-    setSelectedRoleId(roleId);
-    setSearchParams(roleId ? { role: roleId } : {}, { replace: true });
+    if (dirty) {
+      setConfirm({ kind: "discard-switch", roleId });
+      return;
+    }
+    switchRole(roleId);
+  };
+
+  const applyDiscardSwitch = () => {
+    if (confirm?.kind !== "discard-switch") return;
+    switchRole(confirm.roleId);
+    setConfirm(null);
   };
 
   const toggleCode = (action: RbacActionDto) => {
@@ -471,6 +483,17 @@ function RbacPermissionsScreen() {
         onClose={() => setConfirm(null)}
       >
         {t("admin.grantAllBody", { role: selectedRole?.name ?? "" })}
+      </ConfirmModal>
+
+      <ConfirmModal
+        open={confirm?.kind === "discard-switch"}
+        title={t("admin.discardChangesTitle")}
+        danger
+        confirmLabel={t("admin.discardChangesConfirm")}
+        onConfirm={applyDiscardSwitch}
+        onClose={() => setConfirm(null)}
+      >
+        {t("admin.discardChangesPrompt")}
       </ConfirmModal>
     </div>
   );
