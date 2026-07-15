@@ -756,6 +756,8 @@ export const vi: Dictionary = {
     parseSuccessAi: "Đã phân tích CV bằng AI. Hãy kiểm tra dữ liệu trước khi áp dụng.",
     parseSuccessFallback:
       "Đã phân tích CV bằng chế độ dự phòng. Hãy kiểm tra lại kỹ dữ liệu trước khi áp dụng.",
+    parseYearsReminder:
+      "Lưu ý: hệ thống thường không xác định được số năm kinh nghiệm cho từng kỹ năng khi phân tích CV. Hãy bổ sung số năm cho các kỹ năng còn trống trước khi lưu.",
     skillsPlaceholder: "Chọn kỹ năng",
     skillsEmpty: "Chưa có kỹ năng nào được chọn.",
     skillsAllSelected: "Đã chọn tất cả kỹ năng",

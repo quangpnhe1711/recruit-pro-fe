@@ -525,6 +525,8 @@ export function useCandidateProfileScreen() {
     appToast.success(
       translate("candidateProfile.parseApplied"),
     );
+    // Applied skills often have no parsed years — remind the candidate to fill them in (not required).
+    appToast.info(translate("candidateProfile.parseYearsReminder"));
   }
 
   async function handleSaveProfile() {
@@ -718,6 +720,8 @@ export function useCandidateProfileScreen() {
           ? translate("candidateProfile.parseSuccessAi")
           : translate("candidateProfile.parseSuccessFallback"),
       );
+      // Parsing rarely resolves per-skill years — nudge the candidate to fill the blanks (not required).
+      appToast.info(translate("candidateProfile.parseYearsReminder"));
     } catch (error) {
       console.error(error);
       handleNonFormApiError(error);

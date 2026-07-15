@@ -767,6 +767,8 @@ export const en = {
     parseSuccessAi: "Resume parsed with AI. Please review the data before applying it.",
     parseSuccessFallback:
       "Resume parsed with the fallback mode. Please review the data carefully before applying it.",
+    parseYearsReminder:
+      "Note: parsing usually can't determine the years of experience per skill. Please fill in the years for any blank skills before saving.",
     skillsPlaceholder: "Choose a skill",
     skillsEmpty: "No skills selected yet.",
     skillsAllSelected: "All skills selected",
