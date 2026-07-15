@@ -18,9 +18,6 @@ import { jobsService } from "../../services/jobs/jobsService";
 import { translate } from "../../i18n";
 
 const pageSize = 5;
-const SALARY_FILTER_MIN = 5_000_000;
-const SALARY_FILTER_MAX = 60_000_000;
-const SALARY_FILTER_STEP = 1_000_000;
 
 const employmentTypeOptionsFromEnum = (
   Object.entries(employmentTypeLabels) as Array<[EmploymentType, string]>
@@ -37,8 +34,17 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-function formatSalaryInMillions(amount: number) {
-  return `${Math.round(amount / 1_000_000)} triệu`;
+function salaryRangeLabel(min: number | null, max: number | null) {
+  if (min == null && max == null) {
+    return "Nhập mức lương tháng mong muốn (đơn vị: triệu đồng).";
+  }
+  if (min != null && max != null) {
+    return `Lọc lương tháng từ ${formatCurrency(min)} đến ${formatCurrency(max)}.`;
+  }
+  if (min != null) {
+    return `Lọc lương tháng từ ${formatCurrency(min)} trở lên.`;
+  }
+  return `Lọc lương tháng đến ${formatCurrency(max as number)}.`;
 }
 
 function formatEmploymentType(value: string) {
@@ -119,13 +125,10 @@ function extractJobTags(job: JobListItemDto) {
 
 function matchesSalaryFilters(
   job: JobListItemDto,
-  selectedMin: number,
-  selectedMax: number,
+  selectedMin: number | null,
+  selectedMax: number | null,
 ) {
-  if (
-    selectedMin === SALARY_FILTER_MIN &&
-    selectedMax === SALARY_FILTER_MAX
-  ) {
+  if (selectedMin == null && selectedMax == null) {
     return true;
   }
 
@@ -139,7 +142,13 @@ function matchesSalaryFilters(
   const effectiveMin = salaryMin ?? 0;
   const effectiveMax = salaryMax ?? effectiveMin;
 
-  return effectiveMin <= selectedMax && effectiveMax >= selectedMin;
+  if (selectedMin != null && effectiveMax < selectedMin) {
+    return false;
+  }
+  if (selectedMax != null && effectiveMin > selectedMax) {
+    return false;
+  }
+  return true;
 }
 
 function matchesSearchQuery(job: JobListItemDto, keyword: string) {
@@ -171,17 +180,15 @@ function JobListingCandidateScreen() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [salaryFilterMin, setSalaryFilterMin] = useState(SALARY_FILTER_MIN);
-  const [salaryFilterMax, setSalaryFilterMax] = useState(SALARY_FILTER_MAX);
+  const [salaryFilterMin, setSalaryFilterMin] = useState<number | null>(null);
+  const [salaryFilterMax, setSalaryFilterMax] = useState<number | null>(null);
   const [selectedEmploymentTypes, setSelectedEmploymentTypes] = useState<EmploymentType[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [employmentTypeOptions] = useState<JobSearchFilterOption[]>(employmentTypeOptionsFromEnum);
   const [skillOptions, setSkillOptions] = useState<JobSearchFilterOption[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const hasCustomSalaryFilter = useMemo(
-    () =>
-      salaryFilterMin !== SALARY_FILTER_MIN ||
-      salaryFilterMax !== SALARY_FILTER_MAX,
+    () => salaryFilterMin != null || salaryFilterMax != null,
     [salaryFilterMax, salaryFilterMin],
   );
 
@@ -328,8 +335,8 @@ function JobListingCandidateScreen() {
     setSearch("");
     setDebouncedSearch("");
     setSortBy("newest");
-    setSalaryFilterMin(SALARY_FILTER_MIN);
-    setSalaryFilterMax(SALARY_FILTER_MAX);
+    setSalaryFilterMin(null);
+    setSalaryFilterMax(null);
     setSelectedEmploymentTypes([]);
     setSelectedSkills([]);
     setPage(1);
@@ -366,49 +373,49 @@ function JobListingCandidateScreen() {
               <label className="field-label mb-4 block">
                 Mức lương
               </label>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-[13px] font-semibold text-[#5f5e5e]">
-                  <span>{formatSalaryInMillions(salaryFilterMin)}</span>
-                  <span>{formatSalaryInMillions(salaryFilterMax)}</span>
-                </div>
-                <div className="relative h-10">
-                  <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#e7d8d5]" />
-                  <div
-                    className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-[#b90014]"
-                    style={{
-                      left: `${((salaryFilterMin - SALARY_FILTER_MIN) / (SALARY_FILTER_MAX - SALARY_FILTER_MIN)) * 100}%`,
-                      right: `${100 - ((salaryFilterMax - SALARY_FILTER_MIN) / (SALARY_FILTER_MAX - SALARY_FILTER_MIN)) * 100}%`,
-                    }}
-                  />
-                  <input
-                    className="pointer-events-none absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#b90014] [&::-webkit-slider-thumb]:bg-white"
-                    max={salaryFilterMax - SALARY_FILTER_STEP}
-                    min={SALARY_FILTER_MIN}
-                    step={SALARY_FILTER_STEP}
-                    type="range"
-                    value={salaryFilterMin}
-                    onChange={(event) => {
-                      setLoading(true);
-                      setSalaryFilterMin(Number(event.target.value));
-                      setPage(1);
-                    }}
-                  />
-                  <input
-                    className="pointer-events-none absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[#b90014] [&::-webkit-slider-thumb]:bg-white"
-                    max={SALARY_FILTER_MAX}
-                    min={salaryFilterMin + SALARY_FILTER_STEP}
-                    step={SALARY_FILTER_STEP}
-                    type="range"
-                    value={salaryFilterMax}
-                    onChange={(event) => {
-                      setLoading(true);
-                      setSalaryFilterMax(Number(event.target.value));
-                      setPage(1);
-                    }}
-                  />
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <input
+                      className="input-field h-11 pr-14"
+                      type="number"
+                      min={0}
+                      inputMode="numeric"
+                      placeholder="Từ"
+                      value={salaryFilterMin == null ? "" : salaryFilterMin / 1_000_000}
+                      onChange={(event) => {
+                        const raw = event.target.value.trim();
+                        setLoading(true);
+                        setSalaryFilterMin(raw === "" ? null : Number(raw) * 1_000_000);
+                        setPage(1);
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#7a7776]">
+                      triệu
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      className="input-field h-11 pr-14"
+                      type="number"
+                      min={0}
+                      inputMode="numeric"
+                      placeholder="Đến"
+                      value={salaryFilterMax == null ? "" : salaryFilterMax / 1_000_000}
+                      onChange={(event) => {
+                        const raw = event.target.value.trim();
+                        setLoading(true);
+                        setSalaryFilterMax(raw === "" ? null : Number(raw) * 1_000_000);
+                        setPage(1);
+                      }}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-medium text-[#7a7776]">
+                      triệu
+                    </span>
+                  </div>
                 </div>
                 <p className="text-[12px] text-[#7a7776]">
-                  Lọc theo khoảng lương tháng từ {formatCurrency(salaryFilterMin)} đến {formatCurrency(salaryFilterMax)}.
+                  {salaryRangeLabel(salaryFilterMin, salaryFilterMax)}
                 </p>
               </div>
             </div>

@@ -3,42 +3,41 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { LoginResponseDto, UserDto } from "../../modules/auth/authSchema";
 import { resolvePortalVariantFromUser } from "../../permissions/rolePermissions";
 import { hasValidStoredSession } from "../../services/auth/authToken";
+import {
+  activePortal,
+  clearSession,
+  patchSession,
+  purgeLegacySharedSession,
+  readSession,
+  writeSession,
+  type Portal,
+} from "../../services/auth/authSession";
 
-export type Variant = "candidate" | "internal";
+export type Variant = Portal;
 
-const readAuthFromStorage = () => {
-  const accessToken = localStorage.getItem("access_token");
-  const refreshToken = localStorage.getItem("refresh_token");
-  const variant = localStorage.getItem("current_variant") as Variant | null;
-  const userRaw = localStorage.getItem("auth_user");
-  const isValidSession = hasValidStoredSession();
-  let user: UserDto | null = null;
+// Redux mirrors whichever portal the current URL belongs to. Each portal's tokens/user live in their
+// own localStorage key (see authSession.ts); this state is just the hydrated view of the active one.
+const emptyAuthState = (): AuthState => ({
+  accessToken: null,
+  refreshToken: null,
+  user: null,
+  currentVariant: undefined,
+  isAuthenticated: false,
+});
 
-  if (userRaw) {
-    try {
-      user = JSON.parse(userRaw) as UserDto;
-    } catch {
-      localStorage.removeItem("auth_user");
-    }
+const readAuthForPortal = (portal: Portal): AuthState => {
+  const session = readSession(portal);
+  if (!session || !hasValidStoredSession(portal)) {
+    return emptyAuthState();
   }
-
   return {
-    accessToken: isValidSession ? accessToken : null,
-    refreshToken: isValidSession ? refreshToken : null,
-    user: isValidSession ? user : null,
-    currentVariant: isValidSession ? variant ?? undefined : undefined,
-    isAuthenticated: isValidSession,
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+    user: session.user,
+    currentVariant: portal,
+    isAuthenticated: true,
   };
 };
-
-const persistedAuth = readAuthFromStorage();
-
-if (!persistedAuth.isAuthenticated) {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("current_variant");
-  localStorage.removeItem("auth_user");
-}
 
 export type AuthState = {
   accessToken: string | null;
@@ -52,13 +51,8 @@ export type AuthState = {
   isAuthenticated: boolean;
 };
 
-const initialState: AuthState = {
-  accessToken: persistedAuth.accessToken,
-  refreshToken: persistedAuth.refreshToken,
-  user: persistedAuth.user,
-  currentVariant: persistedAuth.currentVariant,
-  isAuthenticated: persistedAuth.isAuthenticated,
-};
+purgeLegacySharedSession();
+const initialState: AuthState = readAuthForPortal(activePortal());
 
 const authSlice = createSlice({
   name: "auth",
@@ -68,62 +62,52 @@ const authSlice = createSlice({
   reducers: {
     setCredentials(state, action: PayloadAction<LoginResponseDto>) {
       const { accessToken, refreshToken, user } = action.payload;
-      const resolvedVariant = resolvePortalVariantFromUser(
+      // The user's roles decide which portal this session belongs to — write it to that portal's key
+      // (the internal and candidate login pages already sit under their respective portals).
+      const portal = resolvePortalVariantFromUser(user, "candidate");
+
+      writeSession(portal, {
+        accessToken,
+        refreshToken: refreshToken || null,
         user,
-        state.currentVariant ?? "candidate",
-      );
+      });
 
       state.accessToken = accessToken;
-
-      state.refreshToken = refreshToken;
-
+      state.refreshToken = refreshToken || null;
       state.user = user;
-      state.currentVariant = resolvedVariant;
-
+      state.currentVariant = portal;
       state.isAuthenticated = true;
-
-      localStorage.setItem("access_token", accessToken);
-      // Guard against persisting the literal string "null" when the backend omits a refresh token.
-      if (refreshToken) {
-        localStorage.setItem("refresh_token", refreshToken);
-      } else {
-        localStorage.removeItem("refresh_token");
-      }
-      localStorage.setItem("current_variant", resolvedVariant);
-      localStorage.setItem("auth_user", JSON.stringify(user));
     },
 
     setAccessToken(state, action: PayloadAction<string>) {
       state.accessToken = action.payload;
-      localStorage.setItem("access_token", action.payload);
-    },
-
-    setVariant(state, action: PayloadAction<Variant>) {
-      state.currentVariant = action.payload;
-
-      localStorage.setItem("current_variant", action.payload);
+      patchSession(activePortal(), { accessToken: action.payload });
     },
 
     updateUser(state, action: PayloadAction<UserDto>) {
       state.user = action.payload;
-      localStorage.setItem("auth_user", JSON.stringify(action.payload));
+      patchSession(activePortal(), { user: action.payload });
+    },
+
+    // Re-sync Redux to the session of whichever portal the current URL belongs to. Dispatched on
+    // navigation so moving between portals in one tab never shows the other portal's identity.
+    hydrateActivePortal(state) {
+      const next = readAuthForPortal(activePortal());
+      state.accessToken = next.accessToken;
+      state.refreshToken = next.refreshToken;
+      state.user = next.user;
+      state.currentVariant = next.currentVariant;
+      state.isAuthenticated = next.isAuthenticated;
     },
 
     logout(state) {
+      clearSession(activePortal());
+
       state.accessToken = null;
-
       state.refreshToken = null;
-
       state.user = null;
-
       state.currentVariant = undefined;
-
       state.isAuthenticated = false;
-
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("current_variant");
-      localStorage.removeItem("auth_user");
     },
   },
 });
@@ -131,8 +115,8 @@ const authSlice = createSlice({
 export const {
   setCredentials,
   setAccessToken,
-  setVariant,
   updateUser,
+  hydrateActivePortal,
   logout,
 } = authSlice.actions;
 

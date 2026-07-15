@@ -1,3 +1,5 @@
+import { activePortal, readSession, type Portal } from "./authSession";
+
 function decodeBase64Url(value: string) {
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
   const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
@@ -44,17 +46,18 @@ export function hasUsableRefreshToken(token: string | null | undefined) {
   return Boolean(normalized && normalized !== "null" && normalized !== "undefined");
 }
 
-export function hasValidStoredSession() {
-  const accessToken = localStorage.getItem("access_token");
-  const refreshToken = localStorage.getItem("refresh_token");
+export function hasValidStoredSession(portal: Portal = activePortal()) {
+  const session = readSession(portal);
+  if (!session) {
+    return false;
+  }
 
   // The access token is a JWT, but the refresh token is an opaque server-side random string.
   // Do not JWT-validate the refresh token; a real /auth/refresh call is the authority.
-  return isTokenValid(accessToken) || hasUsableRefreshToken(refreshToken);
+  return isTokenValid(session.accessToken) || hasUsableRefreshToken(session.refreshToken);
 }
 
-export function hasStoredToken() {
-  return Boolean(
-    localStorage.getItem("access_token") || localStorage.getItem("refresh_token"),
-  );
+export function hasStoredToken(portal: Portal = activePortal()) {
+  const session = readSession(portal);
+  return Boolean(session && (session.accessToken || session.refreshToken));
 }

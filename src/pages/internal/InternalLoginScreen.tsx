@@ -18,12 +18,9 @@ import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDia
 import LanguageSwitcher from "../../common/components/layout/LanguageSwitcher";
 import BrandLogo from "../../common/components/layout/BrandLogo";
 
-const rememberedInternalIdentifierKey = "rp_internal_remembered_identifier";
-
 type InternalLoginForm = {
   username: string;
   password: string;
-  remember: boolean;
 };
 
 function InternalLoginScreen() {
@@ -38,7 +35,6 @@ function InternalLoginScreen() {
   const schema = yup.object({
     username: yup.string().required(t("auth.usernameRequired")),
     password: yup.string().required(t("auth.passwordRequired")),
-    remember: yup.boolean().default(false),
   });
 
   const {
@@ -48,9 +44,8 @@ function InternalLoginScreen() {
   } = useForm<InternalLoginForm>({
     resolver: yupResolver(schema) as Resolver<InternalLoginForm>,
     defaultValues: {
-      username: localStorage.getItem(rememberedInternalIdentifierKey) ?? "",
+      username: "",
       password: "",
-      remember: Boolean(localStorage.getItem(rememberedInternalIdentifierKey)),
     },
   });
 
@@ -69,14 +64,6 @@ function InternalLoginScreen() {
       }
 
       dispatch(setCredentials(res.data));
-      if (data.remember) {
-        localStorage.setItem(
-          rememberedInternalIdentifierKey,
-          data.username.trim(),
-        );
-      } else {
-        localStorage.removeItem(rememberedInternalIdentifierKey);
-      }
       appToast.success(t("auth.loginSuccess"));
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
@@ -245,21 +232,6 @@ function InternalLoginScreen() {
                     {errors.password.message}
                   </p>
                 ) : null}
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  {...register("remember")}
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-[#cbc6c4] text-[#b90014] accent-[#b90014] focus:ring-[#b90014]"
-                />
-                <label
-                  htmlFor="remember"
-                  className="ml-2.5 select-none text-[14px] text-[#5f5e5e]"
-                >
-                  {t("auth.rememberAccount")}
-                </label>
               </div>
 
               <button

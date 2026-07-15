@@ -15,6 +15,7 @@ import {
 } from "./sections/ProfileCollectionsSections";
 import ResumeSection from "./sections/ResumeSection";
 import SkillsSection from "./sections/SkillsSection";
+import { ConfirmModal } from "../../system-admin/automationUi";
 
 function CandidateProfileAndCVManagementScreen() {
   const { t } = useI18n();
@@ -206,6 +207,17 @@ function CandidateProfileAndCVManagementScreen() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={state.yearsReminderOpen}
+        title={t("candidateProfile.parseYearsReminderTitle")}
+        confirmLabel={t("candidateProfile.parseYearsReminderConfirm")}
+        cancelLabel={t("common.close")}
+        onConfirm={actions.dismissYearsReminder}
+        onClose={actions.dismissYearsReminder}
+      >
+        {t("candidateProfile.parseYearsReminder")}
+      </ConfirmModal>
     </main>
   );
 }

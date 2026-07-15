@@ -125,6 +125,8 @@ export function useCandidateProfileScreen() {
   const [parsedResumePreview, setParsedResumePreview] =
     useState<CandidateResumeParseResponseDto | null>(null);
   const [hasAppliedParsedResume, setHasAppliedParsedResume] = useState(false);
+  // After applying a parsed CV, prompt the candidate to fill skill years (most CVs don't state them).
+  const [yearsReminderOpen, setYearsReminderOpen] = useState(false);
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [resumeMeta, setResumeMeta] = useState<
@@ -525,8 +527,11 @@ export function useCandidateProfileScreen() {
     appToast.success(
       translate("candidateProfile.parseApplied"),
     );
-    // Applied skills often have no parsed years — remind the candidate to fill them in (not required).
-    appToast.info(translate("candidateProfile.parseYearsReminder"));
+    // CVs rarely state per-skill durations, so most applied skills have blank years. Pop a reminder
+    // modal to fill them in (optional) whenever at least one applied skill is missing its years.
+    if (uniqueParsedSkills.some((skill) => skill.yearsOfExperience == null)) {
+      setYearsReminderOpen(true);
+    }
   }
 
   async function handleSaveProfile() {
@@ -1155,6 +1160,7 @@ export function useCandidateProfileScreen() {
       isProfileDirty,
       hasPendingResumeUpload,
       hasAppliedParsedResume,
+      yearsReminderOpen,
       profileErrors,
       entryDraftErrors,
       projectDraftErrors,
@@ -1193,6 +1199,7 @@ export function useCandidateProfileScreen() {
           applyParsedResumeToForm(parsedResumePreview);
         }
       },
+      dismissYearsReminder: () => setYearsReminderOpen(false),
       handleAddSkill,
       handleRemoveSkill,
       handleAddEntry,
