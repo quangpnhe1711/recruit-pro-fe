@@ -152,8 +152,6 @@ export const en = {
     forgotPasswordSent: "If the account exists, a temporary password has been issued.",
     forgotPasswordCandidateTitle: "Recover candidate password",
     forgotPasswordInternalTitle: "Recover internal password",
-    rememberMe30: "Keep me signed in for 30 days",
-    rememberAccount: "Remember this account",
     showPassword: "Show password",
     hidePassword: "Hide password",
     candidateHeroTitle: "Shaping the future of hiring together",
@@ -769,6 +767,8 @@ export const en = {
       "Resume parsed with the fallback mode. Please review the data carefully before applying it.",
     parseYearsReminder:
       "Note: parsing usually can't determine the years of experience per skill. Please fill in the years for any blank skills before saving.",
+    parseYearsReminderTitle: "Fill in years of experience",
+    parseYearsReminderConfirm: "Got it",
     skillsPlaceholder: "Choose a skill",
     skillsEmpty: "No skills selected yet.",
     skillsAllSelected: "All skills selected",

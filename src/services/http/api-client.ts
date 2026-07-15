@@ -4,6 +4,7 @@ import {
   isBrokenJwtClaimError,
 } from "../auth/authFailure";
 import { hasUsableRefreshToken } from "../auth/authToken";
+import { activePortal, patchSession, readSession } from "../auth/authSession";
 import { store } from "../../store";
 import { setAccessToken } from "../../store/slices/authSlice";
 
@@ -23,7 +24,9 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  // Attach the token of the portal the current page belongs to (candidate vs internal run as
+  // independent, concurrent sessions).
+  const token = readSession(activePortal())?.accessToken;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -38,7 +41,8 @@ apiClient.interceptors.request.use((config) => {
 let refreshPromise: Promise<string> | null = null;
 
 async function runRefresh(): Promise<string> {
-  const refreshToken = localStorage.getItem("refresh_token");
+  const portal = activePortal();
+  const refreshToken = readSession(portal)?.refreshToken;
   if (!hasUsableRefreshToken(refreshToken)) {
     throw new Error("No refresh token available");
   }
@@ -59,7 +63,7 @@ async function runRefresh(): Promise<string> {
 
   store.dispatch(setAccessToken(newAccessToken));
   if (newRefreshToken) {
-    localStorage.setItem("refresh_token", newRefreshToken);
+    patchSession(portal, { refreshToken: newRefreshToken });
   }
 
   return newAccessToken;

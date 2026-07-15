@@ -1,4 +1,5 @@
 import { endpoints } from "../http/endpoints";
+import { activePortal, readSession } from "../auth/authSession";
 import type { NotificationItemDto } from "./notificationService";
 
 // Fetch-based SSE client for notifications (Option A).
@@ -17,8 +18,6 @@ const STREAM_EVENT = "notification.created";
 // Backoff for reconnect attempts (ms). Index 0 is the immediate first try; later drops reuse the
 // last (longest) delay. Mirrors the bounded backoff the old SignalR client used.
 const RECONNECT_DELAYS_MS = [0, 2000, 5000, 10000, 20000];
-
-const TOKEN_STORAGE_KEY = "access_token";
 
 export type NotificationStreamHandlers = {
   /** A new notification arrived over the stream. */
@@ -120,7 +119,7 @@ export function openNotificationStream(handlers: NotificationStreamHandlers): ()
 
   const run = async () => {
     while (!closed) {
-      const token = window.localStorage.getItem(TOKEN_STORAGE_KEY);
+      const token = readSession(activePortal())?.accessToken;
       if (!token) {
         // Not authenticated yet — wait briefly and re-check rather than failing hard.
         await wait(2000, controller.signal);

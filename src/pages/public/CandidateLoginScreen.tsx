@@ -16,8 +16,6 @@ import { getPrimaryRole, getRoleHomePath } from "../../permissions/rolePermissio
 import ForgotPasswordDialog from "../../common/components/auth/ForgotPasswordDialog";
 import BrandLogo from "../../common/components/layout/BrandLogo";
 
-const rememberedCandidateUsernameKey = "rp_candidate_remembered_username";
-
 const SPLIT_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBMTlIcPK4mpgSwA_imi8kHx0-hFixr07ehGkHafkq67EVZ4ERaDX6j1a1FB-AVvkTVD572ew4yr91Kjlz8N0hHCtSfUfinE0_imTLyqoomItbc3iASTMH2qqvDewV2GC6Yoyw6CfRuHX-AUDuzf6pAIo3S8gIFevBJUuaSn37gBemeS4Ui1E_0ek3eW5-SSy2vMY3Cr9EV5EP1nAxzWnwgT9gxzza9Ei5vZyziG8C4cnZuRTzJuUDV-7bGv6r2zh3IsADDdqxKEw";
 
@@ -34,7 +32,6 @@ function CandidateLoginScreen() {
         .string()
         .required(t("auth.passwordRequired"))
         .min(6, t("auth.passwordMin")),
-      remember: yup.boolean(),
     })
     .required();
 
@@ -46,9 +43,8 @@ function CandidateLoginScreen() {
   } = useForm<LoginForm>({
     resolver: yupResolver(schema),
     defaultValues: {
-      username: localStorage.getItem(rememberedCandidateUsernameKey) ?? "",
+      username: "",
       password: "",
-      remember: Boolean(localStorage.getItem(rememberedCandidateUsernameKey)),
     },
   });
 
@@ -74,15 +70,6 @@ function CandidateLoginScreen() {
       }
 
       dispatch(setCredentials(res.data));
-
-      if (form.remember) {
-        localStorage.setItem(
-          rememberedCandidateUsernameKey,
-          form.username.trim(),
-        );
-      } else {
-        localStorage.removeItem(rememberedCandidateUsernameKey);
-      }
 
       const primaryRole = getPrimaryRole(res.data.user.roles ?? []);
       const redirectTarget =
@@ -241,22 +228,6 @@ function CandidateLoginScreen() {
                     {errors.password.message}
                   </p>
                 ) : null}
-              </div>
-
-              {/* Remember */}
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  {...register("remember")}
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-[#cbc6c4] text-[#b90014] accent-[#b90014] focus:ring-[#b90014]"
-                />
-                <label
-                  htmlFor="remember"
-                  className="ml-2.5 select-none text-[14px] text-[#5f5e5e]"
-                >
-                  {t("auth.rememberMe30")}
-                </label>
               </div>
 
               {loginError && (

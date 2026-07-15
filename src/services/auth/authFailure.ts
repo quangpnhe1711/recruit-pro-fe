@@ -1,26 +1,20 @@
 import { store } from "../../store";
-import { logout, type Variant } from "../../store/slices/authSlice";
+import { logout } from "../../store/slices/authSlice";
 import { clearProfile } from "../../store/slices/userSlice";
+import { activePortal, loginPathForPortal } from "./authSession";
 
 let isRedirectingToLogin = false;
 
 export function forceLogoutAndRedirectToLogin() {
-  const currentPath = window.location.pathname;
+  const redirectPath = loginPathForPortal(activePortal());
 
-  if (
-    isRedirectingToLogin ||
-    currentPath === "/"
-  ) {
+  if (isRedirectingToLogin || window.location.pathname === redirectPath) {
     return;
   }
 
   isRedirectingToLogin = true;
 
-  const currentVariant = localStorage.getItem(
-    "current_variant",
-  ) as Variant | null;
-  const redirectPath = currentVariant === "internal" ? "/" : "/";
-
+  // logout() clears only the active portal's session, leaving the other portal signed in.
   store.dispatch(logout());
   store.dispatch(clearProfile());
 

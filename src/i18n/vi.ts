@@ -149,8 +149,6 @@ export const vi: Dictionary = {
     forgotPasswordSent: "Nếu tài khoản tồn tại, mật khẩu tạm đã được cấp.",
     forgotPasswordCandidateTitle: "Khôi phục mật khẩu ứng viên",
     forgotPasswordInternalTitle: "Khôi phục mật khẩu nội bộ",
-    rememberMe30: "Ghi nhớ đăng nhập trong 30 ngày",
-    rememberAccount: "Ghi nhớ tài khoản này",
     showPassword: "Hiện mật khẩu",
     hidePassword: "Ẩn mật khẩu",
     candidateHeroTitle: "Đồng hành cùng tương lai tuyển dụng",
@@ -758,6 +756,8 @@ export const vi: Dictionary = {
       "Đã phân tích CV bằng chế độ dự phòng. Hãy kiểm tra lại kỹ dữ liệu trước khi áp dụng.",
     parseYearsReminder:
       "Lưu ý: hệ thống thường không xác định được số năm kinh nghiệm cho từng kỹ năng khi phân tích CV. Hãy bổ sung số năm cho các kỹ năng còn trống trước khi lưu.",
+    parseYearsReminderTitle: "Bổ sung số năm kinh nghiệm",
+    parseYearsReminderConfirm: "Đã hiểu",
     skillsPlaceholder: "Chọn kỹ năng",
     skillsEmpty: "Chưa có kỹ năng nào được chọn.",
     skillsAllSelected: "Đã chọn tất cả kỹ năng",
