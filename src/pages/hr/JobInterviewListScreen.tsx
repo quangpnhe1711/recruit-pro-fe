@@ -568,8 +568,8 @@ function JobInterviewListScreen() {
   const columns = useMemo(
     () =>
       buildInterviewTableColumns(
-        statusChip,
         t,
+        statusChip,
         openMenuForId,
         setOpenMenuForId,
         openDetails,
