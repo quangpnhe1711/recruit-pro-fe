@@ -117,23 +117,36 @@ function toCsvValue(value: string) {
   return `"${escaped}"`;
 }
 
-function buildInterviewTableColumns(
-  t: (key: string) => string,
-  statusChipFn: (status: InterviewStatus) => string,
-  openMenuId: string | null,
-  setOpenMenuId: (id: string | null) => void,
-  onViewDetails: (it: Interview) => void,
-  onMarkCompleted: (it: Interview) => void,
-  onReschedule: (it: Interview) => void,
-  onCancel: (it: Interview) => void,
-  menuRef: React.RefObject<HTMLDivElement>,
+// Single options object (not positional args): 10 positional params previously let two of
+// them get swapped silently, which broke every column header.
+function buildInterviewTableColumns({
+  t,
+  statusChipFn,
+  openMenuId,
+  setOpenMenuId,
+  onViewDetails,
+  onMarkCompleted,
+  onReschedule,
+  onCancel,
+  menuRef,
+  actions,
+}: {
+  t: (key: string) => string;
+  statusChipFn: (status: InterviewStatus) => string;
+  openMenuId: string | null;
+  setOpenMenuId: (id: string | null) => void;
+  onViewDetails: (it: Interview) => void;
+  onMarkCompleted: (it: Interview) => void;
+  onReschedule: (it: Interview) => void;
+  onCancel: (it: Interview) => void;
+  menuRef: React.RefObject<HTMLDivElement>;
   actions: {
     canViewInterviews: boolean;
     canUpdateInterviews: boolean;
     canApproveInterviews: boolean;
     canDeleteInterviews: boolean;
-  },
-): TableColumn<Interview>[] {
+  };
+}): TableColumn<Interview>[] {
   return [
     {
       key: "candidateName",
@@ -567,23 +580,23 @@ function JobInterviewListScreen() {
 
   const columns = useMemo(
     () =>
-      buildInterviewTableColumns(
+      buildInterviewTableColumns({
         t,
-        statusChip,
-        openMenuForId,
-        setOpenMenuForId,
-        openDetails,
-        markCompleted,
-        reschedule,
-        cancelInterview,
+        statusChipFn: statusChip,
+        openMenuId: openMenuForId,
+        setOpenMenuId: setOpenMenuForId,
+        onViewDetails: openDetails,
+        onMarkCompleted: markCompleted,
+        onReschedule: reschedule,
+        onCancel: cancelInterview,
         menuRef,
-        {
+        actions: {
           canViewInterviews,
           canUpdateInterviews,
           canApproveInterviews,
           canDeleteInterviews,
         },
-      ),
+      }),
     [
       openMenuForId,
       t,
