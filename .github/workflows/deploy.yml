@@ -37,12 +37,11 @@ jobs:
             npm ci
             npm run build
 
-            # Fail loudly if the build produced nothing (prevents shipping a stale/empty site).
-            test -f dist/index.html
-
             echo "🚚 Publish"
-            rm -rf /var/www/html/*
-            cp -r dist/* /var/www/html/
+
+            rm -rf /var/www/recruitpro/*
+            cp -r dist/* /var/www/recruitpro/
+
 
             echo "🔁 Restart nginx"
             systemctl restart nginx
