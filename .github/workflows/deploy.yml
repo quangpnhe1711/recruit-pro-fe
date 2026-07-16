@@ -8,22 +8,29 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Deploy frontend to VPS
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script_stop: true
+          envs: GH_TOKEN
           script: |
             set -e
 
             echo "📦 Force-sync latest frontend code (develop)"
             cd /opt/recruitpro/recuit-pro-fe/recruit-pro-fe
-            git fetch origin
-            git reset --hard origin/develop
+            # VPS remote is HTTPS with no stored credentials; authenticate this
+            # fetch with the workflow's short-lived token instead of the remote.
+            git fetch "https://x-access-token:${GH_TOKEN}@github.com/quangpnhe1711/recruit-pro-fe.git" develop
+            git reset --hard FETCH_HEAD
             git clean -fd
 
             echo "🏗️  Build"
