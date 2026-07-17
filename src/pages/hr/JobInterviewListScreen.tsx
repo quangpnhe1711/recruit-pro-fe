@@ -572,14 +572,8 @@ function JobInterviewListScreen() {
   }
 
   function openDetails(it: Interview) {
-    // Interviews have no standalone detail endpoint; the meaningful "detail" for a scheduled interview
-    // is the candidate's application review (CV, AI fit, decision, offer), reached via applicationId.
-    if (!it.applicationId) {
-      appToast.info(
-        t("jobInterviewList.openingDetails", { candidate: it.candidateName, job: it.jobTitle }),
-      );
-      return;
-    }
+    // An interview always belongs to an application (required FK), so its meaningful "detail" is the
+    // candidate's application review (CV, AI fit, decision, offer). Navigate straight there — no dead-end.
     navigate(`/hr/applications/${it.applicationId}`);
   }
 

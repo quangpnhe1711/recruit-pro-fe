@@ -13,6 +13,7 @@ const InternalLoginScreen = lazy(() => import("../pages/internal/InternalLoginSc
 const JobsRouteScreen = lazy(() => import("../pages/JobsRouteScreen"));
 const JobDetailScreen = lazy(() => import("../pages/public/JobDetailScreen"));
 const LandingPageScreen = lazy(() => import("../pages/public/LandingPageScreen"));
+const ResetPasswordScreen = lazy(() => import("../pages/public/ResetPasswordScreen"));
 
 function lazyRoute(element: ReactNode) {
   return (
@@ -38,6 +39,10 @@ const publicRoutes = (
       />
 
       <Route path="/jobs/:jobId" element={lazyRoute(<JobDetailScreen />)} />
+
+      {/* Reachable whether or not a session exists — a logged-in user may reset a different portal's
+          password, so this must not sit under PublicOnly (which would bounce them). */}
+      <Route path="/reset-password" element={lazyRoute(<ResetPasswordScreen />)} />
     </Route>
 
     <Route element={<PublicOnly />}>

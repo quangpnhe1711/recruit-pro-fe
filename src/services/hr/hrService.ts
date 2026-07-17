@@ -320,11 +320,19 @@ export type CandidateImportPreviewResponseDto = {
   rows: CandidateImportPreviewRowDto[];
 };
 
+export type CandidateImportInvitationDto = {
+  rowNumber: number;
+  email: string;
+  candidateId: string;
+  invitationSent: boolean;
+};
+
 export type CandidateImportResultDto = {
   importedCount: number;
   skippedCount: number;
   createdCandidateIds: string[];
   invitationEmails: string[];
+  invitations: CandidateImportInvitationDto[];
 };
 
 export const hrService = {
@@ -422,6 +430,15 @@ export const hrService = {
     return request.post<ApiResponse<CandidateImportResultDto>, { rows: typeof rows }>(
       endpoints.candidates.importConfirm,
       { rows },
+    );
+  },
+
+  resendCandidateInvitation: async (
+    email: string,
+  ): Promise<ApiResponse<string>> => {
+    return request.post<ApiResponse<string>, { email: string }>(
+      endpoints.candidates.importResendInvitation,
+      { email },
     );
   },
 

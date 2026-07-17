@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
-import { ERROR_CODES } from "../../common/utils/apiError";
+import { ERROR_CODES, normalizeApiError } from "../../common/utils/apiError";
 import { applyApiFormError } from "../../common/utils/formErrors";
 import {
   interviewScheduleSchema,
@@ -303,7 +303,14 @@ function InterviewScheduleScreen() {
           setFormErrors((prev) => ({ ...prev, [field]: message })),
         fieldMap: { interviewDate: "startMinutes" },
       });
-      if (!handled) handleNonFormApiError(error);
+      if (handled) return;
+      // Double-booking (409 CONFLICT): the interviewer already has an overlapping interview. Show it
+      // inline on the time summary so HR can pick another slot/interviewer, not as a vague toast.
+      if (normalizeApiError(error).code === ERROR_CODES.Conflict) {
+        setFormErrors((prev) => ({ ...prev, startMinutes: t("interviewSchedule.slotConflict") }));
+        return;
+      }
+      handleNonFormApiError(error);
     } finally {
       setIsSubmitting(false);
     }

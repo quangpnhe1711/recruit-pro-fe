@@ -73,7 +73,7 @@ function ForgotPasswordDialog({
             <div>
               <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">{title}</h3>
               <p className="mt-1 text-[13px] leading-5 text-[#5f5e5e]">
-                Hệ thống sẽ cấp mật khẩu tạm cho tài khoản khớp với thông tin bạn nhập.
+                Chúng tôi sẽ gửi một liên kết đặt lại mật khẩu tới email của tài khoản khớp với thông tin bạn nhập. Mật khẩu hiện tại vẫn dùng được cho tới khi bạn đặt lại thành công.
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ function ForgotPasswordDialog({
             onClick={handleSubmit}
             disabled={submitting}
           >
-            {submitting ? "Đang gửi..." : "Đặt lại mật khẩu"}
+            {submitting ? "Đang gửi..." : "Gửi liên kết"}
           </button>
         </div>
       </div>

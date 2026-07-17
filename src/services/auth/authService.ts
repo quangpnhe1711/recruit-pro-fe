@@ -19,6 +19,11 @@ export type ForgotPasswordRequest = {
   identifier: string;
 };
 
+export type ResetPasswordRequest = {
+  token: string;
+  newPassword: string;
+};
+
 export const authService = {
   login: async (data: LoginRequest): Promise<ApiResponse<LoginResponseDto>> => {
     return request.post<ApiResponse<LoginResponseDto>>(
@@ -59,6 +64,15 @@ export const authService = {
   ): Promise<ApiResponse<string>> => {
     return request.post<ApiResponse<string>, ForgotPasswordRequest>(
       endpoints.auth.internalForgotPassword,
+      data,
+    );
+  },
+
+  resetPassword: async (
+    data: ResetPasswordRequest,
+  ): Promise<ApiResponse<string>> => {
+    return request.post<ApiResponse<string>, ResetPasswordRequest>(
+      endpoints.auth.resetPassword,
       data,
     );
   },

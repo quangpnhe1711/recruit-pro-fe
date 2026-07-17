@@ -5,6 +5,7 @@ export const endpoints = {
     internalLogin: "/auth/internal/login",
     candidateForgotPassword: "/auth/candidate/forgot-password",
     internalForgotPassword: "/auth/internal/forgot-password",
+    resetPassword: "/auth/reset-password",
     // Rotates the DB-stored refresh token for a fresh access+refresh pair (used by the
     // silent-refresh interceptor in api-client.ts).
     refresh: "/auth/refresh",
@@ -31,6 +32,7 @@ export const endpoints = {
     importTemplate: "/candidates/import/template",
     importPreview: "/candidates/import/preview",
     importConfirm: "/candidates/import",
+    importResendInvitation: "/candidates/import/resend-invitation",
   },
   candidate: {
     dashboard: "/candidate/dashboard",
@@ -54,6 +56,9 @@ export const endpoints = {
       `/candidate/profile/experience/${experienceId}`,
     profileResumeParse: "/candidate/profile/resume/parse",
     profileResume: "/candidate/profile/resume",
+  },
+  internal: {
+    profile: "/internal/profile",
   },
   departments: "/departments",
   skills: "/skills",

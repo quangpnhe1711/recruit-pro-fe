@@ -5,7 +5,10 @@ import AsyncActionButton from "../../common/components/AsyncActionButton";
 import Badge from "../../common/components/Badge";
 import PageHeader from "../../common/components/PageHeader";
 import { useI18n } from "../../i18n";
-import type { CandidateImportPreviewRowDto } from "../../services/hr/hrService";
+import type {
+  CandidateImportPreviewRowDto,
+  CandidateImportResultDto,
+} from "../../services/hr/hrService";
 import { hrService } from "../../services/hr/hrService";
 
 function CandidateImportScreen() {
@@ -21,6 +24,7 @@ function CandidateImportScreen() {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<CandidateImportResultDto | null>(null);
   const [formErrors, setFormErrors] = useState<{
     file?: string;
     selectedRows?: string;
@@ -108,12 +112,39 @@ function CandidateImportScreen() {
         })),
       );
 
-      appToast.success(t("candidateImport.importSuccess"));
-      navigate("/hr/candidates");
+      const result = response.data ?? null;
+      setImportResult(result);
+      // Show the per-row outcome instead of navigating away, so failed invitations stay visible and
+      // recoverable. Only claim full success when every invitation actually went out.
+      const anyFailed = (result?.invitations ?? []).some((row) => !row.invitationSent);
+      if (anyFailed) {
+        appToast.info(t("candidateImport.partialImportWarning"));
+      } else {
+        appToast.success(t("candidateImport.importSuccess"));
+      }
     } catch (error) {
       handleNonFormApiError(error);
     } finally {
       setImportLoading(false);
+    }
+  }
+
+  async function handleResendInvitation(email: string) {
+    try {
+      await hrService.resendCandidateInvitation(email);
+      setImportResult((current) =>
+        current
+          ? {
+              ...current,
+              invitations: current.invitations.map((row) =>
+                row.email === email ? { ...row, invitationSent: true } : row,
+              ),
+            }
+          : current,
+      );
+      appToast.success(t("candidateImport.resendSuccess"));
+    } catch (error) {
+      handleNonFormApiError(error);
     }
   }
 
@@ -301,6 +332,67 @@ function CandidateImportScreen() {
           </table>
         </div>
       </div>
+
+      {importResult ? (
+        <div className="card overflow-hidden">
+          <div className="flex flex-col gap-1 border-b border-[#f0eceb] px-5 py-4">
+            <h2 className="section-title">{t("candidateImport.importResultTitle")}</h2>
+            <p className="text-[13px] text-[#5f5e5e]">{t("candidateImport.importResultHint")}</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[#f0eceb] bg-[#faf9f8] text-[#5f5e5e]">
+                  <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                    {t("candidateImport.colEmail")}
+                  </th>
+                  <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]">
+                    {t("candidateImport.colInvitation")}
+                  </th>
+                  <th className="px-4 py-3.5 text-[11px] font-semibold uppercase tracking-[0.08em]" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#f0eceb]">
+                {importResult.invitations.map((row) => (
+                  <tr key={row.email} className="transition-colors hover:bg-[#faf9f8]">
+                    <td className="px-4 py-4 text-[13px] text-[#1a1c1c]">{row.email}</td>
+                    <td className="px-4 py-4">
+                      <Badge tone={row.invitationSent ? "success" : "danger"} dot>
+                        {row.invitationSent
+                          ? t("candidateImport.invitationSent")
+                          : t("candidateImport.invitationFailed")}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      {row.invitationSent ? null : (
+                        <AsyncActionButton
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => handleResendInvitation(row.email)}
+                          loadingText={t("candidateImport.resendLoading")}
+                          spinnerTone="brand"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">forward_to_inbox</span>
+                          {t("candidateImport.resendInvitation")}
+                        </AsyncActionButton>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex justify-end border-t border-[#f0eceb] px-5 py-4">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => navigate("/hr/candidates")}
+            >
+              {t("candidateImport.done")}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
