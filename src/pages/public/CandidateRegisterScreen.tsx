@@ -91,9 +91,10 @@ function CandidateRegisterScreen() {
         userInfo: values.userInfo,
       });
 
+      setValues(initialValues);
+      setErrors({});
       setSubmitState("success");
       appToast.success(t("authPages.registerSuccessToast"));
-      window.setTimeout(() => setSubmitState("idle"), 2000);
     } catch (error) {
       // Server validation (email/username already exists) → inline field errors, not a toast.
       // Transport/server errors → toast.
@@ -172,7 +173,7 @@ function CandidateRegisterScreen() {
 
           <Link
             className="flex items-center gap-1 text-[#5f5e5e] hover:text-[#b90014] transition-colors text-[12px] tracking-[0.05em] font-semibold"
-            to="/candidate"
+            to="/"
           >
             <span className="material-symbols-outlined text-[18px]">
               arrow_back
@@ -198,6 +199,29 @@ function CandidateRegisterScreen() {
               </p>
             </div>
 
+            {submitState === "success" ? (
+              <div className="card animate-fade-in space-y-5 p-6">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff1ef] text-[#b90014]">
+                  <span className="material-symbols-outlined text-[28px]">
+                    check_circle
+                  </span>
+                </div>
+                <div>
+                  <h3 className="section-title">{t("authPages.registerSuccessTitle")}</h3>
+                  <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">
+                    {t("authPages.registerSuccessBody")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link className="btn btn-primary h-11" to="/login">
+                    {t("auth.login")}
+                  </Link>
+                  <Link className="btn btn-secondary h-11" to="/">
+                    {t("common.goHome")}
+                  </Link>
+                </div>
+              </div>
+            ) : (
             <form className="space-y-8" onSubmit={handleSubmit}>
               <div className="card animate-fade-in space-y-6 p-5 md:p-6">
                 <div className="flex items-center gap-3 border-b border-[#ececec] pb-4">
@@ -377,6 +401,7 @@ function CandidateRegisterScreen() {
                 </p>
               </div>
             </form>
+            )}
 
             <footer className="mt-16 pt-8 border-t border-[#e2dfde] mb-8">
               <p className="text-center text-[12px] tracking-[0.05em] text-[#5f5e5e] opacity-60">

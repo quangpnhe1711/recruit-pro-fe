@@ -61,6 +61,23 @@ export type HrCandidateItemDto = {
   status: string;
 };
 
+export type HrCreateCandidatePayload = {
+  userInfo: {
+    username: string;
+    fullName: string;
+    email: string;
+    password: string;
+    phone: string;
+  };
+  profile?: {
+    currentPosition?: string;
+    experienceYears?: number | null;
+    address?: string;
+    bio?: string;
+  } | null;
+  resume?: File | null;
+};
+
 export type HrCandidateDetailDto = {
   profile: {
     id: string;
@@ -329,6 +346,43 @@ export const hrService = {
     return request.get<ApiResponse<HrCandidateDetailDto>>(
       endpoints.hr.candidateDetail(candidateId),
     );
+  },
+
+  createCandidate: async (
+    payload: HrCreateCandidatePayload,
+  ): Promise<ApiResponse<{ userId: string; candidateProfileId: string; username: string; email: string; fullName: string }>> => {
+    const formData = new FormData();
+
+    formData.append("UserInfo.Username", payload.userInfo.username);
+    formData.append("UserInfo.FullName", payload.userInfo.fullName);
+    formData.append("UserInfo.Email", payload.userInfo.email);
+    formData.append("UserInfo.PasswordHash", payload.userInfo.password);
+    formData.append("UserInfo.Phone", payload.userInfo.phone);
+
+    if (payload.profile?.currentPosition) {
+      formData.append("Profile.CurrentPosition", payload.profile.currentPosition);
+    }
+    if (payload.profile?.experienceYears != null) {
+      formData.append("Profile.ExperienceYears", String(payload.profile.experienceYears));
+    }
+    if (payload.profile?.address) {
+      formData.append("Profile.Address", payload.profile.address);
+    }
+    if (payload.profile?.bio) {
+      formData.append("Profile.Bio", payload.profile.bio);
+    }
+    if (payload.resume) {
+      formData.append("resume", payload.resume);
+    }
+
+    return request.post<
+      ApiResponse<{ userId: string; candidateProfileId: string; username: string; email: string; fullName: string }>,
+      FormData
+    >(endpoints.hr.candidateCreate, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
 
   downloadCandidateImportTemplate: async (): Promise<Blob> => {

@@ -331,7 +331,7 @@ function CandidateListScreen() {
   }
 
   function handleAddCandidate() {
-    appToast.info(t("candidateList.addCandidateSoon"));
+    navigate("/hr/candidates/create");
   }
 
   const sourceOptions = [

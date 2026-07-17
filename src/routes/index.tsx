@@ -8,6 +8,7 @@ import hrRoutes from "./hr.routes";
 import systemAdminRoutes from "./system-admin.routes";
 import { hydrateActivePortal } from "../store/slices/authSlice";
 import { portalForPath } from "../services/auth/authSession";
+import NotFoundScreen from "../pages/NotFoundScreen";
 
 export default function AppRoutes() {
   const dispatch = useDispatch();
@@ -32,7 +33,7 @@ export default function AppRoutes() {
 
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={<NotFoundScreen />}
       />
     </Routes>
   );

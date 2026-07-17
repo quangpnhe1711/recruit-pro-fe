@@ -491,7 +491,7 @@ function JobListingCandidateScreen() {
             </p>
             <Link
               className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-[#b90014] hover:underline"
-              to="/internal/candidate-profile"
+              to="/candidate/profile"
             >
               <span className="material-symbols-outlined text-[16px]">badge</span>
               Mở hồ sơ ứng viên

@@ -12,6 +12,7 @@ import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
 const HrDashboardScreen = lazy(() => import("../pages/hr/HrDashboardScreen"));
 const CandidateListScreen = lazy(() => import("../pages/hr/CandidateListScreen"));
 const CandidateImportScreen = lazy(() => import("../pages/hr/CandidateImportScreen"));
+const CandidateCreateScreen = lazy(() => import("../pages/hr/CandidateCreateScreen"));
 const CandidateProfileScreen = lazy(() => import("../pages/hr/CandidateProfileScreen"));
 const CandidateApplicationScreen = lazy(() => import("../pages/hr/CandidateApplicationScreen"));
 const CandidateReviewDetailScreen = lazy(() => import("../pages/hr/CandidateReviewDetailScreen"));
@@ -102,6 +103,10 @@ const hrRoutes = (
         <Route
           path="/hr/candidates/import"
           element={lazyRoute(<CandidateImportScreen />)}
+        />
+        <Route
+          path="/hr/candidates/create"
+          element={lazyRoute(<CandidateCreateScreen />)}
         />
       </Route>
 

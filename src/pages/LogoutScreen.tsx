@@ -6,6 +6,7 @@ import type { RootState } from "../store";
 import { logout } from "../store/slices/authSlice";
 import { clearProfile } from "../store/slices/userSlice";
 import { resolvePortalVariantFromUser } from "../permissions/rolePermissions";
+import { authService } from "../services/auth/authService";
 
 function LogoutScreen() {
   const dispatch = useDispatch();
@@ -17,8 +18,12 @@ function LogoutScreen() {
   const redirectTo = variant === "internal" ? "/internal/login" : "/login";
 
   useEffect(() => {
-    dispatch(logout());
-    dispatch(clearProfile());
+    void authService.logout()
+      .catch(() => undefined)
+      .finally(() => {
+        dispatch(logout());
+        dispatch(clearProfile());
+      });
   }, [dispatch]);
 
   return <Navigate to={redirectTo} replace />;

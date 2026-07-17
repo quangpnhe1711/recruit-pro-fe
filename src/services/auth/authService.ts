@@ -8,6 +8,7 @@ import {
 
 import { endpoints } from "../http/endpoints";
 import { request } from "../http/request";
+import { activePortal, readSession } from "./authSession";
 
 export type InternalLoginRequest = {
   username: string;
@@ -62,11 +63,11 @@ export const authService = {
     );
   },
 
-  logout: async (): Promise<ApiResponse<null>> => {
-    return Promise.resolve({
-      success: true,
-      message: "Đã đăng xuất trên thiết bị",
-      data: null,
-    });
+  logout: async (): Promise<ApiResponse<string>> => {
+    const refreshToken = readSession(activePortal())?.refreshToken ?? null;
+    return request.post<ApiResponse<string>, { refreshToken: string | null }>(
+      endpoints.auth.logout,
+      { refreshToken },
+    );
   },
 };

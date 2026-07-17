@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
 import type { RootState } from "../../store";
 import { useI18n } from "../../i18n";
+import { authService } from "../../services/auth/authService";
+import { clearProfile } from "../../store/slices/userSlice";
 
 type AvatarMenuItem = {
   label: string;
@@ -121,8 +123,14 @@ function HeaderAvatarDropDown({
     };
   }, [open]);
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } catch {
+      // Local cleanup still happens in finally-equivalent flow below.
+    }
     dispatch(logout());
+    dispatch(clearProfile());
     setOpen(false);
     navigate(currentVariant === "internal" ? "/internal/login" : "/login");
   }

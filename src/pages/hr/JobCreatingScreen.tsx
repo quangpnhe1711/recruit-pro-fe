@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import { applyApiFormError } from "../../common/utils/formErrors";
@@ -30,27 +30,6 @@ import {
 import { PERMISSIONS } from "../../permissions/permissions";
 import { jobsService } from "../../services/jobs/jobsService";
 
-type DraftState = {
-  step: number;
-  title: string;
-  department: string;
-  location: string;
-  employmentType: EmploymentType | "";
-  workMode: WorkMode | "";
-  shortPitch: string;
-  deadline: string;
-
-  description: string;
-  responsibilities: string[];
-  requirements: string[];
-
-  skills: SkillRequirementDraft[];
-  niceToHaveSkills: SkillRequirementDraft[];
-  salaryMin: string;
-  salaryMax: string;
-  currency: string;
-};
-
 type SkillRequirementDraft = {
   skillName: string;
   minimumYearsOfExperience: string;
@@ -65,107 +44,6 @@ const workModeOptions = Object.entries(workModeLabels).map(
   ([value, label]) => ({ value, label }),
 );
 
-const draftStorageKey = "rp_internal_jobcreating_draft_v1";
-function safeJsonParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-function normalizeList(values: unknown): string[] {
-  if (!Array.isArray(values)) return [];
-  return values
-    .map((v) => (typeof v === "string" ? v.trim() : ""))
-    .filter((v) => v.length > 0);
-}
-
-function normalizeSkillRequirements(values: unknown): SkillRequirementDraft[] {
-  if (!Array.isArray(values)) return [];
-
-  return values
-    .map((value) => {
-      if (typeof value === "string") {
-        const skillName = value.trim();
-        return skillName
-          ? {
-              skillName,
-              minimumYearsOfExperience: "",
-            }
-          : null;
-      }
-
-      if (value && typeof value === "object") {
-        const rawSkillName = "skillName" in value ? value.skillName : "";
-        const rawMinimumYears = "minimumYearsOfExperience" in value
-          ? value.minimumYearsOfExperience
-          : "";
-        const skillName = typeof rawSkillName === "string" ? rawSkillName.trim() : "";
-        if (!skillName) {
-          return null;
-        }
-
-        return {
-          skillName,
-          minimumYearsOfExperience:
-            typeof rawMinimumYears === "number"
-              ? String(rawMinimumYears)
-              : typeof rawMinimumYears === "string"
-                ? rawMinimumYears.trim()
-                : "",
-        };
-      }
-
-      return null;
-    })
-    .filter((value): value is SkillRequirementDraft => Boolean(value));
-}
-
-function loadDraft(): DraftState | null {
-  const parsed = safeJsonParse<Partial<DraftState>>(
-    window.localStorage.getItem(draftStorageKey),
-  );
-  if (!parsed) return null;
-
-  return {
-    step: typeof parsed.step === "number" ? parsed.step : 1,
-    title: typeof parsed.title === "string" ? parsed.title : "",
-    department:
-      typeof parsed.department === "string" && parsed.department
-        ? parsed.department
-        : "Engineering",
-    location: typeof parsed.location === "string" ? parsed.location : "",
-    employmentType:
-      parsed.employmentType === "Full-time" ||
-      parsed.employmentType === "Part-time" ||
-      parsed.employmentType === "Internship" ||
-      parsed.employmentType === "Contract"
-        ? parsed.employmentType
-        : "",
-    workMode:
-      parsed.workMode === "Remote" ||
-      parsed.workMode === "Hybrid" ||
-      parsed.workMode === "Onsite"
-        ? parsed.workMode
-        : "",
-    shortPitch: typeof parsed.shortPitch === "string" ? parsed.shortPitch : "",
-    deadline: typeof parsed.deadline === "string" ? parsed.deadline : "",
-
-    description:
-      typeof parsed.description === "string" ? parsed.description : "",
-    responsibilities: normalizeList(parsed.responsibilities),
-    requirements: normalizeList(parsed.requirements),
-
-    skills: normalizeSkillRequirements(parsed.skills),
-    niceToHaveSkills: normalizeSkillRequirements(parsed.niceToHaveSkills),
-    salaryMin: typeof parsed.salaryMin === "string" ? parsed.salaryMin : "",
-    salaryMax: typeof parsed.salaryMax === "string" ? parsed.salaryMax : "",
-    currency: "VND",
-  };
-}
-
 function JobCreatingScreen() {
   const { t } = useI18n();
   const navigate = useNavigate();
@@ -173,66 +51,35 @@ function JobCreatingScreen() {
   const canCreateJob = hasPermission(PERMISSIONS.JOB_CREATE);
   const canUseTemplate = hasPermission(PERMISSIONS.JOB_USE_TEMPLATE);
 
-  const initialDraft = useMemo(() => loadDraft(), []);
-
-  const [step, setStep] = useState<number>(() => initialDraft?.step ?? 1);
+  const [step, setStep] = useState<number>(1);
 
   // Step 1
-  const [title, setTitle] = useState<string>(() => initialDraft?.title ?? "");
-  const [department, setDepartment] = useState<string>(
-    () => initialDraft?.department ?? "Engineering",
-  );
-  const [location, setLocation] = useState<string>(
-    () => initialDraft?.location ?? "",
-  );
-  const [employmentType, setEmploymentType] = useState<EmploymentType | "">(
-    () => initialDraft?.employmentType ?? "",
-  );
-  const [workMode, setWorkMode] = useState<WorkMode | "">(
-    () => initialDraft?.workMode ?? "",
-  );
-  const [shortPitch, setShortPitch] = useState<string>(
-    () => initialDraft?.shortPitch ?? "",
-  );
-  const [deadline, setDeadline] = useState<string>(
-    () => initialDraft?.deadline ?? "",
-  );
+  const [title, setTitle] = useState<string>("");
+  const [department, setDepartment] = useState<string>("Engineering");
+  const [location, setLocation] = useState<string>("");
+  const [employmentType, setEmploymentType] = useState<EmploymentType | "">("");
+  const [workMode, setWorkMode] = useState<WorkMode | "">("");
+  const [shortPitch, setShortPitch] = useState<string>("");
+  const [deadline, setDeadline] = useState<string>("");
   const [departmentOptions, setDepartmentOptions] = useState<string[]>(fallbackDepartments);
 
   // Step 2
-  const [description, setDescription] = useState<string>(
-    () => initialDraft?.description ?? "",
-  );
-  const [responsibilities, setResponsibilities] = useState<string[]>(
-    () => initialDraft?.responsibilities ?? [],
-  );
-  const [requirements, setRequirements] = useState<string[]>(
-    () => initialDraft?.requirements ?? [],
-  );
+  const [description, setDescription] = useState<string>("");
+  const [responsibilities, setResponsibilities] = useState<string[]>([]);
+  const [requirements, setRequirements] = useState<string[]>([]);
   const [responsibilityInput, setResponsibilityInput] = useState<string>("");
   const [requirementInput, setRequirementInput] = useState<string>("");
 
   // Step 3
-  const [skills, setSkills] = useState<SkillRequirementDraft[]>(
-    () => initialDraft?.skills ?? [],
-  );
-  const [niceToHaveSkills, setNiceToHaveSkills] = useState<SkillRequirementDraft[]>(
-    () => initialDraft?.niceToHaveSkills ?? [],
-  );
+  const [skills, setSkills] = useState<SkillRequirementDraft[]>([]);
+  const [niceToHaveSkills, setNiceToHaveSkills] = useState<SkillRequirementDraft[]>([]);
   const [availableSkills, setAvailableSkills] = useState<SkillDto[]>([]);
   const [skillOptions, setSkillOptions] = useState<
     Array<{ label: string; value: string }>
   >([]);
   const [skillsLoading, setSkillsLoading] = useState(true);
-  const [salaryMin, setSalaryMin] = useState<string>(
-    () => initialDraft?.salaryMin ?? "",
-  );
-  const [salaryMax, setSalaryMax] = useState<string>(
-    () => initialDraft?.salaryMax ?? "",
-  );
-  const [currency] = useState<string>(
-    () => "VND",
-  );
+  const [salaryMin, setSalaryMin] = useState<string>("");
+  const [salaryMax, setSalaryMax] = useState<string>("");
   const [publishing, setPublishing] = useState(false);
   const [step1Errors, setStep1Errors] = useState<ValidationErrors>({});
   const [step2Errors, setStep2Errors] = useState<ValidationErrors>({});
@@ -305,30 +152,6 @@ function JobCreatingScreen() {
     shortPitch,
     deadline,
   });
-
-  function persistDraft(nextStep = step) {
-    const payload: DraftState = {
-      step: nextStep,
-      title,
-      department,
-      location,
-      employmentType,
-      workMode,
-      shortPitch,
-      deadline,
-      description,
-      responsibilities,
-      requirements,
-      skills,
-      niceToHaveSkills,
-      salaryMin,
-      salaryMax,
-      currency,
-    };
-
-    window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    appToast.success(t("jobCreating.draftSaved"));
-  }
 
   function applyEngineeringTemplate() {
     setTitle(t("jobCreating.template.title"));
@@ -501,29 +324,6 @@ function JobCreatingScreen() {
     const next = Math.min(4, step + 1);
     setStep(next);
 
-    // Keep progress recoverable without forcing any backend.
-    window.localStorage.setItem(
-      draftStorageKey,
-      JSON.stringify({
-        step: next,
-        title,
-        department,
-        location,
-        employmentType,
-        workMode,
-        shortPitch,
-        deadline,
-        description,
-        responsibilities,
-        requirements,
-        skills,
-        niceToHaveSkills,
-        salaryMin,
-        salaryMax,
-        currency,
-      } satisfies DraftState),
-    );
-
     appToast.info(
       next === 2
         ? t("jobCreating.progress.step1")
@@ -592,8 +392,6 @@ function JobCreatingScreen() {
           .filter((value): value is string => Boolean(value)),
         minExperienceYears: 0,
       });
-
-      window.localStorage.removeItem(draftStorageKey);
       appToast.success(t("jobCreating.submitSuccess"));
       navigate("/internal/jobs");
     } catch (err) {
@@ -857,16 +655,6 @@ function JobCreatingScreen() {
             <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
               <button
                 type="button"
-                className="btn btn-secondary h-11 w-full sm:w-auto"
-                onClick={() => persistDraft(1)}
-                disabled={!canCreateJob}
-              >
-                <span className="material-symbols-outlined text-[18px]">save</span>
-                {t("common.save")}
-              </button>
-
-              <button
-                type="button"
                 className="btn btn-primary h-11 w-full sm:w-auto"
                 onClick={continueNext}
                 disabled={!canCreateJob}
@@ -1009,25 +797,14 @@ function JobCreatingScreen() {
             </div>
 
             <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button
-                  type="button"
-                  className="btn btn-secondary h-11 w-full sm:w-auto"
-                  onClick={goBack}
-                >
-                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  {t("common.back")}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost h-11 w-full sm:w-auto"
-                  onClick={() => persistDraft(2)}
-                  disabled={!canCreateJob}
-                >
-                  <span className="material-symbols-outlined text-[18px]">save</span>
-                  {t("common.save")}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn btn-secondary h-11 w-full sm:w-auto"
+                onClick={goBack}
+              >
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                {t("common.back")}
+              </button>
 
               <button
                 type="button"
@@ -1237,25 +1014,14 @@ function JobCreatingScreen() {
             </div>
 
             <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button
-                  type="button"
-                  className="btn btn-secondary h-11 w-full sm:w-auto"
-                  onClick={goBack}
-                >
-                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  {t("common.back")}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost h-11 w-full sm:w-auto"
-                  onClick={() => persistDraft(3)}
-                  disabled={!canCreateJob}
-                >
-                  <span className="material-symbols-outlined text-[18px]">save</span>
-                  {t("common.save")}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn btn-secondary h-11 w-full sm:w-auto"
+                onClick={goBack}
+              >
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                {t("common.back")}
+              </button>
 
               <button
                 type="button"
@@ -1399,25 +1165,14 @@ function JobCreatingScreen() {
             </div>
 
             <div className="-mx-5 flex flex-col-reverse gap-3 border-t border-[#ececec] px-5 pt-5 sm:flex-row sm:items-center sm:justify-between md:-mx-7 md:px-7">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button
-                  type="button"
-                  className="btn btn-secondary h-11 w-full sm:w-auto"
-                  onClick={goBack}
-                >
-                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                  {t("common.back")}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost h-11 w-full sm:w-auto"
-                  onClick={() => persistDraft(4)}
-                  disabled={!canCreateJob}
-                >
-                  <span className="material-symbols-outlined text-[18px]">save</span>
-                  {t("common.save")}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="btn btn-secondary h-11 w-full sm:w-auto"
+                onClick={goBack}
+              >
+                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                {t("common.back")}
+              </button>
 
               <AsyncActionButton
                 type="button"

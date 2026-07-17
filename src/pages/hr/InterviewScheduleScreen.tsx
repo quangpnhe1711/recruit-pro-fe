@@ -24,21 +24,6 @@ type ScheduleRouteState = {
   applicationId?: string;
 };
 
-type DraftInterviewSchedule = {
-  applicationId: string;
-  candidateId: string;
-  jobId: string;
-  date: string;
-  startMinutes: number | null;
-  durationMinutes: number;
-  mode: InterviewMode;
-  locationOrLink: string;
-  interviewerId: string | null;
-  savedAt: string;
-};
-
-const draftStorageKey = "rp_hr_interview_schedule_draft_v1";
-
 function pad2(value: number) {
   return value.toString().padStart(2, "0");
 }
@@ -101,19 +86,6 @@ function buildCalendarGrid(viewMonth: Date) {
     days.push({ date: d, inMonth: d.getMonth() === viewMonth.getMonth() });
   }
   return days;
-}
-
-function safeJsonParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-function loadDraft() {
-  return safeJsonParse<DraftInterviewSchedule>(window.localStorage.getItem(draftStorageKey));
 }
 
 function isSameMonth(left: Date, right: Date) {
@@ -184,29 +156,18 @@ function InterviewScheduleScreen() {
         setScheduleData(data);
 
         const initialDate = resolveInitialDate();
-        const draft = loadDraft();
-        const draftMatchesApplication =
-          draft?.applicationId === data.candidate.applicationId;
-
-        const nextDate = draftMatchesApplication && draft?.date
-          ? new Date(`${draft.date}T00:00:00`)
-          : initialDate;
+        const nextDate = initialDate;
         const nextMonth = startOfMonth(nextDate);
-        const nextInterviewerIndex = draftMatchesApplication && draft?.interviewerId
-          ? Math.max(
-              data.interviewers.findIndex((item) => item.id === draft.interviewerId),
-              0,
-            )
-          : 0;
+        const nextInterviewerIndex = 0;
 
         setSelectedDate(nextDate);
         setViewMonth(nextMonth);
         setInterviewerIndex(nextInterviewerIndex);
-        setMode(draftMatchesApplication ? draft.mode : "video");
-        setDurationMinutes(draftMatchesApplication ? draft.durationMinutes : 60);
-        setLocationOrLink(draftMatchesApplication ? draft.locationOrLink : "");
+        setMode("video");
+        setDurationMinutes(60);
+        setLocationOrLink("");
 
-        const preferredSlot = draftMatchesApplication ? draft.startMinutes : null;
+        const preferredSlot = null;
         const availableSlots = data.slotMinutes.filter((slot) => {
           const interviewer = data.interviewers[nextInterviewerIndex];
           const busy = interviewer?.busySlotsByDate[toDateKey(nextDate)] ?? [];
@@ -295,26 +256,6 @@ function InterviewScheduleScreen() {
     setInterviewerIndex((prev) => (prev + 1) % scheduleData.interviewers.length);
   }
 
-  function saveDraftLocally() {
-    if (!scheduleData) return;
-
-    const payload: DraftInterviewSchedule = {
-      applicationId: scheduleData.candidate.applicationId,
-      candidateId: scheduleData.candidate.id,
-      jobId: scheduleData.candidate.jobId,
-      date: selectedDateKey,
-      startMinutes: selectedSlot,
-      durationMinutes,
-      mode,
-      locationOrLink,
-      interviewerId: currentInterviewer?.id ?? null,
-      savedAt: new Date().toISOString(),
-    };
-
-    window.localStorage.setItem(draftStorageKey, JSON.stringify(payload));
-    appToast.info(t("interviewSchedule.draftSaved"));
-  }
-
   async function saveSchedule() {
     if (!scheduleData || !currentInterviewer) {
       appToast.info(t("interviewSchedule.dataNotReady"));
@@ -351,8 +292,6 @@ function InterviewScheduleScreen() {
         // "confirmed" (BR-APPLICATION-008 / STATE-MACHINE Interview).
         status: InterviewStatus.Scheduled,
       });
-
-      window.localStorage.removeItem(draftStorageKey);
       appToast.success(t("interviewSchedule.saveSuccess"));
       navigate("/hr/interviews");
     } catch (error) {
@@ -769,17 +708,6 @@ function InterviewScheduleScreen() {
                 <span className="material-symbols-outlined text-[18px]">event_available</span>
                 {t("interviewSchedule.confirm")}
               </AsyncActionButton>
-
-              <PermissionGuard permissions={PERMISSIONS.INTERVIEW_UPDATE}>
-                <button
-                  type="button"
-                  className="btn btn-secondary w-full justify-center"
-                  onClick={saveDraftLocally}
-                  disabled={!canViewScheduleData || isSubmitting}
-                >
-                  {t("interviewSchedule.saveDraft")}
-                </button>
-              </PermissionGuard>
             </div>
 
             <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[12px] font-medium text-[#5f5e5e]">

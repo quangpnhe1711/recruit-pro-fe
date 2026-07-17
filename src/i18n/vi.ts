@@ -542,6 +542,9 @@ export const vi: Dictionary = {
     accountSectionHint: "Chỉ cần các trường cần thiết để tạo tài khoản.",
     registerSuccessShort: "Thành công!",
     registerSuccessToast: "Tạo tài khoản thành công",
+    registerSuccessTitle: "Tạo tài khoản thành công",
+    registerSuccessBody:
+      "Tài khoản ứng viên đã được tạo. Bạn có thể chuyển sang đăng nhập ngay để tiếp tục hoàn thiện hồ sơ.",
     registerFailedToast: "Không thể tạo tài khoản",
     registerFooter1: "© {year} RecruitPro. Dành cho người dùng được cấp quyền.",
     registerFooter2: "Lưu ý bảo mật: hệ thống ghi nhận IP khi gửi biểu mẫu.",

@@ -553,6 +553,9 @@ export const en = {
     accountSectionHint: "Only the fields needed to create your account.",
     registerSuccessShort: "Success!",
     registerSuccessToast: "Account created successfully",
+    registerSuccessTitle: "Account created successfully",
+    registerSuccessBody:
+      "The candidate account is ready. You can sign in now and continue completing the profile.",
     registerFailedToast: "Could not create the account",
     registerFooter1: "© {year} RecruitPro. For authorized users only.",
     registerFooter2: "Security note: IP addresses are logged when forms are submitted.",
