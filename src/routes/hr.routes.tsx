@@ -7,9 +7,9 @@ import RouteGuard from "../guards/RouteGuard";
 import { PERMISSIONS } from "../permissions/permissions";
 
 import AuthenticatedLayout from "../common/components/layout/AuthenticatedLayout";
-import FeaturePlaceholderScreen from "../pages/FeaturePlaceholderScreen";
 
 const HrDashboardScreen = lazy(() => import("../pages/hr/HrDashboardScreen"));
+const InternalProfileScreen = lazy(() => import("../pages/internal/InternalProfileScreen"));
 const CandidateListScreen = lazy(() => import("../pages/hr/CandidateListScreen"));
 const CandidateImportScreen = lazy(() => import("../pages/hr/CandidateImportScreen"));
 const CandidateCreateScreen = lazy(() => import("../pages/hr/CandidateCreateScreen"));
@@ -58,12 +58,7 @@ const hrRoutes = (
       >
         <Route
           path="/internal/profile"
-          element={
-            <FeaturePlaceholderScreen
-              title="Internal Profile"
-              description="Khu vực hồ sơ nội bộ đang chờ hỗ trợ từ backend."
-            />
-          }
+          element={lazyRoute(<InternalProfileScreen />)}
         />
       </Route>
 
