@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useI18n } from "../../i18n";
-import { handleNonFormApiError } from "../../common/utils/appToast";
+import { appToast, handleNonFormApiError } from "../../common/utils/appToast";
 import Badge from "../../common/components/Badge";
 import EmptyState from "../../common/components/EmptyState";
 import { Skeleton } from "../../common/components/Skeleton";
 import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
+import { usePermissions } from "../../hooks/usePermissions";
+import { PERMISSIONS } from "../../permissions/permissions";
 import {
   candidateService,
   type CandidateInterviewItemDto,
@@ -77,12 +79,35 @@ function CandidateInterviewScreen() {
   const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const canConfirmAttendance = hasPermission(PERMISSIONS.INTERVIEW_CONFIRM_OWN);
   const [items, setItems] = useState<CandidateInterviewItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(
     null,
   );
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [currentTime] = useState(() => Date.now());
+
+  async function confirmAttendance(interview: CandidateInterviewItemDto) {
+    try {
+      setConfirmingId(interview.id);
+      await candidateService.confirmInterview(interview.id);
+      appToast.success(t("candidateInterviews.confirmSuccess"));
+      const confirmedAt = new Date().toISOString();
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === interview.id
+            ? { ...item, candidateConfirmedAt: confirmedAt }
+            : item,
+        ),
+      );
+    } catch (error) {
+      handleNonFormApiError(error);
+    } finally {
+      setConfirmingId(null);
+    }
+  }
 
   const spotlightJobTitle = useMemo(
     () => new URLSearchParams(location.search).get("jobTitle")?.trim() ?? "",
@@ -378,6 +403,80 @@ function CandidateInterviewScreen() {
                   value={selectedInterview.jobTitle}
                   emptyValue={t("candidateInterviews.status.pending")}
                 />
+
+                {(() => {
+                  const meetingType = (selectedInterview.meetingType ?? "").trim().toLowerCase();
+                  const meetingLink = selectedInterview.meetingLink?.trim() ?? "";
+                  const location = selectedInterview.location?.trim() ?? "";
+                  const isOnline = meetingType === "online" || Boolean(meetingLink);
+                  const isOffline = meetingType === "offline" || (!isOnline && Boolean(location));
+                  const isScheduled =
+                    selectedInterview.status.trim().toLowerCase() === "scheduled";
+
+                  if (!isOnline && !isOffline) return null;
+
+                  return (
+                    <>
+                      <DetailTile
+                        icon={isOnline ? "videocam" : "location_on"}
+                        label={
+                          isOnline
+                            ? t("candidateInterviews.detailMode")
+                            : t("candidateInterviews.detailLocation")
+                        }
+                        value={
+                          isOnline
+                            ? t("candidateInterviews.modeOnline")
+                            : location
+                        }
+                        helper={
+                          isOnline
+                            ? undefined
+                            : t("candidateInterviews.modeOffline")
+                        }
+                        emptyValue={t("candidateInterviews.status.pending")}
+                      />
+                      {isOnline && isScheduled ? (
+                        meetingLink ? (
+                          <a
+                            className="btn btn-primary w-full justify-center"
+                            href={meetingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              videocam
+                            </span>
+                            {t("candidateInterviews.joinMeeting")}
+                          </a>
+                        ) : (
+                          <p className="rounded-[10px] bg-[#f3f3f3] px-3 py-2 text-[13px] text-[#5f5e5e]">
+                            {t("candidateInterviews.meetingLinkPending")}
+                          </p>
+                        )
+                      ) : null}
+                    </>
+                  );
+                })()}
+
+                {selectedInterview.status.trim().toLowerCase() === "scheduled" ? (
+                  selectedInterview.candidateConfirmedAt ? (
+                    <p className="flex items-center gap-2 rounded-[10px] bg-emerald-50 px-3 py-2.5 text-[13px] font-semibold text-emerald-700">
+                      <span className="material-symbols-outlined text-[18px]">task_alt</span>
+                      {t("candidateInterviews.confirmedAttendance")}
+                    </p>
+                  ) : canConfirmAttendance ? (
+                    <button
+                      className="btn btn-secondary w-full justify-center"
+                      type="button"
+                      disabled={confirmingId === selectedInterview.id}
+                      onClick={() => confirmAttendance(selectedInterview)}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+                      {t("candidateInterviews.confirmAttendance")}
+                    </button>
+                  ) : null
+                ) : null}
 
                 <div className="rounded-[14px] border border-[#ececec] bg-white p-4">
                   <p className="eyebrow">{t("common.status")}</p>

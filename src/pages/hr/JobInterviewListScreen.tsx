@@ -6,13 +6,19 @@ import CommonSelect from "../../common/components/CommonSelect";
 import CommonTable, { TableColumn } from "../../common/components/CommonTable";
 import PageHeader from "../../common/components/PageHeader";
 import { Skeleton, SkeletonCard } from "../../common/components/Skeleton";
-import { getInterviewTimingStatus } from "../../common/utils/interviewPresentation";
+import {
+  getInterviewTimingStatus,
+  recommendationChipClass,
+} from "../../common/utils/interviewPresentation";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useI18n } from "../../i18n";
 import { PERMISSIONS } from "../../permissions/permissions";
 import { hrService } from "../../services/hr/hrService";
 // ConfirmModal is the shared design-system dialog (lives with the sysadmin UI helpers).
 import { ConfirmModal } from "../system-admin/automationUi";
+import InterviewEvaluationModal, {
+  type EvaluationSavedSummary,
+} from "./InterviewEvaluationModal";
 
 /* eslint-disable react-hooks/refs */
 
@@ -31,6 +37,9 @@ type Interview = {
   startAt: number; // epoch ms
   endAt: number; // epoch ms
   status: InterviewStatus;
+  candidateConfirmed: boolean; // candidate confirmed attendance (candidate_confirmed_at set)
+  evaluationOverallScore: number | null; // post-interview scorecard summary
+  evaluationRecommendation: string | null;
 };
 
 type Timeframe = "Next 7 Days" | "Last 30 Days" | "Custom Range";
@@ -128,10 +137,11 @@ function buildInterviewTableColumns({
   onMarkCompleted,
   onReschedule,
   onCancel,
+  onEvaluate,
   menuRef,
   actions,
 }: {
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
   statusChipFn: (status: InterviewStatus) => string;
   openMenuId: string | null;
   setOpenMenuId: (id: string | null) => void;
@@ -139,6 +149,7 @@ function buildInterviewTableColumns({
   onMarkCompleted: (it: Interview) => void;
   onReschedule: (it: Interview) => void;
   onCancel: (it: Interview) => void;
+  onEvaluate: (it: Interview) => void;
   menuRef: React.RefObject<HTMLDivElement>;
   actions: {
     canViewInterviews: boolean;
@@ -203,6 +214,20 @@ function buildInterviewTableColumns({
                 {timingStatus.label}
               </span>
             ) : null}
+            {item.status === "Scheduled" && item.candidateConfirmed ? (
+              <span className="badge bg-emerald-50 text-emerald-700">
+                {t("jobInterviewList.candidateConfirmed")}
+              </span>
+            ) : null}
+            {item.evaluationOverallScore != null ? (
+              <span
+                className={`badge ${recommendationChipClass(item.evaluationRecommendation ?? "")}`}
+              >
+                {t("jobInterviewList.evaluationScore", {
+                  score: item.evaluationOverallScore,
+                })}
+              </span>
+            ) : null}
           </div>
         );
       },
@@ -238,6 +263,7 @@ function buildInterviewTableColumns({
             {canOpenActionsMenu && openMenuId === item.id ? (
               <div
                 ref={menuRef}
+                data-interview-actions-menu
                 className="absolute right-6 top-12 z-10 w-44 overflow-hidden rounded-[12px] border border-[#ececec] bg-white shadow-lg"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -282,6 +308,22 @@ function buildInterviewTableColumns({
                     </span>
                     {t("jobInterviewList.markCompleted")}
                   </AsyncActionButton>
+                ) : null}
+                {normalizeInterviewStatus(item.status) === "Completed" &&
+                actions.canViewInterviews ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-semibold hover:bg-[#f3f3f3]"
+                    onClick={() => {
+                      onEvaluate(item);
+                      setOpenMenuId(null);
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      rate_review
+                    </span>
+                    {t("jobInterviewList.evaluate")}
+                  </button>
                 ) : null}
                 {actions.canDeleteInterviews ? (
                   <AsyncActionButton
@@ -351,6 +393,7 @@ function JobInterviewListScreen() {
   const [openMenuForId, setOpenMenuForId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Interview | null>(null);
   const [canceling, setCanceling] = useState(false);
+  const [evaluationTarget, setEvaluationTarget] = useState<Interview | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -377,6 +420,9 @@ function JobInterviewListScreen() {
               startAt: item.startAt ? Date.parse(item.startAt) : parsed.startAt,
               endAt: item.endAt ? Date.parse(item.endAt) : parsed.endAt,
               status: normalizeInterviewStatus(item.status),
+              candidateConfirmed: Boolean(item.candidateConfirmedAt),
+              evaluationOverallScore: item.evaluationOverallScore ?? null,
+              evaluationRecommendation: item.evaluationRecommendation ?? null,
             };
           }),
         );
@@ -400,8 +446,13 @@ function JobInterviewListScreen() {
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
       if (!openMenuForId) return;
-      const target = e.target as Node | null;
-      if (menuRef.current && target && menuRef.current.contains(target)) return;
+      // CommonTable renders the desktop table AND the mobile card list at the same time, so the
+      // open menu exists TWICE and the shared menuRef only points at the copy mounted last (the
+      // hidden one). A ref-containment check therefore treated clicks inside the visible menu as
+      // "outside" and closed it on mousedown — before the item's click could ever fire. Checking
+      // the event target's ancestry covers both copies.
+      const target = e.target as Element | null;
+      if (target && target.closest("[data-interview-actions-menu]")) return;
       setOpenMenuForId(null);
     }
 
@@ -521,9 +572,15 @@ function JobInterviewListScreen() {
   }
 
   function openDetails(it: Interview) {
-    appToast.info(
-      t("jobInterviewList.openingDetails", { candidate: it.candidateName, job: it.jobTitle }),
-    );
+    // Interviews have no standalone detail endpoint; the meaningful "detail" for a scheduled interview
+    // is the candidate's application review (CV, AI fit, decision, offer), reached via applicationId.
+    if (!it.applicationId) {
+      appToast.info(
+        t("jobInterviewList.openingDetails", { candidate: it.candidateName, job: it.jobTitle }),
+      );
+      return;
+    }
+    navigate(`/hr/applications/${it.applicationId}`);
   }
 
   const markCompleted = useCallback(async (it: Interview) => {
@@ -563,6 +620,26 @@ function JobInterviewListScreen() {
     setOpenMenuForId(null);
   }, []);
 
+  // Post-interview scorecard: opened from the actions menu for Completed interviews.
+  const openEvaluation = useCallback((it: Interview) => {
+    setEvaluationTarget(it);
+    setOpenMenuForId(null);
+  }, []);
+
+  const handleEvaluationSaved = useCallback((summary: EvaluationSavedSummary) => {
+    setItems((prev) =>
+      prev.map((x) =>
+        x.id === summary.interviewId
+          ? {
+              ...x,
+              evaluationOverallScore: summary.overallScore,
+              evaluationRecommendation: summary.recommendation,
+            }
+          : x,
+      ),
+    );
+  }, []);
+
   const confirmCancelInterview = useCallback(async () => {
     if (!cancelTarget) return;
     setCanceling(true);
@@ -589,6 +666,7 @@ function JobInterviewListScreen() {
         onMarkCompleted: markCompleted,
         onReschedule: reschedule,
         onCancel: cancelInterview,
+        onEvaluate: openEvaluation,
         menuRef,
         actions: {
           canViewInterviews,
@@ -603,6 +681,7 @@ function JobInterviewListScreen() {
       markCompleted,
       reschedule,
       cancelInterview,
+      openEvaluation,
       canViewInterviews,
       canUpdateInterviews,
       canApproveInterviews,
@@ -807,6 +886,22 @@ function JobInterviewListScreen() {
           ? t("jobInterviewList.cancelConfirm", { candidate: cancelTarget.candidateName })
           : null}
       </ConfirmModal>
+
+      <InterviewEvaluationModal
+        open={evaluationTarget != null}
+        interview={
+          evaluationTarget
+            ? {
+                id: evaluationTarget.id,
+                candidateName: evaluationTarget.candidateName,
+                jobTitle: evaluationTarget.jobTitle,
+              }
+            : null
+        }
+        canEdit={canUpdateInterviews || canApproveInterviews}
+        onClose={() => setEvaluationTarget(null)}
+        onSaved={handleEvaluationSaved}
+      />
     </div>
   );
 }

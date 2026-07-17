@@ -21,6 +21,7 @@ const ManagerDashboardScreen = lazy(() => import("../pages/manager/ManagerDashbo
 const ManagerJobApprovalDetailScreen = lazy(() => import("../pages/manager/ManagerJobApprovalDetailScreen"));
 const ManagerRecruitmentAnalyticsScreen = lazy(() => import("../pages/manager/ManagerRecruitmentAnalyticsScreen"));
 const JobCreatingScreen = lazy(() => import("../pages/hr/JobCreatingScreen"));
+const JobsRouteScreen = lazy(() => import("../pages/JobsRouteScreen"));
 const JobInterviewListScreen = lazy(() => import("../pages/hr/JobInterviewListScreen"));
 const InterviewScheduleScreen = lazy(() => import("../pages/hr/InterviewScheduleScreen"));
 const AiCopilotScreen = lazy(() => import("../pages/hr/AiCopilotScreen"));
@@ -71,6 +72,23 @@ const hrRoutes = (
         <Route
           path="/hr/jobs/create"
           element={lazyRoute(<JobCreatingScreen />)}
+        />
+      </Route>
+
+      {/* Internal jobs list. "/jobs" belongs to the CANDIDATE portal (authSession.portalForPath),
+          so an internal-only user landing there gets the public listing and no internal API token.
+          Internal navigation therefore targets this internal-portal path; JobsRouteScreen still
+          dispatches HR → management, Manager/HeadDept → approval queue. */}
+      <Route
+        element={
+          <RouteGuard
+            permissions={[PERMISSIONS.JOB_LIST, PERMISSIONS.JOB_APPROVE]}
+          />
+        }
+      >
+        <Route
+          path="/internal/jobs"
+          element={lazyRoute(<JobsRouteScreen />)}
         />
       </Route>
 

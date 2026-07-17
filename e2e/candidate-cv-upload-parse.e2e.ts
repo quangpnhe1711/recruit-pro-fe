@@ -9,7 +9,7 @@ import { installApiMocks, ok, seedSession } from "./support/session";
 // actual multipart upload — the test asserts the filename reaches the parse request, then that the
 // UI renders the returned data. rp.lang=vi is seeded, so copy is asserted in Vietnamese.
 
-const CV_DIR = fileURLToPath(new URL("../../cv", import.meta.url));
+const CV_DIR = fileURLToPath(new URL("../../../recruit-pro/cv", import.meta.url));
 
 // Representative parsed extraction per fixture (the backend AI owns the real values; here we assert
 // the FE renders whatever the parse endpoint returns for that file).

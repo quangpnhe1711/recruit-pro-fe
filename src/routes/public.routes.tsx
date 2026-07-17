@@ -31,7 +31,7 @@ const publicRoutes = (
 
     <Route element={<AdaptiveLayout />}>
       <Route path="/jobs" element={lazyRoute(<JobsRouteScreen />)} />
-      <Route path="/internal/jobs" element={<Navigate to="/jobs" replace />} />
+      {/* /internal/jobs is a real internal-portal route now (hr.routes.tsx) — no redirect here. */}
       <Route
         path="/internal/jobs/create"
         element={<Navigate to="/hr/jobs/create" replace />}

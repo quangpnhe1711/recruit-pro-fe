@@ -210,6 +210,42 @@ export type HrInterviewItemDto = {
   startAt: string;
   endAt: string;
   status: string;
+  meetingType?: string;
+  meetingLink?: string | null;
+  location?: string | null;
+  candidateConfirmedAt?: string | null;
+  // Scorecard summary (internal HR list only).
+  evaluationOverallScore?: number | null;
+  evaluationRecommendation?: string | null;
+};
+
+// Post-interview scorecard (one per interview).
+export type HrInterviewEvaluationDto = {
+  interviewId: string;
+  evaluatorId?: string | null;
+  evaluatorName?: string | null;
+  technicalScore: number;
+  communicationScore: number;
+  problemSolvingScore: number;
+  cultureFitScore: number;
+  overallScore: number;
+  recommendation: string; // StrongHire | Hire | NoHire | StrongNoHire
+  strengths?: string | null;
+  concerns?: string | null;
+  notes?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+export type HrInterviewEvaluationPayload = {
+  technicalScore: number;
+  communicationScore: number;
+  problemSolvingScore: number;
+  cultureFitScore: number;
+  recommendation: string;
+  strengths?: string | null;
+  concerns?: string | null;
+  notes?: string | null;
 };
 
 export type HrInterviewScheduleDataDto = {
@@ -496,6 +532,24 @@ export const hrService = {
 
   deleteInterview: async (interviewId: string): Promise<ApiResponse<null>> => {
     return request.delete<ApiResponse<null>>(endpoints.hr.interviewDetail(interviewId));
+  },
+
+  getInterviewEvaluation: async (
+    interviewId: string,
+  ): Promise<ApiResponse<HrInterviewEvaluationDto>> => {
+    return request.get<ApiResponse<HrInterviewEvaluationDto>>(
+      endpoints.hr.interviewEvaluation(interviewId),
+    );
+  },
+
+  saveInterviewEvaluation: async (
+    interviewId: string,
+    payload: HrInterviewEvaluationPayload,
+  ): Promise<ApiResponse<HrInterviewEvaluationDto>> => {
+    return request.put<ApiResponse<HrInterviewEvaluationDto>, HrInterviewEvaluationPayload>(
+      endpoints.hr.interviewEvaluation(interviewId),
+      payload,
+    );
   },
 
   getInterviewScheduleData: async (

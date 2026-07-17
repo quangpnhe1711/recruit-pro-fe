@@ -595,7 +595,7 @@ function JobCreatingScreen() {
 
       window.localStorage.removeItem(draftStorageKey);
       appToast.success(t("jobCreating.submitSuccess"));
-      navigate("/jobs");
+      navigate("/internal/jobs");
     } catch (err) {
       // Backend field errors route to the step that owns the field so they render inline (red field +
       // message) instead of a toast; server/network/business errors fall back to a soft toast.

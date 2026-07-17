@@ -53,7 +53,7 @@ test.describe("E2E-OWN-003 HR ownership display", () => {
       },
     ]);
 
-    await page.goto("/jobs");
+    await page.goto("/internal/jobs");
     await expect(page.getByRole("heading", { name: "Quản lý job" })).toBeVisible();
 
     const table = page.locator("table");

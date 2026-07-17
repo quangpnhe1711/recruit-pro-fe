@@ -78,7 +78,7 @@ test.describe("E2E-OWN-002 DepartmentHead approval", () => {
       },
     ]);
 
-    await page.goto("/jobs");
+    await page.goto("/internal/jobs");
     // DepartmentHead-scoped queue heading + eyebrow.
     await expect(page.getByRole("heading", { name: "Duyệt tin tuyển dụng" })).toBeVisible();
     await expect(page.getByText("Trưởng bộ phận duyệt tin tuyển dụng")).toBeVisible();

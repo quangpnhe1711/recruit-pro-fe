@@ -487,7 +487,7 @@ function InterviewScheduleScreen() {
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => appToast.info(t("interviewSchedule.viewProfileSoon"))}
+              onClick={() => navigate(`/hr/candidates/${scheduleData.candidate.id}`)}
             >
               <span className="material-symbols-outlined text-[18px]">
                 account_circle

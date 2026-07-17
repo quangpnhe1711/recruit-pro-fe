@@ -21,7 +21,9 @@ import {
   candidateService,
   type CandidateApplicationItemDto,
   type CandidateInterviewItemDto,
+  type CandidateOfferViewDto,
 } from "../../services/candidate/candidateService";
+import { getOfferStatusPresentation } from "../../common/status/offerStatus";
 
 type ApplicationItem = {
   id: string;
@@ -86,6 +88,9 @@ function mapApplicationItem(
   } satisfies ApplicationItem;
 }
 
+// Statuses whose offer terms are viewable by the candidate (offer sent / responded).
+const OFFER_VIEWABLE_STATUS_KEYS = new Set(["offer", "hired", "offerdeclined"]);
+
 function buildApplicationTableColumns(
   t: (key: string, vars?: Record<string, string | number>) => string,
   canViewApplications: boolean,
@@ -97,7 +102,9 @@ function buildApplicationTableColumns(
   onWithdraw: (item: ApplicationItem) => void,
   onAcceptOffer: (item: ApplicationItem) => void,
   onDeclineOffer: (item: ApplicationItem) => void,
+  onViewOffer: (item: ApplicationItem) => void,
   actionLoadingId: string | null,
+  offerLoadingId: string | null,
 ): TableColumn<ApplicationItem>[] {
   return [
     {
@@ -184,6 +191,20 @@ function buildApplicationTableColumns(
               {t("candidateApplications.viewInterviewSchedule")}
             </button>
 
+            {OFFER_VIEWABLE_STATUS_KEYS.has(item.statusKey) ? (
+              <button
+                className="btn btn-secondary px-3 py-2 text-[13px]"
+                type="button"
+                disabled={offerLoadingId === item.id}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onViewOffer(item);
+                }}
+              >
+                {t("candidateApplications.viewOffer")}
+              </button>
+            ) : null}
+
             {item.availableActions.includes("acceptOffer") ? (
               <button
                 className="btn btn-primary px-3 py-2 text-[13px]"
@@ -261,6 +282,11 @@ function MyApplicationScreen() {
   const [selectedApplicationId, setSelectedApplicationId] = useState<
     string | null
   >(null);
+  const [offerView, setOfferView] = useState<{
+    item: ApplicationItem;
+    offer: CandidateOfferViewDto;
+  } | null>(null);
+  const [offerLoadingId, setOfferLoadingId] = useState<string | null>(null);
 
   const pageSize = 3;
 
@@ -437,10 +463,35 @@ function MyApplicationScreen() {
       }[pendingAction.kind]
     : null;
 
+  // StatusTone includes "primary" which the Badge component doesn't; map it to the closest tone.
+  const offerPresentation = offerView
+    ? (() => {
+        const presentation = getOfferStatusPresentation(offerView.offer.status);
+        return {
+          label: presentation.label,
+          tone: presentation.tone === "primary" ? ("violet" as const) : presentation.tone,
+        };
+      })()
+    : null;
+
   function handleViewInterviews(item: ApplicationItem) {
     const search = new URLSearchParams();
     search.set("jobTitle", item.title);
     navigate(`/candidate/interviews?${search.toString()}`);
+  }
+
+  async function handleViewOffer(item: ApplicationItem) {
+    try {
+      setOfferLoadingId(item.id);
+      const response = await candidateService.getOffer(item.id);
+      if (response.data) {
+        setOfferView({ item, offer: response.data });
+      }
+    } catch (error) {
+      handleNonFormApiError(error);
+    } finally {
+      setOfferLoadingId(null);
+    }
   }
 
   function goTo(next: number) {
@@ -533,7 +584,9 @@ function MyApplicationScreen() {
             handleWithdraw,
             handleAcceptOffer,
             handleDeclineOffer,
+            handleViewOffer,
             actionLoadingId,
+            offerLoadingId,
           )}
           data={pageSlice}
           keyExtractor={(item) => item.id}
@@ -670,6 +723,18 @@ function MyApplicationScreen() {
             </div>
 
             <div className="mt-6 flex flex-wrap justify-end gap-2.5">
+              {OFFER_VIEWABLE_STATUS_KEYS.has(selectedApplication.statusKey) ? (
+                <button
+                  className="btn btn-secondary"
+                  type="button"
+                  disabled={offerLoadingId === selectedApplication.id}
+                  onClick={() => handleViewOffer(selectedApplication)}
+                >
+                  <span className="material-symbols-outlined text-[18px]">description</span>
+                  {t("candidateApplications.viewOffer")}
+                </button>
+              ) : null}
+
               {selectedApplication.availableActions.includes("acceptOffer") ? (
                 <button
                   className="btn btn-primary"
@@ -712,6 +777,157 @@ function MyApplicationScreen() {
                 </button>
               ) : null}
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {offerView ? (
+        <div className="animate-fade-in fixed inset-0 z-[60] flex items-center justify-center bg-[#1a1c1c]/45 px-4 py-6 backdrop-blur-sm">
+          <div className="animate-scale-in flex max-h-full w-full max-w-[560px] flex-col overflow-hidden rounded-[20px] border border-[#ececec] bg-white shadow-[var(--shadow-lg)]">
+            <div className="flex items-start justify-between gap-4 border-b border-[#eee9e7] px-6 py-5">
+              <div className="min-w-0">
+                <p className="eyebrow mb-1">{t("candidateApplications.offerView.title")}</p>
+                <h3 className="truncate text-[20px] font-semibold tracking-[-0.01em] text-[#1a1c1c]">
+                  {offerView.offer.jobTitle}
+                </h3>
+                <p className="mt-0.5 text-[13px] text-[#5f5e5e]">
+                  {offerView.offer.departmentName}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {offerPresentation ? (
+                    <Badge tone={offerPresentation.tone}>{offerPresentation.label}</Badge>
+                  ) : null}
+                  {offerView.offer.sentAt ? (
+                    <span className="text-[12px] text-[#8a8786]">
+                      {t("candidateApplications.offerView.sentAt", {
+                        date: new Date(offerView.offer.sentAt).toLocaleDateString("vi-VN"),
+                      })}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              <button
+                className="btn btn-secondary h-10 w-10 shrink-0 !px-0"
+                type="button"
+                onClick={() => setOfferView(null)}
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-4 overflow-auto px-6 py-5">
+              <div className="rounded-[14px] border border-[#ffdad6] bg-[#fff8f7] p-4">
+                <p className="eyebrow">{t("candidateApplications.offerView.baseSalary")}</p>
+                <p className="mt-1 text-[26px] font-bold leading-8 text-[#b90014]">
+                  {new Intl.NumberFormat("vi-VN").format(offerView.offer.baseSalary)}{" "}
+                  <span className="text-[15px] font-semibold text-[#5f5e5e]">
+                    {offerView.offer.currencyCode}
+                  </span>
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    label: t("candidateApplications.offerView.employmentType"),
+                    value: offerView.offer.employmentType,
+                  },
+                  {
+                    label: t("candidateApplications.offerView.startDate"),
+                    value: offerView.offer.proposedStartDate
+                      ? new Date(offerView.offer.proposedStartDate).toLocaleDateString("vi-VN")
+                      : "",
+                  },
+                  {
+                    label: t("candidateApplications.offerView.probation"),
+                    value: offerView.offer.probationPeriod ?? "",
+                  },
+                  {
+                    label: t("candidateApplications.offerView.reportingManager"),
+                    value: offerView.offer.reportingManagerName ?? "",
+                  },
+                ].map((row) => (
+                  <div key={row.label} className="rounded-[12px] border border-[#ececec] bg-[#faf8f8] p-3.5">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#8a8786]">
+                      {row.label}
+                    </p>
+                    <p className="mt-1 text-[14px] font-semibold text-[#1a1c1c]">
+                      {row.value || t("candidateApplications.offerView.notAvailable")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {offerView.offer.benefits.length ? (
+                <div>
+                  <p className="eyebrow mb-2">{t("candidateApplications.offerView.benefits")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {offerView.offer.benefits.map((benefit) => (
+                      <span key={benefit} className="badge border-[#e2dfde] bg-[#f7f6f5] text-[#1a1c1c]">
+                        {benefit}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {offerView.offer.bonusDescription ? (
+                <div className="rounded-[12px] border border-[#ececec] p-3.5">
+                  <p className="eyebrow">{t("candidateApplications.offerView.bonus")}</p>
+                  <p className="mt-1 text-[14px] leading-6 text-[#1a1c1c]">
+                    {offerView.offer.bonusDescription}
+                  </p>
+                </div>
+              ) : null}
+
+              {offerView.offer.equityNotes ? (
+                <div className="rounded-[12px] border border-[#ececec] p-3.5">
+                  <p className="eyebrow">{t("candidateApplications.offerView.equity")}</p>
+                  <p className="mt-1 text-[14px] leading-6 text-[#1a1c1c]">
+                    {offerView.offer.equityNotes}
+                  </p>
+                </div>
+              ) : null}
+
+              {offerView.offer.personalMessage ? (
+                <div className="rounded-[12px] bg-[#faf9f8] p-3.5">
+                  <p className="eyebrow">{t("candidateApplications.offerView.message")}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-[14px] leading-6 text-[#1a1c1c]">
+                    {offerView.offer.personalMessage}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            {offerView.item.availableActions.includes("acceptOffer") ||
+            offerView.item.availableActions.includes("declineOffer") ? (
+              <div className="flex flex-wrap justify-end gap-2.5 border-t border-[#eee9e7] px-6 py-4">
+                {offerView.item.availableActions.includes("declineOffer") ? (
+                  <button
+                    className="btn btn-secondary !text-[#ba1a1a]"
+                    type="button"
+                    disabled={!canDeclineOffer || actionLoadingId === offerView.item.id}
+                    onClick={() => {
+                      handleDeclineOffer(offerView.item);
+                    }}
+                  >
+                    {t("candidateApplications.declineOffer")}
+                  </button>
+                ) : null}
+                {offerView.item.availableActions.includes("acceptOffer") ? (
+                  <button
+                    className="btn btn-primary"
+                    type="button"
+                    disabled={!canAcceptOffer || actionLoadingId === offerView.item.id}
+                    onClick={() => {
+                      handleAcceptOffer(offerView.item);
+                    }}
+                  >
+                    {t("candidateApplications.acceptOffer")}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

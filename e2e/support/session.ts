@@ -97,12 +97,17 @@ export const SESSIONS: Record<SessionKey, { variant: Variant; user: SeedUser }> 
 
 export async function seedSession(page: Page, key: SessionKey): Promise<void> {
   const { variant, user } = SESSIONS[key];
-  const payload = { token: makeJwt(), variant, user: JSON.stringify(user) };
-  await page.addInitScript((data: { token: string; variant: string; user: string }) => {
-    localStorage.setItem("access_token", data.token);
-    localStorage.setItem("refresh_token", data.token);
-    localStorage.setItem("current_variant", data.variant);
-    localStorage.setItem("auth_user", data.user);
+  // Sessions are stored per-portal as ONE JSON blob (src/services/auth/authSession.ts):
+  // rp_candidate_session / rp_internal_session = { accessToken, refreshToken, user }.
+  // The legacy access_token/refresh_token/current_variant/auth_user keys are purged by the
+  // app on boot (purgeLegacySharedSession), so seeding them no longer authenticates anything.
+  const sessionKey = variant === "internal" ? "rp_internal_session" : "rp_candidate_session";
+  const payload = {
+    sessionKey,
+    session: JSON.stringify({ accessToken: makeJwt(), refreshToken: makeJwt(), user }),
+  };
+  await page.addInitScript((data: { sessionKey: string; session: string }) => {
+    localStorage.setItem(data.sessionKey, data.session);
     // Specs assert Vietnamese copy; Playwright's default locale is en-US, which
     // the i18n auto-detect would otherwise resolve to English.
     localStorage.setItem("rp.lang", "vi");

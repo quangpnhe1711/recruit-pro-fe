@@ -55,6 +55,32 @@ export type CandidateInterviewItemDto = {
   startAt: string;
   endAt: string;
   status: string;
+  // Meeting logistics ("Online" | "Offline" | "") so the candidate can actually join the interview.
+  meetingType?: string;
+  meetingLink?: string | null;
+  location?: string | null;
+  // When the candidate confirmed attendance. Null/absent = not confirmed yet.
+  candidateConfirmedAt?: string | null;
+};
+
+// Read-only offer terms for the owning candidate (BE never returns Draft offers here).
+export type CandidateOfferViewDto = {
+  applicationId: string;
+  jobTitle: string;
+  departmentName: string;
+  status: string; // Sent | Accepted | Declined
+  baseSalary: number;
+  currencyCode: string;
+  currencySymbol?: string | null;
+  bonusDescription?: string | null;
+  equityNotes?: string | null;
+  employmentType: string;
+  proposedStartDate?: string | null;
+  probationPeriod?: string | null;
+  reportingManagerName?: string | null;
+  personalMessage?: string | null;
+  benefits: string[];
+  sentAt?: string | null;
 };
 
 export type CandidateApplicationsResponseDto = {
@@ -442,6 +468,16 @@ export const candidateService = {
 
   declineOffer: async (applicationId: string): Promise<ApiResponse<null>> => {
     return request.post<ApiResponse<null>>(endpoints.candidate.applicationDeclineOffer(applicationId));
+  },
+
+  getOffer: async (applicationId: string): Promise<ApiResponse<CandidateOfferViewDto>> => {
+    return request.get<ApiResponse<CandidateOfferViewDto>>(
+      endpoints.candidate.applicationOffer(applicationId),
+    );
+  },
+
+  confirmInterview: async (interviewId: string): Promise<ApiResponse<string>> => {
+    return request.post<ApiResponse<string>>(endpoints.candidate.interviewConfirm(interviewId));
   },
 
   getProfile: async (): Promise<ApiResponse<CandidateProfileResponseDto>> => {

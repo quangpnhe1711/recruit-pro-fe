@@ -166,7 +166,7 @@ function ManagerDashboardScreen() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => navigate("/jobs")}
+              onClick={() => navigate("/internal/jobs")}
             >
               <span className="material-symbols-outlined text-[18px]">approval</span>
               {t("managerDashboard.reviewJobs")}
@@ -226,7 +226,7 @@ function ManagerDashboardScreen() {
                     <button
                       type="button"
                       className="btn btn-primary h-10 shrink-0"
-                      onClick={() => navigate("/jobs")}
+                      onClick={() => navigate("/internal/jobs")}
                     >
                       <span className="material-symbols-outlined text-[18px]">visibility</span>
                       {t("managerDashboard.viewAndReview")}
@@ -358,7 +358,7 @@ function ManagerDashboardScreen() {
                 <button
                   type="button"
                   className="flex w-full items-center gap-3 text-left text-[14px] transition-colors hover:text-[#ffdad6]"
-                  onClick={() => navigate("/jobs")}
+                  onClick={() => navigate("/internal/jobs")}
                 >
                   <span className="material-symbols-outlined text-[20px] text-[#b90014]">approval</span>
                   {t("managerDashboard.reviewPendingJobs")}

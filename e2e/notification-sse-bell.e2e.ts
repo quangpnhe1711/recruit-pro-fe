@@ -59,7 +59,7 @@ test.describe("Notification bell — SSE realtime, seen/read, deep-link navigati
       },
     );
 
-    await page.goto("/jobs");
+    await page.goto("/internal/jobs");
     // Wait for the unseen badge to render (GET /counts resolved → unseenCount=1) before opening the
     // bell. Clicking earlier races the counts fetch, and markAllSeen no-ops while unseenCount is 0.
     await expect(bellButton(page).getByText("1", { exact: true })).toBeVisible();
@@ -100,7 +100,7 @@ test.describe("Notification bell — SSE realtime, seen/read, deep-link navigati
       },
     );
 
-    await page.goto("/jobs");
+    await page.goto("/internal/jobs");
     await bellButton(page).click();
 
     await page.getByText("Ứng viên mới ứng tuyển").click();
@@ -131,7 +131,7 @@ test.describe("Notification bell — SSE realtime, seen/read, deep-link navigati
       { method: "PATCH", match: /\/api\/notifications\/n1\/read$/, json: ok(notif({ isRead: true })) },
     ]);
 
-    await page.goto("/jobs");
+    await page.goto("/internal/jobs");
     await bellButton(page).click();
     await page.getByText("Ứng viên mới ứng tuyển").click();
 
@@ -161,7 +161,7 @@ test.describe("Notification bell — SSE realtime, seen/read, deep-link navigati
       }),
     );
 
-    await page.goto("/jobs");
+    await page.goto("/internal/jobs");
 
     // The realtime handler raises a toast for the pushed notification — no manual refresh needed.
     await expect(page.getByText("Thông báo realtime mới")).toBeVisible();

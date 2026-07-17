@@ -41,7 +41,7 @@ type SideNavBarProps = {
 
 const hrItems: SideNavItem[] = [
   { icon: "dashboard", label: "nav.dashboard", to: "/hr/dashboard" },
-  { icon: "work", label: "nav.jobs", to: "/jobs" },
+  { icon: "work", label: "nav.jobs", to: "/internal/jobs" },
   { icon: "group", label: "nav.candidates", to: "/hr/candidates" },
   { icon: "description", label: "nav.applications", to: "/hr/applications" },
   { icon: "smart_toy", label: "nav.aiCopilot", to: "/hr/ai-copilot" },
@@ -51,7 +51,7 @@ const hrItems: SideNavItem[] = [
 
 const managerItems: SideNavItem[] = [
   { icon: "dashboard", label: "nav.dashboard", to: "/manager/dashboard" },
-  { icon: "approval", label: "nav.recruitmentApproval", to: "/jobs" },
+  { icon: "approval", label: "nav.recruitmentApproval", to: "/internal/jobs" },
   { icon: "description", label: "nav.applications", to: "/manager/applications" },
   { icon: "smart_toy", label: "nav.aiCopilot", to: "/hr/ai-copilot" },
   { icon: "schedule", label: "nav.interviews", to: "/hr/interviews" },
@@ -61,7 +61,7 @@ const managerItems: SideNavItem[] = [
 
 const headDepartmentItems: SideNavItem[] = [
   { icon: "dashboard", label: "nav.dashboard", to: "/hr/dashboard" },
-  { icon: "approval", label: "nav.jobApproval", to: "/jobs" },
+  { icon: "approval", label: "nav.jobApproval", to: "/internal/jobs" },
   { icon: "schedule", label: "nav.interviews", to: "/hr/interviews" },
   { icon: "person", label: "nav.profile", to: "/internal/profile" },
 ];

@@ -23,7 +23,7 @@ const defaultItems: BottomNavItem[] = [
 
 const hrItems: BottomNavItem[] = [
   { icon: 'dashboard', label: 'nav.dashboard', to: '/hr/dashboard' },
-  { icon: 'work', label: 'nav.jobs', to: '/jobs' },
+  { icon: 'work', label: 'nav.jobs', to: '/internal/jobs' },
   { icon: 'group', label: 'nav.candidates', to: '/hr/candidates' },
   { icon: 'smart_toy', label: 'nav.aiCopilot', to: '/hr/ai-copilot' },
   { icon: 'schedule', label: 'nav.interviews', to: '/hr/interviews' },
@@ -31,7 +31,7 @@ const hrItems: BottomNavItem[] = [
 
 const managerItems: BottomNavItem[] = [
   { icon: 'dashboard', label: 'nav.dashboard', to: '/manager/dashboard' },
-  { icon: 'approval', label: 'nav.jobApproval', to: '/jobs' },
+  { icon: 'approval', label: 'nav.jobApproval', to: '/internal/jobs' },
   { icon: 'description', label: 'nav.applications', to: '/manager/applications' },
   { icon: 'smart_toy', label: 'nav.aiCopilot', to: '/hr/ai-copilot' },
   { icon: 'analytics', label: 'nav.reports', to: '/manager/reports' },

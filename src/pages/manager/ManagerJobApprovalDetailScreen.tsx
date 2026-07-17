@@ -127,7 +127,7 @@ function ManagerJobApprovalDetailScreen() {
       // backend confirms — no optimistic "approved" flip (BR-OWN-003).
       await jobsService.updateJobStatus(detail.jobId, { status: nextStatus });
       appToast.success(successMessage);
-      navigate("/jobs");
+      navigate("/internal/jobs");
     } catch (error) {
       // errorCode → HTTP status → backend message → fallback. Surfaces the actionable 403 (not the
       // department head / SystemAdmin) and 422 (department has no head) cases explicitly.
@@ -167,7 +167,7 @@ function ManagerJobApprovalDetailScreen() {
             title="Không thể mở chi tiết phê duyệt"
             description={loadError ?? t("managerJobApprovalDetail.emptyDescription")}
             action={
-              <button type="button" className="btn btn-dark" onClick={() => navigate("/jobs")}>
+              <button type="button" className="btn btn-dark" onClick={() => navigate("/internal/jobs")}>
                 <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                 {t("managerJobApprovalDetail.backToQueue")}
               </button>
@@ -199,7 +199,7 @@ function ManagerJobApprovalDetailScreen() {
         <button
           type="button"
           className="btn btn-secondary shrink-0"
-          onClick={() => navigate("/jobs")}
+          onClick={() => navigate("/internal/jobs")}
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           {t("managerJobApprovalDetail.backToQueue")}

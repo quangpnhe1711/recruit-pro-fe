@@ -42,6 +42,10 @@ export const endpoints = {
       `/candidate/applications/${applicationId}/accept-offer`,
     applicationDeclineOffer: (applicationId: string) =>
       `/candidate/applications/${applicationId}/decline-offer`,
+    applicationOffer: (applicationId: string) =>
+      `/candidate/applications/${applicationId}/offer`,
+    interviewConfirm: (interviewId: string) =>
+      `/candidate/interviews/${interviewId}/confirm`,
     profile: "/candidate/profile",
     profileSave: "/candidate/profile/save",
     profileSkills: "/candidate/profile/skills",
@@ -86,6 +90,8 @@ export const endpoints = {
     interviewStatus: (interviewId: string) =>
       `/hr/interviews/${interviewId}/status`,
     interviewDetail: (interviewId: string) => `/hr/interviews/${interviewId}`,
+    interviewEvaluation: (interviewId: string) =>
+      `/hr/interviews/${interviewId}/evaluation`,
     interviewScheduleData: "/hr/interviews/schedule-data",
     createInterview: "/hr/interviews",
   },

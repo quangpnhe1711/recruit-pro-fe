@@ -38,7 +38,7 @@ function getDefaultPathForVariant(
 
   if (variant === "internal") {
     if (permissions.has(PERMISSIONS.DASHBOARD_VIEW_INTERNAL)) return "/hr/dashboard";
-    if (permissions.has(PERMISSIONS.JOB_LIST)) return "/jobs";
+    if (permissions.has(PERMISSIONS.JOB_LIST)) return "/internal/jobs";
     if (permissions.has(PERMISSIONS.CANDIDATE_VIEW_LIST)) return "/hr/candidates";
     if (permissions.has(PERMISSIONS.APPLICATION_VIEW_ALL)) return "/hr/applications";
     if (permissions.has(PERMISSIONS.INTERVIEW_VIEW_ALL)) return "/hr/interviews";

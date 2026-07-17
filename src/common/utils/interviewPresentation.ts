@@ -31,6 +31,22 @@ export function isTerminalInterviewStatus(status?: string | null) {
   return TERMINAL_INTERVIEW_STATUSES.has((status ?? "").trim().toLowerCase());
 }
 
+// Badge classes for the post-interview scorecard recommendation (StrongHire..StrongNoHire).
+export function recommendationChipClass(recommendation: string): string {
+  switch (recommendation) {
+    case "StrongHire":
+      return "bg-emerald-50 text-emerald-700";
+    case "Hire":
+      return "bg-sky-50 text-sky-700";
+    case "NoHire":
+      return "bg-amber-50 text-amber-700";
+    case "StrongNoHire":
+      return "bg-rose-50 text-rose-700";
+    default:
+      return "bg-[#f2efed] text-[#5f5e5e]";
+  }
+}
+
 export function getInterviewTimingStatus(
   startAt?: string | number | Date | null,
   endAt?: string | number | Date | null,
