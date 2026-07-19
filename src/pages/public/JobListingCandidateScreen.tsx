@@ -34,19 +34,6 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-function salaryRangeLabel(min: number | null, max: number | null) {
-  if (min == null && max == null) {
-    return "Nhập mức lương tháng mong muốn (đơn vị: triệu đồng).";
-  }
-  if (min != null && max != null) {
-    return `Lọc lương tháng từ ${formatCurrency(min)} đến ${formatCurrency(max)}.`;
-  }
-  if (min != null) {
-    return `Lọc lương tháng từ ${formatCurrency(min)} trở lên.`;
-  }
-  return `Lọc lương tháng đến ${formatCurrency(max as number)}.`;
-}
-
 function formatEmploymentType(value: string) {
   return employmentTypeLabels[value as EmploymentType] ?? value.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 }
@@ -414,9 +401,6 @@ function JobListingCandidateScreen() {
                     </span>
                   </div>
                 </div>
-                <p className="text-[12px] text-[#7a7776]">
-                  {salaryRangeLabel(salaryFilterMin, salaryFilterMax)}
-                </p>
               </div>
             </div>
 

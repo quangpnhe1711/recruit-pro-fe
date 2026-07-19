@@ -99,13 +99,13 @@ function CandidateLoginScreen() {
   type LoginForm = yup.InferType<typeof schema>;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f9f9f9] text-[#1a1c1c]">
+    <div className="flex min-h-screen flex-col bg-[#f3f5f1] text-[#171b18]">
       <Seo title={t("auth.login")} noindex />
       <main className="flex flex-1 flex-col md:flex-row">
         {/* Left Side: Image + Messaging */}
-        <section className="relative hidden overflow-hidden bg-[#1a1c1c] md:flex md:w-1/2">
+        <section className="relative hidden overflow-hidden bg-[#171b18] md:flex md:w-[46%]">
           <div
-            className="absolute inset-0 z-0 opacity-70"
+            className="absolute inset-0 z-0 opacity-55 saturate-[0.75]"
             style={{
               backgroundImage: `url('${SPLIT_IMAGE_URL}')`,
               backgroundSize: "cover",
@@ -114,7 +114,7 @@ function CandidateLoginScreen() {
             aria-hidden="true"
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-[#1a1c1c] via-transparent to-transparent"
+            className="absolute inset-0 bg-[linear-gradient(135deg,rgba(23,27,24,0.15),rgba(23,27,24,0.96))]"
             aria-hidden="true"
           />
 
@@ -126,7 +126,7 @@ function CandidateLoginScreen() {
             </div>
 
             <div className="max-w-xl">
-              <h1 className="mb-6 text-[48px] font-black leading-[56px] tracking-[-0.02em] text-white">
+              <h1 className="mb-6 max-w-[10ch] text-[52px] font-extrabold leading-[1.02] tracking-[-0.05em] text-white">
                 {t("auth.candidateHeroTitle")}
               </h1>
               <p className="text-[16px] leading-[24px] text-[#c8c6c5]">
@@ -144,15 +144,15 @@ function CandidateLoginScreen() {
         </section>
 
         {/* Right Side: Form */}
-        <section className="flex flex-1 items-center justify-center bg-[#f9f9f9] p-5 md:w-1/2 md:p-10">
-          <div className="animate-fade-in-up w-full max-w-md">
+        <section className="relative flex flex-1 items-center justify-center overflow-hidden bg-[#f3f5f1] p-5 [background-image:linear-gradient(rgba(23,27,24,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(23,27,24,0.04)_1px,transparent_1px)] [background-size:36px_36px] md:p-10">
+          <div className="animate-fade-in-up executive-panel w-full max-w-[500px] p-6 sm:p-8">
             {/* Mobile Logo */}
             <div className="mb-10 flex items-center justify-center gap-2.5 md:hidden">
               <BrandLogo compact />
             </div>
 
             <div className="mb-8">
-              <h2 className="mb-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1c1c] md:text-[32px]">
+              <h2 className="mb-2 text-[30px] font-extrabold leading-tight tracking-[-0.04em] text-[#171b18] md:text-[34px]">
                 {t("auth.loginTitle")}
               </h2>
               <p className="text-[14px] leading-6 text-[#5f5e5e]">

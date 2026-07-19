@@ -572,7 +572,7 @@ function CandidateApplicationScreen() {
   }
 
   function openJobDetail(application: Application) {
-    navigate(`/jobs/${application.jobId}`);
+    navigate(`/internal/jobs/${application.jobId}`);
   }
 
   return (

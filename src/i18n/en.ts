@@ -120,6 +120,9 @@ export const en = {
 
   footer: {
     copyright: "© {year} RecruitPro. All rights reserved.",
+    privacy: "Privacy",
+    terms: "Terms",
+    support: "Support",
   },
 
   auth: {

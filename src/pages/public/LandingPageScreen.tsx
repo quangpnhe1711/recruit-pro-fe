@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Seo from "../../common/components/Seo";
 import { Skeleton } from "../../common/components/Skeleton";
@@ -82,35 +82,6 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-/** Reveals + returns true once the element scrolls into view (one-shot). */
-function useInView<T extends HTMLElement>(rootMargin = "0px 0px -10% 0px") {
-  const ref = useRef<T | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    if (typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin, threshold: 0.2 },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [rootMargin]);
-
-  return { ref, inView };
-}
-
 /** Counts up to `value` over `duration` ms once `active` flips true. */
 function useCountUp(value: number, active: boolean, duration = 1400) {
   const [display, setDisplay] = useState(0);
@@ -118,8 +89,8 @@ function useCountUp(value: number, active: boolean, duration = 1400) {
   useEffect(() => {
     if (!active) return;
     if (prefersReducedMotion()) {
-      setDisplay(value);
-      return;
+      const reducedMotionFrame = requestAnimationFrame(() => setDisplay(value));
+      return () => cancelAnimationFrame(reducedMotionFrame);
     }
 
     let frame = 0;
@@ -278,7 +249,6 @@ function LandingPageScreen() {
   const [homeData, setHomeData] = useState<HomeResponseDto | null>(null);
   const [featuredJobs, setFeaturedJobs] = useState<FeaturedJobCardModel[]>([]);
   const [loading, setLoading] = useState(true);
-  const stats = useInView<HTMLDivElement>();
 
   useEffect(() => {
     let mounted = true;
@@ -332,7 +302,7 @@ function LandingPageScreen() {
   const heroImage = homeData?.hero?.backgroundImageUrl || DEFAULT_HERO_IMAGE;
 
   return (
-    <div className="overflow-hidden bg-[#f9f9f9] text-[#1a1c1c]">
+    <div className="overflow-hidden bg-[#f7f8f5] text-[#171b18]">
       <Seo
         title={t("seo.defaultTitle")}
         description={t("seo.defaultDescription")}
@@ -341,22 +311,22 @@ function LandingPageScreen() {
       <main>
         <section
           id="home"
-          className="relative overflow-hidden border-b border-[#f1ddd9] bg-gradient-to-br from-white via-[#fff7f6] to-[#ffe9e7]"
+          className="relative overflow-hidden border-b border-[#e0e5e0] bg-[#f7f8f5] [background-image:linear-gradient(rgba(23,27,24,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(23,27,24,0.025)_1px,transparent_1px)] [background-size:40px_40px]"
         >
           {/* decorative brand glow — top right */}
-          <div className="pointer-events-none absolute -right-20 -top-24 h-[480px] w-[480px] rounded-full bg-[#ffb3ac]/35 blur-[130px]" />
-          <div className="pointer-events-none absolute left-1/4 top-1/2 h-72 w-72 rounded-full bg-[#ffd9d5]/40 blur-[120px]" />
+          <div className="pointer-events-none absolute -right-20 -top-24 h-[480px] w-[480px] rounded-full bg-[#ffb3ac]/24 blur-[150px]" />
+          <div className="pointer-events-none absolute left-[46%] top-0 h-full w-px bg-[#dfe4df]" />
 
-          <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-32 pt-14 sm:px-6 md:pb-40 md:pt-20 lg:px-10">
-            <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="relative mx-auto w-full max-w-[1480px] px-4 pb-32 pt-14 sm:px-6 md:pb-40 md:pt-20 lg:px-10">
+            <div className="grid items-center gap-14 lg:grid-cols-[0.88fr_1.12fr]">
               <div className="max-w-[640px] space-y-7">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#ffc9c3] bg-white/70 px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#b90014] backdrop-blur-sm animate-fade-in-up">
+                <span className="inline-flex items-center gap-2 rounded-[10px] border border-[#f0cbc7] bg-[#fff4f2] px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#c91420] animate-fade-in-up">
                   <span className="material-symbols-outlined text-[16px]">groups</span>
                   {t("landing.badge")}
                 </span>
 
                 <div className="space-y-5">
-                  <h1 className="max-w-[12ch] text-[44px] font-bold leading-[0.98] tracking-[-0.04em] text-[#1a1c1c] animate-fade-in-up sm:text-[56px] lg:text-[64px]">
+                  <h1 className="max-w-[11ch] text-[46px] font-extrabold leading-[0.96] tracking-[-0.055em] text-[#171b18] animate-fade-in-up sm:text-[60px] xl:text-[72px]">
                     {renderHeroTitle(heroTitle)}
                   </h1>
                   <p className="max-w-[540px] text-[17px] leading-8 text-[#5f5e5e] animate-fade-in-up">
@@ -365,10 +335,10 @@ function LandingPageScreen() {
                 </div>
 
                 {/* feature highlights */}
-                <div className="grid grid-cols-1 gap-4 animate-fade-in-up sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 animate-fade-in-up sm:grid-cols-3">
                   {heroFeatureItems.map((feature) => (
-                    <div key={feature.key} className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#fff1f0] text-[#b90014]">
+                    <div key={feature.key} className="flex items-start gap-3 border-l border-[#dce1dc] pl-3 first:border-l-0 first:pl-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[#f0d2cf] bg-[#fff7f5] text-[#cf1823]">
                         <span className="material-symbols-outlined text-[18px]">
                           {feature.icon}
                         </span>
@@ -401,7 +371,7 @@ function LandingPageScreen() {
 
               <div className="group relative mx-auto w-full max-w-[600px] animate-fade-in-up">
                 <div className="pointer-events-none absolute -inset-6 rounded-full bg-[#b90014]/10 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-                <div className="relative overflow-hidden rounded-[20px] border-4 border-white shadow-[0_30px_70px_-25px_rgba(185,0,20,0.35)] animate-scale-in">
+                <div className="relative overflow-hidden rounded-[28px_28px_28px_8px] border-[6px] border-white shadow-[0_34px_80px_-38px_rgba(23,27,24,0.48)] animate-scale-in">
                   <img
                     className="aspect-[4/3] w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                     alt={t("landing.heroImageAlt")}
@@ -482,7 +452,6 @@ function LandingPageScreen() {
         <section id="stats" className="relative z-10">
           <div className="mx-auto -mt-20 w-full max-w-[1180px] px-4 sm:px-6 md:-mt-24 lg:px-10">
             <div
-              ref={stats.ref}
               className="overflow-hidden rounded-[22px] border border-[#f1e2e0] bg-white shadow-[0_30px_70px_-30px_rgba(26,28,28,0.30)]"
             >
               <div className="grid divide-y divide-[#f1e2e0] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
@@ -492,7 +461,7 @@ function LandingPageScreen() {
                   sublabel={t("landing.statInternalHiresHint")}
                   value={homeData?.stats?.internalHires ?? 500}
                   suffix="+"
-                  active={stats.inView}
+                  active
                   delay={120}
                 />
                 <LandingMetricCard
@@ -500,7 +469,7 @@ function LandingPageScreen() {
                   label={t("landing.statDepartments")}
                   sublabel={t("landing.statDepartmentsHint")}
                   value={homeData?.stats?.departments ?? 15}
-                  active={stats.inView}
+                  active
                   delay={220}
                 />
                 <LandingMetricCard
@@ -509,7 +478,7 @@ function LandingPageScreen() {
                   value={homeData?.stats?.avgEmployeeRating ?? 4.8}
                   decimals={1}
                   stars
-                  active={stats.inView}
+                  active
                   delay={320}
                 />
               </div>

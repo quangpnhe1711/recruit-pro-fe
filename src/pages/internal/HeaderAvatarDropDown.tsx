@@ -142,7 +142,7 @@ function HeaderAvatarDropDown({
         aria-controls={open ? menuId : undefined}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="premium-action flex items-center gap-2.5 rounded-full border border-[#ececec] bg-white py-1 pl-1 pr-2 text-left transition-all hover:border-[#e0d4d2] hover:shadow-[var(--shadow-sm)] sm:pr-3"
+        className="premium-action flex items-center gap-2.5 rounded-[14px] border border-[#dfe4df] bg-[#fbfcfa] py-1.5 pl-1.5 pr-2 text-left transition-all hover:border-[#cbd2cc] hover:bg-white hover:shadow-[var(--shadow-sm)] sm:pr-3"
         id={buttonId}
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -154,7 +154,7 @@ function HeaderAvatarDropDown({
             src={avatarSrc}
           />
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f0353d] to-[#b90014] text-[12px] font-bold text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-[#e5232d] text-[12px] font-bold text-white">
             {initials}
           </div>
         )}
@@ -172,7 +172,7 @@ function HeaderAvatarDropDown({
             <div
               ref={menuRef}
               aria-labelledby={buttonId}
-              className="animate-scale-in fixed z-[9999] w-64 origin-top-right overflow-hidden rounded-2xl border border-[#ececec] bg-white shadow-[0_24px_60px_rgba(26,28,28,0.18)]"
+              className="animate-scale-in fixed z-[90] w-64 origin-top-right overflow-hidden rounded-[18px] border border-[#dfe4df] bg-[#fbfcfa] shadow-[var(--shadow-lg)]"
               id={menuId}
               role="menu"
               style={{

@@ -71,7 +71,7 @@ function ResetPasswordScreen() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f9f9f9] p-5 text-[#1a1c1c]">
+    <div className="flex min-h-screen items-center justify-center bg-[#f3f5f1] p-5 text-[#171b18] [background-image:linear-gradient(rgba(23,27,24,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(23,27,24,0.035)_1px,transparent_1px)] [background-size:36px_36px]">
       <Seo title={t("auth.resetPasswordTitle")} noindex />
       <div className="animate-fade-in-up w-full max-w-md">
         <div className="mb-8 flex items-center justify-center">

@@ -117,6 +117,9 @@ export const vi: Dictionary = {
 
   footer: {
     copyright: "© {year} RecruitPro. Bảo lưu mọi quyền.",
+    privacy: "Quyền riêng tư",
+    terms: "Điều khoản",
+    support: "Hỗ trợ",
   },
 
   auth: {

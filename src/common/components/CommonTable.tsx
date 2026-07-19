@@ -59,7 +59,7 @@ function CommonTable<T>({
   pagination,
   showPagination = false,
   tableHeaderBg = "",
-  tableWrapperClassName = "card overflow-hidden ring-1 ring-black/[0.02]",
+  tableWrapperClassName = "card overflow-hidden",
   variant = "default",
 }: CommonTableProps<T>) {
   const { t } = useI18n();
@@ -82,14 +82,14 @@ function CommonTable<T>({
 
   const isExecutive = variant === "executive";
   const resolvedTableWrapperClassName =
-    tableWrapperClassName === "card overflow-hidden ring-1 ring-black/[0.02]" && isExecutive
+    tableWrapperClassName === "card overflow-hidden" && isExecutive
       ? "admin-table-shell"
       : tableWrapperClassName;
 
   return (
     <section className={resolvedTableWrapperClassName}>
       {/* -------- Desktop / tablet: table -------- */}
-      <div className={`hidden overflow-x-auto md:block ${isExecutive ? "bg-[#fffdfc]" : "bg-[#fbfaf9]"}`}>
+      <div className={`hidden overflow-x-auto md:block ${isExecutive ? "bg-[#fbfcfa]" : "bg-[#fbfcfa]"}`}>
         <table className="w-full min-w-[860px] border-separate border-spacing-0 text-left">
           <thead>
             <tr
@@ -98,7 +98,7 @@ function CommonTable<T>({
                   ? `${headerClassName} ${tableHeaderBg}`
                   : isExecutive
                     ? "admin-table-header"
-                    : "bg-[#f0eceb]"
+                    : "bg-[#eef1ed]"
               }
             >
               {columns.map((col) => (
@@ -107,7 +107,7 @@ function CommonTable<T>({
                   className={`border-b px-5 text-[11px] font-bold uppercase tracking-[0.11em] first:pl-6 last:pr-6 ${
                     isExecutive
                       ? "border-[#ded6d2] py-[18px] text-[#6f6763]"
-                      : "border-[#ddd7d5] py-4 text-[#5f5e5e]"
+                      : "border-[#dce1dc] py-4 text-[#59615b]"
                   } ${
                     col.alignRight ? "text-right" : ""
                   } ${col.headerClassName || ""}`}
@@ -135,12 +135,12 @@ function CommonTable<T>({
               data.map((item, idx) => {
                 const rowBg =
                   zebra && idx % 2 === 1
-                    ? isExecutive ? "bg-[#fbf7f5]" : "bg-[#f8f6f5]"
-                    : isExecutive ? "bg-[#fffdfc]" : "bg-white";
+                    ? isExecutive ? "bg-[#f6f8f4]" : "bg-[#f6f8f4]"
+                    : isExecutive ? "bg-[#fbfcfa]" : "bg-[#fbfcfa]";
                 const rowHover = hover
                   ? isExecutive
                     ? "hover:relative hover:z-[1] hover:bg-[#fff6f4] hover:shadow-[0_16px_34px_-28px_rgba(26,28,28,0.62)]"
-                    : "hover:relative hover:z-[1] hover:bg-[#fffafa] hover:shadow-[0_10px_24px_-18px_rgba(26,28,28,0.45)]"
+                    : "hover:relative hover:z-[1] hover:bg-white hover:shadow-[0_14px_30px_-24px_rgba(23,27,24,0.55)]"
                   : "";
                 const rowCursor = onRowClick ? "cursor-pointer" : "";
 
@@ -153,8 +153,8 @@ function CommonTable<T>({
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`border-b px-5 align-middle text-[#3a3a3a] first:pl-6 last:pr-6 ${
-                          isExecutive ? "border-[#ebe3df] py-4" : "border-[#eee9e7] py-[18px]"
+                        className={`border-b px-5 align-middle text-[#343a35] first:pl-6 last:pr-6 ${
+                          isExecutive ? "border-[#e3e7e3] py-4" : "border-[#e7eae7] py-[18px]"
                         } ${
                           col.alignRight ? "text-right" : ""
                         } ${col.cellClassName || ""}`}
@@ -173,7 +173,7 @@ function CommonTable<T>({
       </div>
 
       {/* -------- Mobile: stacked cards -------- */}
-      <div className={`${isExecutive ? "bg-[#fffdfc]" : "bg-[#fbfaf9]"} p-3 md:hidden`}>
+      <div className="bg-[#f4f6f2] p-3 md:hidden">
         {loading ? (
           <SkeletonRows rows={5} />
         ) : data.length === 0 ? (
@@ -193,7 +193,7 @@ function CommonTable<T>({
               return (
                 <li
                   key={keyExtractor(item, idx)}
-                  className={`rounded-[14px] border border-[#e8e2df] bg-white px-4 py-4 shadow-[var(--shadow-xs)] transition-all duration-150 ${
+                  className={`rounded-[16px] border border-[#dfe4df] bg-[#fbfcfa] px-4 py-4 shadow-[var(--shadow-xs)] transition-all duration-150 ${
                     onRowClick ? "cursor-pointer active:scale-[0.99] active:bg-[#fffafa]" : ""
                   }`}
                   onClick={() => onRowClick?.(item, idx)}

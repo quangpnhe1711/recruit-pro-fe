@@ -170,14 +170,14 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
 
   return (
     <header
-      className={`sticky top-0 z-40 backdrop-blur-xl supports-[backdrop-filter]:bg-white/70 ${
+      className={`sticky top-0 z-40 backdrop-blur-xl supports-[backdrop-filter]:bg-[#f8faf6]/78 ${
         isSystemAdmin
-          ? "border-b border-[#ded6d2] bg-[#fbf8f6]/86 shadow-[0_10px_36px_-32px_rgba(26,28,28,0.55)]"
-          : "border-b border-[#ececec] bg-white/80"
+          ? "border-b border-[#dce2dc] bg-[#f6f8f4]/88 shadow-[0_12px_34px_-30px_rgba(23,27,24,0.5)]"
+          : "border-b border-[#e0e5e0] bg-[#f8faf6]/86"
       }`}
     >
       <div
-        className={`flex w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 ${
+          className={`mx-auto flex w-full max-w-[1680px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 ${
           isSystemAdmin ? "h-[72px]" : "h-16"
         }`}
       >
@@ -321,9 +321,7 @@ function AppHeader({ showNotifications = true, menuItems, onMenuToggle }: AppHea
                     )}
                   </div>
 
-                  <div className="border-t border-[#f0eceb] px-4 py-3 text-right text-[11px] text-[#9a8e8c]">
-                    {refreshing ? t("header.refreshingShort") : t("header.realtime")}
-                  </div>
+         
                 </div>
               ) : null}
             </div>

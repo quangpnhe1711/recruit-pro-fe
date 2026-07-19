@@ -114,7 +114,7 @@ function CandidateRegisterScreen() {
     errors[name] ? "!border-[#b90014]" : "";
 
   return (
-    <main className="flex min-h-screen w-full bg-white text-[#1a1c1c]">
+    <main className="flex min-h-screen w-full bg-[#f3f5f1] text-[#171b18]">
       <Seo title={t("auth.registerTitle")} noindex />
       <section className="hidden lg:flex lg:w-1/2 relative bg-[#1a1c1c] overflow-hidden flex-col p-[40px] justify-between">
         <div className="absolute top-0 right-0 w-full h-full opacity-20 pointer-events-none">

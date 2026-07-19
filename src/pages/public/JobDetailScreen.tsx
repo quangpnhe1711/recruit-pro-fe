@@ -167,6 +167,10 @@ function JobDetailScreen() {
   const { jobId = "" } = useParams();
 
   const isInternalPortal = isAuthenticated && portalVariant === "internal";
+  // Self-navigation must stay in the same portal: an internal user reached this via /internal/jobs/:id
+  // (authSession.portalForPath → internal token). Re-navigating to the public /jobs/:id would flip the
+  // active portal to candidate and 401 → bounce to the candidate login.
+  const jobsBase = isInternalPortal ? "/internal/jobs" : "/jobs";
   const isEditRequested =
     new URLSearchParams(location.search).get("mode") === "edit";
   const canEditJob = hasPermission(PERMISSIONS.JOB_UPDATE);
@@ -463,7 +467,7 @@ function JobDetailScreen() {
 
       appToast.success(t("jobDetail.updateSuccess"));
       setEditing(false);
-      navigate(`/jobs/${detail.id}`, { replace: true });
+      navigate(`${jobsBase}/${detail.id}`, { replace: true });
       await loadDetail();
     } catch (err) {
       handleNonFormApiError(err);
@@ -573,7 +577,7 @@ function JobDetailScreen() {
             <button
               type="button"
               className="transition-colors hover:text-[#b90014]"
-              onClick={() => navigate("/jobs")}
+              onClick={() => navigate(isInternalPortal ? "/internal/jobs" : "/jobs")}
             >
               {t("nav.jobs")}
             </button>
@@ -665,7 +669,7 @@ function JobDetailScreen() {
                     disabled={!canEditJob}
                     onClick={() => {
                       setEditing(true);
-                      navigate(`/jobs/${detail.id}?mode=edit`, { replace: true });
+                      navigate(`${jobsBase}/${detail.id}?mode=edit`, { replace: true });
                     }}
                   >
                     <Icon name="edit" />
@@ -734,7 +738,7 @@ function JobDetailScreen() {
                     onClick={() => {
                       setEditForm(toEditForm(detail));
                       setEditing(false);
-                      navigate(`/jobs/${detail.id}`, { replace: true });
+                      navigate(`${jobsBase}/${detail.id}`, { replace: true });
                     }}
                   >
                     {t("common.cancel")}

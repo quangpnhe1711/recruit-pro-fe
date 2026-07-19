@@ -23,6 +23,7 @@ const ManagerJobApprovalDetailScreen = lazy(() => import("../pages/manager/Manag
 const ManagerRecruitmentAnalyticsScreen = lazy(() => import("../pages/manager/ManagerRecruitmentAnalyticsScreen"));
 const JobCreatingScreen = lazy(() => import("../pages/hr/JobCreatingScreen"));
 const JobsRouteScreen = lazy(() => import("../pages/JobsRouteScreen"));
+const JobDetailScreen = lazy(() => import("../pages/public/JobDetailScreen"));
 const JobInterviewListScreen = lazy(() => import("../pages/hr/JobInterviewListScreen"));
 const InterviewScheduleScreen = lazy(() => import("../pages/hr/InterviewScheduleScreen"));
 const AiCopilotScreen = lazy(() => import("../pages/hr/AiCopilotScreen"));
@@ -85,6 +86,14 @@ const hrRoutes = (
         <Route
           path="/internal/jobs"
           element={lazyRoute(<JobsRouteScreen />)}
+        />
+        {/* Internal job detail. Same screen as the public "/jobs/:jobId", but reached under the
+            /internal prefix so authSession.portalForPath resolves the INTERNAL portal — otherwise an
+            HR/manager opening job detail runs as the candidate portal, sends no internal token, and
+            gets bounced to the candidate login on the 401. */}
+        <Route
+          path="/internal/jobs/:jobId"
+          element={lazyRoute(<JobDetailScreen />)}
         />
       </Route>
 

@@ -178,16 +178,16 @@ function SideNavBar({
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) => {
     const common =
-      "group relative flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-[13px] font-medium transition-all duration-150";
+      "group relative flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-[13px] font-semibold transition-all duration-200";
 
     return `${common} ${
       isSystemAdmin
         ? isActive
-          ? "bg-[#2a1719] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
-          : "text-[#a9a19d] hover:bg-white/[0.055] hover:text-white"
+          ? "bg-white/[0.09] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]"
+          : "text-[#aeb5af] hover:bg-white/[0.055] hover:text-white"
         : isActive
-          ? "bg-white/[0.09] text-white"
-          : "text-[#b9b6b5] hover:bg-white/[0.05] hover:text-white"
+          ? "bg-white/[0.09] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
+          : "text-[#aeb5af] hover:bg-white/[0.055] hover:text-white"
     }`;
   };
 
@@ -195,8 +195,8 @@ function SideNavBar({
     <aside
       className={`fixed left-0 top-0 z-[70] h-screen flex-col transition-transform duration-300 ease-out ${
         isSystemAdmin
-          ? "w-[286px] border-r border-white/[0.08] bg-[#121313] shadow-[18px_0_64px_rgba(18,19,19,0.28)]"
-          : "w-[260px] bg-[#161718] shadow-[12px_0_48px_rgba(26,28,28,0.16)]"
+          ? "w-[286px] border-r border-white/[0.08] bg-[#141815] shadow-[18px_0_64px_rgba(18,24,19,0.24)]"
+          : "w-[260px] border-r border-white/[0.07] bg-[#171b18] shadow-[16px_0_58px_rgba(18,24,19,0.2)]"
       } ${
         authState.isAuthenticated ? "" : "hidden"
       } ${visibilityClass}`}
@@ -211,7 +211,7 @@ function SideNavBar({
           <BrandLogo
             size="lg"
             subtitle={resolvedBrand.subtitle}
-            subtitleClassName="text-[#9c9490]"
+            subtitleClassName="text-[#929b94]"
             titleClassName="text-white"
           />
         </NavLink>
@@ -245,7 +245,7 @@ function SideNavBar({
         </div>
       ) : null}
 
-      <div className="mx-5 h-px bg-white/[0.06]" />
+        <div className="mx-5 h-px bg-white/[0.08]" />
 
       {/* Primary nav */}
       <nav
@@ -281,7 +281,7 @@ function SideNavBar({
                 />
                 <span
                   className={`material-symbols-outlined text-[21px] transition-transform duration-150 group-hover:scale-105 ${
-                    isActive ? "text-[#ffdad6]" : "text-[#8f8580]"
+                    isActive ? "text-[#ffaaa4]" : "text-[#7f8981]"
                   }`}
                 >
                   {item.icon}
@@ -300,7 +300,7 @@ function SideNavBar({
         {resolvedCta ? (
           <button
             type="button"
-            className="premium-action mb-4 flex w-full items-center justify-center gap-2 rounded-[10px] bg-gradient-to-b from-[#e8242c] to-[#c50f1b] px-4 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(227,27,35,0.5)] transition-all hover:from-[#f0353d] hover:to-[#d11420]"
+            className="btn btn-primary mb-4 w-full"
             onClick={() => {
               onClose?.();
               navigate("/hr/jobs/create");
@@ -315,7 +315,7 @@ function SideNavBar({
           <NavLink
             to="/internal/profile"
             onClick={onClose}
-            className="flex items-center gap-3 rounded-[12px] border border-white/[0.07] bg-white/[0.04] px-3 py-2.5 transition-colors hover:bg-white/[0.07]"
+            className="flex items-center gap-3 rounded-[14px] border border-white/[0.08] bg-white/[0.045] px-3 py-3 transition-all hover:border-white/[0.13] hover:bg-white/[0.075]"
           >
             {resolvedUserAvatarSrc ? (
               <img
@@ -324,7 +324,7 @@ function SideNavBar({
                 src={resolvedUserAvatarSrc}
               />
             ) : (
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f0353d] to-[#b90014] text-[12px] font-bold text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-[#e5232d] text-[12px] font-bold text-white">
                 {resolvedInitials}
               </div>
             )}
