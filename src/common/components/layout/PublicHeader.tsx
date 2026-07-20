@@ -17,20 +17,20 @@ function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#edd8d4] bg-white/95 backdrop-blur-sm">
-      <nav className="mx-auto flex h-20 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-50 border-b border-[#e1e5e1] bg-[#f8f9f6]/90 backdrop-blur-xl">
+      <nav className="mx-auto flex h-[76px] w-full max-w-[1480px] items-center justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex items-center gap-8">
           <Link to="/" aria-label="RecruitPro" className="shrink-0">
             <BrandLogo compact size="sm" />
           </Link>
-          <div className="hidden items-center gap-8 md:flex">
+          <div className="hidden items-center gap-1 rounded-[14px] border border-[#e1e5e1] bg-white/70 p-1 md:flex">
             {navLinks.map((link) => (
               <a
                 key={link.label}
-                className={`text-[16px] transition-colors duration-200 ${
+                className={`rounded-[10px] px-4 py-2 text-[13px] font-bold transition-all duration-200 ${
                   link.active
-                    ? "border-b-2 border-[#b90014] pb-1 font-bold text-[#b90014]"
-                    : "font-medium text-[#6e6c6b] hover:text-[#b90014]"
+                    ? "bg-[#171b18] text-white shadow-[var(--shadow-sm)]"
+                    : "text-[#626a64] hover:bg-[#f0f2ee] hover:text-[#171b18]"
                 }`}
                 href={link.href}
               >
@@ -44,13 +44,13 @@ function PublicHeader() {
           <LanguageSwitcher />
           <Link
             to="/login"
-            className="px-4 py-2 text-[15px] font-medium text-[#4f4d4c] transition-colors hover:text-[#b90014] md:px-2"
+            className="rounded-[10px] px-3 py-2 text-[13px] font-bold text-[#4f574f] transition-colors hover:bg-white hover:text-[#cf1823]"
           >
             {t("auth.login")}
           </Link>
           <Link
             to="/register"
-            className="hidden rounded-[8px] bg-[#b90014] px-6 py-3 text-[15px] font-bold text-white transition-all duration-200 hover:opacity-90 sm:inline-block"
+            className="btn btn-primary hidden px-5 sm:inline-flex"
           >
             {t("landing.getStarted")}
           </Link>
@@ -68,7 +68,7 @@ function PublicHeader() {
       </nav>
 
       {mobileMenuOpen ? (
-        <div className="border-t border-[#e2dfde] bg-white px-4 pb-4 md:hidden">
+        <div className="animate-fade-in border-t border-[#e1e5e1] bg-[#f8f9f6] px-4 pb-4 md:hidden">
           <div className="flex flex-col gap-1 pt-2">
             {navLinks.map((link) => (
               <a
@@ -84,7 +84,7 @@ function PublicHeader() {
             ))}
             <Link
               to="/register"
-              className="mt-2 block rounded-[8px] bg-[#b90014] py-3 text-center text-[14px] font-semibold text-white"
+              className="btn btn-primary mt-2 w-full"
               onClick={() => setMobileMenuOpen(false)}
             >
               {t("landing.getStarted")}

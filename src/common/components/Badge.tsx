@@ -12,15 +12,15 @@ export type BadgeTone =
   | "sky";
 
 const toneClasses: Record<BadgeTone, string> = {
-  neutral: "bg-[#f2efed] text-[#5f5e5e]",
-  brand: "bg-[#fff1f0] text-[#b90014]",
-  success: "bg-emerald-50 text-emerald-700",
-  warning: "bg-amber-50 text-amber-700",
-  info: "bg-sky-50 text-sky-700",
-  danger: "bg-rose-50 text-rose-700",
-  purple: "bg-purple-50 text-purple-700",
-  violet: "bg-violet-50 text-violet-700",
-  sky: "bg-sky-50 text-sky-700",
+  neutral: "border-[#dde2dd] bg-[#f1f3f0] text-[#59615b]",
+  brand: "border-[#f1ceca] bg-[#fff3f1] text-[#c91420]",
+  success: "border-emerald-200/70 bg-emerald-50 text-emerald-800",
+  warning: "border-amber-200/70 bg-amber-50 text-amber-800",
+  info: "border-sky-200/70 bg-sky-50 text-sky-800",
+  danger: "border-rose-200/70 bg-rose-50 text-rose-800",
+  purple: "border-stone-200 bg-stone-50 text-stone-700",
+  violet: "border-stone-200 bg-stone-50 text-stone-700",
+  sky: "border-sky-200/70 bg-sky-50 text-sky-800",
 };
 
 const dotClasses: Record<BadgeTone, string> = {

@@ -29,12 +29,12 @@ function PageHeader({
   className = "",
 }: PageHeaderProps) {
   return (
-    <div
-      className={`flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between ${className}`.trim()}
+    <header
+      className={`relative flex flex-col gap-5 border-b border-[#dfe4df] pb-6 sm:flex-row sm:items-end sm:justify-between ${className}`.trim()}
     >
       <div className="flex items-start gap-4">
         {icon ? (
-          <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-br from-[#fff1f0] to-[#ffdad6] text-[#b90014] sm:flex">
+          <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-[14px] border border-[#f0c9c6] bg-[#fff5f3] text-[#cf1823] sm:flex">
             <span className="material-symbols-outlined text-[26px]">{icon}</span>
           </div>
         ) : null}
@@ -48,7 +48,8 @@ function PageHeader({
       {actions ? (
         <div className="flex shrink-0 flex-wrap items-center gap-2.5">{actions}</div>
       ) : null}
-    </div>
+      <span className="absolute -bottom-px left-0 h-[3px] w-12 bg-[#e5232d]" aria-hidden="true" />
+    </header>
   );
 }
 

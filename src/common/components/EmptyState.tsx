@@ -21,18 +21,19 @@ function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center px-6 py-14 text-center ${className}`.trim()}
+      className={`relative flex flex-col items-center justify-center overflow-hidden px-6 py-16 text-center ${className}`.trim()}
     >
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fff1f0] to-[#ffe3e0] text-[#b90014]">
+      <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[#e5c8c5] opacity-55" />
+      <div className="relative flex h-16 w-16 items-center justify-center rounded-[18px] border border-[#efcfcb] bg-[#fff5f3] text-[#cf1823] shadow-[var(--shadow-sm)]">
         <span className="material-symbols-outlined text-[32px]">{icon}</span>
       </div>
-      <h3 className="mt-4 text-[16px] font-semibold text-[#1a1c1c]">{title}</h3>
+      <h3 className="relative mt-5 text-[16px] font-bold text-[#171b18]">{title}</h3>
       {description ? (
-        <p className="mt-1.5 max-w-sm text-[13px] leading-6 text-[#5f5e5e]">
+        <p className="relative mt-1.5 max-w-sm text-[13px] leading-6 text-[#626a64]">
           {description}
         </p>
       ) : null}
-      {action ? <div className="mt-5">{action}</div> : null}
+      {action ? <div className="relative mt-5">{action}</div> : null}
     </div>
   );
 }

@@ -16,7 +16,8 @@ function AuthenticatedLayout() {
 
   // Close the drawer whenever the route changes (also covered by nav item onClose).
   useEffect(() => {
-    setDrawerOpen(false);
+    const frame = requestAnimationFrame(() => setDrawerOpen(false));
+    return () => cancelAnimationFrame(frame);
   }, [location.pathname]);
 
   // While the drawer is open on mobile: lock body scroll + close on Escape.
@@ -36,10 +37,16 @@ function AuthenticatedLayout() {
 
   return (
     <div
-      className={`min-h-screen overflow-x-hidden text-[#1a1c1c] ${
-        isSystemAdmin ? "sysadmin-canvas" : "bg-[#f7f6f5]"
+      className={`min-h-screen overflow-x-hidden text-[#171b18] ${
+        isSystemAdmin ? "sysadmin-canvas" : "bg-[#f3f5f1]"
       }`}
     >
+      <a
+        href="#app-content"
+        className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-[10px] bg-[#171b18] px-4 py-3 text-sm font-bold text-white transition-transform focus:translate-y-0"
+      >
+        Skip to content
+      </a>
       {/* Default for authenticated pages: private, not indexable. Rendered
           before the Outlet so a page-level <Seo> (e.g. public job pages in
           AdaptiveLayout) runs later and overrides it. */}
@@ -69,8 +76,9 @@ function AuthenticatedLayout() {
         <AppHeader onMenuToggle={() => setDrawerOpen(true)} />
 
         <main
+          id="app-content"
           key={location.pathname}
-          className="animate-fade-in flex-1 overflow-x-hidden pb-0"
+          className="animate-fade-in relative flex-1 overflow-x-hidden pb-0"
         >
           <Outlet />
         </main>

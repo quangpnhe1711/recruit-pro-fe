@@ -7,53 +7,59 @@
    ========================================================================= */
 
 @theme {
-  /* Brand — warm crimson */
+  /* Brand — RecruitPro signal red */
   --color-brand-50: #fff1f0;
   --color-brand-100: #ffdad6;
   --color-brand-200: #ffb3ac;
   --color-brand-300: #ff857c;
   --color-brand-400: #f5544c;
-  --color-brand-500: #e31b23;
-  --color-brand-600: #c50f1b;
-  --color-brand-700: #b90014;
+  --color-brand-500: #e5232d;
+  --color-brand-600: #cf1823;
+  --color-brand-700: #b8101b;
   --color-brand-800: #930614;
   --color-brand-900: #6d0a13;
 
   /* Ink / neutrals */
-  --color-ink-900: #1a1c1c;
-  --color-ink-700: #3a3a3a;
-  --color-ink-500: #5f5e5e;
-  --color-ink-400: #8a8786;
-  --color-ink-300: #c8c6c5;
+  --color-ink-900: #171b18;
+  --color-ink-700: #343a35;
+  --color-ink-500: #626a64;
+  --color-ink-400: #89918b;
+  --color-ink-300: #c7ccc8;
 
-  --color-line: #e8e3e1;
-  --color-line-soft: #f0eceb;
-  --color-canvas: #f7f6f5;
-  --color-surface: #ffffff;
+  --color-line: #dfe3df;
+  --color-line-soft: #ecefec;
+  --color-canvas: #f3f5f1;
+  --color-surface: #fbfcfa;
 
   /* Radii */
-  --radius-card: 16px;
-  --radius-control: 10px;
+  --radius-card: 20px;
+  --radius-control: 12px;
 
   /* Elevation — soft, layered, never harsh */
-  --shadow-xs: 0 1px 2px rgba(26, 28, 28, 0.04);
-  --shadow-sm: 0 1px 3px rgba(26, 28, 28, 0.06), 0 1px 2px rgba(26, 28, 28, 0.04);
-  --shadow-md: 0 4px 16px -4px rgba(26, 28, 28, 0.08), 0 2px 6px -2px rgba(26, 28, 28, 0.05);
-  --shadow-lg: 0 16px 40px -12px rgba(26, 28, 28, 0.16), 0 4px 12px -4px rgba(26, 28, 28, 0.08);
-  --shadow-brand: 0 12px 28px -8px rgba(227, 27, 35, 0.35);
+  --shadow-xs: 0 1px 2px rgba(23, 27, 24, 0.04);
+  --shadow-sm: 0 6px 18px -14px rgba(23, 27, 24, 0.24);
+  --shadow-md: 0 18px 42px -30px rgba(23, 27, 24, 0.35);
+  --shadow-lg: 0 28px 70px -38px rgba(23, 27, 24, 0.48);
+  --shadow-brand: 0 14px 28px -16px rgba(229, 35, 45, 0.7);
 }
 
 @layer base {
   html {
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-[#f7f6f5] text-[#1a1c1c] antialiased;
+    @apply bg-[#f3f5f1] text-[#171b18] antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    min-width: 320px;
+    background-image:
+      radial-gradient(circle at 8% 0%, rgba(229, 35, 45, 0.035), transparent 28rem),
+      linear-gradient(rgba(23, 27, 24, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 27, 24, 0.018) 1px, transparent 1px);
+    background-size: auto, 32px 32px, 32px 32px;
   }
 
   button:not(:disabled),
@@ -67,7 +73,19 @@
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-[#b90014];
+    @apply outline-2 outline-offset-2 outline-[#cf1823];
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  input, select, textarea, button {
+    font: inherit;
   }
 
   /* Quieter, more refined scrollbars */
@@ -93,7 +111,7 @@
 @layer components {
   /* ---- Page scaffolding ---------------------------------------------- */
   .app-container {
-    @apply w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12;
+    @apply mx-auto w-full max-w-[1680px] px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12;
   }
 
   .sysadmin-canvas {
@@ -146,24 +164,24 @@
   }
 
   .page-title {
-    @apply text-[26px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#1a1c1c] md:text-[32px];
+    @apply text-[30px] font-extrabold leading-[1.08] tracking-[-0.04em] text-[#171b18] md:text-[38px];
   }
 
   .page-subtitle {
-    @apply mt-1.5 max-w-3xl text-[14px] leading-6 text-[#5f5e5e] md:text-[15px];
+    @apply mt-2 max-w-3xl text-[14px] leading-6 text-[#626a64] md:text-[15px];
   }
 
   .section-title {
-    @apply text-[17px] font-semibold tracking-[-0.01em] text-[#1a1c1c] md:text-[18px];
+    @apply text-[17px] font-bold tracking-[-0.025em] text-[#171b18] md:text-[19px];
   }
 
   .eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a8786];
+    @apply text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#89918b];
   }
 
   /* ---- Surfaces ------------------------------------------------------- */
   .surface-card {
-    @apply rounded-[16px] border border-[#e7e1df] bg-white;
+    @apply rounded-[20px] border border-[#e1e5e1] bg-[#fbfcfa];
     box-shadow: var(--shadow-md);
   }
 
@@ -178,31 +196,32 @@
   }
 
   .card {
-    @apply rounded-[16px] border border-[#e7e1df] bg-white;
+    @apply rounded-[20px] border border-[#e1e5e1] bg-[#fbfcfa];
     box-shadow: var(--shadow-md);
   }
 
   /* Interactive card — lifts on hover */
   .card-interactive {
-    @apply rounded-[16px] border border-[#ececec] bg-white transition-all duration-200 ease-out;
+    @apply rounded-[20px] border border-[#e1e5e1] bg-[#fbfcfa] transition-all duration-200 ease-out;
     box-shadow: var(--shadow-sm);
   }
   .card-interactive:hover {
-    @apply border-[#e0d4d2] -translate-y-0.5;
+    @apply -translate-y-1 border-[#ccd2cd];
     box-shadow: var(--shadow-md);
   }
 
   .stat-card {
-    @apply relative overflow-hidden rounded-[16px] border border-[#e7e1df] bg-white p-5 transition-all duration-200 ease-out;
+    @apply relative overflow-hidden rounded-[20px] border border-[#e1e5e1] bg-[#fbfcfa] p-5 transition-all duration-200 ease-out;
     box-shadow: var(--shadow-sm);
   }
   .stat-card::before {
     content: "";
     position: absolute;
     inset: 0 0 auto 0;
+    width: 46px;
     height: 3px;
-    background: linear-gradient(90deg, #b90014, #005f93 55%, #059669);
-    opacity: 0.85;
+    left: 1.25rem;
+    background: #e5232d;
   }
   .stat-card:hover {
     @apply -translate-y-0.5 border-[#e0d4d2];
@@ -211,28 +230,29 @@
 
   /* ---- Buttons -------------------------------------------------------- */
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-[14px] font-semibold leading-none
-      transition-all duration-150 ease-out
+    @apply inline-flex min-h-10 select-none items-center justify-center gap-2 rounded-[12px] px-4 py-2.5 text-[13px] font-bold leading-none
+      transition-all duration-200 ease-out
       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b90014]
       active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-primary {
     @apply text-white;
-    background-image: linear-gradient(180deg, #e8242c 0%, #c50f1b 100%);
+    background: #e5232d;
     box-shadow: var(--shadow-brand);
   }
   .btn-primary:hover {
-    background-image: linear-gradient(180deg, #f0353d 0%, #d11420 100%);
-    box-shadow: 0 14px 30px -8px rgba(227, 27, 35, 0.45);
+    background: #c91420;
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px -16px rgba(229, 35, 45, 0.75);
   }
 
   .btn-secondary {
-    @apply border border-[#dcd7d5] bg-white text-[#1a1c1c];
+    @apply border border-[#d9ded9] bg-[#fbfcfa] text-[#171b18];
     box-shadow: var(--shadow-xs);
   }
   .btn-secondary:hover {
-    @apply border-[#c8c2c0] bg-[#faf9f8];
+    @apply -translate-y-0.5 border-[#bfc7c0] bg-white;
   }
 
   .btn-ghost {
@@ -251,9 +271,9 @@
 
   /* ---- Inputs --------------------------------------------------------- */
   .input-field {
-    @apply w-full rounded-[10px] border border-[#dcd7d5] bg-white px-3.5 py-2.5 text-[14px] text-[#1a1c1c]
-      placeholder:text-[#a8a4a2] transition-all duration-150
-      focus:border-[#b90014] focus:outline-none focus:ring-4 focus:ring-[#b90014]/10;
+    @apply w-full rounded-[12px] border border-[#d9ded9] bg-[#fbfcfa] px-3.5 py-3 text-[14px] text-[#171b18]
+      placeholder:text-[#9aa19b] transition-all duration-200
+      hover:border-[#c4cbc5] focus:border-[#cf1823] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#cf1823]/10;
   }
 
   .auth-input {
@@ -261,7 +281,7 @@
   }
 
   .field-label {
-    @apply mb-1.5 block text-[13px] font-semibold text-[#3a3a3a];
+    @apply mb-2 block text-[12px] font-bold text-[#343a35];
   }
 
   /* ---- Badges --------------------------------------------------------- */

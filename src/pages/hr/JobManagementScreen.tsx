@@ -325,7 +325,7 @@ function JobManagementScreen() {
   }
 
   function openEdit(job: Job) {
-    navigate(`/jobs/${job.id}?mode=edit`);
+    navigate(`/internal/jobs/${job.id}?mode=edit`);
   }
 
   async function confirmDeleteJob() {
@@ -344,7 +344,7 @@ function JobManagementScreen() {
   }
 
   function openJobDetail(job: Job) {
-    navigate(`/jobs/${job.id}`);
+    navigate(`/internal/jobs/${job.id}`);
   }
 
   function openApplications(job: Job) {

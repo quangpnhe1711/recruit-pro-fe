@@ -21,7 +21,7 @@ function ErrorState({ message, onRetry, className = "" }: ErrorStateProps) {
       role="alert"
       className={`card flex flex-col items-center justify-center px-6 py-12 text-center ${className}`.trim()}
     >
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fdeceb] text-[#b90014]">
+      <div className="flex h-14 w-14 items-center justify-center rounded-[16px] border border-[#f0c8c5] bg-[#fff2f0] text-[#c91420]">
         <span className="material-symbols-outlined text-[28px]">error</span>
       </div>
       <h3 className="mt-4 text-[16px] font-semibold text-[#1a1c1c]">

@@ -86,7 +86,7 @@ function InternalLoginScreen() {
   }
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#161313] text-[#1a1c1c]">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#171b18] text-[#171b18]">
       <Seo title={t("auth.internalLoginTitle")} noindex />
       <div
         className="pointer-events-none absolute inset-0"
@@ -94,7 +94,7 @@ function InternalLoginScreen() {
       >
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#171313_0%,#211719_46%,#f4efeb_46%,#f7f4f1_100%)] max-lg:bg-[linear-gradient(180deg,#171313_0%,#24191b_38%,#f7f4f1_38%,#f7f4f1_100%)]" />
         <div className="absolute left-[-12%] top-[-18%] h-[420px] w-[420px] rounded-full bg-[#b90014]/25 blur-[120px]" />
-        <div className="absolute right-0 top-0 h-full w-[54%] opacity-[0.34] [background-image:linear-gradient(#d8cfca_1px,transparent_1px),linear-gradient(90deg,#d8cfca_1px,transparent_1px)] [background-size:42px_42px] max-lg:w-full" />
+        <div className="absolute right-0 top-0 h-full w-[54%] opacity-[0.32] [background-image:linear-gradient(#cbd2cc_1px,transparent_1px),linear-gradient(90deg,#cbd2cc_1px,transparent_1px)] [background-size:36px_36px] max-lg:w-full" />
         <div className="absolute bottom-10 left-12 h-32 w-32 rounded-[28px] border border-white/10 bg-white/[0.03] max-lg:hidden" />
       </div>
 
@@ -104,7 +104,7 @@ function InternalLoginScreen() {
 
       <main className="relative z-10 grid flex-1 items-center gap-8 px-5 pb-8 pt-5 md:px-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(430px,0.62fr)] lg:pb-10">
         <section className="animate-fade-in-up hidden max-w-2xl text-white lg:block">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[12px] font-semibold text-[#ffdad6]">
+          <div className="inline-flex items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#ffaaa4]">
             <img alt="RecruitPro logo" className="h-4 w-4 rounded-[4px] object-cover" src="/logo.jpg" />
             {t("auth.internalPortalTag")}
           </div>
@@ -127,7 +127,7 @@ function InternalLoginScreen() {
                 className="rounded-[16px] border border-white/[0.08] bg-white/[0.045] px-4 py-4"
               >
                 <div className="h-2 w-10 rounded-full bg-white/12" />
-                <div className="mt-8 h-1 rounded-full bg-[#b90014]" />
+                <div className="mt-8 h-1 w-12 bg-[#e5232d]" />
               </div>
             ))}
           </div>
@@ -149,7 +149,7 @@ function InternalLoginScreen() {
           <div className="executive-panel w-full p-5 md:p-7">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.03em] text-[#1a1c1c]">
+                <h2 className="text-[28px] font-extrabold leading-tight tracking-[-0.04em] text-[#171b18]">
                   {t("auth.internalLoginTitle")}
                 </h2>
                 <p className="mt-2 text-[14px] leading-6 text-[#5f5e5e]">
